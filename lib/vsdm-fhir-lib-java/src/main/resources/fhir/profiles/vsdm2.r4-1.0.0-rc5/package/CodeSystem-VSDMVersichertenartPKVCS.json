@@ -1,0 +1,28 @@
+{
+  "resourceType": "CodeSystem",
+  "status": "active",
+  "content": "complete",
+  "name": "VSDMVersichertenartPKVCS",
+  "id": "VSDMVersichertenartPKVCS",
+  "title": "Versichertenart (PKV)",
+  "description": "PKV-Versichertenart im Versichertenstammdatenmanagement (VSDM) 2.0",
+  "version": "1.0.0",
+  "url": "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMVersichertenartPKVCS",
+  "concept": [
+    {
+      "code": "VN",
+      "display": "Versicherungsnehmer",
+      "definition": "Die behandelte Person ist selbst der Versicherungsnehmer."
+    },
+    {
+      "code": "VP",
+      "display": "versicherte Person",
+      "definition": "Die behandelte Person ist nicht selbst der Versicherungsnehmer."
+    }
+  ],
+  "experimental": false,
+  "publisher": "gematik GmbH",
+  "date": "2023-12-31",
+  "caseSensitive": true,
+  "count": 2
+}

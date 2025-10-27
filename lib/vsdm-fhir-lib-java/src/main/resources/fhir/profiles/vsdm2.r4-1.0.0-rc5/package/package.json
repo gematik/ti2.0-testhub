@@ -1,0 +1,19 @@
+{
+  "name": "de.gematik.vsdm2",
+  "version": "1.0.0-rc5",
+  "fhirVersions": [
+    "4.0.1"
+  ],
+  "description": "FHIR Spezifikation VSDM 2",
+  "author": "gematik",
+  "dependencies": {
+    "hl7.fhir.r4.core": "4.0.1",
+    "de.basisprofil.r4": "1.5.4",
+    "de.gematik.terminology": "1.0.7",
+    "de.gematik.ti": "1.1.1",
+    "kbv.basis": "1.7.0",
+    "kbv.all.st": "1.24.0",
+    "kbv.ita.for": "1.2.0"
+  },
+  "jurisdiction": "urn:iso:std:iso:3166#DE"
+}

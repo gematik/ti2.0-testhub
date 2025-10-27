@@ -1,0 +1,30 @@
+{
+  "resourceType": "OperationOutcome",
+  "id": "VSDMOperationOutcome-InvalidHTTPOperation",
+  "meta": {
+    "profile": [
+      "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMOperationOutcome"
+    ]
+  },
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Die HTTP-Operation PATCH wird nicht unterstützt.</div>"
+  },
+  "issue": [
+    {
+      "severity": "fatal",
+      "code": "not-supported",
+      "details": {
+        "coding": [
+          {
+            "code": "VSDSERVICE_INVALID_HTTP_OPERATION",
+            "system": "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMErrorcodeCS",
+            "display": "Die HTTP-Operation [http-operation] wird nicht unterstützt."
+          }
+        ],
+        "text": "Die HTTP-Operation PATCH wird nicht unterstützt."
+      },
+      "diagnostics": "Implementierungsfehler beim Clientsystem - der Hersteller des Clientsystems ist zu kontaktieren."
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+app.version: 0.0.1-dev
+server:
+  error:
+    whitelabel.enabled: false
+    include-message: always
+  port: ${SERVER_PORT:80}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.boot.autoconfigure: OFF
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+popp:
+  sec:
+    store:
+      path: ${POPP_SEC_STORE_PATH:NOT_SET_BUT_REQUIRED}
+      pass: ${POPP_SEC_STORE_PASS:NOT_SET_BUT_REQUIRED}
+    key:
+      alias: ${POPP_SEC_KEY_ALIAS:NOT_SET_BUT_REQUIRED}
+      pass: ${POPP_SEC_KEY_PASS:NOT_SET_BUT_REQUIRED}
+

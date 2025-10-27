@@ -1,0 +1,90 @@
+scenario-vars:
+  time-span: 10000
+  supported-g21-cards: 040400,040401,040500,040501,040502,040600,040700
+  supported-g3-cards: 050000
+scenario-names:
+    sce-open-egk: "SCE_OPEN_EGK"
+    sce-pace-egk: "SCE_PACE_EGK"
+    sce-trusted-channel: "SCE_TRUSTED_CHANNEL"
+step-names:
+    select-master-file: "select-master-file"
+    read-version: "read-version"
+    get-pace-challenge: "get-pace-challenge"
+    establish-pace-channel: "establish-pace-channel"
+    perform-pace-step1: "perform-pace-step1"
+    perform-pace-step2: "perform-pace-step2"
+    perform-pace-step3: "perform-pace-step3"
+    perform-pace-step4: "perform-pace-step4"
+    select-trusted-channel-key: "select-trusted-channel-key"
+    mutual-authentication-step1: "mutual-authentication-step1"
+    mutual-authentication-step2: "mutual-authentication-step2"
+
+open-egk-scenarios:
+  scenarios:
+    - name: ${scenario-names.sce-open-egk}
+      stepDefinitions:
+        - description: "Select Master File"
+          name: ${step-names.select-master-file}
+          commandApdu: "00 a4 040c    07 D2760001448000"
+          expectedStatusWord:
+            - "9000"
+        - description: "Read Version"
+          name: ${step-names.read-version}
+          commandApdu: "00 b0 9100    00"
+          expectedStatusWord:
+            - "9000"
+            - "6281"
+    
+    # PACE-Protokoll für die gegenseitige Authentifizierung mit der eGK
+    - name: ${scenario-names.sce-pace-egk}
+      stepDefinitions:
+        - description: "PACE-Protokoll starten und Challenge anfordern"
+          name: ${step-names.get-pace-challenge}
+          commandApdu: "00 22 C1 A4 0F 80 0A 04 00 7F 00 07 02 02 04 02 02 83 01 03"
+          expectedStatusWord:
+            - "9000"
+            
+        - description: "PACE-Schritt 1: Generieren eines Schlüsselpaares und Übertragen des öffentlichen Teils"
+          name: ${step-names.perform-pace-step1}
+          commandApdu: "00 86 00 00 41 7C 3F 81 3C 04 1E B0 FE 7D 82 FF 68 1B E9 E8 92 AC 8C 76 A5 4C CF 93 12 C3 35 DE 31 47 3F 9C E9 A3 64 BE 70 04 1E 12 01 90 8D A4 51 ED AC 9B 82 54 89 A3 ED 04 23 9C 59 7D F2 EF 8F F5 59 E0 F5 B0 22 00"
+          expectedStatusWord:
+            - "9000"
+            
+        - description: "PACE-Schritt 2: Generieren des gemeinsamen Geheimnisses und Übertragen des öffentlichen Teils"
+          name: ${step-names.perform-pace-step2}
+          commandApdu: "00 86 00 00 45 7C 43 85 41 04 29 2E 19 A5 E2 3A 2E 99 26 FF 0D 92 38 55 EE AD 39 80 D1 33 38 E5 9F 2D F6 16 6A D0 DB 91 D9 39 A1 8F 4B AE CC 31 B3 DF D4 DB 30 95 43 48 0A 73 5F F1 9E 04 6C 89 00"
+          expectedStatusWord:
+            - "9000"
+            
+        - description: "PACE-Schritt 3: Austausch der Authentifizierungs-Token"
+          name: ${step-names.perform-pace-step3}
+          commandApdu: "00 86 00 00 4D 7C 4B 87 49 16 D4 22 77 38 E0 3B 17 CD D0 94 E9 35 32 42 23 4B 37 C8 82 8C 70 D2 96 A1 79 E2 4F A6 E7 E5 E5 C5 49 25 A2 EB 56 6C 72 90 AA 23 E7 8B 7E 78 1F 11 70 F5 89 B2 08 9C 13 E0 DC D3 8E AB 02 BE 39 B4 D4 00"
+          expectedStatusWord:
+            - "9000"
+            
+        - description: "PACE-Schritt 4: Gegenseitige Authentifizierung abschließen"
+          name: ${step-names.perform-pace-step4}
+          commandApdu: "00 86 00 00 0A 7C 08 8A 01 05 9A 03 9D 10 01"
+          expectedStatusWord:
+            - "9000"
+            
+    # Trusted Channel Aufbau nach erfolgreicher PACE-Authentifizierung
+    - name: ${scenario-names.sce-trusted-channel}
+      stepDefinitions:
+        - description: "Auswahl des privaten Schlüssels für den Trusted Channel"
+          name: ${step-names.select-trusted-channel-key}
+          commandApdu: "00 22 41 A4 06 84 01 09 80 01 54"
+          expectedStatusWord:
+            - "9000"
+            
+        - description: "Erster Schritt der gegenseitigen Authentifizierung"
+          name: ${step-names.mutual-authentication-step1}
+          commandApdu: "00 88 00 00 23 97 21 30 1F 02 08 65 64 66 B9 33 A9 DD 6D 02 01 05 02 01 54 02 03 9D 10 01 04 0A 9D 10 01 00 01 00 01 01 00"
+          expectedStatusWord:
+            - "9000"
+            
+        - description: "Zweiter und letzter Schritt der gegenseitigen Authentifizierung"
+          name: ${step-names.mutual-authentication-step2}
+          commandApdu: "00 86 00 00 45 7C 43 85 41 04 98 7F CE 93 BF C1 91 E4 DB 00 6B 56 F8 FD 5F 74 9D 25 6F C5 84 2F 0F 3F 31 BE CF 61 3C E1 46 F6 63 18 F7 7F F7 EE 51 C1 0B 6B 6A 0F 34 98 96 40 0C 76 01 BF C0 76 08 FF 08 FE 0C E1 D9 21 CA 42"
+          expectedStatusWord:
+            - "9000"

@@ -1,0 +1,12 @@
+- id: "1.0.0"
+  note: "VSDM2 Profile"
+  profiles:
+    - name: "de.basisprofil.r4"
+      version: "1.5.1"
+      canonicalClaims: "http://fhir.de/"
+    - name: "vsdm2.r4"
+      version: "1.0.0-rc5"
+      canonicalClaims: "https://gematik.de/fhir/vsdm2"
+    - name: "dvmd.kdl.r4"
+      version: "2024.0.0"
+      canonicalClaims: "http://dvmd.de/fhir/"

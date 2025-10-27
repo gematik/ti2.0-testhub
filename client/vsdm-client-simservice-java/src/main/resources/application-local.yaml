@@ -1,0 +1,15 @@
+server:
+  port: 8220
+
+otel:
+  sdk:
+    disabled: true
+
+popp:
+  http:
+    url: http://localhost:9110
+  ws:
+    url: ws://localhost:9110
+
+vsdm:
+  url: http://localhost:9120

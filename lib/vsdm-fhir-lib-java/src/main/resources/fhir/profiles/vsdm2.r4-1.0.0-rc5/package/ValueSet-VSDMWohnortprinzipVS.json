@@ -1,0 +1,126 @@
+{
+  "resourceType": "ValueSet",
+  "status": "draft",
+  "name": "VSDMWohnortprinzipVS",
+  "id": "VSDMWohnortprinzipVS",
+  "title": "Wohnortprinzip (WOP)",
+  "description": "Wohnortprinzip im Versichertenstammdatenmanagement (VSDM) 2.0",
+  "version": "1.0.0",
+  "url": "https://gematik.de/fhir/vsdm2/ValueSet/VSDMWohnortprinzipVS",
+  "experimental": false,
+  "publisher": "gematik GmbH",
+  "date": "2023-12-31",
+  "compose": {
+    "include": [
+      {
+        "system": "https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_ITA_WOP",
+        "concept": [
+          {
+            "code": "01",
+            "display": "Schleswig-Holstein"
+          },
+          {
+            "code": "02",
+            "display": "Hamburg"
+          },
+          {
+            "code": "03",
+            "display": "Bremen"
+          },
+          {
+            "code": "17",
+            "display": "Niedersachsen"
+          },
+          {
+            "code": "20",
+            "display": "Westfalen-Lippe"
+          },
+          {
+            "code": "38",
+            "display": "Nordrhein"
+          },
+          {
+            "code": "46",
+            "display": "Hessen"
+          },
+          {
+            "code": "51",
+            "display": "Rheinland-Pfalz"
+          },
+          {
+            "code": "52",
+            "display": "Baden-Württemberg"
+          },
+          {
+            "code": "71",
+            "display": "Bayerns"
+          },
+          {
+            "code": "72",
+            "display": "Berlin"
+          },
+          {
+            "code": "73",
+            "display": "Saarland"
+          },
+          {
+            "code": "78",
+            "display": "Mecklenburg-Vorpommern"
+          },
+          {
+            "code": "83",
+            "display": "Brandenburg"
+          },
+          {
+            "code": "88",
+            "display": "Sachsen-Anhalt"
+          },
+          {
+            "code": "93",
+            "display": "Thüringen"
+          },
+          {
+            "code": "98",
+            "display": "Sachsen"
+          },
+          {
+            "code": "00",
+            "display": "WIP: Dummy bei eGK"
+          },
+          {
+            "code": "47",
+            "display": "WIP: Koblenz"
+          },
+          {
+            "code": "48",
+            "display": "WIP: Rheinhessen"
+          },
+          {
+            "code": "49",
+            "display": "WIP: Pfalz"
+          },
+          {
+            "code": "50",
+            "display": "WIP: Trier"
+          },
+          {
+            "code": "55",
+            "display": "WIP: Nordbaden"
+          },
+          {
+            "code": "60",
+            "display": "WIP: Südbaden"
+          },
+          {
+            "code": "61",
+            "display": "WIP: Nordwürttemberg"
+          },
+          {
+            "code": "62",
+            "display": "WIP: Südwürttemberg"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "resourceType": "CodeSystem",
+  "status": "active",
+  "content": "complete",
+  "name": "VSDMRuhenderLeistungsanspruchArtCS",
+  "id": "VSDMRuhenderLeistungsanspruchArtCS",
+  "title": "Art des ruhenden Leistungsanspruchs",
+  "description": "Art des ruhenden Leistungsanspruchs im Versichertenstammdatenmanagement (VSDM) 2.0",
+  "version": "1.0.0",
+  "url": "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMRuhenderLeistungsanspruchArtCS",
+  "concept": [
+    {
+      "code": "1",
+      "display": "vollständig"
+    },
+    {
+      "code": "2",
+      "display": "eingeschränkt"
+    }
+  ],
+  "experimental": false,
+  "publisher": "gematik GmbH",
+  "date": "2023-12-31",
+  "caseSensitive": true,
+  "purpose": "Das Ruhen des Leistungsanspruchs im Bereich der GKV wird durch § 16 SGB V geregelt. \nNach § 19 Abs. 3 BMV-Ä ist der Leistungsanspruch von Versicherten, die ihrer Verpflichtung zur Beitragszahlung nicht nachkommen, eingeschränkt (§ 16 Abs. 3a SGB V). \nDie verbleibenden Absätze des § 16 SGB V legen die Rahmenbedingungen für ein vollständiges Ruhen des Leistungsanspruchs fest.\nDie von diesem CodeSystem definierten Werte wurden durch die gematik zur Einführung von VSDM 1 im Jahr 2011 festgelegt und werden hier für die Verwendung in FHIR-Profilen zugänglich gemacht.",
+  "count": 2
+}

@@ -1,0 +1,14 @@
+# Server configuration
+server:
+  port: ${SERVER_PORT:80}
+
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    com.cardterminal.simulator: DEBUG
+
+# Card terminal configuration
+card:
+  terminal:
+    slots: 3000

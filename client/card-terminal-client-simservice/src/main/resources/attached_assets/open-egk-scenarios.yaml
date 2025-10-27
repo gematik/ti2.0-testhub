@@ -1,0 +1,25 @@
+scenario-vars:
+  time-span: 10000
+  supported-g21-cards: 040400,040401,040500,040501,040502,040600,040700
+  supported-g3-cards: 050000
+scenario-names:
+    sce-open-egk: "SCE_OPEN_EGK"
+step-names:
+    select-master-file: "select-master-file"
+    read-version: "read-version"
+
+open-egk-scenarios:
+  scenarios:
+    - name: ${scenario-names.sce-open-egk}
+      stepDefinitions:
+        - description: "Select Master File"
+          name: ${step-names.select-master-file}
+          commandApdu: "00 a4 040c    07 D2760001448000"
+          expectedStatusWord:
+            - "9000"
+        - description: "Read Version"
+          name: ${step-names.read-version}
+          commandApdu: "00 b0 9100    00"
+          expectedStatusWord:
+            - "9000"
+            - "6281"

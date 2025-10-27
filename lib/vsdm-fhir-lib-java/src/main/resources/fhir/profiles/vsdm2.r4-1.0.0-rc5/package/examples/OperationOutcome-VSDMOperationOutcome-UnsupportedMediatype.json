@@ -1,0 +1,33 @@
+{
+  "resourceType": "OperationOutcome",
+  "id": "VSDMOperationOutcome-UnsupportedMediatype",
+  "meta": {
+    "profile": [
+      "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMOperationOutcome"
+    ]
+  },
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Der vom Clientsystem angefragte Medientyp application/morse-code wird nicht unterstützt.</div>"
+  },
+  "issue": [
+    {
+      "severity": "error",
+      "code": "value",
+      "details": {
+        "coding": [
+          {
+            "code": "VSDSERVICE_UNSUPPORTED_MEDIATYPE",
+            "system": "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMErrorcodeCS",
+            "display": "Der vom Clientsystem angefragte Medientyp [media type] wird nicht unterstützt."
+          }
+        ],
+        "text": "Der vom Clientsystem angefragte Medientyp application/morse-code wird nicht unterstützt."
+      },
+      "diagnostics": "Implementierungsfehler beim Clientsystem - der Hersteller des Clientsystems ist zu kontaktieren.",
+      "expression": [
+        "http.Accept"
+      ]
+    }
+  ]
+}

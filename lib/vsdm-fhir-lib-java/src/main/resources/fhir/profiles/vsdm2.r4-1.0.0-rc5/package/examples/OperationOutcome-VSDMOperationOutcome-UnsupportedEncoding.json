@@ -1,0 +1,33 @@
+{
+  "resourceType": "OperationOutcome",
+  "id": "VSDMOperationOutcome-UnsupportedEncoding",
+  "meta": {
+    "profile": [
+      "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMOperationOutcome"
+    ]
+  },
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Das vom Clientsystem angefragte Komprimierungsverfahren implode wird nicht unterstützt.</div>"
+  },
+  "issue": [
+    {
+      "severity": "error",
+      "code": "value",
+      "details": {
+        "coding": [
+          {
+            "code": "VSDSERVICE_UNSUPPORTED_ENCODING",
+            "system": "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMErrorcodeCS",
+            "display": "Das vom Clientsystem angefragte Komprimierungsverfahren [encoding scheme] wird nicht unterstützt."
+          }
+        ],
+        "text": "Das vom Clientsystem angefragte Komprimierungsverfahren implode wird nicht unterstützt."
+      },
+      "diagnostics": "Implementierungsfehler beim Clientsystem - der Hersteller des Clientsystems ist zu kontaktieren.",
+      "expression": [
+        "http.Content-Encoding"
+      ]
+    }
+  ]
+}

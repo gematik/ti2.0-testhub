@@ -1,0 +1,131 @@
+{
+  "resourceType": "Bundle",
+  "id": "b05a393d-a765-4748-9f38-599ad2718e49",
+  "meta": {
+    "lastUpdated": "2025-10-17T10:28:38.916+02:00",
+    "profile": [
+      "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMBundle"
+    ]
+  },
+  "identifier": {
+    "system": "urn:ietf:rfc:3986",
+    "value": "urn:uuid:b05a393d-a765-4748-9f38-599ad2718e49"
+  },
+  "type": "collection",
+  "timestamp": "2025-10-17T10:28:38.915+02:00",
+  "entry": [
+    {
+      "fullUrl": "https://gematik.de/fhir/Patient/1acd2a41-2cfa-461d-9eed-7fcedd92cc29",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "1acd2a41-2cfa-461d-9eed-7fcedd92cc29",
+        "meta": {
+          "profile": [
+            "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMPatient"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "http://fhir.de/sid/gkv/kvid-10",
+            "value": "X123456789"
+          }
+        ],
+        "name": [
+          {
+            "use": "official",
+            "text": "text",
+            "family": "family",
+            "given": [
+              "given"
+            ]
+          }
+        ],
+        "gender": "male",
+        "birthDate": "2025-10-17"
+      }
+    },
+    {
+      "fullUrl": "https://gematik.de/fhir/Coverage/eba45bce-e7cd-4f11-b11c-a12b5b93f554",
+      "resource": {
+        "resourceType": "Coverage",
+        "id": "eba45bce-e7cd-4f11-b11c-a12b5b93f554",
+        "meta": {
+          "profile": [
+            "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMCoverageGKV"
+          ]
+        },
+        "extension": [
+          {
+            "url": "http://fhir.de/StructureDefinition/gkv/wop",
+            "valueCoding": {
+              "system": "https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_ITA_WOP",
+              "code": "98",
+              "display": "Sachsen"
+            }
+          },
+          {
+            "url": "http://fhir.de/StructureDefinition/gkv/versichertenart",
+            "valueCoding": {
+              "system": "https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_KBV_VERSICHERTENSTATUS",
+              "code": "1",
+              "display": "Mitglieder"
+            }
+          }
+        ],
+        "identifier": [
+          {
+            "system": "http://fhir.de/sid/gkv/kvid-10",
+            "value": "A123454321"
+          }
+        ],
+        "status": "active",
+        "type": {
+          "coding": [
+            {
+              "system": "http://fhir.de/CodeSystem/versicherungsart-de-basis",
+              "code": "GKV"
+            }
+          ]
+        },
+        "beneficiary": {
+          "reference": "https://gematik.de/fhir/Patient/1acd2a41-2cfa-461d-9eed-7fcedd92cc29"
+        },
+        "payor": [
+          {
+            "extension": [
+              {
+                "url": "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMKostentraegerRolle",
+                "valueCoding": {
+                  "system": "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMKostentraegerRolleCS",
+                  "code": "H",
+                  "display": "Haupt-Kostenträger"
+                }
+              }
+            ],
+            "reference": "https://gematik.de/fhir/Organization/d7939590-4d0a-496d-8ae3-08167a978073",
+            "display": "https://gematik.de/fhir/Organization/d7939590-4d0a-496d-8ae3-08167a978073"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://gematik.de/fhir/Organization/d7939590-4d0a-496d-8ae3-08167a978073",
+      "resource": {
+        "resourceType": "Organization",
+        "id": "d7939590-4d0a-496d-8ae3-08167a978073",
+        "meta": {
+          "profile": [
+            "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMPayorOrganization"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "http://fhir.de/sid/arge-ik/iknr",
+            "value": "107723372"
+          }
+        ],
+        "name": "Beispielkostenträger"
+      }
+    }
+  ]
+}

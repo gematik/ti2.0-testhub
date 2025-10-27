@@ -1,0 +1,15 @@
+server:
+  port: 9102
+
+otel:
+  sdk:
+    disabled: true
+
+authz:
+  sec:
+    store:
+      path: "./zetakeystore.p12"
+      pass: testpassword
+    key:
+      alias: zetamock
+      pass: testpassword

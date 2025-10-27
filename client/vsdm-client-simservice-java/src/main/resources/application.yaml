@@ -1,0 +1,23 @@
+app.version: 0.0.1-dev
+
+server:
+  error:
+    whitelabel.enabled: false
+    include-message: always
+  port: ${SERVER_PORT:80}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.boot.autoconfigure: OFF
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+popp:
+  http:
+    url: ${POPP_HTTP_URL}
+  ws:
+    url: ${POPP_WS_URL:}
+
+vsdm:
+  url: ${VSDM_HTTP_URL}

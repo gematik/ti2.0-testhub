@@ -1,0 +1,15 @@
+server:
+  port: ${SERVER_PORT:80}
+
+otel:
+  sdk:
+    disabled: true
+
+popp:
+  sec:
+    store:
+      path: popp-token-Server-Sim-nist-komp61.p12
+      pass: "00"
+    key:
+      alias: alias
+      pass: "00"

@@ -1,0 +1,247 @@
+{
+  "resourceType": "Bundle",
+  "id": "VSDMBundle-PKV-C345678908",
+  "meta": {
+    "profile": [
+      "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMBundle|1.0.0"
+    ],
+    "lastUpdated": "2025-07-14T15:16:17.890+01:00"
+  },
+  "type": "collection",
+  "timestamp": "2025-07-14T15:16:17.890+01:00",
+  "entry": [
+    {
+      "fullUrl": "https://gematik.de/fhir/Patient/VSDMPatient-PKV-C345678908",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "VSDMPatient-PKV-C345678908",
+        "meta": {
+          "profile": [
+            "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMPatient|1.0.0"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "http://fhir.de/sid/gkv/kvid-10",
+            "value": "C345678908"
+          }
+        ],
+        "name": [
+          {
+            "use": "official",
+            "text": "Charlie Carolinataube",
+            "family": "Carolinataube",
+            "_family": {
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/humanname-own-name",
+                  "valueString": "Carolinataube"
+                }
+              ]
+            },
+            "given": [
+              "Charlie"
+            ]
+          }
+        ],
+        "address": [
+          {
+            "type": "physical",
+            "line": [
+              "Taubenweg 3c",
+              "zweites Hinterhaus links"
+            ],
+            "_line": [
+              {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/iso21090-ADXP-houseNumber",
+                    "valueString": "3c"
+                  },
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/iso21090-ADXP-streetName",
+                    "valueString": "Taubenweg"
+                  }
+                ]
+              },
+              {
+                "extension": [
+                  {
+                    "url": "http://hl7.org/fhir/StructureDefinition/iso21090-ADXP-additionalLocator",
+                    "valueString": "Hinterhaus links"
+                  }
+                ]
+              }
+            ],
+            "city": "Chemnitz",
+            "postalCode": "09128",
+            "country": "Deutschland",
+            "_country": {
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/iso21090-codedString",
+                  "valueCoding": {
+                    "code": "DE",
+                    "system": "urn:iso:std:iso:3166"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "birthDate": "1979-06-11",
+        "gender": "other",
+        "_gender": {
+          "extension": [
+            {
+              "url": "http://fhir.de/StructureDefinition/gender-amtlich-de",
+              "valueCoding": {
+                "code": "D",
+                "system": "http://fhir.de/CodeSystem/gender-amtlich-de",
+                "display": "divers"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "fullUrl": "https://gematik.de/fhir/Coverage/VSDMCoveragePKV-C345678908",
+      "resource": {
+        "resourceType": "Coverage",
+        "id": "VSDMCoveragePKV-C345678908",
+        "meta": {
+          "profile": [
+            "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMCoveragePKV|1.0.0"
+          ]
+        },
+        "type": {
+          "coding": [
+            {
+              "code": "PKV",
+              "system": "http://fhir.de/CodeSystem/versicherungsart-de-basis"
+            }
+          ]
+        },
+        "extension": [
+          {
+            "url": "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMVersichertenartPKV",
+            "valueCoding": {
+              "code": "VP",
+              "system": "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMVersichertenartPKVCS",
+              "display": "versicherte Person"
+            }
+          },
+          {
+            "url": "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMKrankenhausleistungenPKV",
+            "extension": [
+              {
+                "url": "allgemein",
+                "valueUnsignedInt": 100
+              },
+              {
+                "url": "zweibett",
+                "valueUnsignedInt": 100
+              },
+              {
+                "url": "zweibettEinbettDifferenz",
+                "valueUnsignedInt": 25
+              },
+              {
+                "url": "wahlarzt",
+                "valueBoolean": false
+              },
+              {
+                "url": "belegarzt",
+                "valueBoolean": false
+              }
+            ]
+          },
+          {
+            "url": "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMBeihilfe",
+            "extension": [
+              {
+                "url": "anspruch",
+                "valueBoolean": true
+              },
+              {
+                "url": "quote",
+                "valueUnsignedInt": 80
+              }
+            ]
+          }
+        ],
+        "status": "active",
+        "beneficiary": {
+          "reference": "Patient/VSDMPatient-PKV-C345678908"
+        },
+        "period": {
+          "start": "2020-01-01"
+        },
+        "payor": [
+          {
+            "reference": "Organization/VSDMPayorOrganization-168134565"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://gematik.de/fhir/Organization/VSDMPayorOrganization-168134565",
+      "resource": {
+        "resourceType": "Organization",
+        "id": "VSDMPayorOrganization-168134565",
+        "meta": {
+          "profile": [
+            "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMPayorOrganization|1.0.0"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "http://fhir.de/sid/arge-ik/iknr",
+            "value": "168134565"
+          }
+        ],
+        "address": [
+          {
+            "country": "Deutschland",
+            "_country": {
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/iso21090-codedString",
+                  "valueCoding": {
+                    "code": "DE",
+                    "system": "urn:iso:std:iso:3166"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "name": "Privatversicherung Uranus",
+        "contact": [
+          {
+            "purpose": {
+              "coding": [
+                {
+                  "code": "BILL",
+                  "system": "http://terminology.hl7.org/CodeSystem/contactentity-type"
+                }
+              ],
+              "text": "Kontakt für Abrechnungsfragen"
+            },
+            "telecom": [
+              {
+                "system": "phone",
+                "value": "+4952116391643"
+              },
+              {
+                "system": "email",
+                "value": "contact@kostentraeger.invalid"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

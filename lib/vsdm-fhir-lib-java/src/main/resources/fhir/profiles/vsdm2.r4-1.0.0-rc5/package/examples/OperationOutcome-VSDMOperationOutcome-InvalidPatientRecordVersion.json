@@ -1,0 +1,33 @@
+{
+  "resourceType": "OperationOutcome",
+  "id": "VSDMOperationOutcome-InvalidPatientRecordVersion",
+  "meta": {
+    "profile": [
+      "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMOperationOutcome"
+    ]
+  },
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Der Änderungsindikator 0xdeadbeef kann nicht verarbeitet werden.</div>"
+  },
+  "issue": [
+    {
+      "severity": "error",
+      "code": "value",
+      "details": {
+        "coding": [
+          {
+            "code": "VSDSERVICE_INVALID_PATIENT_RECORD_VERSION",
+            "system": "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMErrorcodeCS",
+            "display": "Der Änderungsindikator [etag_value] kann nicht verarbeitet werden."
+          }
+        ],
+        "text": "Der Änderungsindikator 0xdeadbeef kann nicht verarbeitet werden."
+      },
+      "diagnostics": "Implementierungsfehler beim Clientsystem - der Hersteller des Clientsystems ist zu kontaktieren.",
+      "expression": [
+        "http.If-None-Match"
+      ]
+    }
+  ]
+}

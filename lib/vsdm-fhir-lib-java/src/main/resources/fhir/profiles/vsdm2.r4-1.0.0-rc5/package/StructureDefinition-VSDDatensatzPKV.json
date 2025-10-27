@@ -1,0 +1,2564 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "VSDDatensatzPKV",
+  "url": "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDDatensatzPKV",
+  "name": "VSDDatensatzPKV",
+  "title": "Logisches Modell VSD-Datensatz PKV für VSDM 2.0",
+  "status": "draft",
+  "description": "Fachliches Modell zur Beschreibung des VSD-Datensatzes für den Bereich der Privaten Krankenversicherung (PKV).\nDieses Modell stellt die Struktur für die Versichertendaten eines Privatversicherten bereit und dient als Ausgangspunkt für die Mappings, die die Abbildung auf FHIR-Ressourcen vornehmen.",
+  "fhirVersion": "4.0.1",
+  "mapping": [
+    {
+      "identity": "VSD-Datensatz-PKV-Coverage",
+      "name": "Mapping VSD-Datensatz PKV zu Coverage",
+      "uri": "VSDMCoverage",
+      "comment": "Zuordnung der Versicherungsinformationen des VSD-Datensatzes PKV zum FHIR-Profil VSDMCoverage"
+    },
+    {
+      "identity": "VSD-Datensatz-PKV-Patient",
+      "name": "Mapping VSD-Datensatz PKV zu Patient",
+      "uri": "VSDMPatient",
+      "comment": "Zuordnung der Versichertendaten des VSD-Datensatzes PKV zum FHIR-Profil VSDMPatient"
+    },
+    {
+      "identity": "rim",
+      "uri": "http://hl7.org/v3",
+      "name": "RIM Mapping"
+    }
+  ],
+  "kind": "logical",
+  "abstract": false,
+  "type": "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDDatensatzPKV",
+  "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Element",
+  "derivation": "specialization",
+  "snapshot": {
+    "element": [
+      {
+        "id": "VSDDatensatzPKV",
+        "path": "VSDDatensatzPKV",
+        "short": "Logisches Modell VSD-Datensatz PKV für VSDM 2.0",
+        "definition": "Fachliches Modell zur Beschreibung des VSD-Datensatzes für den Bereich der Privaten Krankenversicherung (PKV).\nDieses Modell stellt die Struktur für die Versichertendaten eines Privatversicherten bereit und dient als Ausgangspunkt für die Mappings, die die Abbildung auf FHIR-Ressourcen vornehmen.",
+        "min": 0,
+        "max": "*",
+        "base": {
+          "path": "VSDDatensatzPKV",
+          "min": 0,
+          "max": "*"
+        },
+        "condition": [
+          "ele-1"
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div"
+          }
+        ],
+        "isModifier": false,
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.id",
+        "path": "VSDDatensatzPKV.id",
+        "representation": [
+          "xmlAttr"
+        ],
+        "short": "Unique id for inter-element referencing",
+        "definition": "Unique id for the element within a resource (for internal references). This may be any string value that does not contain spaces.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "Element.id",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "http://hl7.org/fhirpath/System.String",
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type",
+                "valueUrl": "string"
+              }
+            ]
+          }
+        ],
+        "isModifier": false,
+        "isSummary": false,
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.extension",
+        "path": "VSDDatensatzPKV.extension",
+        "slicing": {
+          "discriminator": [
+            {
+              "type": "value",
+              "path": "url"
+            }
+          ],
+          "description": "Extensions are always sliced by (at least) url",
+          "rules": "open"
+        },
+        "short": "Additional content defined by implementations",
+        "definition": "May be used to represent additional information that is not part of the basic definition of the element. To make the use of extensions safe and manageable, there is a strict set of governance  applied to the definition and use of extensions. Though any implementer can define an extension, there is a set of requirements that SHALL be met as part of the definition of the extension.",
+        "comment": "There can be no stigma associated with the use of extensions by any application, project, or standard - regardless of the institution or jurisdiction that uses or defines the extensions.  The use of extensions is what allows the FHIR specification to retain a core level of simplicity for everyone.",
+        "alias": [
+          "extensions",
+          "user content"
+        ],
+        "min": 0,
+        "max": "*",
+        "base": {
+          "path": "Element.extension",
+          "min": 0,
+          "max": "*"
+        },
+        "type": [
+          {
+            "code": "Extension"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          },
+          {
+            "key": "ext-1",
+            "severity": "error",
+            "human": "Must have either extensions or value[x], not both",
+            "expression": "extension.exists() != value.exists()",
+            "xpath": "exists(f:extension)!=exists(f:*[starts-with(local-name(.), \"value\")])",
+            "source": "http://hl7.org/fhir/StructureDefinition/Extension"
+          }
+        ],
+        "isModifier": false,
+        "isSummary": false,
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten",
+        "path": "VSDDatensatzPKV.Versichertendaten",
+        "short": "Versichertendaten",
+        "definition": "Versichertendaten",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.VersichertenID",
+        "path": "VSDDatensatzPKV.Versichertendaten.VersichertenID",
+        "short": "Versicherten-ID (KVNR)",
+        "definition": "Die Versicherten-ID ist der 10-stellige unveränderliche Teil der 30-stelligen Krankenversichertennummer.",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.VersichertenID",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.identifier:KVNR.value",
+            "comment": "Die KVNR wird in Übereinstimmung mit dem deutschen Basisprofils kodiert und ist verpflichtend anzugeben."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Geburtsdatum",
+        "path": "VSDDatensatzPKV.Versichertendaten.Geburtsdatum",
+        "short": "Geburtsdatum des Versicherten",
+        "definition": "Gibt das Geburtsdatum der Person an.\nZumindest das Geburtsjahr ist immer anzugeben. \nIm Geburtstag oder im Geburtstag und im Geburtsmonat ist „00“ bzw. „0000“ zulässig, wenn der Geburtstag und der Geburtsmonat nicht zu ermitteln sind. ",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Geburtsdatum",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.birthDate",
+            "comment": "Die Angabe des partiellen Geburtsdatums wird vom FHIR-nativen Datentyp date bereits unterstützt."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Vorname",
+        "path": "VSDDatensatzPKV.Versichertendaten.Vorname",
+        "short": "Vorname des Versicherten",
+        "definition": "Gibt den Vornamen der Person an.\nAlle Vornamen der Person werden eingegeben.",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Vorname",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.name:Name.given",
+            "comment": "FHIR lässt die Angabe mehrerer Vornamen in wiederholten Elementen zu. Davon wird hier kein Gebrauch gemacht."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Nachname",
+        "path": "VSDDatensatzPKV.Versichertendaten.Nachname",
+        "short": "Nachname des Versicherten",
+        "definition": "Gibt den Nachnamen (Familiennamen) der Person an.",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Nachname",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.name:Name.family",
+            "comment": "Nachname mit Vorsatzwort und Namenszusatz. Wichtig: Hinweise zur Bildung des kombinierten Nachnamens beachten."
+          },
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.name:Name.family.extension:nachname",
+            "comment": "Nachname ohne Vorsatzwort und Namenszusatz. Wichtig: Hinweise zur Bildung des kombinierten Nachnamens beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Geschlecht",
+        "path": "VSDDatensatzPKV.Versichertendaten.Geschlecht",
+        "short": "Geschlecht des Versicherten",
+        "definition": "Gibt das Geschlecht der Person an. \nEs werden die gesetzlich vorgegebenen Werte gemäß PStG (weiblich, männlich, divers, ohne Angabe) abgebildet.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Geschlecht",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.gender",
+            "comment": "Das Geschlecht wird auf die standardisierten FHIR-Werte abgebildet. Da damit nicht alle Werte abgebildet werden können, kommt eine Erweiterung zum Einsatz."
+          },
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.gender.extension:other-amtlich",
+            "comment": "Diese Erweiterung nimmt die Geschlechtsangabe gemäß der geforderten Wertetabelle auf."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Vorsatzwort",
+        "path": "VSDDatensatzPKV.Versichertendaten.Vorsatzwort",
+        "short": "Vorsatzwörter des Namens des Versicherten",
+        "definition": "Gibt die Vorsatzwörter der Person an.\nMehrere Vorsatzwörter werden durch Leerzeichen getrennt angegeben.\nDie Vorsatzwörter sollen sich an der Werteliste aus Anlage 6 (Tabelle der gültigen Vorsatzworte) zur DEÜV orientieren.",
+        "comment": "DEÜV siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Vorsatzwort",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.name:Name.family.extension:vorsatzwort",
+            "comment": "Vorsatzwort zum Nachnamen. Wichtig: Hinweise zur Bildung des kombinierten Nachnamens beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Namenszusatz",
+        "path": "VSDDatensatzPKV.Versichertendaten.Namenszusatz",
+        "short": "Namenszusätze des Versicherten",
+        "definition": "Gibt die Namenszusätze der Person an, z. B.: Freiherr.\nMehrere Namenzusätze werden durch Leerzeichen getrennt angegeben.\nDie Namenszusätze sollen sich an der Werteliste aus Anlage 7 (Tabelle der gültigen Namenszusätze) zur DEÜV orientieren.",
+        "comment": "DEÜV siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Namenszusatz",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.name:Name.family.extension:namenszusatz",
+            "comment": "Zusatz zum Nachnamen. Wichtig: Hinweise zur Bildung des kombinierten Nachnamens beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Titel",
+        "path": "VSDDatensatzPKV.Versichertendaten.Titel",
+        "short": "Akademische Titel des Versicherten",
+        "definition": "Gibt die akademischen Grade der Person an.\nMehrere Titel werden durch Leerzeichen getrennt angegeben.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Titel",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.name:Name.prefix",
+            "comment": "Kennzeichnung des akademischen Titels mittels Erweiterung siehe Elementdokumentation."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Postfachadresse",
+        "path": "VSDDatensatzPKV.Versichertendaten.Postfachadresse",
+        "short": "Postfachadresse des Versicherten",
+        "definition": "Postfachadresse des Versicherten",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Postfachadresse",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse",
+            "comment": "Postfachadressen werden mit dem Typ \"postal\" gekennzeichnet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Postfach",
+        "path": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Postfach",
+        "short": "Postfach des Versicherten",
+        "definition": "Gibt das Postfach der Person an.",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Postfach",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse.line.extension:Postfach",
+            "comment": "Hinweise zur Bildung der Adresszeilen beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Postleitzahl",
+        "path": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Postleitzahl",
+        "short": "Postleitzahl der Postfachadresse",
+        "definition": "Gibt die Postleitzahl der Strassen- oder Postfachadresse an.",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Postleitzahl",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse.postalCode"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Ort",
+        "path": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Ort",
+        "short": "Ort der Postfachadresse",
+        "definition": "Gibt den Ort zur Postfachadresse an. ",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Ort",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse.city"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Land",
+        "path": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Land",
+        "short": "Land der Postfachadresse",
+        "definition": "Gibt das Land zu der Postfachadresse an. \nEs werden Landesangaben nach ISO 3166-2 verwendet.",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Land",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse.country",
+            "comment": "Hinweise zur Befüllung der Extensions beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse",
+        "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse",
+        "short": "Wohnsitzadresse des Versicherten",
+        "definition": "Wohnsitzadresse des Versicherten",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse",
+            "comment": "Wohnsitzadressen werden mit dem Typ \"physical\" gekennzeichnet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Strasse",
+        "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Strasse",
+        "short": "Name der Strasse",
+        "definition": "Gibt den Namen der Strasse der Wohnsitzadresse an.\nWenn die Hausnummer nicht separat abgelegt werden kann, ist es zulässig, die Hausnummer in das Feld Straße zu übernehmen.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Strasse",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.line.extension:Strasse",
+            "comment": "Hinweise zur Bildung der Adresszeilen beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Hausnummer",
+        "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Hausnummer",
+        "short": "Hausnummer der Wohnsitzadresse",
+        "definition": "Gibt die Hausnummer in der Strasse der Person an.\nPflichtangabe soweit bekannt; wenn die Hausnummer nicht separat abgelegt werden kann, ist es zulässig, die Hausnummer in das Feld Straße zu übernehmen. ",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Hausnummer",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.line.extension:Hausnummer",
+            "comment": "Hinweise zur Bildung der Adresszeilen beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Anschriftenzusatz",
+        "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Anschriftenzusatz",
+        "short": "Relevante Zusätze zur Anschrift",
+        "definition": "Gibt die relevanten Zusätze zur Anschrift an.\nAls Anschriftenzusatz kann z. B. „Hinterhaus“ angegeben werden.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Anschriftenzusatz",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.line.extension:Adresszusatz",
+            "comment": "Hinweise zur Bildung der Adresszeilen beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Postleitzahl",
+        "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Postleitzahl",
+        "short": "Postleitzahl der Wohnsitzadresse",
+        "definition": "Gibt die Postleitzahl der Wohnsitzadresse an. ",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Postleitzahl",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.postalCode"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Ort",
+        "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Ort",
+        "short": "Ort der Wohnsitzadresse",
+        "definition": "Gibt den Ort zur Wohnsitzadresse an. ",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Ort",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.city"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Land",
+        "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Land",
+        "short": "Land der Wohnsitzadresse",
+        "definition": "Gibt das Land zu der Wohnsitzadresse an. \nEs werden Landesangaben nach ISO 3166-2 verwendet.",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Land",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address.country",
+            "comment": "Hinweise zur Befüllung der Extensions beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.TIMessengerID",
+        "path": "VSDDatensatzPKV.Versichertendaten.TIMessengerID",
+        "short": "TI-Messenger-ID",
+        "definition": "Gibt die TI-Messenger-ID des Versicherten an, soweit bekannt.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versichertendaten.TIMessengerID",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.telecom:TIMessengerID",
+            "comment": "Hinweise zur Kodierung der TI-Messenger-ID beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten",
+        "path": "VSDDatensatzPKV.Versicherungsdaten",
+        "short": "Angaben zum Versicherungsverhältnis",
+        "definition": "Angaben zum Versicherungsverhältnis",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Kostentraeger",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Kostentraeger",
+        "short": "Angaben zum Kostenträger",
+        "definition": "Angaben zum Kostenträger",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Kostentraeger",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.payor:Hauptkostentraeger",
+            "comment": "Der Kostenträger wird als Referenz auf eine VSDMPayorOrganization abgebildet. Im PKV-Bereich gibt es keine Unterscheidung zwischen Haupt- und abrechnendem Kostenträger."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Kostentraeger.Name",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Kostentraeger.Name",
+        "short": "Name des Kostenträgers",
+        "definition": "Gibt den Namen der Institution/Organisation an.",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Kostentraeger.Name",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMPayorOrganization:Hauptkostentraeger.name"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Kostentraeger.Kostentraegerkennung",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Kostentraeger.Kostentraegerkennung",
+        "short": "Kostenträgerkennung (Institutionskennzeichen)",
+        "definition": "Gibt den Kostenträger des Versicherten an. Es handelt sich um das bundesweit gültige Institutionskennzeichen (IK) des jeweiligen Kostenträgers.",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Kostentraeger.Kostentraegerkennung",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMPayorOrganization:Hauptkostentraeger.identifier:IKNR"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Versicherungsschutz",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Versicherungsschutz",
+        "short": "Versicherungsschutz des Versicherten",
+        "definition": "Angaben zu Beginn und Ende des Vertragsverhältnisses sind im PKV-Bereich grundsätzlich optional.\nWenn diese Struktur angegeben wird, muss mindestens Beginn- oder Endedatum angegeben werden.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Versicherungsschutz",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.period",
+            "comment": "Zur Abbildung werden die Standard-Felder der FHIR-Ressource verwendet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Versicherungsschutz.Beginn",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Versicherungsschutz.Beginn",
+        "short": "Beginn des Versicherungsschutzes",
+        "definition": "Gibt den Beginn des Versicherungsschutzes des Versicherten bei dem angegebenen Kostenträger an. \nDieser Wert darf nicht vor dem Geburtsdatum liegen.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Versicherungsschutz.Beginn",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.period.start"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Versicherungsschutz.Ende",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Versicherungsschutz.Ende",
+        "short": "Ende des Versicherungsschutzes",
+        "definition": "Gibt das Ende des Versicherungsschutzes des Versicherten bei dem angegebenen Kostenträger an. ",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Versicherungsschutz.Ende",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.period.end"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Beihilfe",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Beihilfe",
+        "short": "Beihilfeanspruch",
+        "definition": "Informationen für Versicherte mit Beihilfeanspruch. \nDiese Struktur ist für Versicherte ohne Beihilfeanspruch nicht anzugeben.",
+        "comment": "Hintergrundinformationen siehe https://www.pkv.de/wissen/private-krankenversicherung/leistungen-und-erstattung/privatversichert-im-beamtenverhaeltnis/",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Beihilfe",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:beihilfe",
+            "comment": "Die gesamte Zielstruktur ist für Versicherte ohne Beihilfeanspruch nicht anzugeben."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Beihilfe.Beihilfeanspruch",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Beihilfe.Beihilfeanspruch",
+        "short": "Versicherter mit Beihilfeanspruch",
+        "definition": "Kennzeichnet einen Versicherten mit Beihilfeanspruch.\nDieses Kennzeichen ist anzugeben, sobald die Struktur Beihilfe erforderlich wird (notwendig, da die Beihilfequote nicht immer vorliegt). ",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Beihilfe.Beihilfeanspruch",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "boolean"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:beihilfe.extension:anspruch"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Beihilfe.QuotePKV",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Beihilfe.QuotePKV",
+        "short": "Quote PKV bei Beihilfe",
+        "definition": "Prozentwert des über die Beihilfe hinaus in der PKV versicherten Anteils.",
+        "comment": "Prozentwert (0..100)",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Beihilfe.QuotePKV",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "unsignedInt"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:beihilfe.extension:quote"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen",
+        "short": "Kostenübernahme für Krankenhausleistungen",
+        "definition": "Informationen zur Kostenübernahme für Krankenhausleistungen.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Allgemein",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Allgemein",
+        "short": "Allgemeine Krankenhausleistungen",
+        "definition": "Versicherter Anteil in Prozent für allgemeine Krankenhausleistungen.",
+        "comment": "Prozentwert (0..100)",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Allgemein",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "unsignedInt"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:krankenhaus.extension:allgemein"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Zweibettzimmer",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Zweibettzimmer",
+        "short": "Zweibettzimmerzuschlag",
+        "definition": "Versicherter Anteil in Prozent für den Zweibettzimmerzuschlag.",
+        "comment": "Prozentwert (0..100)",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Zweibettzimmer",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "unsignedInt"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:krankenhaus.extension:zweibett"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Einbettzimmer",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Einbettzimmer",
+        "short": "Einbettzimmerzuschlag",
+        "definition": "Versicherter Anteil in Prozent für den Einbettzimmerzuschlag.",
+        "comment": "Prozentwert (0..100)",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Einbettzimmer",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "unsignedInt"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:krankenhaus.extension:einbett"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.ZweiEinbettDifferenz",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.ZweiEinbettDifferenz",
+        "short": "Differenz zwischen Zwei- und Einbettzimmerzuschlag",
+        "definition": "Versicherter Anteil in Prozent für die Differenz zwischen Zweibettzimmer- und den Einbettzimmerzuschlag (z.B. Beihilfetarif zuzüglich Beihilfeergänzungsversicherung).",
+        "comment": "Prozentwert (0..100)",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.ZweiEinbettDifferenz",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "unsignedInt"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:krankenhaus.extension:zweibettEinbettDifferenz"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Wahlarzt[x]",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Wahlarzt[x]",
+        "short": "Wahlärztliche Leistungen",
+        "definition": "Übernahme wahlärztlicher Leistungen.        ",
+        "comment": "Angabe als reines Kennzeichen (ja/nein) oder als Prozentwert (0..100) möglich.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Wahlarzt[x]",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "boolean"
+          },
+          {
+            "code": "unsignedInt"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:krankenhaus.extension:wahlarzt"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Belegarzt[x]",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Belegarzt[x]",
+        "short": "Belegärztliche Leistungen",
+        "definition": "Übernahme belegärztlicher Leistungen (kein Bestandteil der wahlärztlichen Leistungen).",
+        "comment": "Angabe als reines Kennzeichen (ja/nein) oder als Prozentwert (0..100) möglich.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Belegarzt[x]",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "boolean"
+          },
+          {
+            "code": "unsignedInt"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:krankenhaus.extension:belegarzt"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Sozialtarif",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Sozialtarif",
+        "short": "Sozialtarif",
+        "definition": "Anwendung eines verbandseinheitlichen Tarifs mit Besonderheiten bezüglich der Leistungen und privatärztliche Abrechnungen.\nMögliche Werte:\nS = Standardtarif,\nB = Basistarif,\nN = Notlagentarif.",
+        "comment": "Hintergrundinformationen siehe https://www.pkv.de/wissen/private-krankenversicherung/brancheneinheitliche-tarife/",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Sozialtarif",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:sozialtarif"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Versichertenart",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Versichertenart",
+        "short": "Rolle der Person im PKV-Vertrag",
+        "definition": "VN = Versicherungsnehmer / Vertragsinhaber\nVP = versicherte Person",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Versichertenart",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:versichertenart"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Hinweis",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Hinweis",
+        "short": "Hinweise an Leistungserbringer",
+        "definition": "Optionale Hinweise in Freitextform für Leistungserbringer.\nDie Relevanz eines Hinweises kann auf einzelne Leistungserbringer-Institutionstypen (professionOID gemäß gemSpec_OID) eingeschränkt werden.\nHinweise ohne Angabe einer Berufsgruppe sind für alle Leistungserbringer relevant.",
+        "min": 0,
+        "max": "*",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Hinweis",
+          "min": 0,
+          "max": "*"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:hinweis"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Hinweis.Hinweistext",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Hinweis.Hinweistext",
+        "short": "Hinweistext",
+        "definition": "Hinweistext im Markdown-Format. \nDer Hinweistext ist nicht zur maschinellen Verarbeitung vorgesehen, sondern muss dem Leistungserbringer lediglich angezeigt werden.",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Hinweis.Hinweistext",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "markdown"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:hinweis.extension:text"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Hinweis.Institutionstypen",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Hinweis.Institutionstypen",
+        "short": "betroffene LEI-Typen",
+        "definition": "Leistungserbringer-Institutionstypen, für die der Hinweistext relevant ist.\nDie Angabe erfolgt als Liste von professionOIDs gemäß gemSpec_OID Tabelle Tab_PKI_403-*.\nDie Verwendung anderer OIDs (insbesondere individueller Berufsgruppen) ist nicht zulässig.\nWenn keine Institutionstypen angegeben sind oder das empfangende System den Filter nicht anzeigen kann, ist der Hinweistext sicherheitshalber anzuzeigen.",
+        "min": 0,
+        "max": "*",
+        "base": {
+          "path": "VSDDatensatzPKV.Versicherungsdaten.Hinweis.Institutionstypen",
+          "min": 0,
+          "max": "*"
+        },
+        "type": [
+          {
+            "code": "oid"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:hinweis.extension:professionOID"
+          }
+        ]
+      }
+    ]
+  },
+  "differential": {
+    "element": [
+      {
+        "id": "VSDDatensatzPKV",
+        "path": "VSDDatensatzPKV",
+        "short": "Logisches Modell VSD-Datensatz PKV für VSDM 2.0",
+        "definition": "Fachliches Modell zur Beschreibung des VSD-Datensatzes für den Bereich der Privaten Krankenversicherung (PKV).\nDieses Modell stellt die Struktur für die Versichertendaten eines Privatversicherten bereit und dient als Ausgangspunkt für die Mappings, die die Abbildung auf FHIR-Ressourcen vornehmen."
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten",
+        "path": "VSDDatensatzPKV.Versichertendaten",
+        "short": "Versichertendaten",
+        "definition": "Versichertendaten",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.VersichertenID",
+        "path": "VSDDatensatzPKV.Versichertendaten.VersichertenID",
+        "short": "Versicherten-ID (KVNR)",
+        "definition": "Die Versicherten-ID ist der 10-stellige unveränderliche Teil der 30-stelligen Krankenversichertennummer.",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.identifier:KVNR.value",
+            "comment": "Die KVNR wird in Übereinstimmung mit dem deutschen Basisprofils kodiert und ist verpflichtend anzugeben."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Geburtsdatum",
+        "path": "VSDDatensatzPKV.Versichertendaten.Geburtsdatum",
+        "short": "Geburtsdatum des Versicherten",
+        "definition": "Gibt das Geburtsdatum der Person an.\nZumindest das Geburtsjahr ist immer anzugeben. \nIm Geburtstag oder im Geburtstag und im Geburtsmonat ist „00“ bzw. „0000“ zulässig, wenn der Geburtstag und der Geburtsmonat nicht zu ermitteln sind. ",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.birthDate",
+            "comment": "Die Angabe des partiellen Geburtsdatums wird vom FHIR-nativen Datentyp date bereits unterstützt."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Vorname",
+        "path": "VSDDatensatzPKV.Versichertendaten.Vorname",
+        "short": "Vorname des Versicherten",
+        "definition": "Gibt den Vornamen der Person an.\nAlle Vornamen der Person werden eingegeben.",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.name:Name.given",
+            "comment": "FHIR lässt die Angabe mehrerer Vornamen in wiederholten Elementen zu. Davon wird hier kein Gebrauch gemacht."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Nachname",
+        "path": "VSDDatensatzPKV.Versichertendaten.Nachname",
+        "short": "Nachname des Versicherten",
+        "definition": "Gibt den Nachnamen (Familiennamen) der Person an.",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.name:Name.family",
+            "comment": "Nachname mit Vorsatzwort und Namenszusatz. Wichtig: Hinweise zur Bildung des kombinierten Nachnamens beachten."
+          },
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.name:Name.family.extension:nachname",
+            "comment": "Nachname ohne Vorsatzwort und Namenszusatz. Wichtig: Hinweise zur Bildung des kombinierten Nachnamens beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Geschlecht",
+        "path": "VSDDatensatzPKV.Versichertendaten.Geschlecht",
+        "short": "Geschlecht des Versicherten",
+        "definition": "Gibt das Geschlecht der Person an. \nEs werden die gesetzlich vorgegebenen Werte gemäß PStG (weiblich, männlich, divers, ohne Angabe) abgebildet.",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.gender",
+            "comment": "Das Geschlecht wird auf die standardisierten FHIR-Werte abgebildet. Da damit nicht alle Werte abgebildet werden können, kommt eine Erweiterung zum Einsatz."
+          },
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.gender.extension:other-amtlich",
+            "comment": "Diese Erweiterung nimmt die Geschlechtsangabe gemäß der geforderten Wertetabelle auf."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Vorsatzwort",
+        "path": "VSDDatensatzPKV.Versichertendaten.Vorsatzwort",
+        "short": "Vorsatzwörter des Namens des Versicherten",
+        "definition": "Gibt die Vorsatzwörter der Person an.\nMehrere Vorsatzwörter werden durch Leerzeichen getrennt angegeben.\nDie Vorsatzwörter sollen sich an der Werteliste aus Anlage 6 (Tabelle der gültigen Vorsatzworte) zur DEÜV orientieren.",
+        "comment": "DEÜV siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.name:Name.family.extension:vorsatzwort",
+            "comment": "Vorsatzwort zum Nachnamen. Wichtig: Hinweise zur Bildung des kombinierten Nachnamens beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Namenszusatz",
+        "path": "VSDDatensatzPKV.Versichertendaten.Namenszusatz",
+        "short": "Namenszusätze des Versicherten",
+        "definition": "Gibt die Namenszusätze der Person an, z. B.: Freiherr.\nMehrere Namenzusätze werden durch Leerzeichen getrennt angegeben.\nDie Namenszusätze sollen sich an der Werteliste aus Anlage 7 (Tabelle der gültigen Namenszusätze) zur DEÜV orientieren.",
+        "comment": "DEÜV siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.name:Name.family.extension:namenszusatz",
+            "comment": "Zusatz zum Nachnamen. Wichtig: Hinweise zur Bildung des kombinierten Nachnamens beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Titel",
+        "path": "VSDDatensatzPKV.Versichertendaten.Titel",
+        "short": "Akademische Titel des Versicherten",
+        "definition": "Gibt die akademischen Grade der Person an.\nMehrere Titel werden durch Leerzeichen getrennt angegeben.",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.name:Name.prefix",
+            "comment": "Kennzeichnung des akademischen Titels mittels Erweiterung siehe Elementdokumentation."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Postfachadresse",
+        "path": "VSDDatensatzPKV.Versichertendaten.Postfachadresse",
+        "short": "Postfachadresse des Versicherten",
+        "definition": "Postfachadresse des Versicherten",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse",
+            "comment": "Postfachadressen werden mit dem Typ \"postal\" gekennzeichnet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Postfach",
+        "path": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Postfach",
+        "short": "Postfach des Versicherten",
+        "definition": "Gibt das Postfach der Person an.",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse.line.extension:Postfach",
+            "comment": "Hinweise zur Bildung der Adresszeilen beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Postleitzahl",
+        "path": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Postleitzahl",
+        "short": "Postleitzahl der Postfachadresse",
+        "definition": "Gibt die Postleitzahl der Strassen- oder Postfachadresse an.",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse.postalCode"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Ort",
+        "path": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Ort",
+        "short": "Ort der Postfachadresse",
+        "definition": "Gibt den Ort zur Postfachadresse an. ",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse.city"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Land",
+        "path": "VSDDatensatzPKV.Versichertendaten.Postfachadresse.Land",
+        "short": "Land der Postfachadresse",
+        "definition": "Gibt das Land zu der Postfachadresse an. \nEs werden Landesangaben nach ISO 3166-2 verwendet.",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse.country",
+            "comment": "Hinweise zur Befüllung der Extensions beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse",
+        "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse",
+        "short": "Wohnsitzadresse des Versicherten",
+        "definition": "Wohnsitzadresse des Versicherten",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse",
+            "comment": "Wohnsitzadressen werden mit dem Typ \"physical\" gekennzeichnet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Strasse",
+        "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Strasse",
+        "short": "Name der Strasse",
+        "definition": "Gibt den Namen der Strasse der Wohnsitzadresse an.\nWenn die Hausnummer nicht separat abgelegt werden kann, ist es zulässig, die Hausnummer in das Feld Straße zu übernehmen.",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.line.extension:Strasse",
+            "comment": "Hinweise zur Bildung der Adresszeilen beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Hausnummer",
+        "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Hausnummer",
+        "short": "Hausnummer der Wohnsitzadresse",
+        "definition": "Gibt die Hausnummer in der Strasse der Person an.\nPflichtangabe soweit bekannt; wenn die Hausnummer nicht separat abgelegt werden kann, ist es zulässig, die Hausnummer in das Feld Straße zu übernehmen. ",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.line.extension:Hausnummer",
+            "comment": "Hinweise zur Bildung der Adresszeilen beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Anschriftenzusatz",
+        "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Anschriftenzusatz",
+        "short": "Relevante Zusätze zur Anschrift",
+        "definition": "Gibt die relevanten Zusätze zur Anschrift an.\nAls Anschriftenzusatz kann z. B. „Hinterhaus“ angegeben werden.",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.line.extension:Adresszusatz",
+            "comment": "Hinweise zur Bildung der Adresszeilen beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Postleitzahl",
+        "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Postleitzahl",
+        "short": "Postleitzahl der Wohnsitzadresse",
+        "definition": "Gibt die Postleitzahl der Wohnsitzadresse an. ",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.postalCode"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Ort",
+        "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Ort",
+        "short": "Ort der Wohnsitzadresse",
+        "definition": "Gibt den Ort zur Wohnsitzadresse an. ",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.city"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Land",
+        "path": "VSDDatensatzPKV.Versichertendaten.Wohnsitzadresse.Land",
+        "short": "Land der Wohnsitzadresse",
+        "definition": "Gibt das Land zu der Wohnsitzadresse an. \nEs werden Landesangaben nach ISO 3166-2 verwendet.",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.address.country",
+            "comment": "Hinweise zur Befüllung der Extensions beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versichertendaten.TIMessengerID",
+        "path": "VSDDatensatzPKV.Versichertendaten.TIMessengerID",
+        "short": "TI-Messenger-ID",
+        "definition": "Gibt die TI-Messenger-ID des Versicherten an, soweit bekannt.",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Patient",
+            "map": "VSDMPatient.telecom:TIMessengerID",
+            "comment": "Hinweise zur Kodierung der TI-Messenger-ID beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten",
+        "path": "VSDDatensatzPKV.Versicherungsdaten",
+        "short": "Angaben zum Versicherungsverhältnis",
+        "definition": "Angaben zum Versicherungsverhältnis",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Kostentraeger",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Kostentraeger",
+        "short": "Angaben zum Kostenträger",
+        "definition": "Angaben zum Kostenträger",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.payor:Hauptkostentraeger",
+            "comment": "Der Kostenträger wird als Referenz auf eine VSDMPayorOrganization abgebildet. Im PKV-Bereich gibt es keine Unterscheidung zwischen Haupt- und abrechnendem Kostenträger."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Kostentraeger.Name",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Kostentraeger.Name",
+        "short": "Name des Kostenträgers",
+        "definition": "Gibt den Namen der Institution/Organisation an.",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMPayorOrganization:Hauptkostentraeger.name"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Kostentraeger.Kostentraegerkennung",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Kostentraeger.Kostentraegerkennung",
+        "short": "Kostenträgerkennung (Institutionskennzeichen)",
+        "definition": "Gibt den Kostenträger des Versicherten an. Es handelt sich um das bundesweit gültige Institutionskennzeichen (IK) des jeweiligen Kostenträgers.",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMPayorOrganization:Hauptkostentraeger.identifier:IKNR"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Versicherungsschutz",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Versicherungsschutz",
+        "short": "Versicherungsschutz des Versicherten",
+        "definition": "Angaben zu Beginn und Ende des Vertragsverhältnisses sind im PKV-Bereich grundsätzlich optional.\nWenn diese Struktur angegeben wird, muss mindestens Beginn- oder Endedatum angegeben werden.",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.period",
+            "comment": "Zur Abbildung werden die Standard-Felder der FHIR-Ressource verwendet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Versicherungsschutz.Beginn",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Versicherungsschutz.Beginn",
+        "short": "Beginn des Versicherungsschutzes",
+        "definition": "Gibt den Beginn des Versicherungsschutzes des Versicherten bei dem angegebenen Kostenträger an. \nDieser Wert darf nicht vor dem Geburtsdatum liegen.",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.period.start"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Versicherungsschutz.Ende",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Versicherungsschutz.Ende",
+        "short": "Ende des Versicherungsschutzes",
+        "definition": "Gibt das Ende des Versicherungsschutzes des Versicherten bei dem angegebenen Kostenträger an. ",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.period.end"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Beihilfe",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Beihilfe",
+        "short": "Beihilfeanspruch",
+        "definition": "Informationen für Versicherte mit Beihilfeanspruch. \nDiese Struktur ist für Versicherte ohne Beihilfeanspruch nicht anzugeben.",
+        "comment": "Hintergrundinformationen siehe https://www.pkv.de/wissen/private-krankenversicherung/leistungen-und-erstattung/privatversichert-im-beamtenverhaeltnis/",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:beihilfe",
+            "comment": "Die gesamte Zielstruktur ist für Versicherte ohne Beihilfeanspruch nicht anzugeben."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Beihilfe.Beihilfeanspruch",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Beihilfe.Beihilfeanspruch",
+        "short": "Versicherter mit Beihilfeanspruch",
+        "definition": "Kennzeichnet einen Versicherten mit Beihilfeanspruch.\nDieses Kennzeichen ist anzugeben, sobald die Struktur Beihilfe erforderlich wird (notwendig, da die Beihilfequote nicht immer vorliegt). ",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "boolean"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:beihilfe.extension:anspruch"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Beihilfe.QuotePKV",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Beihilfe.QuotePKV",
+        "short": "Quote PKV bei Beihilfe",
+        "definition": "Prozentwert des über die Beihilfe hinaus in der PKV versicherten Anteils.",
+        "comment": "Prozentwert (0..100)",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "unsignedInt"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:beihilfe.extension:quote"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen",
+        "short": "Kostenübernahme für Krankenhausleistungen",
+        "definition": "Informationen zur Kostenübernahme für Krankenhausleistungen.",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Allgemein",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Allgemein",
+        "short": "Allgemeine Krankenhausleistungen",
+        "definition": "Versicherter Anteil in Prozent für allgemeine Krankenhausleistungen.",
+        "comment": "Prozentwert (0..100)",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "unsignedInt"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:krankenhaus.extension:allgemein"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Zweibettzimmer",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Zweibettzimmer",
+        "short": "Zweibettzimmerzuschlag",
+        "definition": "Versicherter Anteil in Prozent für den Zweibettzimmerzuschlag.",
+        "comment": "Prozentwert (0..100)",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "unsignedInt"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:krankenhaus.extension:zweibett"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Einbettzimmer",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Einbettzimmer",
+        "short": "Einbettzimmerzuschlag",
+        "definition": "Versicherter Anteil in Prozent für den Einbettzimmerzuschlag.",
+        "comment": "Prozentwert (0..100)",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "unsignedInt"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:krankenhaus.extension:einbett"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.ZweiEinbettDifferenz",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.ZweiEinbettDifferenz",
+        "short": "Differenz zwischen Zwei- und Einbettzimmerzuschlag",
+        "definition": "Versicherter Anteil in Prozent für die Differenz zwischen Zweibettzimmer- und den Einbettzimmerzuschlag (z.B. Beihilfetarif zuzüglich Beihilfeergänzungsversicherung).",
+        "comment": "Prozentwert (0..100)",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "unsignedInt"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:krankenhaus.extension:zweibettEinbettDifferenz"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Wahlarzt[x]",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Wahlarzt[x]",
+        "short": "Wahlärztliche Leistungen",
+        "definition": "Übernahme wahlärztlicher Leistungen.        ",
+        "comment": "Angabe als reines Kennzeichen (ja/nein) oder als Prozentwert (0..100) möglich.",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "boolean"
+          },
+          {
+            "code": "unsignedInt"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:krankenhaus.extension:wahlarzt"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Belegarzt[x]",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Krankenhausleistungen.Belegarzt[x]",
+        "short": "Belegärztliche Leistungen",
+        "definition": "Übernahme belegärztlicher Leistungen (kein Bestandteil der wahlärztlichen Leistungen).",
+        "comment": "Angabe als reines Kennzeichen (ja/nein) oder als Prozentwert (0..100) möglich.",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "boolean"
+          },
+          {
+            "code": "unsignedInt"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:krankenhaus.extension:belegarzt"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Sozialtarif",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Sozialtarif",
+        "short": "Sozialtarif",
+        "definition": "Anwendung eines verbandseinheitlichen Tarifs mit Besonderheiten bezüglich der Leistungen und privatärztliche Abrechnungen.\nMögliche Werte:\nS = Standardtarif,\nB = Basistarif,\nN = Notlagentarif.",
+        "comment": "Hintergrundinformationen siehe https://www.pkv.de/wissen/private-krankenversicherung/brancheneinheitliche-tarife/",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:sozialtarif"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Versichertenart",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Versichertenart",
+        "short": "Rolle der Person im PKV-Vertrag",
+        "definition": "VN = Versicherungsnehmer / Vertragsinhaber\nVP = versicherte Person",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:versichertenart"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Hinweis",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Hinweis",
+        "short": "Hinweise an Leistungserbringer",
+        "definition": "Optionale Hinweise in Freitextform für Leistungserbringer.\nDie Relevanz eines Hinweises kann auf einzelne Leistungserbringer-Institutionstypen (professionOID gemäß gemSpec_OID) eingeschränkt werden.\nHinweise ohne Angabe einer Berufsgruppe sind für alle Leistungserbringer relevant.",
+        "min": 0,
+        "max": "*",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:hinweis"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Hinweis.Hinweistext",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Hinweis.Hinweistext",
+        "short": "Hinweistext",
+        "definition": "Hinweistext im Markdown-Format. \nDer Hinweistext ist nicht zur maschinellen Verarbeitung vorgesehen, sondern muss dem Leistungserbringer lediglich angezeigt werden.",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "markdown"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:hinweis.extension:text"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzPKV.Versicherungsdaten.Hinweis.Institutionstypen",
+        "path": "VSDDatensatzPKV.Versicherungsdaten.Hinweis.Institutionstypen",
+        "short": "betroffene LEI-Typen",
+        "definition": "Leistungserbringer-Institutionstypen, für die der Hinweistext relevant ist.\nDie Angabe erfolgt als Liste von professionOIDs gemäß gemSpec_OID Tabelle Tab_PKI_403-*.\nDie Verwendung anderer OIDs (insbesondere individueller Berufsgruppen) ist nicht zulässig.\nWenn keine Institutionstypen angegeben sind oder das empfangende System den Filter nicht anzeigen kann, ist der Hinweistext sicherheitshalber anzuzeigen.",
+        "min": 0,
+        "max": "*",
+        "type": [
+          {
+            "code": "oid"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-PKV-Coverage",
+            "map": "VSDMCoveragePKV.extension:hinweis.extension:professionOID"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "resourceType": "ValueSet",
+  "status": "draft",
+  "name": "VSDMVorsatzwortVS",
+  "id": "VSDMVorsatzwortVS",
+  "title": "Namensvorsatzwort",
+  "description": "Namensvorsatzwort nach DEÜV Anlage 6 im Versichertenstammdatenmanagement (VSDM) 2.0",
+  "version": "1.0.0",
+  "url": "https://gematik.de/fhir/vsdm2/ValueSet/VSDMVorsatzwortVS",
+  "experimental": false,
+  "publisher": "gematik GmbH",
+  "date": "2023-12-31",
+  "compose": {
+    "include": [
+      {
+        "system": "http://fhir.de/CodeSystem/deuev/anlage-6-vorsatzworte"
+      }
+    ]
+  }
+}
