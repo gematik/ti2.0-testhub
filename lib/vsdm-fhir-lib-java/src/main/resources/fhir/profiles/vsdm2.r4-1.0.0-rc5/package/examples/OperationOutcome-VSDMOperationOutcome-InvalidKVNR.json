@@ -1,0 +1,33 @@
+{
+  "resourceType": "OperationOutcome",
+  "id": "VSDMOperationOutcome-InvalidKVNR",
+  "meta": {
+    "profile": [
+      "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMOperationOutcome"
+    ]
+  },
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Ungültige oder nicht bekannte Krankenversichertennummer 1234567890.</div>"
+  },
+  "issue": [
+    {
+      "severity": "error",
+      "code": "not-found",
+      "details": {
+        "coding": [
+          {
+            "code": "VSDSERVICE_INVALID_KVNR",
+            "system": "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMErrorcodeCS",
+            "display": "Ungültige oder nicht bekannte Krankenversichertennummer [kvnr]."
+          }
+        ],
+        "text": "Ungültige oder nicht bekannte Krankenversichertennummer 1234567890."
+      },
+      "diagnostics": "Nachweis zum Versorgungskontext mittels eGK oder GesundheitsID am PoPP-Service 1x erneuern. \nBei erneutem Fehler: Abbruch, da wahrscheinlich ein Implementierungsfehler vorliegt (Clientsystem oder PoPP-Service).",
+      "expression": [
+        "http.ZETA-PoPP-Token-Content.patientId"
+      ]
+    }
+  ]
+}

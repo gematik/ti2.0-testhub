@@ -1,0 +1,30 @@
+{
+  "resourceType": "CodeSystem",
+  "status": "active",
+  "content": "complete",
+  "name": "VSDMSozialtarifPKVCS",
+  "id": "VSDMSozialtarifPKVCS",
+  "title": "PKV-Sozialtarif",
+  "description": "Anwendung eines PKV-verbandseinheitlichen Tarifs im Versichertenstammdatenmanagement (VSDM) 2.0",
+  "version": "1.0.0",
+  "url": "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMSozialtarifPKVCS",
+  "concept": [
+    {
+      "code": "S",
+      "display": "Standardtarif"
+    },
+    {
+      "code": "B",
+      "display": "Basistarif"
+    },
+    {
+      "code": "N",
+      "display": "Notlagentarif"
+    }
+  ],
+  "experimental": false,
+  "publisher": "gematik GmbH",
+  "date": "2023-12-31",
+  "caseSensitive": true,
+  "count": 3
+}

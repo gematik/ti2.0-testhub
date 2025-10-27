@@ -1,0 +1,7 @@
+# This is a template file for local Pact configuration
+# Copy this file to pactconfig-local.properties and fill in your values
+
+# Pact Broker API Key (required for publishing pacts)
+pact.broker.api.key=
+
+# Note: Do not commit pactconfig-local.properties to version control

@@ -1,0 +1,3078 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "VSDDatensatzGKV",
+  "url": "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDDatensatzGKV",
+  "name": "VSDDatensatzGKV",
+  "title": "Logisches Modell VSD-Datensatz GKV für VSDM 2.0",
+  "status": "draft",
+  "description": "Fachliches Modell zur Beschreibung des VSD-Datensatzes für den Bereich der Gesetzlichen Krankenversicherung (GKV).\nDieses Modell setzt die Original-Angaben der BMV-Ä unverändert um. Es dient als Ausgangspunkt für die Mappings und ConceptSets, die die Abbildung auf FHIR-Ressourcen vornehmen.\nDie Modell-Elemente sind exakt in der Reihenfolge der Ausgangsvereinbarung aufgeführt. Hinweise zum Datenformat wurden in den Langtext der Beschreibung übertragen; der Kurztext wurde zur besseren Lesbarkeit angepasst.\nHinweise aus dem Originaldatensatz: \n  * TI-Messenger ID: Wird nicht aufgenommen, da keine rechtliche Grundlage existiert.\n  * Wahltarife: aktuell keine Abbildung im VSDM 2.0, aber BMV-Ä verständigen sich hierzu im Rahmen weiterer Beratungen (ggf. Protokollnotiz).",
+  "fhirVersion": "4.0.1",
+  "mapping": [
+    {
+      "identity": "VSD-Datensatz-GKV-Coverage",
+      "name": "Mapping VSD-Datensatz GKV zu Coverage",
+      "uri": "VSDMCoverageGKV",
+      "comment": "Zuordnung der Versicherungsinformationen des VSD-Datensatzes GKV zum FHIR-Profil VSDMCoverageGKV"
+    },
+    {
+      "identity": "VSD-Datensatz-GKV-Patient",
+      "name": "Mapping VSD-Datensatz GKV zu Patient",
+      "uri": "VSDMPatient",
+      "comment": "Zuordnung der Versichertendaten des VSD-Datensatzes GKV zum FHIR-Profil VSDMPatient"
+    },
+    {
+      "identity": "rim",
+      "uri": "http://hl7.org/v3",
+      "name": "RIM Mapping"
+    }
+  ],
+  "kind": "logical",
+  "abstract": false,
+  "type": "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDDatensatzGKV",
+  "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Element",
+  "derivation": "specialization",
+  "snapshot": {
+    "element": [
+      {
+        "id": "VSDDatensatzGKV",
+        "path": "VSDDatensatzGKV",
+        "short": "Logisches Modell VSD-Datensatz GKV für VSDM 2.0",
+        "definition": "Fachliches Modell zur Beschreibung des VSD-Datensatzes für den Bereich der Gesetzlichen Krankenversicherung (GKV).\nDieses Modell setzt die Original-Angaben der BMV-Ä unverändert um. Es dient als Ausgangspunkt für die Mappings und ConceptSets, die die Abbildung auf FHIR-Ressourcen vornehmen.\nDie Modell-Elemente sind exakt in der Reihenfolge der Ausgangsvereinbarung aufgeführt. Hinweise zum Datenformat wurden in den Langtext der Beschreibung übertragen; der Kurztext wurde zur besseren Lesbarkeit angepasst.\nHinweise aus dem Originaldatensatz: \n  * TI-Messenger ID: Wird nicht aufgenommen, da keine rechtliche Grundlage existiert.\n  * Wahltarife: aktuell keine Abbildung im VSDM 2.0, aber BMV-Ä verständigen sich hierzu im Rahmen weiterer Beratungen (ggf. Protokollnotiz).",
+        "min": 0,
+        "max": "*",
+        "base": {
+          "path": "VSDDatensatzGKV",
+          "min": 0,
+          "max": "*"
+        },
+        "condition": [
+          "ele-1"
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div"
+          }
+        ],
+        "isModifier": false,
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.id",
+        "path": "VSDDatensatzGKV.id",
+        "representation": [
+          "xmlAttr"
+        ],
+        "short": "Unique id for inter-element referencing",
+        "definition": "Unique id for the element within a resource (for internal references). This may be any string value that does not contain spaces.",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "Element.id",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "http://hl7.org/fhirpath/System.String",
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type",
+                "valueUrl": "string"
+              }
+            ]
+          }
+        ],
+        "isModifier": false,
+        "isSummary": false,
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.extension",
+        "path": "VSDDatensatzGKV.extension",
+        "slicing": {
+          "discriminator": [
+            {
+              "type": "value",
+              "path": "url"
+            }
+          ],
+          "description": "Extensions are always sliced by (at least) url",
+          "rules": "open"
+        },
+        "short": "Additional content defined by implementations",
+        "definition": "May be used to represent additional information that is not part of the basic definition of the element. To make the use of extensions safe and manageable, there is a strict set of governance  applied to the definition and use of extensions. Though any implementer can define an extension, there is a set of requirements that SHALL be met as part of the definition of the extension.",
+        "comment": "There can be no stigma associated with the use of extensions by any application, project, or standard - regardless of the institution or jurisdiction that uses or defines the extensions.  The use of extensions is what allows the FHIR specification to retain a core level of simplicity for everyone.",
+        "alias": [
+          "extensions",
+          "user content"
+        ],
+        "min": 0,
+        "max": "*",
+        "base": {
+          "path": "Element.extension",
+          "min": 0,
+          "max": "*"
+        },
+        "type": [
+          {
+            "code": "Extension"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          },
+          {
+            "key": "ext-1",
+            "severity": "error",
+            "human": "Must have either extensions or value[x], not both",
+            "expression": "extension.exists() != value.exists()",
+            "xpath": "exists(f:extension)!=exists(f:*[starts-with(local-name(.), \"value\")])",
+            "source": "http://hl7.org/fhir/StructureDefinition/Extension"
+          }
+        ],
+        "isModifier": false,
+        "isSummary": false,
+        "mapping": [
+          {
+            "identity": "rim",
+            "map": "n/a"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten",
+        "path": "VSDDatensatzGKV.Versichertendaten",
+        "short": "Versichertendaten",
+        "definition": "Versichertendaten",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter",
+        "short": "Angaben zum Versicherten",
+        "definition": "Angaben zum Versicherten",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.VersichertenID",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.VersichertenID",
+        "short": "Versicherten-ID (KVNR)",
+        "definition": "Die Versicherten-ID ist der 10-stellige unveränderliche Teil der 30-stelligen Krankenversichertennummer.\nLänge: 10\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.VersichertenID",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.identifier:KVNR.value",
+            "comment": "Die KVNR wird in Übereinstimmung mit dem deutschen Basisprofils kodiert und ist verpflichtend anzugeben."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.Geburtsdatum",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Geburtsdatum",
+        "short": "Geburtsdatum des Versicherten",
+        "definition": "Gibt das Geburtsdatum der Person an.\nHinweis: Das Geburtsjahr MUSS immer gefüllt werden. Bei Inländern ist immer ein logisch richtiges Geburtsdatum anzugeben. \nBei Ausländern gilt folgendes: Zumindest das Geburtsjahr ist immer anzugeben. Im Geburtstag oder im Geburtstag und im Geburtsmonat ist bei Ausländern „00“ bzw. „0000“ zulässig, wenn der Geburtstag und der Geburtsmonat nicht zu ermitteln sind. \nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Geburtsdatum",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.birthDate",
+            "comment": "Die Angabe des partiellen Geburtsdatums wird vom FHIR-nativen Datentyp date bereits unterstützt."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.Vorname",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Vorname",
+        "short": "Vorname des Versicherten",
+        "definition": "Gibt den Vornamen der Person an.\nAlle Vornamen der Person (max. 5) werden eingegeben. Mehrere Vornamen werden durch Leerzeichen oder Bindestrich getrennt.\nLänge: 45\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Vorname",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.name:Name.given",
+            "comment": "FHIR lässt die Angabe mehrerer Vornamen in wiederholten Elementen zu. Davon wird hier kein Gebrauch gemacht."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.Nachname",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Nachname",
+        "short": "Nachname des Versicherten",
+        "definition": "Gibt den Nachnamen der Person an.\nLänge: 45\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Nachname",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.name:Name.family",
+            "comment": "Nachname mit Vorsatzwort und Namenszusatz. Wichtig: Hinweise zur Bildung des kombinierten Nachnamens beachten."
+          },
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.name:Name.family.extension:nachname",
+            "comment": "Nachname ohne Vorsatzwort und Namenszusatz. Wichtig: Hinweise zur Bildung des kombinierten Nachnamens beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.Geschlecht",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Geschlecht",
+        "short": "Geschlecht des Versicherten",
+        "definition": "Gibt das Geschlecht der Person an. Wertetabelle M,W,D,X\nLänge: 1\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Geschlecht",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.gender",
+            "comment": "Das Geschlecht wird auf die standardisierten FHIR-Werte abgebildet. Da damit nicht alle Werte abgebildet werden können, kommt eine Erweiterung zum Einsatz."
+          },
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.gender.extension:other-amtlich",
+            "comment": "Diese Erweiterung nimmt die Geschlechtsangabe gemäß der geforderten Wertetabelle auf. Die Pflicht zur Angabe des Werts für GKV-Patienten wird durch die Invariante VSDMCoverageGKV-gender-1 abgebildet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.Vorsatzwort",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Vorsatzwort",
+        "short": "Vorsatzwörter des Namens des Versicherten",
+        "definition": "Gibt die Vorsatzwörter der Person an.\nMehrere Vorsatzwörter werden durch Leerzeichen getrennt angegeben.\nAnlage 6 (Tabelle der gültigen Vorsatzworte) zur DEÜV, siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp\nLänge: 20\nTyp: AN",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Vorsatzwort",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.name:Name.family.extension:vorsatzwort",
+            "comment": "Vorsatzwort zum Nachnamen. Wichtig: Hinweise zur Bildung des kombinierten Nachnamens beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.Namenszusatz",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Namenszusatz",
+        "short": "Namenszusätze des Versicherten",
+        "definition": "Gibt die Namenszusätze der Person an, z. B.: Freiherr\nMehrere Namenzusätze werden durch Leerzeichen getrennt angegeben.\nAnlage 7 (Tabelle der gültigen Namenszusätze) zur DEÜV, siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp\nLänge: 20\nTyp: AN",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Namenszusatz",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.name:Name.family.extension:namenszusatz",
+            "comment": "Zusatz zum Nachnamen. Wichtig: Hinweise zur Bildung des kombinierten Nachnamens beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.Titel",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Titel",
+        "short": "Akademische Titel des Versicherten",
+        "definition": "Gibt die akademischen Grade der Person an.\nMehrere Titel werden durch Leerzeichen getrennt angegeben.\nLänge: 20\nTyp: AN",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Titel",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.name:Name.prefix",
+            "comment": "Kennzeichnung des akademischen Titels mittels Erweiterung siehe Elementdokumentation."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse",
+        "short": "Postfachadresse des Versicherten",
+        "definition": "Postfachadresse des Versicherten",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse",
+            "comment": "Postfachadressen werden mit dem Typ \"postal\" gekennzeichnet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Postleitzahl",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Postleitzahl",
+        "short": "Postleitzahl der Postfachadresse",
+        "definition": "Gibt die Postleitzahl der Strassen- oder Postfachadresse an. Die Befüllung des Feldes Postleitzahl erfolgt gemäß den Festlegungen der DEÜV. \nIn Verbindung mit dem Wohnsitzländercode \"\"D\"\" für Deutschland MUSS die Postleitzahl 5-stellig numerisch sein. \nSoweit Angaben zur Adresse und zum Postfach gemacht werden, MUSS die Postleitzahl zu beiden Adressdaten vorhanden sein. \nBei Anschriften ohne Postleitzahl wird das Feld nicht verwendet.\nLänge: 10\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Postleitzahl",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse.postalCode"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Ort",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Ort",
+        "short": "Ort der Postfachadresse",
+        "definition": "Gibt den Ort zur Strassen- und oder Postfachadresse an. \nSoweit Angaben zur Adresse und zum Postfach gemacht werden, MUSS der Ort zu beiden Adressdaten vorhanden sein.\nAbweichung zur Festlegung in DEÜV (Feldlänge = 34)\nLänge: 40\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Ort",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse.city"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Postfach",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Postfach",
+        "short": "Postfach des Versicherten",
+        "definition": "Gibt das Postfach der Person an.\nLänge: 8\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Postfach",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse.line.extension:Postfach",
+            "comment": "Hinweise zur Bildung der Adresszeilen beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Wohnsitzlaendercode",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Wohnsitzlaendercode",
+        "short": "Land der Postfachadresse",
+        "definition": "Gibt das Land zu der Strassen- und oder Postfachadresse an. \nSoweit Angaben zur Adresse und zum Postfach gemacht werden, muss der Wohnsitzländercode zu beiden Adressdaten vorhanden sein.\nAnlage 8 (Staatsangehörigkeit und Länderkennzeichen für Auslandsanschriften) zur DEÜV, siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp\nLänge: 3\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Wohnsitzlaendercode",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse.country",
+            "comment": "Hinweise zur Befüllung der Extensions beachten. Die Pflicht zur Angabe des Werts für GKV-Patienten wird durch die Invariante VSDMCoverageGKV-address-1 abgebildet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse",
+        "short": "Strassenadresse des Versicherten",
+        "definition": "Strassenadresse des Versicherten",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse",
+            "comment": "Strassenadressen (Meldeadressen) werden mit dem Typ \"physical\" gekennzeichnet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Postleitzahl",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Postleitzahl",
+        "short": "Postleitzahl der Strassenadresse",
+        "definition": "Gibt die Postleitzahl der Strassen- oder Postfachadresse an. Die Befüllung des Feldes Postleitzahl erfolgt gemäß den Festlegungen der DEÜV. In Verbindung mit dem Wohnsitzländercode \"\"D\"\" für Deutschland MUSS die\nPostleitzahl 5-stellig numerisch sein. Soweit Angaben zur Adresse und zum Postfach gemacht werden, MUSS die Postleitzahl zu beiden Adressdaten vorhanden sein. Bei Anschriften ohne Postleitzahl wird das Feld nicht verwendet.\nLänge: 10\nTyp: AN",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Postleitzahl",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.postalCode"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Ort",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Ort",
+        "short": "Ort der Strassenadresse",
+        "definition": "Gibt den Ort zur Strassen- und oder Postfachadresse an. \nSoweit Angaben zur Adresse und zum Postfach gemacht werden, MUSS der Ort zu beiden Adressdaten vorhanden sein.\nAbweichung zur Festlegung in DEÜV (Feldlänge = 34)\nLänge: 40\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Ort",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.city"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Wohnsitzlaendercode",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Wohnsitzlaendercode",
+        "short": "Land der Strassenadresse",
+        "definition": "Gibt das Land zu der Strassen- und oder Postfachadresse an. \nSoweit Angaben zur Adresse und zum Postfach gemacht werden, muss der Wohnsitzländercode zu beiden Adressdaten vorhanden sein.\nAnlage 8 (Staatsangehörigkeit und Länderkennzeichen für Auslandsanschriften) zur DEÜV, siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp\nLänge: 3\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Wohnsitzlaendercode",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address.country",
+            "comment": "Hinweise zur Befüllung der Extensions beachten. Die Pflicht zur Angabe des Werts für GKV-Patienten wird durch die Invariante VSDMCoverageGKV-address-1 abgebildet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Strasse",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Strasse",
+        "short": "Name der Strasse",
+        "definition": "Gibt den Namen der Strasse an.\nWenn die Hausnummer nicht separat abgelegt werden kann, ist es zulässig, die Hausnummer in das Feld Straße zu übernehmen.\nAnlage 9.4 (Datensätze und Datenbausteine sowie Fehlerkatalog) zur DEÜV, siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp \nLänge: 46\nTyp: AN",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Strasse",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.line.extension:Strasse",
+            "comment": "Hinweise zur Bildung der Adresszeilen beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Hausnummer",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Hausnummer",
+        "short": "Hausnummer der Strassenadresse",
+        "definition": "Gibt die Hausnummer in der Strasse der Person an.\nPflichtangabe soweit bekannt, wenn die Hausnummer nicht separat abgelegt werden kann, ist es zulässig, die Hausnummer in das Feld Straße zu übernehmen. \nAnlage 9.4 (Datensätze und Datenbausteine sowie Fehlerkatalog) zur DEÜV, siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp \nLänge: 9\nTyp: AN",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Hausnummer",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.line.extension:Hausnummer",
+            "comment": "Hinweise zur Bildung der Adresszeilen beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Anschriftenzusatz",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Anschriftenzusatz",
+        "short": "Relevante Zusätze zur Anschrift",
+        "definition": "Gibt die relevanten Zusätze zur Anschrift an.\nAls Anschriftenzusatz kann z. B. „Hinterhaus“ angegeben werden.\nLänge: 40\nTyp: AN",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Anschriftenzusatz",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.line.extension:Adresszusatz",
+            "comment": "Hinweise zur Bildung der Adresszeilen beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten",
+        "path": "VSDDatensatzGKV.Versicherungsdaten",
+        "short": "Angaben zum Versicherungsverhältnis",
+        "definition": "Angaben zum Versicherungsverhältnis",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger",
+        "short": "Angaben zum Kostenträger",
+        "definition": "Angaben zum Kostenträger",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.payor:Hauptkostentraeger",
+            "comment": "Der Hauptkostenträger wird als Referenz auf eine VSDMPayorOrganization abgebildet. Die Referenz ist mit einer Erweiterung zur Kennzeichnung der Rolle des Kostenträgers versehen."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger.Name",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger.Name",
+        "short": "Name des Kostenträgers",
+        "definition": "Gibt den Namen der Institution/Organisation an.\nLänge: 45\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger.Name",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMPayorOrganization:Hauptkostentraeger.name"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger.Kostentraegerlaendercode",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger.Kostentraegerlaendercode",
+        "short": "Kostenträgerländercode",
+        "definition": "Gibt den Kostenträgerländercode vom Kostenträger des Versicherten an.\nAnlage 8 (Staatsangehörigkeit und Länderkennzeichen für Auslandsanschriften) zur DEÜV, siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp\nLänge: 3\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger.Kostentraegerlaendercode",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMPayorOrganization:Hauptkostentraeger.address.country",
+            "comment": "Hinweise zur Befüllung der Extensions beachten. Die Pflicht zur Angabe des Werts für GKV-Patienten wird durch die Invariante VSDMCoverageGKV-address-2 abgebildet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger.Kostentraegerkennung",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger.Kostentraegerkennung",
+        "short": "Kostenträgerkennung (Institutionskennzeichen)",
+        "definition": "Gibt den Kostenträger des Versicherten an. Es handelt sich um das bundesweit gültige Institutionskennzeichen (IK) des jeweiligen Kostenträgers.\nLänge: 9\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger.Kostentraegerkennung",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMPayorOrganization:Hauptkostentraeger.identifier:IKNR"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger",
+        "short": "Angaben zum abrechnenden Kostenträger",
+        "definition": "Angaben zum abrechnenden Kostenträger",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.payor:abrechnenderKostentraeger",
+            "comment": "Der abrechnende Kostenträger wird als Referenz auf eine VSDMPayorOrganization abgebildet. Die Referenz ist mit einer Erweiterung zur Kennzeichnung der Rolle des Kostenträgers versehen."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger.Name",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger.Name",
+        "short": "Name des Kostenträgers",
+        "definition": "Gibt den Namen der Institution/Organisation an.\nLänge: 45\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger.Name",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMPayorOrganization:abrechnenderKostentraeger.name"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger.Kostentraegerlaendercode",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger.Kostentraegerlaendercode",
+        "short": "Kostenträgerländercode",
+        "definition": "Gibt den Kostenträgerländercode vom Kostenträger des Versicherten an.\nAnlage 8 (Staatsangehörigkeit und Länderkennzeichen für Auslandsanschriften) zur DEÜV, siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp\nLänge: 3\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger.Kostentraegerlaendercode",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMPayorOrganization:abrechnenderKostentraeger.address.country",
+            "comment": "Hinweise zur Befüllung der Extensions beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger.Kostentraegerkennung",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger.Kostentraegerkennung",
+        "short": "Kostenträgerkennung (Institutionskennzeichen)",
+        "definition": "Gibt den Kostenträger des Versicherten an. Es handelt sich um das bundesweit gültige Institutionskennzeichen (IK) des jeweiligen Kostenträgers.\nLänge: 9\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger.Kostentraegerkennung",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMPayorOrganization:abrechnenderKostentraeger.identifier:IKNR"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.WOP",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.WOP",
+        "short": "Kennzeichen Wohnortprinzip",
+        "definition": "Das Kennzeichen WOP ist gemäss § 2 Abs. 2 der Vereinbarung zur Festsetzung des Durchschnittsbetrages gemäss Artikel 2 § 2 Abs. 2 des Gesetzes zur Einführung des Wohnortprinzips bei Honorarvereinbarungen für Ärzte und Zahnärzte und zur Krankenversichertenkarte gemäss § 291 Abs. 2 Fünftes Sozialgesetzbuch (SGB V) erforderlich.\n01 = Schleswig-Holstein\n02 = Hamburg\n03 = Bremen\n17 = Niedersachsen\n20 = Westfalen-Lippe\n38 = Nordrhein\n46 = Hessen\n51 = Rheinland-Pfalz\n52 = Baden-Württemberg\n71 = Bayern\n72 = Berlin\n73 = Saarland\n78 = Mecklenburg-Vorpommern\n83 = Brandenburg\n88 = Sachsen-Anhalt\n93 = Thüringen\n98 = Sachsen\nGemäß Anlage 21 BMV-Ä und EKV.\nLänge: 2\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.WOP",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:WOP",
+            "comment": "Die KBV-Schlüsseltabelle wird ggf. durch ein VSDM-spezifisches ValueSet auf die zulässigen Werte eingeschränkt. Die Pflicht zur Angabe des Werts für GKV-Patienten wird durch die Invariante VSDMCoverageGKV-wop-1 abgebildet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.BesonderePersonengruppe",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.BesonderePersonengruppe",
+        "short": "Zuordnung besondere Personengruppe",
+        "definition": "Gibt die Zugehörigkeit des Versicherten zu einer besonderen Personengruppe an. Die Kennzeichnung erfolgt gemäß der aktuellen Schlüsseltabelle.\n4 = BSHG (Bundessozialhilfegesetz) § 264 SGB V, \n6 = SER (Soziales Entschädigungsrecht), \n7 = SVA-Kennzeichnung für zwischenstaatliches Krankenversicherungsrecht: - Personen mit Wohnsitz im Inland, Abrechnung nach Aufwand, \n8 = SVA-Kennzeichnung, pauschal,\n9 = Empfänger von Gesundheitsleistungen nach §§ 4 und 6 des Asylbewerberleistungsgesetzes (AsylbLG)\nLänge: 2\nTyp: N",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.BesonderePersonengruppe",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:besonderePersonengruppe",
+            "comment": "Es werden die zweistelligen Werte aus der Schlüsseltabelle (mit führenden Nullen) verwendet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Zuzahlungsstatus",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Zuzahlungsstatus",
+        "short": "Zuzahlungsstatus des Versicherten",
+        "definition": "Zuzahlungsstatus des Versicherten",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.Zuzahlungsstatus",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:zuzahlungsstatus",
+            "comment": "Die gesamte Erweiterung darf nur angegeben werden, wenn eine Zuzahlungsbefreiung vorliegt."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Zuzahlungsstatus.Status",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Zuzahlungsstatus.Status",
+        "short": "Versicherter von Zuzahlungspflicht befreit",
+        "definition": "Gibt an, ob für den Versicherten eine Befreiung von der Zuzahlungspflicht nach § 62 SGB V vorliegt.\t\n1 = von Zuzahlungspflicht befreit\nLänge: 1\nTyp: offen",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.Zuzahlungsstatus.Status",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "boolean"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:zuzahlungsstatus.extension:status",
+            "comment": "Der Wert \"von Zuzahlungspflicht befreit\" wird auf \"true\" abgebildet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Zuzahlungsstatus.GueltigBis",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Zuzahlungsstatus.GueltigBis",
+        "short": "Gültigkeit des Zuzahlungsstatus",
+        "definition": "Gibt die Gültigkeit der Befreiung von der Zuzahlungspflicht nach § 62 SGB V an.\tWird nur angegeben, wenn Zuzahlungsstatus mit 1 (= befreit) angegeben ist.\n Typ: ISO8601Date",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.Zuzahlungsstatus.GueltigBis",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:zuzahlungsstatus.extension:gueltigBis",
+            "comment": "Da die Angabe ein Pflichtfeld ist, aber nur erfolgen kann und soll, wenn eine Zuzahlungsbefreiung vorliegt, beeinflusst das die gesamte Struktur."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Versicherungsschutz",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Versicherungsschutz",
+        "short": "Versicherungsschutz des Versicherten",
+        "definition": "Versicherungsschutz des Versicherten",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.Versicherungsschutz",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.period",
+            "comment": "Zur Abbildung werden die Standard-Felder der FHIR-Ressource verwendet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Versicherungsschutz.Beginn",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Versicherungsschutz.Beginn",
+        "short": "Beginn des Versicherungsschutzes",
+        "definition": "Gibt den Beginn des Versicherungsschutzes (hier: Leistungsanspruch) des Versicherten bei dem unter Klasse Kostenträger angegebenen Kostenträger an. \nTyp: ISO8601Date",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.Versicherungsschutz.Beginn",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.period.start",
+            "comment": "Die Pflicht zur Angabe des Werts für GKV-Patienten wird durch die Invariante VSDMCoverageGKV-period-1 abgebildet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Versicherungsschutz.Ende",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Versicherungsschutz.Ende",
+        "short": "Ende des Versicherungsschutzes",
+        "definition": "Das Ende ist bei befristeter Gültigkeit der elektronischen Gesundheitskarte das Datum des Fristablaufs. (Definition aus §291a Abs. 2 Nr. 10 SGB V)\nTyp: ISO8601Date",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.Versicherungsschutz.Ende",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.period.end",
+            "comment": "Da der VSDM 2.0 Resource Server keine Kenntnis von der eingesetzten eGK haben kann, wird immer das Gültigkeitsende des Versicherungsverhältnisses gemeldet, wenn anwendbar."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.DMP",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.DMP",
+        "short": "Angaben zur Teilnahme des Versicherten an Disease Management-Programmen",
+        "definition": "Angaben zur Teilnahme des Versicherten an Disease Management-Programmen",
+        "min": 0,
+        "max": "*",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.DMP",
+          "min": 0,
+          "max": "*"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:dmp"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.DMP.DMP",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.DMP.DMP",
+        "short": "Name des DMP-Programms",
+        "definition": "Gibt den Namen des DMP an; die Kennzeichnung erfolgt gemäß der aktuellen Schlüsseltabelle.\n1 = Diabetes mellitus Typ 2 \n2 = Brustkrebs \n3 = Koronare Herzkrankheit\n4 = Diabetes mellitus Typ 1 \n5 = Asthma bronchiale \n6 = COPD (chronic obstructive pulmonary disease)\n7 = Chronische Herzinsuffizienz\n8 = Depression\n9 = Rückenschmerz\n10 = Rheuma\n11 = Osteoporose\n12 = Adipositas - Erwachsene\nLänge: zu def.\nTyp: zu def.",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.DMP.DMP",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:dmp.extension:dmp",
+            "comment": "Anstelle des Namens wird der Schlüssel aus der vorgegebenen Wertetabelle, ergänzt um führende Nullen, angegeben. Zur Einschränkung auf die erlaubten Werte (keine Kombi-Werte) wird ein eigenes ValueSet verwendet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.DMP.Beginn",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.DMP.Beginn",
+        "short": "Beginn der Einschreibung",
+        "definition": "Gibt das Datum des Beginns der Einschreibung des Versicherten in ein DMP-Programm an.\nTyp: ISO8601Date",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.DMP.Beginn",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:dmp.extension:zeitraum.value[x].start"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.DMP.Ende",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.DMP.Ende",
+        "short": "Ende der Einschreibung",
+        "definition": "Gibt das Datum des Endes der Einschreibung des Versicherten in ein DMP-Programm an.\nTyp: ISO8601Date",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.DMP.Ende",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:dmp.extension:zeitraum.value[x].end"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.DMP.digitalesDMP",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.DMP.digitalesDMP",
+        "short": "Kennzeichen digitales DMP",
+        "definition": "Beinhaltet die Information, ob das DMP als digitales DMP durchgeführt wird; Information kann je DMP bereitgestellt werden\nLänge: 1\nTyp: Bool",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.DMP.digitalesDMP",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "boolean"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:dmp.extension:digitalesDMP"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung",
+        "short": "Angaben zur Kostenerstattung",
+        "definition": "Angaben zur Kostenerstattung",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:kostenerstattung"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.AerztlicheVersorgung",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.AerztlicheVersorgung",
+        "short": "Ärztliche Versorgung",
+        "definition": "Gibt die vom Versicherten gewählte Kostenerstattung für die ärztliche Versorgung an.\n1 (true) = Kostenerstattung\n0 (false) = keine Kostenerstattung\nLänge: 1\nTyp: B",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.AerztlicheVersorgung",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "boolean"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:kostenerstattung.extension:aerztlicheVersorgung"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.ZahnaerztlicheVersorgung",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.ZahnaerztlicheVersorgung",
+        "short": "Zahnärztliche Versorgung",
+        "definition": "Gibt die vom Versicherten gewählte Kostenerstattung für zahnärztliche Versorgung an.\n1 (true) = Kostenerstattung\n0 (false) = keine Kostenerstattung\nLänge: 1\nTyp: B",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.ZahnaerztlicheVersorgung",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "boolean"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:kostenerstattung.extension:zahnaerztlicheVersorgung"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.StationaererBereich",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.StationaererBereich",
+        "short": "Stationärer Bereich",
+        "definition": "Gibt die vom Versicherten gewählte Kostenerstattung für den stationären Bereich an.\n1 (true) = Kostenerstattung\n0 (false) = keine Kostenerstattung\nLänge: 1\nTyp: B",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.StationaererBereich",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "boolean"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:kostenerstattung.extension:stationaererBereich"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.VeranlassteLeistungen",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.VeranlassteLeistungen",
+        "short": "Veranlasste Leistungen",
+        "definition": "Gibt die vom Versicherten gewählte Kostenerstattung für veranlasste Leistungen an.\n1 (true) = Kostenerstattung\n0 (false) = keine Kostenerstattung\nLänge: 1\nTyp: B",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.VeranlassteLeistungen",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "boolean"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:gkv-kostenerstattung.extension:veranlassteLeistungen"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch",
+        "short": "Ruhender Leistungsanspruch",
+        "definition": "Ruhender Leistungsanspruch",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:ruhenderLeistungsanspruch"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch.Beginn",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch.Beginn",
+        "short": "Beginn des ruhenden Leistungsanspruchs",
+        "definition": "Gibt das Beginn-Datum des ruhenden Leistungsanspruchs an.\nTyp: ISO8601Date",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch.Beginn",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:ruhenderLeistungsanspruch.extension:dauer.value[x].start"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch.Ende",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch.Ende",
+        "short": "Ende des ruhenden Leistungsanspruchs",
+        "definition": "Gibt das Ende-Datum des ruhenden Leistungsanspruchs an.\nTyp: ISO8601Date",
+        "min": 0,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch.Ende",
+          "min": 0,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:ruhenderLeistungsanspruch.extension:dauer.value[x].end"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch.Art",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch.Art",
+        "short": "Art des Ruhens",
+        "definition": "Gibt die Art des Ruhens an.\n1 = vollständig\n2 = eingeschränkt\nLänge: 1\nTyp: N",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch.Art",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:ruhenderLeistungsanspruch.extension:art"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Versichertenart",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Versichertenart",
+        "short": "Art der Versicherung",
+        "definition": "1 = Mitglied\n3 = Familienversicherter\n5 = Rentner und ihre Familienangehörigen \nLänge: 1\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "base": {
+          "path": "VSDDatensatzGKV.Versicherungsdaten.Versichertenart",
+          "min": 1,
+          "max": "1"
+        },
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "constraint": [
+          {
+            "key": "ele-1",
+            "severity": "error",
+            "human": "All FHIR elements must have a @value or children",
+            "expression": "hasValue() or (children().count() > id.count())",
+            "xpath": "@value|f:*|h:div",
+            "source": "http://hl7.org/fhir/StructureDefinition/Element"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:versichertenart"
+          }
+        ]
+      }
+    ]
+  },
+  "differential": {
+    "element": [
+      {
+        "id": "VSDDatensatzGKV",
+        "path": "VSDDatensatzGKV",
+        "short": "Logisches Modell VSD-Datensatz GKV für VSDM 2.0",
+        "definition": "Fachliches Modell zur Beschreibung des VSD-Datensatzes für den Bereich der Gesetzlichen Krankenversicherung (GKV).\nDieses Modell setzt die Original-Angaben der BMV-Ä unverändert um. Es dient als Ausgangspunkt für die Mappings und ConceptSets, die die Abbildung auf FHIR-Ressourcen vornehmen.\nDie Modell-Elemente sind exakt in der Reihenfolge der Ausgangsvereinbarung aufgeführt. Hinweise zum Datenformat wurden in den Langtext der Beschreibung übertragen; der Kurztext wurde zur besseren Lesbarkeit angepasst.\nHinweise aus dem Originaldatensatz: \n  * TI-Messenger ID: Wird nicht aufgenommen, da keine rechtliche Grundlage existiert.\n  * Wahltarife: aktuell keine Abbildung im VSDM 2.0, aber BMV-Ä verständigen sich hierzu im Rahmen weiterer Beratungen (ggf. Protokollnotiz)."
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten",
+        "path": "VSDDatensatzGKV.Versichertendaten",
+        "short": "Versichertendaten",
+        "definition": "Versichertendaten",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter",
+        "short": "Angaben zum Versicherten",
+        "definition": "Angaben zum Versicherten",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.VersichertenID",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.VersichertenID",
+        "short": "Versicherten-ID (KVNR)",
+        "definition": "Die Versicherten-ID ist der 10-stellige unveränderliche Teil der 30-stelligen Krankenversichertennummer.\nLänge: 10\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.identifier:KVNR.value",
+            "comment": "Die KVNR wird in Übereinstimmung mit dem deutschen Basisprofils kodiert und ist verpflichtend anzugeben."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.Geburtsdatum",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Geburtsdatum",
+        "short": "Geburtsdatum des Versicherten",
+        "definition": "Gibt das Geburtsdatum der Person an.\nHinweis: Das Geburtsjahr MUSS immer gefüllt werden. Bei Inländern ist immer ein logisch richtiges Geburtsdatum anzugeben. \nBei Ausländern gilt folgendes: Zumindest das Geburtsjahr ist immer anzugeben. Im Geburtstag oder im Geburtstag und im Geburtsmonat ist bei Ausländern „00“ bzw. „0000“ zulässig, wenn der Geburtstag und der Geburtsmonat nicht zu ermitteln sind. \nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.birthDate",
+            "comment": "Die Angabe des partiellen Geburtsdatums wird vom FHIR-nativen Datentyp date bereits unterstützt."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.Vorname",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Vorname",
+        "short": "Vorname des Versicherten",
+        "definition": "Gibt den Vornamen der Person an.\nAlle Vornamen der Person (max. 5) werden eingegeben. Mehrere Vornamen werden durch Leerzeichen oder Bindestrich getrennt.\nLänge: 45\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.name:Name.given",
+            "comment": "FHIR lässt die Angabe mehrerer Vornamen in wiederholten Elementen zu. Davon wird hier kein Gebrauch gemacht."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.Nachname",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Nachname",
+        "short": "Nachname des Versicherten",
+        "definition": "Gibt den Nachnamen der Person an.\nLänge: 45\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.name:Name.family",
+            "comment": "Nachname mit Vorsatzwort und Namenszusatz. Wichtig: Hinweise zur Bildung des kombinierten Nachnamens beachten."
+          },
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.name:Name.family.extension:nachname",
+            "comment": "Nachname ohne Vorsatzwort und Namenszusatz. Wichtig: Hinweise zur Bildung des kombinierten Nachnamens beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.Geschlecht",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Geschlecht",
+        "short": "Geschlecht des Versicherten",
+        "definition": "Gibt das Geschlecht der Person an. Wertetabelle M,W,D,X\nLänge: 1\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.gender",
+            "comment": "Das Geschlecht wird auf die standardisierten FHIR-Werte abgebildet. Da damit nicht alle Werte abgebildet werden können, kommt eine Erweiterung zum Einsatz."
+          },
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.gender.extension:other-amtlich",
+            "comment": "Diese Erweiterung nimmt die Geschlechtsangabe gemäß der geforderten Wertetabelle auf. Die Pflicht zur Angabe des Werts für GKV-Patienten wird durch die Invariante VSDMCoverageGKV-gender-1 abgebildet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.Vorsatzwort",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Vorsatzwort",
+        "short": "Vorsatzwörter des Namens des Versicherten",
+        "definition": "Gibt die Vorsatzwörter der Person an.\nMehrere Vorsatzwörter werden durch Leerzeichen getrennt angegeben.\nAnlage 6 (Tabelle der gültigen Vorsatzworte) zur DEÜV, siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp\nLänge: 20\nTyp: AN",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.name:Name.family.extension:vorsatzwort",
+            "comment": "Vorsatzwort zum Nachnamen. Wichtig: Hinweise zur Bildung des kombinierten Nachnamens beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.Namenszusatz",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Namenszusatz",
+        "short": "Namenszusätze des Versicherten",
+        "definition": "Gibt die Namenszusätze der Person an, z. B.: Freiherr\nMehrere Namenzusätze werden durch Leerzeichen getrennt angegeben.\nAnlage 7 (Tabelle der gültigen Namenszusätze) zur DEÜV, siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp\nLänge: 20\nTyp: AN",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.name:Name.family.extension:namenszusatz",
+            "comment": "Zusatz zum Nachnamen. Wichtig: Hinweise zur Bildung des kombinierten Nachnamens beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.Titel",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.Titel",
+        "short": "Akademische Titel des Versicherten",
+        "definition": "Gibt die akademischen Grade der Person an.\nMehrere Titel werden durch Leerzeichen getrennt angegeben.\nLänge: 20\nTyp: AN",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.name:Name.prefix",
+            "comment": "Kennzeichnung des akademischen Titels mittels Erweiterung siehe Elementdokumentation."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse",
+        "short": "Postfachadresse des Versicherten",
+        "definition": "Postfachadresse des Versicherten",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse",
+            "comment": "Postfachadressen werden mit dem Typ \"postal\" gekennzeichnet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Postleitzahl",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Postleitzahl",
+        "short": "Postleitzahl der Postfachadresse",
+        "definition": "Gibt die Postleitzahl der Strassen- oder Postfachadresse an. Die Befüllung des Feldes Postleitzahl erfolgt gemäß den Festlegungen der DEÜV. \nIn Verbindung mit dem Wohnsitzländercode \"\"D\"\" für Deutschland MUSS die Postleitzahl 5-stellig numerisch sein. \nSoweit Angaben zur Adresse und zum Postfach gemacht werden, MUSS die Postleitzahl zu beiden Adressdaten vorhanden sein. \nBei Anschriften ohne Postleitzahl wird das Feld nicht verwendet.\nLänge: 10\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse.postalCode"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Ort",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Ort",
+        "short": "Ort der Postfachadresse",
+        "definition": "Gibt den Ort zur Strassen- und oder Postfachadresse an. \nSoweit Angaben zur Adresse und zum Postfach gemacht werden, MUSS der Ort zu beiden Adressdaten vorhanden sein.\nAbweichung zur Festlegung in DEÜV (Feldlänge = 34)\nLänge: 40\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse.city"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Postfach",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Postfach",
+        "short": "Postfach des Versicherten",
+        "definition": "Gibt das Postfach der Person an.\nLänge: 8\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse.line.extension:Postfach",
+            "comment": "Hinweise zur Bildung der Adresszeilen beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Wohnsitzlaendercode",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.PostfachAdresse.Wohnsitzlaendercode",
+        "short": "Land der Postfachadresse",
+        "definition": "Gibt das Land zu der Strassen- und oder Postfachadresse an. \nSoweit Angaben zur Adresse und zum Postfach gemacht werden, muss der Wohnsitzländercode zu beiden Adressdaten vorhanden sein.\nAnlage 8 (Staatsangehörigkeit und Länderkennzeichen für Auslandsanschriften) zur DEÜV, siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp\nLänge: 3\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:PostfachAdresse.country",
+            "comment": "Hinweise zur Befüllung der Extensions beachten. Die Pflicht zur Angabe des Werts für GKV-Patienten wird durch die Invariante VSDMCoverageGKV-address-1 abgebildet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse",
+        "short": "Strassenadresse des Versicherten",
+        "definition": "Strassenadresse des Versicherten",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse",
+            "comment": "Strassenadressen (Meldeadressen) werden mit dem Typ \"physical\" gekennzeichnet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Postleitzahl",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Postleitzahl",
+        "short": "Postleitzahl der Strassenadresse",
+        "definition": "Gibt die Postleitzahl der Strassen- oder Postfachadresse an. Die Befüllung des Feldes Postleitzahl erfolgt gemäß den Festlegungen der DEÜV. In Verbindung mit dem Wohnsitzländercode \"\"D\"\" für Deutschland MUSS die\nPostleitzahl 5-stellig numerisch sein. Soweit Angaben zur Adresse und zum Postfach gemacht werden, MUSS die Postleitzahl zu beiden Adressdaten vorhanden sein. Bei Anschriften ohne Postleitzahl wird das Feld nicht verwendet.\nLänge: 10\nTyp: AN",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.postalCode"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Ort",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Ort",
+        "short": "Ort der Strassenadresse",
+        "definition": "Gibt den Ort zur Strassen- und oder Postfachadresse an. \nSoweit Angaben zur Adresse und zum Postfach gemacht werden, MUSS der Ort zu beiden Adressdaten vorhanden sein.\nAbweichung zur Festlegung in DEÜV (Feldlänge = 34)\nLänge: 40\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.city"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Wohnsitzlaendercode",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Wohnsitzlaendercode",
+        "short": "Land der Strassenadresse",
+        "definition": "Gibt das Land zu der Strassen- und oder Postfachadresse an. \nSoweit Angaben zur Adresse und zum Postfach gemacht werden, muss der Wohnsitzländercode zu beiden Adressdaten vorhanden sein.\nAnlage 8 (Staatsangehörigkeit und Länderkennzeichen für Auslandsanschriften) zur DEÜV, siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp\nLänge: 3\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address.country",
+            "comment": "Hinweise zur Befüllung der Extensions beachten. Die Pflicht zur Angabe des Werts für GKV-Patienten wird durch die Invariante VSDMCoverageGKV-address-1 abgebildet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Strasse",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Strasse",
+        "short": "Name der Strasse",
+        "definition": "Gibt den Namen der Strasse an.\nWenn die Hausnummer nicht separat abgelegt werden kann, ist es zulässig, die Hausnummer in das Feld Straße zu übernehmen.\nAnlage 9.4 (Datensätze und Datenbausteine sowie Fehlerkatalog) zur DEÜV, siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp \nLänge: 46\nTyp: AN",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.line.extension:Strasse",
+            "comment": "Hinweise zur Bildung der Adresszeilen beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Hausnummer",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Hausnummer",
+        "short": "Hausnummer der Strassenadresse",
+        "definition": "Gibt die Hausnummer in der Strasse der Person an.\nPflichtangabe soweit bekannt, wenn die Hausnummer nicht separat abgelegt werden kann, ist es zulässig, die Hausnummer in das Feld Straße zu übernehmen. \nAnlage 9.4 (Datensätze und Datenbausteine sowie Fehlerkatalog) zur DEÜV, siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp \nLänge: 9\nTyp: AN",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.line.extension:Hausnummer",
+            "comment": "Hinweise zur Bildung der Adresszeilen beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Anschriftenzusatz",
+        "path": "VSDDatensatzGKV.Versichertendaten.Versicherter.StrassenAdresse.Anschriftenzusatz",
+        "short": "Relevante Zusätze zur Anschrift",
+        "definition": "Gibt die relevanten Zusätze zur Anschrift an.\nAls Anschriftenzusatz kann z. B. „Hinterhaus“ angegeben werden.\nLänge: 40\nTyp: AN",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Patient",
+            "map": "VSDMPatient.address:StrassenAdresse.line.extension:Adresszusatz",
+            "comment": "Hinweise zur Bildung der Adresszeilen beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten",
+        "path": "VSDDatensatzGKV.Versicherungsdaten",
+        "short": "Angaben zum Versicherungsverhältnis",
+        "definition": "Angaben zum Versicherungsverhältnis",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger",
+        "short": "Angaben zum Kostenträger",
+        "definition": "Angaben zum Kostenträger",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.payor:Hauptkostentraeger",
+            "comment": "Der Hauptkostenträger wird als Referenz auf eine VSDMPayorOrganization abgebildet. Die Referenz ist mit einer Erweiterung zur Kennzeichnung der Rolle des Kostenträgers versehen."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger.Name",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger.Name",
+        "short": "Name des Kostenträgers",
+        "definition": "Gibt den Namen der Institution/Organisation an.\nLänge: 45\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMPayorOrganization:Hauptkostentraeger.name"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger.Kostentraegerlaendercode",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger.Kostentraegerlaendercode",
+        "short": "Kostenträgerländercode",
+        "definition": "Gibt den Kostenträgerländercode vom Kostenträger des Versicherten an.\nAnlage 8 (Staatsangehörigkeit und Länderkennzeichen für Auslandsanschriften) zur DEÜV, siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp\nLänge: 3\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMPayorOrganization:Hauptkostentraeger.address.country",
+            "comment": "Hinweise zur Befüllung der Extensions beachten. Die Pflicht zur Angabe des Werts für GKV-Patienten wird durch die Invariante VSDMCoverageGKV-address-2 abgebildet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger.Kostentraegerkennung",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostentraeger.Kostentraegerkennung",
+        "short": "Kostenträgerkennung (Institutionskennzeichen)",
+        "definition": "Gibt den Kostenträger des Versicherten an. Es handelt sich um das bundesweit gültige Institutionskennzeichen (IK) des jeweiligen Kostenträgers.\nLänge: 9\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMPayorOrganization:Hauptkostentraeger.identifier:IKNR"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger",
+        "short": "Angaben zum abrechnenden Kostenträger",
+        "definition": "Angaben zum abrechnenden Kostenträger",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.payor:abrechnenderKostentraeger",
+            "comment": "Der abrechnende Kostenträger wird als Referenz auf eine VSDMPayorOrganization abgebildet. Die Referenz ist mit einer Erweiterung zur Kennzeichnung der Rolle des Kostenträgers versehen."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger.Name",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger.Name",
+        "short": "Name des Kostenträgers",
+        "definition": "Gibt den Namen der Institution/Organisation an.\nLänge: 45\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMPayorOrganization:abrechnenderKostentraeger.name"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger.Kostentraegerlaendercode",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger.Kostentraegerlaendercode",
+        "short": "Kostenträgerländercode",
+        "definition": "Gibt den Kostenträgerländercode vom Kostenträger des Versicherten an.\nAnlage 8 (Staatsangehörigkeit und Länderkennzeichen für Auslandsanschriften) zur DEÜV, siehe www.gkv-datenaustausch.de/arbeitgeber/deuev/gemeinsame_rundschreiben/gemeinsame_rundschreiben.jsp\nLänge: 3\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMPayorOrganization:abrechnenderKostentraeger.address.country",
+            "comment": "Hinweise zur Befüllung der Extensions beachten."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger.Kostentraegerkennung",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.AbrechnenderKostentraeger.Kostentraegerkennung",
+        "short": "Kostenträgerkennung (Institutionskennzeichen)",
+        "definition": "Gibt den Kostenträger des Versicherten an. Es handelt sich um das bundesweit gültige Institutionskennzeichen (IK) des jeweiligen Kostenträgers.\nLänge: 9\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "string"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMPayorOrganization:abrechnenderKostentraeger.identifier:IKNR"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.WOP",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.WOP",
+        "short": "Kennzeichen Wohnortprinzip",
+        "definition": "Das Kennzeichen WOP ist gemäss § 2 Abs. 2 der Vereinbarung zur Festsetzung des Durchschnittsbetrages gemäss Artikel 2 § 2 Abs. 2 des Gesetzes zur Einführung des Wohnortprinzips bei Honorarvereinbarungen für Ärzte und Zahnärzte und zur Krankenversichertenkarte gemäss § 291 Abs. 2 Fünftes Sozialgesetzbuch (SGB V) erforderlich.\n01 = Schleswig-Holstein\n02 = Hamburg\n03 = Bremen\n17 = Niedersachsen\n20 = Westfalen-Lippe\n38 = Nordrhein\n46 = Hessen\n51 = Rheinland-Pfalz\n52 = Baden-Württemberg\n71 = Bayern\n72 = Berlin\n73 = Saarland\n78 = Mecklenburg-Vorpommern\n83 = Brandenburg\n88 = Sachsen-Anhalt\n93 = Thüringen\n98 = Sachsen\nGemäß Anlage 21 BMV-Ä und EKV.\nLänge: 2\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:WOP",
+            "comment": "Die KBV-Schlüsseltabelle wird ggf. durch ein VSDM-spezifisches ValueSet auf die zulässigen Werte eingeschränkt. Die Pflicht zur Angabe des Werts für GKV-Patienten wird durch die Invariante VSDMCoverageGKV-wop-1 abgebildet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.BesonderePersonengruppe",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.BesonderePersonengruppe",
+        "short": "Zuordnung besondere Personengruppe",
+        "definition": "Gibt die Zugehörigkeit des Versicherten zu einer besonderen Personengruppe an. Die Kennzeichnung erfolgt gemäß der aktuellen Schlüsseltabelle.\n4 = BSHG (Bundessozialhilfegesetz) § 264 SGB V, \n6 = SER (Soziales Entschädigungsrecht), \n7 = SVA-Kennzeichnung für zwischenstaatliches Krankenversicherungsrecht: - Personen mit Wohnsitz im Inland, Abrechnung nach Aufwand, \n8 = SVA-Kennzeichnung, pauschal,\n9 = Empfänger von Gesundheitsleistungen nach §§ 4 und 6 des Asylbewerberleistungsgesetzes (AsylbLG)\nLänge: 2\nTyp: N",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:besonderePersonengruppe",
+            "comment": "Es werden die zweistelligen Werte aus der Schlüsseltabelle (mit führenden Nullen) verwendet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Zuzahlungsstatus",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Zuzahlungsstatus",
+        "short": "Zuzahlungsstatus des Versicherten",
+        "definition": "Zuzahlungsstatus des Versicherten",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:zuzahlungsstatus",
+            "comment": "Die gesamte Erweiterung darf nur angegeben werden, wenn eine Zuzahlungsbefreiung vorliegt."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Zuzahlungsstatus.Status",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Zuzahlungsstatus.Status",
+        "short": "Versicherter von Zuzahlungspflicht befreit",
+        "definition": "Gibt an, ob für den Versicherten eine Befreiung von der Zuzahlungspflicht nach § 62 SGB V vorliegt.\t\n1 = von Zuzahlungspflicht befreit\nLänge: 1\nTyp: offen",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "boolean"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:zuzahlungsstatus.extension:status",
+            "comment": "Der Wert \"von Zuzahlungspflicht befreit\" wird auf \"true\" abgebildet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Zuzahlungsstatus.GueltigBis",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Zuzahlungsstatus.GueltigBis",
+        "short": "Gültigkeit des Zuzahlungsstatus",
+        "definition": "Gibt die Gültigkeit der Befreiung von der Zuzahlungspflicht nach § 62 SGB V an.\tWird nur angegeben, wenn Zuzahlungsstatus mit 1 (= befreit) angegeben ist.\n Typ: ISO8601Date",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:zuzahlungsstatus.extension:gueltigBis",
+            "comment": "Da die Angabe ein Pflichtfeld ist, aber nur erfolgen kann und soll, wenn eine Zuzahlungsbefreiung vorliegt, beeinflusst das die gesamte Struktur."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Versicherungsschutz",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Versicherungsschutz",
+        "short": "Versicherungsschutz des Versicherten",
+        "definition": "Versicherungsschutz des Versicherten",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.period",
+            "comment": "Zur Abbildung werden die Standard-Felder der FHIR-Ressource verwendet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Versicherungsschutz.Beginn",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Versicherungsschutz.Beginn",
+        "short": "Beginn des Versicherungsschutzes",
+        "definition": "Gibt den Beginn des Versicherungsschutzes (hier: Leistungsanspruch) des Versicherten bei dem unter Klasse Kostenträger angegebenen Kostenträger an. \nTyp: ISO8601Date",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.period.start",
+            "comment": "Die Pflicht zur Angabe des Werts für GKV-Patienten wird durch die Invariante VSDMCoverageGKV-period-1 abgebildet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Versicherungsschutz.Ende",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Versicherungsschutz.Ende",
+        "short": "Ende des Versicherungsschutzes",
+        "definition": "Das Ende ist bei befristeter Gültigkeit der elektronischen Gesundheitskarte das Datum des Fristablaufs. (Definition aus §291a Abs. 2 Nr. 10 SGB V)\nTyp: ISO8601Date",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.period.end",
+            "comment": "Da der VSDM 2.0 Resource Server keine Kenntnis von der eingesetzten eGK haben kann, wird immer das Gültigkeitsende des Versicherungsverhältnisses gemeldet, wenn anwendbar."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.DMP",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.DMP",
+        "short": "Angaben zur Teilnahme des Versicherten an Disease Management-Programmen",
+        "definition": "Angaben zur Teilnahme des Versicherten an Disease Management-Programmen",
+        "min": 0,
+        "max": "*",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:dmp"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.DMP.DMP",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.DMP.DMP",
+        "short": "Name des DMP-Programms",
+        "definition": "Gibt den Namen des DMP an; die Kennzeichnung erfolgt gemäß der aktuellen Schlüsseltabelle.\n1 = Diabetes mellitus Typ 2 \n2 = Brustkrebs \n3 = Koronare Herzkrankheit\n4 = Diabetes mellitus Typ 1 \n5 = Asthma bronchiale \n6 = COPD (chronic obstructive pulmonary disease)\n7 = Chronische Herzinsuffizienz\n8 = Depression\n9 = Rückenschmerz\n10 = Rheuma\n11 = Osteoporose\n12 = Adipositas - Erwachsene\nLänge: zu def.\nTyp: zu def.",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:dmp.extension:dmp",
+            "comment": "Anstelle des Namens wird der Schlüssel aus der vorgegebenen Wertetabelle, ergänzt um führende Nullen, angegeben. Zur Einschränkung auf die erlaubten Werte (keine Kombi-Werte) wird ein eigenes ValueSet verwendet."
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.DMP.Beginn",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.DMP.Beginn",
+        "short": "Beginn der Einschreibung",
+        "definition": "Gibt das Datum des Beginns der Einschreibung des Versicherten in ein DMP-Programm an.\nTyp: ISO8601Date",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:dmp.extension:zeitraum.value[x].start"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.DMP.Ende",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.DMP.Ende",
+        "short": "Ende der Einschreibung",
+        "definition": "Gibt das Datum des Endes der Einschreibung des Versicherten in ein DMP-Programm an.\nTyp: ISO8601Date",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:dmp.extension:zeitraum.value[x].end"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.DMP.digitalesDMP",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.DMP.digitalesDMP",
+        "short": "Kennzeichen digitales DMP",
+        "definition": "Beinhaltet die Information, ob das DMP als digitales DMP durchgeführt wird; Information kann je DMP bereitgestellt werden\nLänge: 1\nTyp: Bool",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "boolean"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:dmp.extension:digitalesDMP"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung",
+        "short": "Angaben zur Kostenerstattung",
+        "definition": "Angaben zur Kostenerstattung",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:kostenerstattung"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.AerztlicheVersorgung",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.AerztlicheVersorgung",
+        "short": "Ärztliche Versorgung",
+        "definition": "Gibt die vom Versicherten gewählte Kostenerstattung für die ärztliche Versorgung an.\n1 (true) = Kostenerstattung\n0 (false) = keine Kostenerstattung\nLänge: 1\nTyp: B",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "boolean"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:kostenerstattung.extension:aerztlicheVersorgung"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.ZahnaerztlicheVersorgung",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.ZahnaerztlicheVersorgung",
+        "short": "Zahnärztliche Versorgung",
+        "definition": "Gibt die vom Versicherten gewählte Kostenerstattung für zahnärztliche Versorgung an.\n1 (true) = Kostenerstattung\n0 (false) = keine Kostenerstattung\nLänge: 1\nTyp: B",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "boolean"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:kostenerstattung.extension:zahnaerztlicheVersorgung"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.StationaererBereich",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.StationaererBereich",
+        "short": "Stationärer Bereich",
+        "definition": "Gibt die vom Versicherten gewählte Kostenerstattung für den stationären Bereich an.\n1 (true) = Kostenerstattung\n0 (false) = keine Kostenerstattung\nLänge: 1\nTyp: B",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "boolean"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:kostenerstattung.extension:stationaererBereich"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.VeranlassteLeistungen",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Kostenerstattung.VeranlassteLeistungen",
+        "short": "Veranlasste Leistungen",
+        "definition": "Gibt die vom Versicherten gewählte Kostenerstattung für veranlasste Leistungen an.\n1 (true) = Kostenerstattung\n0 (false) = keine Kostenerstattung\nLänge: 1\nTyp: B",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "boolean"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:gkv-kostenerstattung.extension:veranlassteLeistungen"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch",
+        "short": "Ruhender Leistungsanspruch",
+        "definition": "Ruhender Leistungsanspruch",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "BackboneElement"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:ruhenderLeistungsanspruch"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch.Beginn",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch.Beginn",
+        "short": "Beginn des ruhenden Leistungsanspruchs",
+        "definition": "Gibt das Beginn-Datum des ruhenden Leistungsanspruchs an.\nTyp: ISO8601Date",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:ruhenderLeistungsanspruch.extension:dauer.value[x].start"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch.Ende",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch.Ende",
+        "short": "Ende des ruhenden Leistungsanspruchs",
+        "definition": "Gibt das Ende-Datum des ruhenden Leistungsanspruchs an.\nTyp: ISO8601Date",
+        "min": 0,
+        "max": "1",
+        "type": [
+          {
+            "code": "date"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:ruhenderLeistungsanspruch.extension:dauer.value[x].end"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch.Art",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.RuhenderLeistungsanspruch.Art",
+        "short": "Art des Ruhens",
+        "definition": "Gibt die Art des Ruhens an.\n1 = vollständig\n2 = eingeschränkt\nLänge: 1\nTyp: N",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:ruhenderLeistungsanspruch.extension:art"
+          }
+        ]
+      },
+      {
+        "id": "VSDDatensatzGKV.Versicherungsdaten.Versichertenart",
+        "path": "VSDDatensatzGKV.Versicherungsdaten.Versichertenart",
+        "short": "Art der Versicherung",
+        "definition": "1 = Mitglied\n3 = Familienversicherter\n5 = Rentner und ihre Familienangehörigen \nLänge: 1\nTyp: AN",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "mapping": [
+          {
+            "identity": "VSD-Datensatz-GKV-Coverage",
+            "map": "VSDMCoverageGKV.extension:versichertenart"
+          }
+        ]
+      }
+    ]
+  }
+}

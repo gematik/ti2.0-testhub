@@ -1,0 +1,234 @@
+{
+  "resourceType" : "Bundle",
+  "id" : "9b6ac30d-246d-4eab-af83-544564792089",
+  "meta" : {
+    "profile" : [ "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMBundle" ]
+  },
+  "type" : "document",
+  "identifier" : {
+    "system" : "urn:ietf:rfc:3986",
+    "value" : "urn:uuid:9b6ac30d-246d-4eab-af83-544564792089"
+  },
+  "signature" : {
+    "sigFormat" : "application/pkcs7-mime",
+    "who" : {
+      "identifier" : {
+        "system" : "http://fhir.de/sid/arge-ik/iknr",
+        "value" : "12345678"
+      }
+    },
+    "type" : [ {
+      "system" : "urn:iso-astm:E1762-95:2013",
+      "code" : "1.2.840.10065.1.12.1.7",
+      "display" : "Consent Signature"
+    } ],
+    "when" : "2023-11-03T12:02:23.157+01:00",
+    "data" : "dGhpcyBibG9iIGlzIHNuaXBwZWQ="
+  },
+  "timestamp" : "2023-11-03T12:02:23.157+01:00",
+  "entry" : [ {
+    "fullUrl" : "https://gematik.de/fhir/Composition/c624cf47-e235-4624-af71-0a09dc9254dc",
+    "resource" : {
+      "resourceType" : "Composition",
+      "id" : "c624cf47-e235-4624-af71-0a09dc9254dc",
+      "meta" : {
+        "profile" : [ "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMComposition" ]
+      },
+      "status" : "final",
+      "type" : {
+        "coding" : [ {
+          "code" : "55188-7",
+          "system" : "http://loinc.org",
+          "display" : "Patient data Document"
+        } ]
+      },
+      "author" : [ {
+        "identifier" : {
+          "system" : "http://fhir.de/sid/arge-ik/iknr",
+          "value" : "12345678"
+        }
+      } ],
+      "date" : "2023-11-03T12:02:23.157+01:00",
+      "title" : "VSDM 2 data",
+      "section" : [ {
+        "entry" : [ {
+          "reference" : "Patient/437f2555-2396-4c64-a656-e9553161ca3c"
+        } ]
+      }, {
+        "entry" : [ {
+          "reference" : "Coverage/2d4da53a-413a-48fe-b908-2e67b5761523"
+        } ]
+      } ]
+    }
+  }, {
+    "fullUrl" : "https://gematik.de/fhir/Patient/437f2555-2396-4c64-a656-e9553161ca3c",
+    "resource" : {
+      "resourceType" : "Patient",
+      "id" : "437f2555-2396-4c64-a656-e9553161ca3c",
+      "meta" : {
+        "profile" : [ "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMPatient" ]
+      },
+      "name" : [ {
+        "use" : "official",
+        "family" : "Königstein",
+        "_family" : {
+          "extension" : [ {
+            "url" : "http://hl7.org/fhir/StructureDefinition/humanname-own-name",
+            "valueString" : "Königstein"
+          } ]
+        },
+        "given" : [ "Ludger" ]
+      } ],
+      "identifier" : [ {
+        "system" : "http://fhir.de/sid/gkv/kvid-10",
+        "value" : "T024791905"
+      } ],
+      "address" : [ {
+        "line" : [ "Blumenweg 14" ],
+        "_line" : [ {
+          "extension" : [ {
+            "url" : "http://hl7.org/fhir/StructureDefinition/iso21090-ADXP-houseNumber",
+            "valueString" : "14"
+          }, {
+            "url" : "http://hl7.org/fhir/StructureDefinition/iso21090-ADXP-streetName",
+            "valueString" : "Blumenweg"
+          } ]
+        } ],
+        "type" : "both",
+        "city" : "Esens",
+        "postalCode" : "26427",
+        "country" : "D"
+      } ],
+      "birthDate" : "1935-06-22",
+      "telecom" : [ {
+        "system" : "url",
+        "value" : "matrix:@T024791905:aok-nord.de"
+      } ]
+    }
+  }, {
+    "fullUrl" : "https://gematik.de/fhir/Coverage/2d4da53a-413a-48fe-b908-2e67b5761523",
+    "resource" : {
+      "resourceType" : "Coverage",
+      "id" : "2d4da53a-413a-48fe-b908-2e67b5761523",
+      "meta" : {
+        "profile" : [ "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMCoverage" ]
+      },
+      "status" : "active",
+      "extension" : [ {
+        "url" : "http://fhir.de/StructureDefinition/gkv/versichertenart",
+        "valueCoding" : {
+          "code" : "1",
+          "system" : "http://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_KBV_VERSICHERTENSTATUS"
+        }
+      }, {
+        "url" : "http://fhir.de/StructureDefinition/gkv/wop",
+        "valueCoding" : {
+          "code" : "72",
+          "system" : "http://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_ITA_WOP"
+        }
+      }, {
+        "url" : "http://fhir.de/StructureDefinition/gkv/ruhender-leistungsanspruch",
+        "extension" : [ {
+          "url" : "art",
+          "valueCoding" : {
+            "code" : "1"
+          }
+        }, {
+          "url" : "dauer",
+          "valuePeriod" : {
+            "start" : "2022-05-05"
+          }
+        } ]
+      }, {
+        "url" : "http://fhir.de/StructureDefinition/gkv/zuzahlungsstatus",
+        "extension" : [ {
+          "url" : "status",
+          "valueBoolean" : true
+        } ]
+      }, {
+        "url" : "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMKostentreagerAngabestatusEX",
+        "valueCodeableConcept" : {
+          "coding" : [ {
+            "code" : "dmp",
+            "system" : "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMKostentreagerAngabestatusCS"
+          }, {
+            "code" : "wahltarife",
+            "system" : "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMKostentreagerAngabestatusCS"
+          } ]
+        }
+      }, {
+        "url" : "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMKostentraegerLaendercodeEX",
+        "valueCoding" : {
+          "code" : "DE",
+          "system" : "http://hl7.org/fhir/CodeSystem/iso3166-1-2"
+        }
+      }, {
+        "url" : "http://fhir.de/StructureDefinition/gkv/besondere-personengruppe",
+        "valueCoding" : {
+          "code" : "06",
+          "system" : "http://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_KBV_PERSONENGRUPPE"
+        }
+      }, {
+        "extension" : [ {
+          "url" : "aerztlicheVersorgung",
+          "valueBoolean" : true
+        } ],
+        "url" : "http://fhir.de/StructureDefinition/gkv/kostenerstattung"
+      }, {
+        "extension" : [ {
+          "url" : "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMDMPKennzeichenBasisEX",
+          "valueCoding" : {
+            "code" : "01",
+            "system" : "http://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_KBV_DMP"
+          }
+        }, {
+          "url" : "dmp-zeitraum",
+          "valuePeriod" : {
+            "start" : "2022-05-05"
+          }
+        }, {
+          "url" : "digitales-dmp",
+          "valueBoolean" : true
+        } ],
+        "url" : "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMDMPKennzeichenEX"
+      }, {
+        "extension" : [ {
+          "url" : "wahltarif-zeitraum",
+          "valuePeriod" : {
+            "start" : "2022-05-05"
+          }
+        }, {
+          "url" : "wahltarif",
+          "valueCoding" : {
+            "code" : "1",
+            "system" : "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMWahltarifeCS"
+          }
+        }, {
+          "url" : "wahltarif-vertragskennzeichen",
+          "valueString" : "Test Kommentar"
+        } ],
+        "url" : "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMWahltarifeEX"
+      } ],
+      "payor" : [ {
+        "identifier" : {
+          "system" : "http://fhir.de/sid/arge-ik/iknr",
+          "value" : "12345678"
+        },
+        "display" : "Test GKV Krankenkasse"
+      } ],
+      "type" : {
+        "coding" : [ {
+          "code" : "GKV",
+          "system" : "http://fhir.de/CodeSystem/versicherungsart-de-basis"
+        } ]
+      },
+      "period" : {
+        "start" : "2022-04-01",
+        "end" : "2027-07-31"
+      },
+      "beneficiary" : {
+        "reference" : "Patient/437f2555-2396-4c64-a656-e9553161ca3c"
+      }
+    }
+  } ]
+}

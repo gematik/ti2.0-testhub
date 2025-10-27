@@ -1,0 +1,33 @@
+lib:
+  rbelPathDebugging: false
+  activateWorkflowUi: true
+  httpClientConfig:
+    activateRbelWriter: true
+
+tigerProxy:
+  keyFolders:
+    - .
+
+servers:
+  vsdm-client:
+    type: externalUrl
+    source:
+      - http://localhost:8220
+    healthcheckUrl: http://localhost:8220/service/status
+  card-terminal:
+    type: externalUrl
+    source:
+      - http://localhost:8000
+    healthcheckUrl: http://localhost:8000/service/status
+
+fhir:
+  encoded: json
+
+env: local
+
+testdata:
+  terminal:
+    simsvc:
+      serialNumber: 1234567890
+      #      url: ws://localhost:8000
+      url: ws://card-terminal-client

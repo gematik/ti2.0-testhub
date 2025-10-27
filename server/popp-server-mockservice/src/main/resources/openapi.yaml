@@ -1,0 +1,106 @@
+openapi: 3.0.1
+info:
+  title: POPP Token Generator API
+  version: 1.0.0
+  description: API for generating POPP tokens
+paths:
+  /popp/test/api/v1/token-generator:
+    post:
+      summary: Generates POPP tokens
+      operationId: generateToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenGenerationParams'
+      responses:
+        '200':
+          description: Successfully generated tokens
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tokenResults:
+                    type: array
+                    items:
+                      type: string
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+components:
+  schemas:
+    TokenGenerationParams:
+      type: object
+      description: Parameters for token generation
+      properties:
+        tokenParamsList:
+          type: array
+          description: List of token parameters
+          items:
+            $ref: '#/components/schemas/TokenParams'
+        securityParams:
+          $ref: '#/components/schemas/SecurityParams'
+          description: Security parameters for token generation
+    TokenParams:
+      type: object
+      description: Parameters for a single token
+      properties:
+        proofMethod:
+          type: string
+          description: Method of proof
+        insurerId:
+          type: string
+          description: Identifier of the insurer
+        patientId:
+          type: string
+          description: Identifier of the patient
+        actorId:
+          type: string
+          description: Identifier of the actor
+        actorProfessionOid:
+          type: string
+          description: OID of the actor's profession
+        actorInstitutionId:
+          type: string
+          description: Identifier of the actor's institution
+        actorInstitutionOid:
+          type: string
+          description: OID of the actor's institution
+      required:
+        - actorId
+        - actorProfessionOid
+        - patientId
+        - insurerId
+    SecurityParams:
+      type: object
+      description: Security parameters for keystore access
+      properties:
+        storeContent:
+          type: string
+          description: Keystore encoded in Base64
+        storePass:
+          type: string
+          description: Password for the keystore
+        keyAlias:
+          type: string
+          description: Alias for the keystore
+        keyPass:
+          type: string
+          description: Password for the key

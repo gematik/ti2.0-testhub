@@ -1,0 +1,29 @@
+server:
+  port: 9100
+
+proxy:
+  http:
+    url: http://localhost:9200
+  ws:
+    url: ws://localhost:9200
+  sec:
+    store:
+      path: zetakeystore.p12
+      pass: testpassword
+    key:
+      alias: zetamock
+      pass: testpassword
+
+otel:
+  sdk:
+    disabled: true
+
+well-known:
+  issuer: http://localhost:9100
+  auth_ep: http://localhost:9102/auth
+  token_ep: http://localhost:9102/token
+  nonce_ep: http://localhost:9102/nonce
+
+otel:
+  sdk:
+    disabled: true

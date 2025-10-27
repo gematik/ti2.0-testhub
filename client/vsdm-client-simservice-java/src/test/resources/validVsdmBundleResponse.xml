@@ -1,0 +1,106 @@
+<Bundle
+        xmlns="http://hl7.org/fhir">
+    <id value="a50bd55f-acd7-42b8-93de-d7e6976b9e24"/>
+    <meta>
+        <lastUpdated value="2025-10-17T10:29:58.200+02:00"/>
+        <profile value="https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMBundle"/>
+    </meta>
+    <identifier>
+        <system value="urn:ietf:rfc:3986"/>
+        <value value="urn:uuid:a50bd55f-acd7-42b8-93de-d7e6976b9e24"/>
+    </identifier>
+    <type value="collection"/>
+    <timestamp value="2025-10-17T10:29:58.200+02:00"/>
+    <entry>
+        <fullUrl value="https://gematik.de/fhir/Patient/b6588fad-b15c-4950-af0e-24dda507bef5"/>
+        <resource>
+            <Patient
+                    xmlns="http://hl7.org/fhir">
+                <id value="b6588fad-b15c-4950-af0e-24dda507bef5"/>
+                <meta>
+                    <profile value="https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMPatient"/>
+                </meta>
+                <identifier>
+                    <system value="http://fhir.de/sid/gkv/kvid-10"/>
+                    <value value="X123456789"/>
+                </identifier>
+                <name>
+                    <use value="official"/>
+                    <text value="text"/>
+                    <family value="family"/>
+                    <given value="given"/>
+                </name>
+                <gender value="male"/>
+                <birthDate value="2025-10-17"/>
+            </Patient>
+        </resource>
+    </entry>
+    <entry>
+        <fullUrl value="https://gematik.de/fhir/Coverage/dd0cfd80-b0cf-4b70-9ab4-dd23749fcc01"/>
+        <resource>
+            <Coverage
+                    xmlns="http://hl7.org/fhir">
+                <id value="dd0cfd80-b0cf-4b70-9ab4-dd23749fcc01"/>
+                <meta>
+                    <profile value="https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMCoverageGKV"/>
+                </meta>
+                <extension url="http://fhir.de/StructureDefinition/gkv/wop">
+                    <valueCoding>
+                        <system value="https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_ITA_WOP"/>
+                        <code value="98"/>
+                        <display value="Sachsen"/>
+                    </valueCoding>
+                </extension>
+                <extension url="http://fhir.de/StructureDefinition/gkv/versichertenart">
+                    <valueCoding>
+                        <system value="https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_KBV_VERSICHERTENSTATUS"/>
+                        <code value="1"/>
+                        <display value="Mitglieder"/>
+                    </valueCoding>
+                </extension>
+                <identifier>
+                    <system value="http://fhir.de/sid/gkv/kvid-10"/>
+                    <value value="A123454321"/>
+                </identifier>
+                <status value="active"/>
+                <type>
+                    <coding>
+                        <system value="http://fhir.de/CodeSystem/versicherungsart-de-basis"/>
+                        <code value="GKV"/>
+                    </coding>
+                </type>
+                <beneficiary>
+                    <reference value="https://gematik.de/fhir/Patient/b6588fad-b15c-4950-af0e-24dda507bef5"/>
+                </beneficiary>
+                <payor>
+                    <extension url="https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMKostentraegerRolle">
+                        <valueCoding>
+                            <system value="https://gematik.de/fhir/vsdm2/CodeSystem/VSDMKostentraegerRolleCS"/>
+                            <code value="H"/>
+                            <display value="Haupt-Kostenträger"/>
+                        </valueCoding>
+                    </extension>
+                    <reference value="https://gematik.de/fhir/Organization/e74349bc-03e8-4492-a26b-0ba55b777a76"/>
+                    <display value="https://gematik.de/fhir/Organization/e74349bc-03e8-4492-a26b-0ba55b777a76"/>
+                </payor>
+            </Coverage>
+        </resource>
+    </entry>
+    <entry>
+        <fullUrl value="https://gematik.de/fhir/Organization/e74349bc-03e8-4492-a26b-0ba55b777a76"/>
+        <resource>
+            <Organization
+                    xmlns="http://hl7.org/fhir">
+                <id value="e74349bc-03e8-4492-a26b-0ba55b777a76"/>
+                <meta>
+                    <profile value="https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMPayorOrganization"/>
+                </meta>
+                <identifier>
+                    <system value="http://fhir.de/sid/arge-ik/iknr"/>
+                    <value value="107723372"/>
+                </identifier>
+                <name value="Beispielkostenträger"/>
+            </Organization>
+        </resource>
+    </entry>
+</Bundle>

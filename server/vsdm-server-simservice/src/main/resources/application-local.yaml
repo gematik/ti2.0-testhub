@@ -1,0 +1,9 @@
+server:
+  port: 9220
+
+otel:
+  sdk:
+    disabled: true
+
+vsdm:
+  iknr: 109500969

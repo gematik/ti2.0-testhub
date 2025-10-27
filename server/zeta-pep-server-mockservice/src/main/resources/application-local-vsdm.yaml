@@ -1,0 +1,27 @@
+server:
+  port: 9120
+
+proxy:
+  http:
+    url: http://localhost:9220
+  ws:
+    url: ws://localhost:9220
+  popp:
+    required: true
+  sec:
+    store:
+      path: zetakeystore.p12
+      pass: testpassword
+    key:
+      alias: zetamock
+      pass: testpassword
+
+otel:
+  sdk:
+    disabled: true
+
+well-known:
+  issuer: http://localhost:9120
+  auth_ep: http://localhost:9122/auth
+  token_ep: http://localhost:9122/token
+  nonce_ep: http://localhost:9122/nonce

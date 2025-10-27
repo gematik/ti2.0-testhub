@@ -1,0 +1,33 @@
+{
+  "resourceType": "OperationOutcome",
+  "id": "VSDMOperationOutcome-InvalidIK",
+  "meta": {
+    "profile": [
+      "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMOperationOutcome"
+    ]
+  },
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Ungültige oder nicht bekannte Institutionskennung 103456789.</div>"
+  },
+  "issue": [
+    {
+      "severity": "fatal",
+      "code": "not-found",
+      "details": {
+        "coding": [
+          {
+            "code": "VSDSERVICE_INVALID_IK",
+            "system": "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMErrorcodeCS",
+            "display": "Ungültige oder nicht bekannte Institutionskennung [ik]."
+          }
+        ],
+        "text": "Ungültige oder nicht bekannte Institutionskennung 103456789."
+      },
+      "diagnostics": "Nachweis zum Versorgungskontext mittels eGK oder GesundheitsID am PoPP-Service 1x erneuern. \nBei erneutem Fehler: Abbruch, da wahrscheinlich ein Implementierungsfehler vorliegt (Clientsystem oder PoPP-Service) oder der Kostenträger nicht von diesem Farchdienst-Anbieter vertreten wird (fehlerhafter DNS-Eintrag).",
+      "expression": [
+        "http.ZETA-PoPP-Token-Content.insurerId"
+      ]
+    }
+  ]
+}

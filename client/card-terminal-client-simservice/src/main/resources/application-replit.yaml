@@ -1,0 +1,54 @@
+# Server configuration for replit environment
+server:
+  port: 5000
+  address: 0.0.0.0
+
+# Application configuration
+spring:
+  application:
+    name: card-terminal-simulator
+  # Jackson configuration
+  jackson:
+    default-property-inclusion: NON_NULL
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+  # Allow bean definition overriding
+  main:
+    allow-bean-definition-overriding: true
+
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    com.cardterminal.simulator: DEBUG
+
+# Endpoint configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+# Card terminal configuration
+card:
+  terminal:
+    slots: 4
+
+# API configuration
+api:
+  description: Card Terminal Simulator REST API
+  version: 1.0
+
+# Swagger UI configuration
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json

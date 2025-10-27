@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>de.gematik</groupId>
+        <artifactId>testhub</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <groupId>de.gematik.ti20</groupId>
+    <artifactId>coverage-report</artifactId>
+    <version>${project.parent.version}</version>
+
+    <name>Coverage Report</name>
+    <description>Helper module to aggregate Jacoco Reports</description>
+
+    <dependencies>
+      <dependency>
+        <groupId>de.gematik.ti20.vsdm</groupId>
+        <artifactId>vsdm-fhir-lib</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>de.gematik.ti20.client</groupId>
+        <artifactId>popp-client-lib</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>de.gematik.ti20.client</groupId>
+        <artifactId>zeta-client-lib</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>de.gematik.ti20.client</groupId>
+        <artifactId>card-client-lib</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>de.gematik.ti20.simsvc.server</groupId>
+        <artifactId>vsdm-server-simservice</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>de.gematik.ti20.simsvc.server</groupId>
+        <artifactId>zeta-pdp-server-mockservice</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>de.gematik.ti20.simsvc.server</groupId>
+        <artifactId>zeta-pep-server-mockservice</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>de.gematik.ti20.simsvc.server</groupId>
+        <artifactId>popp-server-mockservice</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>de.gematik.ti20.simsvc.client</groupId>
+        <artifactId>card-terminal-client-simservice</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>de.gematik.ti20.simsvc.client</groupId>
+        <artifactId>vsdm-client-simservice</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+    </dependencies>
+
+    <build>
+      <plugins>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>report-aggregate</id>
+              <goals>
+                <goal>report-aggregate</goal>
+              </goals>
+              <phase>verify</phase>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </build>
+</project>

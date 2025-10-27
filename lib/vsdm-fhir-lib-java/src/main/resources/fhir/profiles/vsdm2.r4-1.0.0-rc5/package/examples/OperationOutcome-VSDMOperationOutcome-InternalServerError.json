@@ -1,0 +1,30 @@
+{
+  "resourceType": "OperationOutcome",
+  "id": "VSDMOperationOutcome-InternalServerError",
+  "meta": {
+    "profile": [
+      "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMOperationOutcome"
+    ]
+  },
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Unerwarteter interner Fehler des Fachdienstes VSDM.</div>"
+  },
+  "issue": [
+    {
+      "severity": "fatal",
+      "code": "transient",
+      "details": {
+        "coding": [
+          {
+            "code": "VSDSERVICE_INTERNAL_SERVER_ERROR",
+            "system": "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMErrorcodeCS",
+            "display": "Unerwarteter interner Fehler des Fachdienstes VSDM."
+          }
+        ],
+        "text": "Unerwarteter interner Fehler des Fachdienstes VSDM."
+      },
+      "diagnostics": "Wiederholungsversuch im 'Exponential Backoff'-Verfahren gemäß A_25339."
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+# Server configuration
+server:
+  port: 8000
+
+# Card terminal configuration
+card:
+  terminal:
+    slots: 1001

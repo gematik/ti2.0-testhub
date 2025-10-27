@@ -1,0 +1,30 @@
+app.version: 0.0.1-dev
+server:
+  error:
+    whitelabel.enabled: false
+    include-message: always
+  port: ${SERVER_PORT:80}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.boot.autoconfigure: OFF
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+proxy:
+  http:
+    url: ${PROXY_HTTP_URL}
+  ws:
+    url: ${PROXY_WS_URL:}
+  popp:
+    required: ${PROXY_POPP_REQUIRED:false}
+
+well-known:
+  issuer: ${WK_ISSUER:NOT_SET}
+  auth_ep: ${WK_AUTH_EP:NOT_SET}
+  token_ep: ${WK_TOKEN_EP:NOT_SET}
+  nonce_ep: ${WK_NONCE_EP:NOT_SET}
+  jwks_uri: ${WK_JWKS_URI:NOT_SET}
+
+

@@ -1,0 +1,27 @@
+server:
+  port: ${SERVER_PORT:80}
+
+proxy:
+  http:
+    url: http://popp-server
+  ws:
+    url: ws://popp-server
+  popp:
+    required: true
+  sec:
+    store:
+      path: "./zetakeystore.p12"
+      pass: testpassword
+    key:
+      alias: zetamock
+      pass: testpassword
+
+otel:
+  sdk:
+    disabled: true
+
+well-known:
+  issuer: http://zeta-pep-vsdm
+  auth_ep: http://zeta-pdp-vsdm/auth
+  token_ep: http://zeta-pdp-vsdm/token
+  nonce_ep: http://zeta-pdp-vsdm/nonce

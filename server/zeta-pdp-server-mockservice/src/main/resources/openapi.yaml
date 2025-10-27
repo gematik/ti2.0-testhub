@@ -1,0 +1,27 @@
+openapi: 3.0.0
+info:
+  title: ZETA PDP Server Mock
+  description: API zum Simulieren eines ZETA PDP Servers.
+  version: 1.0.0
+servers:
+  - url: http://localhost:9102
+    description: Local Dev-Server
+
+paths:
+  /token:
+
+    post:
+      summary: Abfrage des Access Tokens vom ZETA PDP Server Mock
+      description: Gibt aktuell einen Access und Refresh Token zurück.
+      responses:
+        '200':
+          description: Erfolgreiche Rückgabe der Token
+
+  /service/status:
+
+    get:
+      summary: Abfrage des ZETA PDP Server Mock Status
+      description: Gibt aktuell nur ein leeres Formular zurück.
+      responses:
+        '200':
+          description: Erfolgreiche Rückgabe des ZETA PDP Server Mock Status

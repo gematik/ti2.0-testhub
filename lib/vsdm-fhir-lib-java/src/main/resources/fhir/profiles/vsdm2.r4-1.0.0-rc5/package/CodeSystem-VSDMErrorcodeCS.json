@@ -1,0 +1,66 @@
+{
+  "resourceType": "CodeSystem",
+  "status": "active",
+  "content": "complete",
+  "name": "VSDMErrorcodeCS",
+  "id": "VSDMErrorcodeCS",
+  "title": "VSDM-Fehlercodes",
+  "description": "Fachspezifische Fehlercodes im Versichertenstammdatenmanagement (VSDM) 2.0",
+  "version": "1.0.0",
+  "url": "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMErrorcodeCS",
+  "concept": [
+    {
+      "code": "VSDSERVICE_INVALID_IK",
+      "display": "Ungültige oder nicht bekannte Institutionskennung [ik]."
+    },
+    {
+      "code": "VSDSERVICE_INVALID_KVNR",
+      "display": "Ungültige oder nicht bekannte Krankenversichertennummer [kvnr]."
+    },
+    {
+      "code": "VSDSERVICE_PATIENT_RECORD_NOT_FOUND",
+      "display": "Die Versichertenstammdaten zur Versichertennummer [kvnr] konnten für die Institutionskennung [ik] nicht ermittelt werden."
+    },
+    {
+      "code": "VSDSERVICE_MISSING_OR_INVALID_HEADER",
+      "display": "Der erforderliche HTTP-Header [header] fehlt oder ist undgültig."
+    },
+    {
+      "code": "VSDSERVICE_UNSUPPORTED_MEDIATYPE",
+      "display": "Der vom Clientsystem angefragte Medientyp [media type] wird nicht unterstützt."
+    },
+    {
+      "code": "VSDSERVICE_UNSUPPORTED_ENCODING",
+      "display": "Das vom Clientsystem angefragte Komprimierungsverfahren [encoding scheme] wird nicht unterstützt."
+    },
+    {
+      "code": "VSDSERVICE_INVALID_PATIENT_RECORD_VERSION",
+      "display": "Der Änderungsindikator [etag_value] kann nicht verarbeitet werden."
+    },
+    {
+      "code": "VSDSERVICE_INVALID_HTTP_OPERATION",
+      "display": "Die HTTP-Operation [http-operation] wird nicht unterstützt."
+    },
+    {
+      "code": "VSDSERVICE_INVALID_ENDPOINT",
+      "display": "Der angefragte Endpunkt [endpoint] wird nicht unterstützt."
+    },
+    {
+      "code": "VSDSERVICE_INTERNAL_SERVER_ERROR",
+      "display": "Unerwarteter interner Fehler des Fachdienstes VSDM."
+    },
+    {
+      "code": "VSDSERVICE_VSDD_NOTREACHABLE",
+      "display": "Fachdienst VSDM ist für den Kostenträger [ik] nicht erreichbar."
+    },
+    {
+      "code": "VSDSERVICE_VSDD_TIMEOUT",
+      "display": "Fachdienst VSDM für den Kostenträger [ik] hat das Zeitlimit für eine Antwort überschritten."
+    }
+  ],
+  "experimental": false,
+  "publisher": "gematik GmbH",
+  "date": "2023-12-31",
+  "caseSensitive": true,
+  "count": 12
+}
