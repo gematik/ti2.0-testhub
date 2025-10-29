@@ -40,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
 public class VsdmLoadSimulation extends Simulation {
 
   private static final boolean RANDOM_READ_VSD =
-      Boolean.parseBoolean(System.getProperty("randomReadVsd", "false"));
+      Boolean.parseBoolean(System.getProperty("randomReadVsd", "true"));
 
   // Equal load: cardsPerSec * cardsDurationSecs should be 1000 to insert 1.000 cards
   private static final int USERS_PER_SEC = Integer.getInteger("usersPerSec", 25);
@@ -51,8 +51,8 @@ public class VsdmLoadSimulation extends Simulation {
   private static final int READ_VSD_PER_SEC_MAX = Integer.getInteger("readVsdPerSecMax", 25);
 
   // Non-equal load: Controlling duration time of sawtooth curves in readVSD load scenario.
-  private static final int READ_VSD_DURATION_SECS = Integer.getInteger("readVsdDurationSecs", 5);
-  private static final int READ_VSD_NUMBER_CYCLES = Integer.getInteger("readVsdNumberCycles", 6);
+  private static final int READ_VSD_DURATION_SECS = Integer.getInteger("readVsdDurationSecs", 10);
+  private static final int READ_VSD_NUMBER_CYCLES = Integer.getInteger("readVsdNumberCycles", 30);
 
   private static final FeederBuilder.FileBased<String> SMCB_FEEDER =
       csv("feeder/smcb_slots.csv").circular();
@@ -127,11 +127,11 @@ public class VsdmLoadSimulation extends Simulation {
       steps.add(
           rampUsersPerSec(READ_VSD_PER_SEC_MIN)
               .to(readVsdPerSecMaxRandom)
-              .during(READ_VSD_DURATION_SECS));
+              .during(READ_VSD_DURATION_SECS / 2));
       steps.add(
           rampUsersPerSec(readVsdPerSecMaxRandom)
               .to(READ_VSD_PER_SEC_MIN)
-              .during(READ_VSD_DURATION_SECS));
+              .during(READ_VSD_DURATION_SECS / 2));
     }
     return steps;
   }

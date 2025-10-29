@@ -1,5 +1,5 @@
 <br/>
-<img style="float: right;" width="200" height="37" src="./src/test/resources/images/Gematik_Logo_Flag.png" alt=""/>
+<img style="float: right;" width="250" height="47" src="../../images/Gematik_Logo_Flag_With_Background.png" alt=""/>
 <br/>
 
 # VSDM 2.0 Testsuite
@@ -27,11 +27,17 @@ den folgenden Komponenten:
 * PoPP Server Mock (PoPP Token Generator)
 * VSDM Server Simulator
 
-Sämtliche Tests setzen diese simulierten Dienste voraus. Diese können mit folgendem Skript-Aufruf als Docker-Container
-gestartet werden: (Der Skript-Aufruf sollte im Projekt-Root-Verzeichnis erfolgen.)
+Sämtliche Tests der VSDM-Testsuite setzen diese simulierten Dienste voraus. Diese können mit folgendem Skript-Aufruf als
+Docker-Container gestartet werden: (Der Skript-Aufruf sollte im Projekt-Root-Verzeichnis erfolgen.)
 ```
 ./doc/bin/vsdm/docker-compose-local-rebuild.sh
 ```
+
+Das obige Skript kennt die folgenden Parameter:
+* -h --help --> Anzeige der Hilfe
+* -d --dry-run --> Anzeige der Befehle
+* -s --skip-tests --> Alle Tests überspringen
+* -p --projects LIST --> Auswahl einzelner Projekte
 
 Die untere Grafik zeigt den TI 2.0 TestHub in seiner ersten Ausbaustufe, welche ausschließlich aus Simulatoren bzw.
 Mocks besteht. Die VSDM 2.0 Testsuite sendet Anfragen an den Card, den PoPP und den VSDM Client Simulator. Diese
@@ -49,7 +55,8 @@ und somit deren Funktionsweise demonstrieren. Die Tests verwenden das Jupiter-Fr
 
 Die Integrationstests können mit folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
 ```
-mvn clean test
+cd test/vsdm-testsuite/
+mvn clean verify -Dtest="Vsdm*IT"
 ```
 
 ## E2E-Tests
@@ -70,7 +77,8 @@ dies nicht möglich, da die eGK ungültig ist. Testfälle:
 
 Die E2E-Tests können mit folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
 ```
-mvn clean verify -Dcucumber.filter.tags="@TYPE:E2E"
+cd test/vsdm-testsuite/
+mvn clean verify -Dcucumber.filter.tags="@TYPE:E2E" -Dskip.inttests=false
 ```
 
 ## BDE-Tests
@@ -84,7 +92,8 @@ Spezifikation für VSDM 2.0 (gemSpec_VSDM_2) orientieren. Testfälle:
 
 Die BDE-Tests können mit folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
 ```
-mvn clean verify -Dcucumber.filter.tags="@TYPE:BDE"
+cd test/vsdm-testsuite/
+mvn clean verify -Dcucumber.filter.tags="@TYPE:BDE" -Dskip.inttests=false
 ```
 
 ## Lasttests
@@ -99,7 +108,8 @@ Testfälle:
 
 Die Lasttests können mit folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
 ```
-mvn clean verify -Dcucumber.filter.tags="@TYPE:LOAD"
+cd test/vsdm-testsuite/
+mvn clean verify -Dcucumber.filter.tags="@TYPE:LOAD" -Dskip.inttests=false
 ```
 
 ## Hintergrundlast
@@ -108,8 +118,26 @@ Einstecken der Karten, über die Erlangung des Versorgungskontextes bis hin zur 
 In Kombination mit den Load Tests wird die Simulation zur Erzeugung der Hintergrundlast verwendet. Die Hintergrundlast
 kann mittels Maven und folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
 ```
+cd test/vsdm-testsuite/
 mvn gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmLoadSimulation [-DrandomReadVsd=true]
 ```
+Die Hintergrundlast ist aktuell in der Datei "VsdmLoadSimulation.java" so konfiguriert, dass diese maximal 25 Aufrufe in
+der Sekunde über einen Zeitraum von ca. einer Minute versendet. Das Versenden kann mit dem Parameter "randomReadVsd"
+gleichförmig oder variabel erfolgen. Bei Auswahl einer variablen Hintergrundlast bewegen sich die Aufrufe zufällig
+zwischen den Werten 5 bis 25 Aufrufe pro Sekunde. Natürlich können die aktuell eingestellten Parameter durch passende
+System-Parameter (Option -D) überschrieben werden.
+
+### Beispiel: Gleichförmige Hintergrundlast (25 Aufrufe/sec für 60 Sekunden)
+* randomReadVsd=false
+* usersPerSec=25
+* usersDurationSecs=60
+
+### Beispiel: Variable Hintergrundlast (5-25 Aufrufe/sec für 300 Sekunden)
+* randomReadVsd=true
+* readVsdPerSecMin=5
+* readVsdPerSecMax=25
+* readVsdDurationSecs=30
+* readVsdNumberCycles=10
 
 ## Hinweise
 In der aktuellen Ausbaustufe sind die ZETA-Komponenten nur als Mocks implementiert und sollen zeitnah durch die realen
@@ -117,3 +145,7 @@ Komponenten ersetzt werden. Daher enthalten die Testschritte zur Authentifizieru
 
 Die PoPP-Komponenten sind ebenfalls nur als Mocks ausgeführt und sollen zeitnah durch eine Beispiel-Implementierung 
 ersetzt werden. Gegenwärtig generiert der PoPP-Server-Mock nur einen PoPP-Token basierend auf der IK- und KVNR-Nummer.
+
+Aktuell verwendet die Gatling-Lastsimulation nur eine Testidentität mit der KVNR X110639491. Es ist aber geplant, die
+Simulation mit dem PoPP-Token-Generator zu kombinieren, sodass diese einfacher wird und deutlich mehr Testidentitäten
+unterstützt.

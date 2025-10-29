@@ -5,7 +5,7 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>
@@ -28,6 +28,7 @@
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
 
         <version.maven-antrun-plugin>3.1.0</version.maven-antrun-plugin>
         <version.maven.surefire>3.5.4</version.maven.surefire>
@@ -78,22 +79,22 @@
             <dependency>
                 <groupId>de.gematik.ti20.client</groupId>
                 <artifactId>card-client-lib</artifactId>
-                <version>${version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>de.gematik.ti20.client</groupId>
                 <artifactId>zeta-client-lib</artifactId>
-                <version>${version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>de.gematik.ti20.client</groupId>
                 <artifactId>popp-client-lib</artifactId>
-                <version>${version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>de.gematik.ti20.vsdm</groupId>
                 <artifactId>vsdm-fhir-lib</artifactId>
-                <version>${version}</version>
+                <version>${project.version}</version>
             </dependency>
 
             <!-- BBRICCS -->
@@ -316,10 +317,6 @@
                     <version>${version.maven.surefire}</version>
                     <configuration>
                         <argLine>${argLine} -Dfile.encoding=UTF-8</argLine>
-                        <!-- somehow integration tests are executed and reported via surefire - so exclude them explicitly -->
-                        <excludes>
-                            <exclude>**/*IT.java</exclude>
-                        </excludes>
                         <properties>
                             <configurationParameters>
                                 junit.jupiter.execution.parallel.mode.default = same_thread

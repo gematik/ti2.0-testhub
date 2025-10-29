@@ -7,19 +7,18 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.vsdm</groupId>
     <artifactId>vsdm-testsuite</artifactId>
-    <version>${project.parent.version}</version>
+    <version>1.0.1</version>
 
     <name>VSDM 2.0 Testsuite</name>
     <description>Collection of E2E and IT tests to validate VSDM 2.0 service.</description>
 
     <properties>
-        <skip.unittests>true</skip.unittests>
         <skip.inttests>true</skip.inttests>
     </properties>
 
@@ -28,6 +27,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -120,19 +120,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${version.maven.surefire}</version>
-                <configuration>
-                    <includes>
-                        <include>**/VsdmClientIT.java</include>
-                        <include>**/VsdmServerIT.java</include>
-                    </includes>
-                    <skipTests>${skip.unittests}</skipTests>
-                </configuration>
             </plugin>
 
             <plugin>
