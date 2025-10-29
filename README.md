@@ -66,41 +66,9 @@ All components are designed as mock/simulation services for development and test
 The Testhub implements a **Zero Trust Architecture** with multiple layers of services communicating through
 authenticated channels.
 
-### Component Overview
+### Component Overview (Stufe 1)
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      Client Layer                               │
-├─────────────────────────────────┬───────────────────────────────┤
-│  Card Terminal Client (8000)    │  VSDM Client (8220)           │
-│  - Simulates eGK operations     │  - Initiates VSDM requests    │
-└─────────────────────────────────┴───────────────────────────────┘
-                                   │
-                                   ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                   ZeTA PEP Layer (Proxies)                      │
-├─────────────────────────────────┬───────────────────────────────┤
-│  ZeTA PEP PoPP (9110)           │  ZeTA PEP VSDM (9111)         │
-│  - Token validation             │  - Token validation           │
-│  - Request forwarding           │  - Request forwarding         │
-└─────────────────────────────────┴───────────────────────────────┘
-                 │                                 │
-                 ▼                                 ▼
-┌─────────────────────────────────┬───────────────────────────────┐
-│  ZeTA PDP Layer (Token Exchange)                                │
-├─────────────────────────────────┬───────────────────────────────┤
-│  ZeTA PDP PoPP (9100)           │  ZeTA PDP VSDM (9101)         │
-│  - OAuth 2.0 token exchange     │  - OAuth 2.0 token exchange   │
-└─────────────────────────────────┴───────────────────────────────┘
-                 │                                 │
-                 ▼                                 ▼
-┌─────────────────────────────────┬───────────────────────────────┐
-│                    Backend Services                             │
-├─────────────────────────────────┬───────────────────────────────┤
-│  PoPP Server (9120)             │  VSDM Server (9121)           │
-│  - PoPP token generation        │  - VSDM data provision        │
-└─────────────────────────────────┴───────────────────────────────┘
-```
+<img align="left" src="images/ti20-testhub-ausbaustufe-1.png"/><br/>
 
 ### Service Descriptions
 
@@ -115,13 +83,24 @@ authenticated channels.
 | **PoPP Server**          | 9120 | Backend PoPP service - generates and validates Proof of Possession tokens                         | [README](./server/popp-server-mockservice/README.md)         |
 | **VSDM Server**          | 9121 | Backend VSDM service - provides VSDM2 data from YAML test fixtures                                | [README](./server/vsdm-server-simservice/README.md)          |
 
-### Authentication Flow
+### References
 
-1. **Client** requests data with SMC-B access token
-2. **ZeTA PEP** (Policy Enforcement Point) validates the token and forwards to PDP
-3. **ZeTA PDP** (Policy Decision Point) performs token exchange (OAuth 2.0 RFC 8693)
-4. **ZeTA PEP** forwards authenticated request to backend service
-5. **Backend Service** processes request and returns data
+**ZeTA**:
+
+- [gemSpecPages ZeTA Documentation](https://gemspec.gematik.de/docs/gemSpec/gemSpec_Zero_Trust_Architecture/latest/)
+- [ZeTA GitHub Repository](https://github.com/gematik/zeta)
+
+**PoPP**:
+
+- [gemSpecPages PoPP Prerelease Documentation](https://gemspec.gematik.de/prereleases/Draft_PoPP_25_1/gemSpec_PoPP_Service_V1.0.0_CC2/)
+- [PoPP client GitHub Repository](https://github.com/gematik/spec-ilf-popp-client)
+- [PoPP token generator GitHub Repository](https://github.com/gematik/popp-token-generator)
+
+**VSDM2**:
+
+- [gemSpecPages VSDM 2.0 Documentation](https://gemspec.gematik.de/docs/gemSpec/gemSpec_VSDM_2/latest/)
+- [VSDM 2.0 GitHub Repository](https://github.com/gematik/spec-VSDM2/tree/main)
+- [VSDM 2.0 FHIR Specification](https://simplifier.net/vsdm2/~introduction)
 
 ## Prerequisites
 

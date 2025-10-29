@@ -25,5 +25,13 @@ if [[ $# -gt 0 ]]; then
 fi
 
 doc/bin/vsdm/mvn-install-all.sh "$@"
+
+# Dry-Run abfangen
+if [[ $# -gt 0 ]]; then
+  case "$1" in
+    -d|--dry-run) exit 0 ;;
+  esac
+fi
+
 doc/bin/vsdm/docker-build-all-local.sh
 doc/bin/vsdm/docker-compose-local-restart.sh

@@ -5,7 +5,6 @@ set -uo pipefail 2>/dev/null || set -o pipefail
 # Projektliste (Default)
 # ----------------------------------
 projects=(
-  "."
   "lib/card-client-lib-java"
   "lib/zeta-client-lib-java"
   "lib/popp-client-lib-java"

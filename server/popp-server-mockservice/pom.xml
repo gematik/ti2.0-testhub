@@ -7,13 +7,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.simsvc.server</groupId>
     <artifactId>popp-server-mockservice</artifactId>
-    <version>${project.parent.version}</version>
+    <version>1.0.1</version>
 
     <name>PoPP Server Mockservice</name>
     <description>Simulator-Mock-Service for PoPP Service</description>
