@@ -6,13 +6,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.vsdm</groupId>
     <artifactId>vsdm-fhir-lib</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <packaging>jar</packaging>
 
     <name>VSDM2 FHIR Library</name>

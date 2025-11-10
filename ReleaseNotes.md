@@ -23,3 +23,8 @@
 - Add synthetic test data in vsdm-server.
 - Remove BDE test cases from vsdm-testsuite.
 - Fix issues in build script.
+
+## Release 1.0.3
+
+- Minor corrections
+
