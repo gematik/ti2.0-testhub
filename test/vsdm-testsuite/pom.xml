@@ -7,13 +7,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.vsdm</groupId>
     <artifactId>vsdm-testsuite</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 
     <name>VSDM 2.0 Testsuite</name>
     <description>Collection of E2E and IT tests to validate VSDM 2.0 service.</description>
