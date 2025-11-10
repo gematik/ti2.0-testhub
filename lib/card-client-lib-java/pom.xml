@@ -7,13 +7,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.0.1</version>
+        <version>1.0.2</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.client</groupId>
     <artifactId>card-client-lib</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 
     <name>Card Client Library</name>
     <description>Card Client Library for TI 2.0</description>
@@ -59,6 +59,22 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+        </dependency>
+        <!-- So we can run tests like ConnectorClientTest that require a SOAP implementation -->
+        <dependency>
+        <groupId>com.sun.xml.messaging.saaj</groupId>
+        <artifactId>saaj-impl</artifactId>
+            <!-- current implementation requires this version: -->
+        <version>1.5.3</version>
+        <scope>test</scope>
+            <!-- END SOAP Implementation -->
+    </dependency>
+
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.27.6</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>

@@ -43,7 +43,7 @@ public final class VsdmPatientBuilder extends ResourceBuilder<VsdmPatient, VsdmP
     return new VsdmPatientBuilder();
   }
 
-  public VsdmPatientBuilder withNames(String family, String given) {
+  public VsdmPatientBuilder withNames(final String family, final String given) {
     this.nameFamily = family;
     if (given != null) {
       namesGiven.addAll(Arrays.stream(given.split(" ")).toList());
@@ -51,17 +51,17 @@ public final class VsdmPatientBuilder extends ResourceBuilder<VsdmPatient, VsdmP
     return this;
   }
 
-  public VsdmPatientBuilder withKvnr(String kvnr) {
+  public VsdmPatientBuilder withKvnr(final String kvnr) {
     this.kvnr = kvnr;
     return this;
   }
 
-  public VsdmPatientBuilder withBirthDate(Date birthDate) {
+  public VsdmPatientBuilder withBirthDate(final Date birthDate) {
     this.birthDate = birthDate;
     return this;
   }
 
-  public VsdmPatientBuilder addAddress(Address address) {
+  public VsdmPatientBuilder addAddress(final Address address) {
     this.addresses.add(address);
     return this;
   }

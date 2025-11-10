@@ -23,7 +23,3 @@ well-known:
   auth_ep: http://localhost:9102/auth
   token_ep: http://localhost:9102/token
   nonce_ep: http://localhost:9102/nonce
-
-otel:
-  sdk:
-    disabled: true

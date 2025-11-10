@@ -26,13 +26,20 @@ import static org.mockito.Mockito.*;
 import de.gematik.ti20.client.card.card.AttachedCard;
 import de.gematik.ti20.client.card.card.CardConnection;
 import de.gematik.ti20.client.card.terminal.CardTerminal;
+import de.gematik.ti20.client.card.terminal.CardTerminalException;
 import de.gematik.ti20.client.popp.config.PoppClientConfig;
+import de.gematik.ti20.client.popp.exception.PoppClientException;
 import de.gematik.ti20.client.popp.message.*;
+import de.gematik.ti20.client.zeta.exception.ZetaHttpException;
+import de.gematik.ti20.client.zeta.request.ZetaHttpRequest;
 import de.gematik.ti20.client.zeta.service.ZetaClientService;
+import de.gematik.ti20.client.zeta.websocket.ZetaWsEventHandler;
 import de.gematik.ti20.client.zeta.websocket.ZetaWsSession;
 import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class PoppTokenSessionTest {
 
@@ -44,6 +51,7 @@ class PoppTokenSessionTest {
 
   private PoppTokenSessionEventHandler eventHandler;
   private PoppTokenSession session;
+  private ZetaWsEventHandler handlerCaptorValue;
 
   @BeforeEach
   void setUp() throws Exception {
@@ -51,7 +59,7 @@ class PoppTokenSessionTest {
     cardTerminal = mock(CardTerminal.class);
     cardConnection = mock(CardConnection.class);
 
-    ZetaClientService zetaClientService = mock(ZetaClientService.class);
+    zetaClientService = mock(ZetaClientService.class);
 
     PoppClientConfig poppClientConfig = mock(PoppClientConfig.class);
 
@@ -69,6 +77,13 @@ class PoppTokenSessionTest {
 
     session = new PoppTokenSession(attachedCard, eventHandler, poppClientService);
     session.start(0);
+
+    // Get the EventHandler
+    final ArgumentCaptor<ZetaWsEventHandler> eventHandlerCaptor =
+        ArgumentCaptor.forClass(ZetaWsEventHandler.class);
+    verify(zetaClientService, times(1))
+        .connectToPepProxy(any(), eventHandlerCaptor.capture(), anyBoolean());
+    handlerCaptorValue = eventHandlerCaptor.getValue();
   }
 
   @Test
@@ -111,5 +126,107 @@ class PoppTokenSessionTest {
     verify(cardConnection, atLeast(0)).disconnect();
     verify(wsSession, atLeast(0)).close(anyInt(), anyString());
     verify(eventHandler).onFinished(session);
+  }
+
+  @Nested
+  class ProcessIncomingPoppMessage {
+
+    @Test
+    void thatExceptionIsRaisedForInvalidJSON() {
+      assertNotNull(handlerCaptorValue);
+
+      final ZetaWsSession zetaWsSession = mock(ZetaWsSession.class);
+      when(zetaWsSession.getLastMessage()).thenReturn("");
+
+      handlerCaptorValue.onMessage(zetaWsSession);
+
+      final ArgumentCaptor<PoppClientException> exceptionArgumentCaptor =
+          ArgumentCaptor.forClass(PoppClientException.class);
+      verify(eventHandler).onError(any(), exceptionArgumentCaptor.capture());
+
+      final PoppClientException capture = exceptionArgumentCaptor.getValue();
+      assertEquals("Error parsing message from PoPP server", capture.getMessage());
+    }
+
+    @Test
+    void thatExceptionIsRaisedForIncomingErrorMessage() {
+      assertNotNull(handlerCaptorValue);
+
+      final ZetaWsSession zetaWsSession = mock(ZetaWsSession.class);
+      when(zetaWsSession.getLastMessage())
+          .thenReturn(
+              """
+              {
+              "type": "Error",
+              "errorCode": "1234",
+              "errorDetail": "Hello World!"
+              }\
+              """);
+
+      handlerCaptorValue.onMessage(zetaWsSession);
+
+      final ArgumentCaptor<PoppClientException> exceptionArgumentCaptor =
+          ArgumentCaptor.forClass(PoppClientException.class);
+      verify(eventHandler).onError(any(), exceptionArgumentCaptor.capture());
+
+      final PoppClientException capture = exceptionArgumentCaptor.getValue();
+      assertEquals("1234 Hello World!", capture.getMessage());
+    }
+
+    @Test
+    void thatTokenMessageIsProcessed() {
+      assertNotNull(handlerCaptorValue);
+
+      final ZetaWsSession zetaWsSession = mock(ZetaWsSession.class);
+      when(zetaWsSession.getLastMessage())
+          .thenReturn(
+              """
+              {
+              "type": "Token",
+              "token": "any token",
+              "pn": "any pn"
+              }\
+              """);
+
+      handlerCaptorValue.onMessage(zetaWsSession);
+      verify(eventHandler, times(1)).onReceivedPoppToken(any(), any());
+    }
+
+    @Test
+    void thatDisconnectIsPropagatedToEventHandler() {
+      assertNotNull(handlerCaptorValue);
+
+      final ZetaWsSession zetaWsSession = mock(ZetaWsSession.class);
+      when(zetaWsSession.getLastMessage()).thenReturn("");
+
+      handlerCaptorValue.onDisconnected(zetaWsSession);
+
+      verify(eventHandler, times(1)).onDisconnectedFromServer(any());
+    }
+
+    @Test
+    void thatConnectIsPropagatedToEventHandler() throws PoppClientException, CardTerminalException {
+      assertNotNull(handlerCaptorValue);
+
+      final ZetaWsSession zetaWsSession = mock(ZetaWsSession.class);
+      when(zetaWsSession.getLastMessage()).thenReturn("");
+
+      handlerCaptorValue.onConnected(zetaWsSession);
+
+      verify(eventHandler, times(1)).onConnectedToServer(any());
+    }
+
+    @Test
+    void thatExceptionIsPropagatedToEventHandler() {
+      assertNotNull(handlerCaptorValue);
+
+      final ZetaWsSession zetaWsSession = mock(ZetaWsSession.class);
+      when(zetaWsSession.getLastMessage()).thenReturn("");
+
+      final ZetaHttpException any = new ZetaHttpException("any", mock(ZetaHttpRequest.class));
+      handlerCaptorValue.onException(zetaWsSession, any);
+
+      verify(eventHandler, times(1)).onError(any(), any());
+    }
   }
 }

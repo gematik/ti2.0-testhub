@@ -20,12 +20,16 @@
  */
 package de.gematik.ti20.simsvc.client.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import de.gematik.bbriccs.fhir.EncodingType;
+import de.gematik.ti20.client.card.card.AttachedCard;
 import de.gematik.ti20.client.card.config.CardTerminalConnectionConfig;
 import de.gematik.ti20.client.card.config.SimulatorConnectionConfig;
+import de.gematik.ti20.client.card.terminal.CardTerminalException;
 import de.gematik.ti20.client.card.terminal.simsvc.EgkInfo;
 import de.gematik.ti20.client.card.terminal.simsvc.SimulatorAttachedCard;
 import de.gematik.ti20.client.popp.config.PoppClientConfig;
@@ -50,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
@@ -485,5 +490,43 @@ class VsdmClientServiceTest {
     ArgumentCaptor<ZetaHttpRequest> requestCaptor = ArgumentCaptor.forClass(ZetaHttpRequest.class);
     verify(mockZetaClientService).sendToPepProxy(requestCaptor.capture(), eq(true));
     assertEquals("existing-etag", requestCaptor.getValue().getHeader("If-None-Match"));
+  }
+
+  @Nested
+  class getAttachedCard {
+    @Test
+    void thatGetAttachedCardWorks() {
+      final AttachedCard attachedCard = vsdmClientService.getAttachedCard("id", 1);
+      assertThat(attachedCard).isNotNull();
+    }
+
+    @Test
+    void thatPoppClientExceptionsAreHandled() throws CardTerminalException {
+      when(mockPoppClientService.getAttachedCards()).thenThrow(new RuntimeException());
+      assertThatExceptionOfType(ResponseStatusException.class)
+          .isThrownBy(() -> vsdmClientService.getAttachedCard("any", 1));
+    }
+  }
+
+  @Test
+  void thatLoadTruncatedDataWorks() throws CardTerminalException {
+    when(mockPoppClientService.getEgkInfo(any()))
+        .thenReturn(
+            new EgkInfo(
+                "actual-kvnr",
+                "iknr",
+                "patient",
+                "actual-first",
+                "actual-last",
+                "2000",
+                "insurance",
+                "card",
+                "2012",
+                "true"));
+
+    final AttachedCard mock = mock(AttachedCard.class);
+
+    vsdmClientService.loadTruncatedDataFromCard(mock);
+    verify(mockFhirService, times(1)).encodeResponse(any(), any());
   }
 }

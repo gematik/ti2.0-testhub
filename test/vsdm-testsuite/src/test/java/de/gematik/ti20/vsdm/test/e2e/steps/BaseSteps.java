@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Assertions;
 public class BaseSteps {
   protected static final String BASE_URL_CARD_CLIENT_SIM = "http://localhost:8000";
   protected static final String BASE_URL_VSDM_CLIENT_SIM = "http://localhost:8220";
-  protected static final String BASE_URL_POPP_CLIENT_SIM = "http://localhost:9210";
+  protected static final String BASE_URL_POPP_SERVER_SIM = "http://localhost:9210";
   protected static final String TERMINAL_ID = "0";
   protected static final Boolean IS_FIRE_XML = false;
   protected static final Boolean FORCE_UPDATE = true;
@@ -71,7 +71,7 @@ public class BaseSteps {
 
     Response response =
         given()
-            .baseUri(BASE_URL_POPP_CLIENT_SIM)
+            .baseUri(BASE_URL_POPP_SERVER_SIM)
             .contentType(ContentType.JSON)
             .body(new ObjectMapper().writeValueAsString(tokenArgs))
             .post("/popp/test/api/v1/token-generator");
@@ -82,7 +82,7 @@ public class BaseSteps {
     ObjectMapper mapper = new ObjectMapper();
     TokenResults tokenResults = mapper.readValue(jsonBody, TokenResults.class);
 
-    String poppToken = tokenResults.getTokenResults().get(0);
+    String poppToken = tokenResults.getTokenResults().getFirst();
     Assertions.assertNotNull(poppToken);
     return poppToken;
   }

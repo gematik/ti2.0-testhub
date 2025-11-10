@@ -92,7 +92,8 @@ public class ConnectorSignatureService implements SignatureService {
 
     try {
       log.debug(
-          "Signing data with card: {} using ExternalAuthenticate operation with options: algorithm={}, type={}, key={}",
+          "Signing data with card: {} using ExternalAuthenticate operation with options:"
+              + " algorithm={}, type={}, key={}",
           card.getId(),
           options.getHashAlgorithm(),
           options.getSignatureType(),
@@ -138,34 +139,6 @@ public class ConnectorSignatureService implements SignatureService {
       default:
         return HashAlgorithm.SHA256;
     }
-  }
-
-  /**
-   * Converts a Connector HashAlgorithm to the equivalent SignOptions.HashAlgorithm.
-   *
-   * @param algorithm the Connector-specific algorithm to convert
-   * @return the equivalent generic algorithm
-   */
-  private SignOptions.HashAlgorithm convertToSignOptionsHashAlgorithm(HashAlgorithm algorithm) {
-    if (algorithm == null) {
-      return SignOptions.HashAlgorithm.SHA256; // Default
-    }
-
-    switch (algorithm) {
-      case SHA384:
-        return SignOptions.HashAlgorithm.SHA384;
-      case SHA512:
-        return SignOptions.HashAlgorithm.SHA512;
-      case SHA256:
-      default:
-        return SignOptions.HashAlgorithm.SHA256;
-    }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public String getSignatureAlgorithm(HashAlgorithm hashAlgorithm) {
-    return hashAlgorithm.getSignatureAlgorithm();
   }
 
   /**

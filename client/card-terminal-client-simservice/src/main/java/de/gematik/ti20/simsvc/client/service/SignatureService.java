@@ -33,7 +33,6 @@ import java.security.Security;
 import java.security.Signature;
 import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1106,52 +1105,6 @@ public class SignatureService {
       default:
         return algorithm; // Return as-is if already in correct format
     }
-  }
-
-  /**
-   * Get debug information for a card.
-   *
-   * @param cardHandle Card handle
-   * @return Debug information map
-   */
-  public Map<String, Object> getCardDebugInfo(String cardHandle) {
-    Map<String, Object> debugInfo = new HashMap<>();
-
-    // Find the card by handle
-    CardImage card = findCardByHandle(cardHandle);
-    if (card == null) {
-      debugInfo.put("error", "Card not found: " + cardHandle);
-      return debugInfo;
-    }
-
-    // Add basic card information
-    debugInfo.put("cardId", card.getId());
-    debugInfo.put("cardType", card.getCardType().toString());
-    debugInfo.put("label", card.getLabel());
-
-    // Add key information
-    List<Map<String, String>> keys = new ArrayList<>();
-    List<Key> allKeys = card.getAllKeys();
-    for (Key key : allKeys) {
-      Map<String, String> keyInfo = new HashMap<>();
-      keyInfo.put("name", key.getName());
-      keyInfo.put("keyRef", key.getKeyRef());
-      keys.add(keyInfo);
-    }
-    debugInfo.put("keys", keys);
-
-    // Add file information
-    List<Map<String, String>> files = new ArrayList<>();
-    List<FileData> allFiles = card.getAllFiles();
-    for (FileData file : allFiles) {
-      Map<String, String> fileInfo = new HashMap<>();
-      fileInfo.put("name", file.getName());
-      fileInfo.put("fileId", file.getFileId());
-      files.add(fileInfo);
-    }
-    debugInfo.put("files", files);
-
-    return debugInfo;
   }
 
   /** Inner class representing a connection to a card. */

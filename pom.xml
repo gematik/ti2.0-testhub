@@ -5,7 +5,7 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>
@@ -253,6 +253,29 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${version.maven.failsafe}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        <configuration>
+                            <argLine>${failsafeJacocoAgent}</argLine>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <forkedProcessExitTimeoutInSeconds>18000</forkedProcessExitTimeoutInSeconds>
+                    <includes>
+                        <include>**/Driver*IT.java</include>
+                    </includes>
+                    <skipITs>${skip.inttests}</skipITs>
+                </configuration>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
@@ -268,15 +291,19 @@
                             <goals>
                                 <goal>prepare-agent</goal>
                             </goals>
+                            <configuration>
+                                <destFile>${project.build.directory}/coverage-reports/jacoco.exec</destFile>
+                                <propertyName>surefireJacocoAgent</propertyName>
+                            </configuration>
                         </execution>
-                        <!-- set arg line property for failsafe -->
                         <execution>
-                            <id>default-prepare-agent-integration</id>
+                            <id>pre-integration-test</id>
                             <goals>
                                 <goal>prepare-agent-integration</goal>
                             </goals>
                             <configuration>
-                                <propertyName>failsafeArgLine</propertyName>
+                                <destFile>${project.build.directory}/coverage-reports/jacoco-it.exec</destFile>
+                                <propertyName>failsafeJacocoAgent</propertyName>
                             </configuration>
                         </execution>
                         <execution>
@@ -316,7 +343,12 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${version.maven.surefire}</version>
                     <configuration>
-                        <argLine>${argLine} -Dfile.encoding=UTF-8</argLine>
+                        <argLine>${surefireJacocoAgent}
+                            --add-opens java.base/java.lang=ALL-UNNAMED
+                            --add-opens java.base/java.io=ALL-UNNAMED
+                            --add-opens java.base/java.util=ALL-UNNAMED
+                            -Dfile.encoding=${project.build.sourceEncoding}
+                        </argLine>
                         <properties>
                             <configurationParameters>
                                 junit.jupiter.execution.parallel.mode.default = same_thread
@@ -452,18 +484,18 @@
                                 </goals>
                                 <configuration>
                                     <target
-                                        if="image.docker.tag"
-                                        name="build-service-docker-image"
+                                            if="image.docker.tag"
+                                            name="build-service-docker-image"
                                             description="Task to build services docker images">
                                         <echo>####### Building '${image.docker.tag}'</echo>
                                         <exec executable="docker" dir="${project.basedir}" failonerror="true">
-                                            <arg value="build" />
-                                            <arg value="--no-cache" />
-                                            <arg value="--tag" />
-                                            <arg value="${image.docker.tag}" />
-                                            <arg value="--file" />
-                                            <arg value="docker/Dockerfile" />
-                                            <arg value="." />
+                                            <arg value="build"/>
+                                            <arg value="--no-cache"/>
+                                            <arg value="--tag"/>
+                                            <arg value="${image.docker.tag}"/>
+                                            <arg value="--file"/>
+                                            <arg value="docker/Dockerfile"/>
+                                            <arg value="."/>
                                         </exec>
                                     </target>
                                 </configuration>

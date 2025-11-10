@@ -68,10 +68,6 @@ public class FhirService extends CodecServiceR4 {
   }
 
   public void validate(final String body) {
-    // FIXME rk remove
-    System.out.println(body);
-    System.out.println(codec.isValid(body));
-
     ValidationResult result = codec.validate(body);
     result.getMessages().forEach(System.out::println);
 

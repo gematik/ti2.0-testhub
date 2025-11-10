@@ -25,26 +25,33 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import de.gematik.ti20.simsvc.server.config.HttpConfig;
-import de.gematik.ti20.simsvc.server.service.HttpProxyService;
 import de.gematik.ti20.simsvc.server.service.TokenService;
+import java.io.IOException;
 import java.net.URI;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistration;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
 class WsProxyControllerTest {
 
   private WsProxyController wsProxyController;
   private HttpConfig httpConfig;
   private TokenService tokenService;
-  private HttpProxyService httpProxyService;
+  private WsHandshakeInterceptor wsHandshakeInterceptor;
 
   @BeforeEach
   void setUp() {
     httpConfig = mock(HttpConfig.class);
     tokenService = mock(TokenService.class);
-    httpProxyService = mock(HttpProxyService.class);
-    wsProxyController = new WsProxyController(httpConfig, tokenService, httpProxyService);
+    wsHandshakeInterceptor = mock(WsHandshakeInterceptor.class);
+    wsProxyController = new WsProxyController(httpConfig, tokenService, wsHandshakeInterceptor);
   }
 
   @Test
@@ -59,5 +66,48 @@ class WsProxyControllerTest {
     String result = (String) method.invoke(wsProxyController, session);
 
     assertEquals("ws://backend.local/api/ws/test", result);
+  }
+
+  @Test
+  void thatTransportErrorsCloseConnection() throws IOException {
+    final WebSocketSession mock = mock(WebSocketSession.class);
+    wsProxyController.handleTransportError(mock, new RuntimeException());
+    verify(mock, times(1)).close(any());
+  }
+
+  @Test
+  void thatAfterConnectionClosedDoesNotRaiseException() throws Exception {
+    final WebSocketSession mock = mock(WebSocketSession.class);
+    final CloseStatus noReason = new CloseStatus(CloseStatus.NORMAL.getCode(), "No reason");
+    wsProxyController.afterConnectionClosed(mock, noReason);
+  }
+
+  @Test
+  void thatHandleTextMessageDoesNotRaiseException() throws Exception {
+    final WebSocketSession mock = mock(WebSocketSession.class);
+    wsProxyController.handleTextMessage(mock, new TextMessage(""));
+  }
+
+  @Test
+  void thatAfterConnectionEstablishedDoesNotThrowException() throws Exception {
+    final WebSocketSession mock = mock(WebSocketSession.class);
+    when(httpConfig.getUrl()).thenReturn("ws://example.com/some-path");
+    when(mock.getUri()).thenReturn(URI.create("ws://example.com/"));
+    when(mock.getAttributes()).thenReturn(Map.of("processedHeaders", new HttpHeaders()));
+    wsProxyController.afterConnectionEstablished(mock);
+  }
+
+  @Test
+  void thatAddHandlersRegistersSelf() {
+    final WebSocketHandlerRegistration handlerRegistration =
+        mock(WebSocketHandlerRegistration.class);
+    when(handlerRegistration.setAllowedOrigins(anyString()))
+        .thenReturn(handlerRegistration); // just return self to avoid NPE
+
+    final WebSocketHandlerRegistry mock = mock(WebSocketHandlerRegistry.class);
+    when(mock.addHandler(any(WebSocketHandler.class), anyString())).thenReturn(handlerRegistration);
+
+    wsProxyController.addHandlers(mock);
+    verify(mock, times(1)).addHandler(wsProxyController, "/ws/**");
   }
 }

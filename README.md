@@ -108,7 +108,7 @@ Before you begin, ensure you have the following installed on your system:
 
 ### Required Software
 
-- **Java 21 or higher** - The project uses Java 21 as the language level
+- **Java 21** - The project uses Java 21 as the language level
 - **Maven 3.6 or higher** - Build tool for Java projects
 - **Docker** - Container runtime for running services
 - **Docker Compose** - Multi-container orchestration tool
@@ -154,7 +154,7 @@ cd ti2.0-testhub
 Build all Maven modules and run tests:
 
 ```bash
-./doc/bin/vsdm/mvn-install-all.sh
+mvn clean install
 ```
 
 This will:

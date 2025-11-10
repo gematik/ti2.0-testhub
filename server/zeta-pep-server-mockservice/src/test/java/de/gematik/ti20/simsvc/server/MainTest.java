@@ -18,22 +18,16 @@
  *
  * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
-package de.gematik.ti20.simsvc.client.service.helper;
+package de.gematik.ti20.simsvc.server;
 
-public class VdResult {
-  private String allgemeineVersicherungsdatenXML;
-  private String geschuetzteVersichertendatenXML;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
-  public VdResult(String s1, String s2) {
-    allgemeineVersicherungsdatenXML = s1;
-    geschuetzteVersichertendatenXML = s2;
-  }
+@SpringBootTest
+@ActiveProfiles("local-test")
+class MainTest {
 
-  public String getAllgemeineVersicherungsdatenXML() {
-    return allgemeineVersicherungsdatenXML;
-  }
-
-  public String getGeschuetzteVersichertendatenXML() {
-    return geschuetzteVersichertendatenXML;
-  }
+  @Test
+  void thatContextStarts() {}
 }

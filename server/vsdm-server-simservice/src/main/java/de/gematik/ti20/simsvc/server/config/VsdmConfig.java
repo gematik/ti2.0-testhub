@@ -32,4 +32,7 @@ import org.springframework.stereotype.Component;
 public class VsdmConfig {
 
   private String iknr;
+
+  private String validKvnrPrefix;
+  private String invalidKvnrPrefix;
 }

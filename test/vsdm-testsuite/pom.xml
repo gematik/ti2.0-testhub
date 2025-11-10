@@ -7,13 +7,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.0.1</version>
+        <version>1.0.2</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.vsdm</groupId>
     <artifactId>vsdm-testsuite</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 
     <name>VSDM 2.0 Testsuite</name>
     <description>Collection of E2E and IT tests to validate VSDM 2.0 service.</description>
@@ -120,27 +120,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>${version.maven.failsafe}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <forkedProcessExitTimeoutInSeconds>18000</forkedProcessExitTimeoutInSeconds>
-                    <includes>
-                        <include>**/Driver*IT.java</include>
-                    </includes>
-                    <skipITs>${skip.inttests}</skipITs>
-                </configuration>
             </plugin>
 
             <plugin>

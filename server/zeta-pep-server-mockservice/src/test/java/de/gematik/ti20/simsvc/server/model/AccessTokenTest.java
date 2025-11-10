@@ -26,12 +26,16 @@ import static org.mockito.Mockito.*;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -294,5 +298,17 @@ class AccessTokenTest {
     var method = AccessToken.class.getDeclaredMethod("extractTrustedCertificates", KeyStore.class);
     assertTrue(java.lang.reflect.Modifier.isPrivate(method.getModifiers()));
     assertTrue(java.lang.reflect.Modifier.isStatic(method.getModifiers()));
+  }
+
+  @Nested
+  class FromJwt {
+    private static final String TOKEN =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30";
+
+    @Test
+    void thatExceptionIsRaisedForMissingCertificates() throws KeyStoreException {
+      when(keyStore.aliases()).thenReturn(Collections.emptyEnumeration());
+      assertThrows(InvalidJwtException.class, () -> AccessToken.fromJwt(TOKEN, keyStore));
+    }
   }
 }

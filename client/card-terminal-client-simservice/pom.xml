@@ -6,13 +6,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.0.1</version>
+        <version>1.0.2</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.simsvc.client</groupId>
     <artifactId>card-terminal-client-simservice</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 
     <name>Card Terminal Simulator</name>
     <description>A simulator for smart card terminals with REST API</description>

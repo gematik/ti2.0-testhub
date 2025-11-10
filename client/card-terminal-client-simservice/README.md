@@ -64,7 +64,7 @@ extensive card terminal functionality but operates entirely in simulation mode w
 
 ### Prerequisites
 
-- Java 21 or higher
+- Java 21
 - Maven 3.6 or higher
 
 ### Build from Source
@@ -91,6 +91,12 @@ Use the provided script to build a Docker image:
 
 ```bash
 ./bin/docker-build.sh
+```
+
+or use
+
+``` bash
+mvn clean install -Ddocker
 ```
 
 ## Getting Started
@@ -173,24 +179,20 @@ To use this configuration, you can specify the `spring.profiles.active=local` pr
 
 The server exposes the following endpoints:
 
-| Name                                 | Description                                                                                                  |
-|:-------------------------------------|--------------------------------------------------------------------------------------------------------------|
-| PUT /slots/{slotId}                  | Inserts a card in the specified slot                                                                         |
-| DELETE /slots/{slotId}               | Removes the card from the specified slot                                                                     |
-| GET /slots/{slotId}                  | Returns data of the card in the specified slot                                                               |
-| POST /slots/{slotId}/transmit        | Transmit an APDU command to the card in a specific slot.                                                     |
-| DELETE /cards/{cardHandle}           | Close a virtual connection to a card                                                                         |
-| GET /cards/{cardHandle}              | Establish a virtual connection to a card.                                                                    |
-| GET /cards/{cardHandle}/smc-b-info   | Get SMC-B card information including Telematik-ID and ProfessionOID                                          |
-| GET /cards/{cardHandle}/smc-b-debug  | Get detailed SMC-B debug information                                                                         |
-| GET /cards/{cardHandle}/egk-info     | Extract EGK information from the card containing authentic KVNR, IKNR and patient data                       |
-| GET /cards/{cardHandle}/debug-info   | Get debug information for a card                                                                             |
-| GET /cards/{cardHandle}/cert-info    | Get certificate information for any card type. Returns EGK info for EGK cards and SMC-B info for SMC-B cards |
-| GET /cards                           | List all available cards across all slots                                                                    |
-| POST /cards/{cardHandle}/transmit    | Transmit an APDU command to a connected card                                                                 |
-| POST /cards/{cardHandle}/sign        | Sign data with the card's certificate                                                                        |
-| POST /cards/{cardHandle}/certificate | Get certificate from card                                                                                    |
-| POST /cards/load                     | Load a card from XML file into a slot                                                                        |
+| Name                                 | Description                                                                            |
+|:-------------------------------------|----------------------------------------------------------------------------------------|
+| PUT /slots/{slotId}                  | Inserts a card in the specified slot                                                   |
+| DELETE /slots/{slotId}               | Removes the card from the specified slot                                               |
+| GET /slots/{slotId}                  | Returns data of the card in the specified slot                                         |
+| POST /slots/{slotId}/transmit        | Transmit an APDU command to the card in a specific slot.                               |
+| DELETE /cards/{cardHandle}           | Close a virtual connection to a card                                                   |
+| GET /cards/{cardHandle}              | Establish a virtual connection to a card.                                              |
+| GET /cards/{cardHandle}/smc-b-info   | Get SMC-B card information including Telematik-ID and ProfessionOID                    |
+| GET /cards/{cardHandle}/egk-info     | Extract EGK information from the card containing authentic KVNR, IKNR and patient data |
+| GET /cards                           | List all available cards across all slots                                              |
+| POST /cards/{cardHandle}/transmit    | Transmit an APDU command to a connected card                                           |
+| POST /cards/{cardHandle}/sign        | Sign data with the card's certificate                                                  |
+| POST /cards/{cardHandle}/certificate | Get certificate from card                                                              |
 
 ## Examples
 

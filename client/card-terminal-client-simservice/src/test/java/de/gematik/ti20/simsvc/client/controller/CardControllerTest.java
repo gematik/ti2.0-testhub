@@ -23,9 +23,6 @@ package de.gematik.ti20.simsvc.client.controller;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import de.gematik.ti20.simsvc.client.dto.EgkInfoDto;
-import de.gematik.ti20.simsvc.client.model.card.CardImage;
-import de.gematik.ti20.simsvc.client.model.card.CardType;
 import de.gematik.ti20.simsvc.client.model.dto.*;
 import de.gematik.ti20.simsvc.client.service.*;
 import java.util.*;
@@ -42,8 +39,6 @@ class CardControllerTest {
   private SignatureService signatureService;
   private SmcBInfoService smcBInfoService;
   private EgkInfoService egkInfoService;
-  private SlotManager slotManager;
-  private CardImageParser cardImageParser;
   private CardController controller;
 
   @BeforeEach
@@ -52,16 +47,7 @@ class CardControllerTest {
     signatureService = mock(SignatureService.class);
     smcBInfoService = mock(SmcBInfoService.class);
     egkInfoService = mock(EgkInfoService.class);
-    slotManager = mock(SlotManager.class);
-    cardImageParser = mock(CardImageParser.class);
-    controller =
-        new CardController(
-            cardManager,
-            signatureService,
-            smcBInfoService,
-            egkInfoService,
-            slotManager,
-            cardImageParser);
+    controller = new CardController(cardManager, signatureService, smcBInfoService, egkInfoService);
   }
 
   @Test
@@ -167,60 +153,11 @@ class CardControllerTest {
   }
 
   @Test
-  void getCertificateInfo_egkCard_returnsEgkInfo() {
-    CardImage card = mock(CardImage.class);
-    when(card.getCardType()).thenReturn(CardType.EGK);
-    when(cardManager.findCardByHandle("h")).thenReturn(card);
-    EgkInfoDto egkInfo = new EgkInfoDto();
-    when(egkInfoService.extractEgkInfo(card)).thenReturn(egkInfo);
-
-    ResponseEntity<Object> response = controller.getCertificateInfo("h");
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(egkInfo, response.getBody());
-  }
-
-  @Test
-  void getDebugInfo_success() {
-    Map<String, Object> debug = Map.of("foo", "bar");
-    when(signatureService.getCardDebugInfo("h")).thenReturn(debug);
-
-    ResponseEntity<Map<String, Object>> response = controller.getDebugInfo("h");
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(debug, response.getBody());
-  }
-
-  @Test
   void getEgkInfo_cardNotFound_returnsNotFound() {
     when(cardManager.findCardByHandle("h")).thenReturn(null);
 
     ResponseEntity<?> response = controller.getEgkInfo("h");
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     assertTrue(((Map<?, ?>) response.getBody()).containsKey("error"));
-  }
-
-  @Test
-  void getSmcBDebugInfo_success() {
-    Map<String, Object> debug = Map.of("a", 1);
-    when(smcBInfoService.getDebugCardFiles("h")).thenReturn(debug);
-
-    ResponseEntity<Map<String, Object>> response = controller.getSmcBDebugInfo("h");
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(debug, response.getBody());
-  }
-
-  @Test
-  void loadCard_success() throws Exception {
-    Map<String, String> req = Map.of("cardType", "EGK", "xmlFile", "file.xml");
-    CardImage cardImage = mock(CardImage.class);
-    when(cardImageParser.parseCardImageFromFile("file.xml")).thenReturn(cardImage);
-    when(cardImage.getId()).thenReturn("id123");
-    when(cardImage.getCardType()).thenReturn(CardType.EGK);
-    when(slotManager.getSlotCount()).thenReturn(1);
-    when(slotManager.isCardPresent(0)).thenReturn(false);
-    when(slotManager.insertCard(0, cardImage)).thenReturn(true);
-
-    ResponseEntity<?> response = controller.loadCard(req);
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertTrue(((Map<?, ?>) response.getBody()).containsKey("success"));
   }
 }

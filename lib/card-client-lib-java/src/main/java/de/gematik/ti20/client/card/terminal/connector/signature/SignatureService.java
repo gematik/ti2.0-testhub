@@ -41,12 +41,4 @@ public interface SignatureService {
    * @throws CardTerminalException if signing fails
    */
   byte[] sign(AttachedCard card, byte[] data, SignOptions options) throws CardTerminalException;
-
-  /**
-   * Returns the signature algorithm used for the specified hash algorithm.
-   *
-   * @param hashAlgorithm the hash algorithm
-   * @return the signature algorithm identifier
-   */
-  String getSignatureAlgorithm(HashAlgorithm hashAlgorithm);
 }
