@@ -100,13 +100,4 @@ public class CardProtocolManager {
   public PaceProtocolService getPaceProtocol() {
     return (PaceProtocolService) getProtocolByName("PACE");
   }
-
-  /**
-   * Get the signature protocol service.
-   *
-   * @return The signature protocol service, or null if not available
-   */
-  public SignatureProtocolService getSignatureProtocol() {
-    return (SignatureProtocolService) getProtocolByName("SIGNATURE");
-  }
 }

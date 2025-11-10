@@ -20,7 +20,6 @@
  */
 package de.gematik.ti20.client.card.terminal.connector;
 
-import java.io.ByteArrayOutputStream;
 import java.util.UUID;
 import javax.xml.soap.*;
 import javax.xml.ws.Dispatch;
@@ -33,8 +32,6 @@ public class ConnectorClient {
   private static final Logger log = LoggerFactory.getLogger(ConnectorClient.class);
   private static final String NAMESPACE_CTK = "http://ws.gematik.de/conn/CTK";
   private static final String NAMESPACE_CARDSERVICE = "http://ws.gematik.de/conn/CardService";
-  private static final String NAMESPACE_CARDTERMINAL =
-      "http://ws.gematik.de/conn/CardTerminalService";
   private static final String NAMESPACE_EVENTSERVICE = "http://ws.gematik.de/conn/EventService";
 
   private final String endpointAddress;
@@ -68,60 +65,6 @@ public class ConnectorClient {
     this.contextValueClientSystem = clientSystemId;
     this.contextValueWorkplace = workplaceId;
     this.contextValueUser = userId;
-  }
-
-  /**
-   * Returns the available card terminals.
-   *
-   * @return the card terminals
-   * @throws Exception if an error occurs
-   */
-  public String[] getCardTerminals() throws Exception {
-    SOAPMessage request = createSOAPMessage();
-    SOAPBody body = request.getSOAPBody();
-
-    SOAPElement getCardTerminals =
-        body.addChildElement("GetCardTerminals", "", NAMESPACE_CARDTERMINAL);
-
-    SOAPElement ctxID = createContextElement(request, body);
-    body.addChildElement(ctxID);
-
-    // Output request for debugging
-    if (log.isDebugEnabled()) {
-      ByteArrayOutputStream out = new ByteArrayOutputStream();
-      request.writeTo(out);
-      log.debug("SOAP Request: {}", out.toString());
-    }
-
-    SOAPMessage response = dispatch.invoke(request);
-
-    // Output response for debugging
-    if (log.isDebugEnabled()) {
-      ByteArrayOutputStream out = new ByteArrayOutputStream();
-      response.writeTo(out);
-      log.debug("SOAP Response: {}", out.toString());
-    }
-
-    SOAPBody responseBody = response.getSOAPBody();
-    SOAPElement responseElement = (SOAPElement) responseBody.getChildElements().next();
-
-    // Extract card terminal IDs
-    String[] cardTerminals = {};
-    if (responseElement.getChildElements().hasNext()) {
-      SOAPElement terminalIdsElement = (SOAPElement) responseElement.getChildElements().next();
-      if (terminalIdsElement.getChildElements().hasNext()) {
-        // Build array from terminal IDs
-        java.util.List<String> terminalIds = new java.util.ArrayList<>();
-        java.util.Iterator<?> it = terminalIdsElement.getChildElements();
-        while (it.hasNext()) {
-          SOAPElement element = (SOAPElement) it.next();
-          terminalIds.add(element.getValue());
-        }
-        cardTerminals = terminalIds.toArray(new String[0]);
-      }
-    }
-
-    return cardTerminals;
   }
 
   /**

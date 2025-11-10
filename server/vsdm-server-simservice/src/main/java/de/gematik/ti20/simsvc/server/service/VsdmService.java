@@ -34,8 +34,7 @@ import de.gematik.ti20.vsdm.fhir.def.VsdmCoverage;
 import de.gematik.ti20.vsdm.fhir.def.VsdmPatient;
 import de.gematik.ti20.vsdm.fhir.def.VsdmPayorOrganization;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Address;
 import org.hl7.fhir.r4.model.Resource;
@@ -48,17 +47,14 @@ import org.springframework.web.server.ResponseStatusException;
 public class VsdmService {
 
   private final VsdmConfig vsdmConfig;
-
   private final TokenService tokenService;
   private final TestDataRepository data;
 
   public VsdmService(
-      final VsdmConfig vsdmConfig,
-      TokenService tokenService,
-      final TestDataRepository dataRepository) {
+      final VsdmConfig vsdmConfig, final TokenService tokenService, final TestDataRepository data) {
     this.vsdmConfig = vsdmConfig;
     this.tokenService = tokenService;
-    this.data = dataRepository;
+    this.data = data;
   }
 
   public String readKVNR(final HttpServletRequest request) {
@@ -88,24 +84,9 @@ public class VsdmService {
   public Resource readVsd(final HttpServletRequest request) {
     log.debug("Reading vsd resource");
 
-    final long start = System.currentTimeMillis();
-    log.debug("1. ReadVsd called");
-
     final String kvnr = readKVNR(request);
 
-    if ("X1234567890".equals(kvnr)) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "VSDSERVICE_PATIENT_RECORD_NOT_FOUND");
-    }
-    final RbelElement patientData =
-        data.findElementByKeyValue("persondata.kvnr", kvnr)
-            .orElseThrow(
-                () ->
-                    new ResponseStatusException(HttpStatus.BAD_REQUEST, "VSDSERVICE_INVALID_KVNR"));
-
-    log.debug("3. Found data for KVNR {}", kvnr);
-
-    final VsdmPatient patient = toPatient(patientData);
+    final VsdmPatient patient = getPatient(kvnr);
     final VsdmPayorOrganization payorOrganization = mockPayorOrganization();
     final VsdmCoverage coverage = mockCoverage(patient, payorOrganization);
 
@@ -116,16 +97,27 @@ public class VsdmService {
             .addEntry(coverage)
             .build();
 
-    log.debug("4. ReadVsd for KVNR {} took {}ms", kvnr, System.currentTimeMillis() - start);
-
     return vsdmBundle;
   }
 
-  private VsdmPatient toPatient(final RbelElement patientElement) {
+  private VsdmPatient getPatient(final String kvnr) {
+    final VsdmPatient patientFromTestdata = getPatientFromTestdata(kvnr);
+    if (patientFromTestdata != null) {
+      return patientFromTestdata;
+    }
 
-    var pd = patientElement.findElement("$.persondata");
+    return syntheticPatient(kvnr);
+  }
+
+  private VsdmPatient getPatientFromTestdata(final String kvnr) {
+    final Optional<RbelElement> patientElement =
+        data.findElementByKeyValue("persondata.kvnr", kvnr);
+    if (patientElement.isEmpty()) {
+      return null;
+    }
+    var pd = patientElement.get().findElement("$.persondata");
     if (pd.isEmpty()) {
-      throw new NoSuchTestDataException("personData is not set: " + patientElement.toString());
+      throw new NoSuchTestDataException("personData is not set: " + patientElement.get());
     }
 
     final List<Address> addresses = new ArrayList<>();
@@ -152,6 +144,38 @@ public class VsdmService {
 
     patient.setAddress(addresses);
 
+    return patient;
+  }
+
+  private VsdmPatient syntheticPatient(final String kvnr) {
+    if (kvnr.startsWith(vsdmConfig.getInvalidKvnrPrefix())) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "VSDSERVICE_PATIENT_RECORD_NOT_FOUND");
+    }
+
+    if (!kvnr.startsWith(vsdmConfig.getValidKvnrPrefix())) {
+      log.error("Invalid KVNR prefix {}, {}", kvnr, vsdmConfig.getValidKvnrPrefix());
+
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "VSDSERVICE_INVALID_KVNR");
+    }
+
+    final VsdmPatient patient =
+        VsdmPatientBuilder.create()
+            .withKvnr(kvnr)
+            .withNames("family-name-" + kvnr, "given-name-" + kvnr)
+            .withBirthDate(new GregorianCalendar(1980, Calendar.JANUARY, 1).getTime())
+            .build();
+
+    final List<Address> addresses = new ArrayList<>();
+    addresses.add(
+        new Address()
+            .setCountry("DE")
+            .setCity("Berlin")
+            .setPostalCode("12345")
+            .addLine("")
+            .setType(Address.AddressType.POSTAL));
+
+    patient.setAddress(addresses);
     return patient;
   }
 

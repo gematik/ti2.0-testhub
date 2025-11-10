@@ -76,7 +76,7 @@ public class PaceProtocolService implements CardProtocol {
       case 0x22: // MSE:SET
         return handleMseSetAt(command);
       case (byte) 0x86: // GENERAL AUTHENTICATE
-        return handleGeneralAuthenticate(card, command);
+        return handleGeneralAuthenticate(command);
       default:
         logger.warn(
             "Unsupported instruction in PACE protocol: 0x{}",
@@ -136,11 +136,10 @@ public class PaceProtocolService implements CardProtocol {
   /**
    * Handle GENERAL AUTHENTICATE command for PACE protocol execution.
    *
-   * @param card The card image
    * @param command The APDU command
    * @return The APDU response
    */
-  private ApduResponse handleGeneralAuthenticate(CardImage card, ApduCommand command) {
+  private ApduResponse handleGeneralAuthenticate(ApduCommand command) {
     byte[] data = command.getData();
 
     logger.debug(
@@ -168,7 +167,7 @@ public class PaceProtocolService implements CardProtocol {
       // PACE protocol steps processing with Dynamic Authentication Data Format
       if (data[0] == (byte) 0x7C) {
         logger.debug("PACE/Trusted Channel-Befehl im Dynamic Authentication Data Format erkannt");
-        return processPaceStep(card, data);
+        return processPaceStep(data);
       }
     }
 
@@ -178,11 +177,10 @@ public class PaceProtocolService implements CardProtocol {
   /**
    * Process a PACE protocol step based on the TLV data.
    *
-   * @param card The card image
    * @param data The TLV data
    * @return The APDU response
    */
-  private ApduResponse processPaceStep(CardImage card, byte[] data) {
+  private ApduResponse processPaceStep(byte[] data) {
     try {
       // Check for mapping step (tag 0x85)
       logger.debug("Prüfe auf PACE Schritt 2 (Mapping)");

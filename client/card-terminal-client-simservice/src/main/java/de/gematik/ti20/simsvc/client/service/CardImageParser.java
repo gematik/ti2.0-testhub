@@ -44,32 +44,6 @@ import org.xml.sax.InputSource;
 public class CardImageParser {
 
   /**
-   * Parse an XML file into a CardImage object.
-   *
-   * @param xmlFilePath Path to XML file to parse
-   * @return Parsed CardImage
-   * @throws Exception If file reading or parsing fails
-   */
-  public CardImage parseCardImageFromFile(String xmlFilePath) throws Exception {
-    try {
-      // Read XML file content
-      java.nio.file.Path filePath = java.nio.file.Paths.get(xmlFilePath);
-      if (!java.nio.file.Files.exists(filePath)) {
-        filePath = java.nio.file.Paths.get("./" + xmlFilePath);
-        if (!java.nio.file.Files.exists(filePath)) {
-          throw new java.io.FileNotFoundException("XML file not found: " + xmlFilePath);
-        }
-      }
-
-      String xmlContent = new String(java.nio.file.Files.readAllBytes(filePath), "UTF-8");
-      return parseCardImage(xmlContent);
-
-    } catch (Exception e) {
-      throw new Exception("Failed to parse card image from file: " + xmlFilePath, e);
-    }
-  }
-
-  /**
    * Parse an XML string into a CardImage object.
    *
    * @param xmlString XML string to parse
@@ -393,7 +367,8 @@ public class CardImageParser {
       // Also extract keyIdentifier from XML object definitions
       Pattern keyIdPattern =
           Pattern.compile(
-              "<child id=\"([^\"]*(?:PrK|SK)[^\"]*)\">\\s*<attributes>\\s*<attribute id=\"keyIdentifier\">([^<]+)</attribute>");
+              "<child id=\"([^\"]*(?:PrK|SK)[^\"]*)\">\\s*<attributes>\\s*<attribute"
+                  + " id=\"keyIdentifier\">([^<]+)</attribute>");
       Matcher keyIdMatcher = keyIdPattern.matcher(xmlString);
 
       // Build map of key names to identifiers

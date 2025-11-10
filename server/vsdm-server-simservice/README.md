@@ -56,7 +56,7 @@ the [gemSpecPages](https://gemspec.gematik.de/docs/gemSpec/gemSpec_VSDM_2/latest
 
 ### Prerequisites
 
-- Java 21 or higher
+- Java 21
 - Maven 3.6 or higher
 
 ### Build from Source
@@ -151,9 +151,11 @@ All configuration parameters for the project can be set in the `application.yaml
 
 Specific to the application, you can configure the following properties:
 
-| Name      | Description                                       |
-|:----------|---------------------------------------------------|
-| vsdm.iknr | IKNr for which this configuration can return data |
+| Name                     | Description                                                                                              |
+|:-------------------------|----------------------------------------------------------------------------------------------------------|
+| vsdm.iknr                | IKNr for which this configuration can return data                                                        |
+| vsdm.valid-kvnr-prefix   | If no testdata is found, the server will respond with synthetic data to KVNRs beginning with this prefix |
+| vsdm.invalid-kvnr-prefix | If no testdata is found, the server will respond with an error to KVNRs beginning with this prefix       |
 
 An example configuration is provided in the `application-local.yaml` file.
 To use this configuration, you can specify the `spring.profiles.active=local` property when starting the server.
@@ -163,7 +165,55 @@ To use this configuration, you can specify the `spring.profiles.active=local` pr
 The data returned by the server is based on YAML files located in the `src/main/resources/de/gematik/vsdm/testdata`
 directory.
 
-To add or modify test data, you can create or edit YAML files in this directory.
+## Structure of the YAML files
+
+- `kvnr`: KVNR (Identifier)
+- `name`:
+    - `family`: Nachname
+    - `given`: Liste der Vornamen
+- `gender`: `m`|`w`|`other`|`unknown`
+- `birthDate`: `YYYY-MM-DD`
+- `address`, `telecom`, `insurer` (iknr)
+
+Example `src/main/resources/de/gematik/vsdm/testdata/person/patient/patient3.yaml`:
+
+    personData:
+      gender: w
+      name:
+        given: Kriemhild
+        family: Amelie Abigail H. Freifrau Bruser
+      birthDate: 2015-09-02
+      kvnr: X110639491
+      address:
+        post:
+          zip: 12345
+          city: Berlin
+          line1: Friedrichstr. 123
+          line2: Wohnung 456
+      insurance: Insurance Gematik
+
+## How to add additional patient data
+
+1. Create a file at path `src/main/resources/de/gematik/vsdm/testdata/person/patient/`.
+2. Filename: arbitrary, but by convention `patient*.yaml` (e.g. `patient123.yaml`).
+3. Populate the YAML according to the schema above.
+4. Rebuild/restart the project so the resources are loaded.
+
+## Behavior on requests (order)
+
+1. `TestDataRepository` attempts to load the YAML file for the KVNR.
+    - Found: server returns the loaded resources (HTTP 200).
+2. Not found:
+    - If `kvnr.startsWith(vsdm.invalid-kvnr-prefix)` → error response:
+        - HTTP 400 with `OperationOutcome` and code `VSDSERVICE_PATIENT_RECORD_NOT_FOUND`.
+    - Else, if `kvnr.startsWith(vsdm.valid-kvnr-prefix)` → synthetic data (HTTP 200).
+        - Synthetic rules: e.g., `family` is set to `family-name-{kvnr}`, `given` = `given-name-{kvnr}`, `id` =
+          `patient-{kvnr}`, payor `iknr` may be the default.
+    - Else → error response:
+        - HTTP 400 with `OperationOutcome` and code `VSDSERVICE_INVALID_KVNR`.
+
+Note: In the implementation the invalid-prefix check is performed before the valid-prefix check (priority: `invalid`
+first).
 
 ## Endpoints
 

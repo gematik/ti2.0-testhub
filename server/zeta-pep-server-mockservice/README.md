@@ -74,7 +74,7 @@ the [gemSpecPages](https://gemspec.gematik.de/docs/gemSpec/gemSpec_ZETA/latest/)
 
 ### Prerequisites
 
-- Java 21 or higher
+- Java 21
 - Maven 3.6 or higher
 - PKCS12 keystore file for token validation
 

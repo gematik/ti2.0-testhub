@@ -71,7 +71,7 @@ security validations for testing purposes. It should never be used in production
 
 ### Prerequisites
 
-- Java 21 or higher
+- Java 21
 - Maven 3.6 or higher
 - Valid keystore with security certificates
 
@@ -263,7 +263,9 @@ The returned JWT contains these claims:
 ```json
 {
   "iss": "PDP-MockService",
-  "aud": ["PEP-MockService"],
+  "aud": [
+    "PEP-MockService"
+  ],
   "sub": "1-HMT-Test",
   "client_id": "",
   "scope": "",

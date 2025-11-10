@@ -30,7 +30,6 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.security.Signature;
-import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import org.bouncycastle.asn1.ASN1Encoding;
@@ -190,16 +189,6 @@ public class CryptoUtil {
     X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
     KeyFactory keyFactory = KeyFactory.getInstance(algorithm);
     return keyFactory.generatePublic(keySpec);
-  }
-
-  /**
-   * Extract the public key from an X.509 certificate.
-   *
-   * @param certificate X.509 certificate
-   * @return Public key
-   */
-  public static PublicKey extractPublicKey(X509Certificate certificate) {
-    return certificate.getPublicKey();
   }
 
   /**

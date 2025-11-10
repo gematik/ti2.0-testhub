@@ -24,7 +24,6 @@ import de.gematik.ti20.simsvc.client.model.apdu.ApduCommand;
 import de.gematik.ti20.simsvc.client.model.apdu.ApduResponse;
 import de.gematik.ti20.simsvc.client.model.card.CardImage;
 import de.gematik.ti20.simsvc.client.model.card.CardType;
-import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +36,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class SignatureProtocolService extends AbstractCardProtocol {
 
-  private final SecureRandom secureRandom = new SecureRandom();
   private Map<String, byte[]> securityEnvironment = new HashMap<>();
   private boolean signatureReady = false;
 

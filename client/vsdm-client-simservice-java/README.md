@@ -57,7 +57,7 @@ visit [gemSpecPages](https://gemspec.gematik.de/docs/gemSpec/gemSpec_VSDM_2/late
 
 ### Prerequisites
 
-- Java 21 or higher
+- Java 21
 - Maven 3.6 or higher
 - Access to PoPP and VSDM server instances
 

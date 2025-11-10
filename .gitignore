@@ -19,4 +19,6 @@ jenkinsfiles
 /test/vsdm-testsuite/src/test/resources/features/poc
 /test/vsdm-testsuite/src/test/resources/features/parallel
 /test/vsdm-testsuite/src/test/resources/features/zeta
+/test/vsdm-testsuite/src/test/resources/features/bde
+/test/vsdm-testsuite/src/test/java/de/gematik/ti20/vsdm/test/e2e/steps/BdeSteps.java
 

@@ -24,20 +24,9 @@ import java.io.IOException;
 
 public class VsdDataParser {
 
-  public static VdResult parseVd(String vd) throws IOException {
-    byte[] data = ByteUtils.getByteArray(vd);
-    byte[][] bytes = CardFileToolkitUtils.uncompressAvdAndGvd(data);
-    return new VdResult(new String(bytes[0], "ISO-8859-15"), new String(bytes[1], "ISO-8859-15"));
-  }
-
   public static String parsePd(String pd) throws IOException {
     byte[] data = ByteUtils.getByteArray(pd);
     byte[] pdbytes = CardFileToolkitUtils.uncompressEfPd(data);
     return new String(pdbytes, "ISO-8859-15");
-  }
-
-  public static String parseGvd(String gvd) throws IOException {
-    byte[] data = ByteUtils.unzipByteArray(ByteUtils.getByteArray(gvd.substring(4)));
-    return new String(data, "ISO-8859-15");
   }
 }

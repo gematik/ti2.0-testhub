@@ -146,10 +146,6 @@ public class SlotController {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No card present in slot: " + slotId);
     }
 
-    // Get the card handle for this slot
-    CardImage card = slotManager.getCardInSlot(slotId);
-    String cardHandle = card.getId();
-
     try {
       // Forward to the card manager's transmit method
       TransmitResponseDto response = slotManager.transmitCommand(slotId, request.getCommand());

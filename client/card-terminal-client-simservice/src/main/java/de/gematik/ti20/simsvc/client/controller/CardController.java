@@ -29,11 +29,9 @@ import de.gematik.ti20.simsvc.client.model.dto.SignRequestDto;
 import de.gematik.ti20.simsvc.client.model.dto.SignResponseDto;
 import de.gematik.ti20.simsvc.client.model.dto.SmcBInfoDto;
 import de.gematik.ti20.simsvc.client.model.dto.TransmitResponseDto;
-import de.gematik.ti20.simsvc.client.service.CardImageParser;
 import de.gematik.ti20.simsvc.client.service.CardManager;
 import de.gematik.ti20.simsvc.client.service.EgkInfoService;
 import de.gematik.ti20.simsvc.client.service.SignatureService;
-import de.gematik.ti20.simsvc.client.service.SlotManager;
 import de.gematik.ti20.simsvc.client.service.SmcBInfoService;
 import java.util.HashMap;
 import java.util.List;
@@ -60,8 +58,6 @@ public class CardController {
   private final SignatureService signatureService;
   private final SmcBInfoService smcBInfoService;
   private final EgkInfoService egkInfoService;
-  private final SlotManager slotManager;
-  private final CardImageParser cardImageParser;
 
   /**
    * Constructor for CardController.
@@ -75,15 +71,11 @@ public class CardController {
       CardManager cardManager,
       SignatureService signatureService,
       SmcBInfoService smcBInfoService,
-      EgkInfoService egkInfoService,
-      SlotManager slotManager,
-      CardImageParser cardImageParser) {
+      EgkInfoService egkInfoService) {
     this.cardManager = cardManager;
     this.signatureService = signatureService;
     this.smcBInfoService = smcBInfoService;
     this.egkInfoService = egkInfoService;
-    this.slotManager = slotManager;
-    this.cardImageParser = cardImageParser;
   }
 
   /**
@@ -334,65 +326,6 @@ public class CardController {
   }
 
   /**
-   * Get certificate information for any card type. Returns EGK info for EGK cards and SMC-B info
-   * for SMC-B cards.
-   *
-   * @param cardHandle Card handle
-   * @return Certificate information based on card type
-   */
-  @GetMapping("/{cardHandle}/cert-info")
-  public ResponseEntity<Object> getCertificateInfo(@PathVariable String cardHandle) {
-    try {
-      // Find the card to determine its type
-      CardImage card = cardManager.findCardByHandle(cardHandle);
-      if (card == null) {
-        throw new IllegalArgumentException("Card not found: " + cardHandle);
-      }
-
-      // Route to appropriate service based on card type
-      if (card.getCardType() == CardType.EGK) {
-        EgkInfoDto egkInfo = egkInfoService.extractEgkInfo(card);
-        return ResponseEntity.ok(egkInfo);
-      } else if (card.getCardType() == CardType.HPIC || card.getCardType() == CardType.SMCB) {
-        SmcBInfoDto smcBInfo = smcBInfoService.extractSmcBInfo(cardHandle);
-        return ResponseEntity.ok(smcBInfo);
-      } else {
-        // For other card types, return basic card information
-        Map<String, Object> basicInfo = new HashMap<>();
-        basicInfo.put("cardType", card.getCardType().toString());
-        basicInfo.put("cardId", card.getId());
-        basicInfo.put(
-            "message",
-            "Certificate information extraction not supported for card type: "
-                + card.getCardType());
-        return ResponseEntity.ok(basicInfo);
-      }
-    } catch (Exception e) {
-      Map<String, String> errorResponse = new HashMap<>();
-      errorResponse.put("error", "Certificate information retrieval failed: " + e.getMessage());
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-    }
-  }
-
-  /**
-   * Get debug information for a card.
-   *
-   * @param cardHandle Card handle
-   * @return Debug information as JSON
-   */
-  @GetMapping("/{cardHandle}/debug-info")
-  public ResponseEntity<Map<String, Object>> getDebugInfo(@PathVariable String cardHandle) {
-    Map<String, Object> debugInfo = new HashMap<>();
-    try {
-      debugInfo = signatureService.getCardDebugInfo(cardHandle);
-      return ResponseEntity.ok(debugInfo);
-    } catch (Exception e) {
-      debugInfo.put("error", e.getMessage());
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(debugInfo);
-    }
-  }
-
-  /**
    * Extract EGK information from the card containing authentic KVNR, IKNR and patient data.
    *
    * @param cardHandle The card handle identifier
@@ -418,99 +351,6 @@ public class CardController {
       errorInfo.put("error", "Internal Server Error");
       errorInfo.put("message", "An unexpected error occurred");
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorInfo);
-    }
-  }
-
-  /**
-   * Get detailed SMC-B debug information.
-   *
-   * @param cardHandle Card handle
-   * @return SMC-B debug information as JSON
-   */
-  @GetMapping("/{cardHandle}/smc-b-debug")
-  public ResponseEntity<Map<String, Object>> getSmcBDebugInfo(@PathVariable String cardHandle) {
-    try {
-      Map<String, Object> debugInfo = smcBInfoService.getDebugCardFiles(cardHandle);
-      return ResponseEntity.ok(debugInfo);
-    } catch (Exception e) {
-      Map<String, Object> errorInfo = new HashMap<>();
-      errorInfo.put("error", e.getMessage());
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorInfo);
-    }
-  }
-
-  /**
-   * Load a card from XML file into a slot.
-   *
-   * @param request Map containing cardType and xmlFile parameters
-   * @return Response with card handle and slot information
-   */
-  @PostMapping("/load")
-  public ResponseEntity<?> loadCard(@RequestBody Map<String, String> request) {
-    try {
-      String cardType = request.get("cardType");
-      String xmlFile = request.get("xmlFile");
-
-      if (cardType == null || xmlFile == null) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", "Missing required fields");
-        error.put("message", "Both 'cardType' and 'xmlFile' are required");
-        return ResponseEntity.badRequest().body(error);
-      }
-
-      logger.debug("Loading card type {} from file {}", cardType, xmlFile);
-
-      // Parse the card image from the XML file
-      CardImage cardImage = cardImageParser.parseCardImageFromFile(xmlFile);
-      if (cardImage == null) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", "Card parsing failed");
-        error.put("message", "Failed to parse card from XML file: " + xmlFile);
-        return ResponseEntity.badRequest().body(error);
-      }
-
-      // Find an available slot
-      int availableSlot = -1;
-      for (int i = 0; i < slotManager.getSlotCount(); i++) {
-        if (!slotManager.isCardPresent(i)) {
-          availableSlot = i;
-          break;
-        }
-      }
-
-      if (availableSlot == -1) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", "No available slots");
-        error.put("message", "All slots are occupied");
-        return ResponseEntity.badRequest().body(error);
-      }
-
-      // Insert the card into the slot
-      boolean inserted = slotManager.insertCard(availableSlot, cardImage);
-      if (!inserted) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", "Card insertion failed");
-        error.put("message", "Failed to insert card into slot " + availableSlot);
-        return ResponseEntity.internalServerError().body(error);
-      }
-
-      logger.debug("Successfully loaded card {} into slot {}", cardImage.getId(), availableSlot);
-
-      Map<String, Object> response = new HashMap<>();
-      response.put("success", true);
-      response.put("cardHandle", cardImage.getId());
-      response.put("cardType", cardImage.getCardType().toString());
-      response.put("slot", availableSlot);
-      response.put("message", "Card loaded successfully");
-
-      return ResponseEntity.ok(response);
-
-    } catch (Exception e) {
-      logger.error("Error loading card: {}", e.getMessage(), e);
-      Map<String, String> error = new HashMap<>();
-      error.put("error", "Internal Server Error");
-      error.put("message", "An unexpected error occurred");
-      return ResponseEntity.internalServerError().body(error);
     }
   }
 }

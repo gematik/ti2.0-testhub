@@ -21,26 +21,10 @@
 package de.gematik.ti20.simsvc.client.service.helper;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 public class CardFileToolkitUtils {
   static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
-
-  private static byte[] buildPositionPointer(final int position, final int headerSize) {
-    byte[] result = new byte[] {0x00, 0x00};
-    byte[] positionAsArray = ByteUtils.getByteArray(position + headerSize);
-    int resultPointer = result.length - 1;
-    int positionAsArrayPointer = positionAsArray.length - 1;
-    while (resultPointer >= 0 && positionAsArrayPointer >= 0) {
-      result[resultPointer--] = positionAsArray[positionAsArrayPointer--];
-    }
-    return result;
-  }
-
-  public static boolean isNotEmpty(byte[] array) {
-    return array != null && Array.getLength(array) > 0;
-  }
 
   public static byte[][] uncompressAvdAndGvd(final byte[] efVd) throws IOException {
     int startOffsetOfFirstDocument = ByteUtils.getIntValue(Arrays.copyOfRange(efVd, 0, 2));
@@ -66,9 +50,7 @@ public class CardFileToolkitUtils {
   }
 
   public static byte[] uncompressEfPd(final byte[] efPd) throws IOException {
-    int lengthOfData = ByteUtils.getIntValue(Arrays.copyOfRange(efPd, 0, 2));
-    return XmlContainerFileHelper.uncompressDocumentWithStartAndEndOffset(
-        efPd, 2, lengthOfData + 2);
+    return uncompressGvd(efPd);
   }
 
   public static byte[] uncompressGvd(final byte[] efGvd) throws IOException {

@@ -21,7 +21,6 @@
 package de.gematik.ti20.simsvc.server.controller;
 
 import de.gematik.ti20.simsvc.server.config.HttpConfig;
-import de.gematik.ti20.simsvc.server.service.HttpProxyService;
 import de.gematik.ti20.simsvc.server.service.TokenService;
 import java.io.IOException;
 import java.util.Map;
@@ -29,11 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.server.ServerHttpRequest;
-import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.WebSocketConnectionManager;
@@ -49,63 +44,27 @@ public class WsProxyController extends TextWebSocketHandler {
 
   private final HttpConfig httpConfig;
   private final TokenService tokenService;
-  private final HttpProxyService httpProxyService;
   private final Map<WebSocketSession, WebSocketSession> sessionMap = new ConcurrentHashMap<>();
   private final Map<WebSocketSession, WebSocketSession> reverseSessionMap =
       new ConcurrentHashMap<>();
   private final WebSocketClient webSocketClient;
+  private HandshakeInterceptor handshakeInterceptor;
 
   public WsProxyController(
-      HttpConfig httpConfig, TokenService tokenService, HttpProxyService httpProxyService) {
+      HttpConfig httpConfig,
+      TokenService tokenService,
+      WsHandshakeInterceptor wsHandshakeInterceptor) {
     this.httpConfig = httpConfig;
     this.tokenService = tokenService;
-    this.httpProxyService = httpProxyService;
     this.webSocketClient = new StandardWebSocketClient();
+    this.handshakeInterceptor = wsHandshakeInterceptor;
   }
 
   public void addHandlers(final WebSocketHandlerRegistry registry) {
     registry
         .addHandler(this, "/ws/**")
         .setAllowedOrigins("*")
-        .addInterceptors(
-            new HandshakeInterceptor() {
-              @Override
-              public boolean beforeHandshake(
-                  final ServerHttpRequest request,
-                  final ServerHttpResponse response,
-                  final WebSocketHandler wsHandler,
-                  final Map<String, Object> attributes)
-                  throws Exception {
-                try {
-                  final HttpHeaders processedHeaders =
-                      httpProxyService.preprocess(request.getHeaders());
-                  attributes.put("processedHeaders", processedHeaders);
-                  return true;
-                } catch (ResponseStatusException e) {
-                  log.warn(
-                      "Websocket request has been rejected with {} {}",
-                      e.getStatusCode(),
-                      e.getMessage());
-                  response.setStatusCode(e.getStatusCode());
-                  return false;
-                } catch (Exception e) {
-                  log.error("Error on handshake for websocket", e);
-                  response.setStatusCode(HttpStatus.BAD_GATEWAY);
-                  return false;
-                }
-              }
-
-              @Override
-              public void afterHandshake(
-                  final ServerHttpRequest request,
-                  final ServerHttpResponse response,
-                  final WebSocketHandler wsHandler,
-                  final Exception exception) {
-                log.debug(
-                    "Websocket afterHandshake {}",
-                    exception != null ? exception.getMessage() : "no exception");
-              }
-            });
+        .addInterceptors(handshakeInterceptor);
   }
 
   @Override
@@ -213,31 +172,6 @@ public class WsProxyController extends TextWebSocketHandler {
       log.error("Failed to connect to backend", e);
       closeClientConnection(clientSession, new CloseStatus(1011, "Failed to connect to backend"));
     }
-  }
-
-  private WebSocketHttpHeaders createBackendHeaders(final WebSocketSession clientSession) {
-    WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
-
-    final HttpHeaders clientHeaders = clientSession.getHandshakeHeaders();
-
-    log.debug("Handshake headers for client session: {}", clientHeaders);
-
-    if (clientHeaders.containsKey("PoPP")) {
-      final String poppToken = clientHeaders.getFirst("PoPP");
-      headers.add("zeta-popp-token-content", poppToken);
-    }
-
-    if (clientHeaders.containsKey("If-None-Match")) {
-      final String ifNoneMatch = clientHeaders.getFirst("If-None-Match");
-      headers.add("If-None-Match", ifNoneMatch);
-    }
-
-    headers.add("ZTA-User-Info", "ZTA User Info");
-    headers.add("ZTA-Client-Data", "ZTA Client Data");
-
-    log.debug("Headers for backend connection: {}", headers);
-
-    return headers;
   }
 
   private void enrichMessage(TextMessage message) {

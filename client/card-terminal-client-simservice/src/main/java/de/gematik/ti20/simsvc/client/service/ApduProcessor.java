@@ -20,7 +20,6 @@
  */
 package de.gematik.ti20.simsvc.client.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.gematik.ti20.simsvc.client.dto.EgkInfoDto;
 import de.gematik.ti20.simsvc.client.exception.CardException;
 import de.gematik.ti20.simsvc.client.model.apdu.ApduCommand;
@@ -49,16 +48,8 @@ public class ApduProcessor {
   private static final Logger logger = LoggerFactory.getLogger(ApduProcessor.class);
 
   // Constants for file selection
-  private static final String MF_ID = "3F00";
   private static final String DF_ESIGN_AID = "A000000167455349474E";
 
-  // Selected application and file state
-  private String selectedAid = null;
-  private String selectedFileId = null;
-  private byte[] selectedFileContent = null;
-
-  // Authentication state
-  private boolean authenticated = false;
   private boolean paceAuthenticated = false;
   private boolean trustedChannelEstablished = false;
   private Map<String, byte[]> securityEnvironment = new HashMap<>();
@@ -67,7 +58,6 @@ public class ApduProcessor {
   // APDU scenarios
   private final Map<String, ApduScenario> scenarios;
   private final EgkInfoService egkInfoService;
-  private final ObjectMapper objectMapper;
 
   /**
    * Constructor with APDU scenarios and EGK info service.
@@ -79,7 +69,6 @@ public class ApduProcessor {
   public ApduProcessor(Map<String, ApduScenario> scenarios, EgkInfoService egkInfoService) {
     this.scenarios = scenarios;
     this.egkInfoService = egkInfoService;
-    this.objectMapper = new ObjectMapper();
   }
 
   /**
@@ -108,13 +97,13 @@ public class ApduProcessor {
       if (cla == 0x00) {
         switch (ins) {
           case (byte) 0xA4: // SELECT
-            return handleSelect(card, command);
+            return handleSelect(command);
           case (byte) 0xB0: // READ BINARY
             return handleReadBinary(card, command);
           case (byte) 0x22: // MANAGE SECURITY ENVIRONMENT
-            return handleManageSecurityEnvironment(card, command);
+            return handleManageSecurityEnvironment(command);
           case (byte) 0x2A: // PERFORM SECURITY OPERATION (PSO)
-            return handlePerformSecurityOperation(card, command);
+            return handlePerformSecurityOperation(command);
           case (byte) 0x86: // GENERAL AUTHENTICATE
             return handleGeneralAuthenticate(card, command);
           default:
@@ -128,10 +117,10 @@ public class ApduProcessor {
       else if (cla == (byte) 0x80) {
         switch (ins) {
           case (byte) 0xCA: // GET DATA
-            return handleGetData(card, command);
+            return handleGetData(command);
           case (byte) 0xEE: // GET EGK INFO - Custom APDU for EGK patient data
             logger.debug("Processing 0x80EE command - GET EGK INFO");
-            return handleGetEgkInfoSimplified(card, command);
+            return handleGetEgkInfoSimplified(card);
           default:
             logger.warn(
                 "Unsupported instruction for CLA 0x80: 0x{}",
@@ -294,11 +283,10 @@ public class ApduProcessor {
   /**
    * Handle SELECT command.
    *
-   * @param card The card image
    * @param command The APDU command
    * @return The APDU response
    */
-  private ApduResponse handleSelect(CardImage card, ApduCommand command) {
+  private ApduResponse handleSelect(ApduCommand command) {
     byte p1 = command.getP1();
     byte p2 = command.getP2();
     byte[] data = command.getData();
@@ -311,31 +299,26 @@ public class ApduProcessor {
         logger.debug("SELECT by AID: {}", aid);
 
         // Check for DF.ESIGN selection
+        // Selected application and file state
         if (DF_ESIGN_AID.equals(aid)) {
-          selectedAid = aid;
           return ApduResponse.createSuccessResponse();
         }
 
         // Check for MF selection - eGK master file
         if ("D2760001448000".equals(aid)) {
-          selectedAid = null;
-          selectedFileId = MF_ID;
           return ApduResponse.createSuccessResponse();
         }
 
         // EGK specific AIDs
         if ("D27600000101".equals(aid)) { // esign application
-          selectedAid = aid;
           return ApduResponse.createSuccessResponse();
         }
 
         if ("D27600000102".equals(aid)) { // hca application
-          selectedAid = aid;
           return ApduResponse.createSuccessResponse();
         }
 
         if ("D27600000103".equals(aid)) { // qualifizierte signatur application
-          selectedAid = aid;
           return ApduResponse.createSuccessResponse();
         }
 
@@ -434,7 +417,6 @@ public class ApduProcessor {
     if (file != null && file.getData() != null) {
       try {
         byte[] fileData = Base64.getDecoder().decode(file.getData());
-        selectedFileContent = fileData; // Store for subsequent reads
 
         // Return the file contents
         return new ApduResponse(fileData, (byte) 0x90, (byte) 0x00);
@@ -468,11 +450,10 @@ public class ApduProcessor {
   /**
    * Handle MANAGE SECURITY ENVIRONMENT command.
    *
-   * @param card The card image
    * @param command The APDU command
    * @return The APDU response
    */
-  private ApduResponse handleManageSecurityEnvironment(CardImage card, ApduCommand command) {
+  private ApduResponse handleManageSecurityEnvironment(ApduCommand command) {
     byte p1 = command.getP1();
     byte p2 = command.getP2();
     byte[] data = command.getData();
@@ -560,11 +541,10 @@ public class ApduProcessor {
    * Handle PERFORM SECURITY OPERATION (PSO) command (INS=2A). Used for digital signature
    * operations.
    *
-   * @param card The card image
    * @param command The APDU command
    * @return The APDU response
    */
-  private ApduResponse handlePerformSecurityOperation(CardImage card, ApduCommand command) {
+  private ApduResponse handlePerformSecurityOperation(ApduCommand command) {
     byte p1 = command.getP1();
     byte p2 = command.getP2();
     byte[] data = command.getData();
@@ -768,7 +748,8 @@ public class ApduProcessor {
               }
             } else {
               logger.warn(
-                  "PACE Schritt 2 (Mapping) außerhalb der Sequenz aufgerufen (aktueller Schritt: {})",
+                  "PACE Schritt 2 (Mapping) außerhalb der Sequenz aufgerufen (aktueller Schritt:"
+                      + " {})",
                   paceContext.containsKey("step")
                       ? paceContext.get("step")
                       : "nicht initialisiert");
@@ -845,7 +826,8 @@ public class ApduProcessor {
             }
           } else {
             logger.warn(
-                "PACE Schritt 3 (Authentication Token) außerhalb der Sequenz aufgerufen (aktueller Schritt: {})",
+                "PACE Schritt 3 (Authentication Token) außerhalb der Sequenz aufgerufen (aktueller"
+                    + " Schritt: {})",
                 paceContext.containsKey("step") ? paceContext.get("step") : "nicht initialisiert");
             return new ApduResponse(0x6A80); // Incorrect parameters
           }
@@ -958,7 +940,8 @@ public class ApduProcessor {
             }
           } else {
             logger.warn(
-                "PACE Schritt 4 (Mutual Authentication) außerhalb der Sequenz aufgerufen (aktueller Schritt: {})",
+                "PACE Schritt 4 (Mutual Authentication) außerhalb der Sequenz aufgerufen (aktueller"
+                    + " Schritt: {})",
                 paceContext.containsKey("step") ? paceContext.get("step") : "nicht initialisiert");
             return new ApduResponse(0x6A80); // Incorrect parameters
           }
@@ -1002,7 +985,7 @@ public class ApduProcessor {
 
               // Trusted Channel etabliert
               trustedChannelEstablished = true;
-              authenticated = true;
+              // Authentication state
               logger.debug(
                   "Trusted Channel erfolgreich etabliert, sichere Kommunikation jetzt verfügbar");
 
@@ -1044,22 +1027,6 @@ public class ApduProcessor {
       logger.error("Fehler bei der Authentifizierung: {}", e.getMessage(), e);
       return new ApduResponse(0x6982); // Security status not satisfied
     }
-  }
-
-  /**
-   * Hilfsmethode zum Prüfen, ob ein Byte-Array einen bestimmten Wert enthält
-   *
-   * @param data Das zu durchsuchende Byte-Array
-   * @param value Der zu suchende Wert
-   * @return true, wenn der Wert gefunden wurde
-   */
-  private boolean contains(byte[] data, byte value) {
-    for (byte b : data) {
-      if (b == value) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -1151,7 +1118,6 @@ public class ApduProcessor {
     }
 
     int i = 0;
-    int recursionLevel = 0; // Für bessere Protokollierung der TLV-Struktur
 
     // TLV-Parsing für BER-TLV Strukturen mit rekursiver Suche
     while (i < data.length - 1) {
@@ -1245,11 +1211,10 @@ public class ApduProcessor {
   /**
    * Handle GET DATA command (CLA=80, INS=CA).
    *
-   * @param card The card image
    * @param command The APDU command
    * @return The APDU response
    */
-  private ApduResponse handleGetData(CardImage card, ApduCommand command) {
+  private ApduResponse handleGetData(ApduCommand command) {
     byte p1 = command.getP1();
     byte p2 = command.getP2();
 
@@ -1277,10 +1242,9 @@ public class ApduProcessor {
    * card certificates.
    *
    * @param card The card image containing authentic EGK data
-   * @param command The APDU command
    * @return APDU response containing authentic EGK patient data
    */
-  private ApduResponse handleGetEgkInfoSimplified(CardImage card, ApduCommand command) {
+  private ApduResponse handleGetEgkInfoSimplified(CardImage card) {
     logger.debug("Processing GET EGK INFO command (0x80EE) for card: {}", card.getId());
 
     try {
@@ -1295,7 +1259,8 @@ public class ApduProcessor {
 
       byte[] responseBytes = response.toString().getBytes("UTF-8");
       logger.debug(
-          "Successfully created EGK info response with {} bytes containing authentic data: KVNR={}, Patient={}",
+          "Successfully created EGK info response with {} bytes containing authentic data: KVNR={},"
+              + " Patient={}",
           responseBytes.length,
           egkInfo.getKvnr(),
           egkInfo.getPatientName());
@@ -1315,56 +1280,5 @@ public class ApduProcessor {
         return new ApduResponse(0x6F00); // Unknown error
       }
     }
-  }
-
-  /**
-   * Create TLV (Tag-Length-Value) encoded response for APDU data.
-   *
-   * @param tagByte1 First byte of the tag
-   * @param tagByte2 Second byte of the tag
-   * @param data The data to encode
-   * @return TLV-encoded byte array
-   */
-  private byte[] createTlvResponse(byte tagByte1, byte tagByte2, byte[] data) {
-    int dataLength = data.length;
-
-    // Calculate length field size
-    byte[] lengthBytes;
-    if (dataLength < 0x80) {
-      // Short form: length in one byte
-      lengthBytes = new byte[] {(byte) dataLength};
-    } else if (dataLength < 0x100) {
-      // Long form: 0x81 + 1 byte length
-      lengthBytes = new byte[] {(byte) 0x81, (byte) dataLength};
-    } else if (dataLength < 0x10000) {
-      // Long form: 0x82 + 2 bytes length
-      lengthBytes = new byte[] {(byte) 0x82, (byte) (dataLength >> 8), (byte) (dataLength & 0xFF)};
-    } else {
-      // Long form: 0x83 + 3 bytes length
-      lengthBytes =
-          new byte[] {
-            (byte) 0x83,
-            (byte) (dataLength >> 16),
-            (byte) ((dataLength >> 8) & 0xFF),
-            (byte) (dataLength & 0xFF)
-          };
-    }
-
-    // Construct TLV response: Tag + Length + Value
-    byte[] response = new byte[2 + lengthBytes.length + data.length];
-    int offset = 0;
-
-    // Tag (2 bytes)
-    response[offset++] = tagByte1;
-    response[offset++] = tagByte2;
-
-    // Length
-    System.arraycopy(lengthBytes, 0, response, offset, lengthBytes.length);
-    offset += lengthBytes.length;
-
-    // Value (JSON data)
-    System.arraycopy(data, 0, response, offset, data.length);
-
-    return response;
   }
 }
