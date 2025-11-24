@@ -167,7 +167,7 @@ curl -X 'POST' \
 
 ```json
 {
-  "accessToken": "eyJhbGciOiJFUzI1NiIs...",
+  "access_token": "eyJhbGciOiJFUzI1NiIs...",
   "refreshToken": "TODO REFRESHTOKEN"
 }
 ```
@@ -251,7 +251,7 @@ curl -X 'POST' \
 
 ```json
 {
-  "accessToken": "eyJhbGciOiJFUzI1NiIsInR5cCI6InZuZC50ZWxlbWF0aWsuYWNjZXNzK2p3dCIsImtpZCI6InpldGFtb2NrIn0.eyJpc3MiOiJQRFAtTW9ja1NlcnZpY2UiLCJhdWQiOlsiUEVQLU1vY2tTZXJ2aWNlIl0sInN1YiI6IjEtSE1ULVRlc3QiLCJjbGllbnRfaWQiOiIiLCJzY29wZSI6IiIsImprdCI6IiIsInByb2Zlc3Npb25PaWQiOiIxLjIuMjc2LjAuNzYuNC40OSJ9.signature",
+  "access_token": "eyJhbGciOiJFUzI1NiIsInR5cCI6InZuZC50ZWxlbWF0aWsuYWNjZXNzK2p3dCIsImtpZCI6InpldGFtb2NrIn0.eyJpc3MiOiJQRFAtTW9ja1NlcnZpY2UiLCJhdWQiOlsiUEVQLU1vY2tTZXJ2aWNlIl0sInN1YiI6IjEtSE1ULVRlc3QiLCJjbGllbnRfaWQiOiIiLCJzY29wZSI6IiIsImprdCI6IiIsInByb2Zlc3Npb25PaWQiOiIxLjIuMjc2LjAuNzYuNC40OSJ9.signature",
   "refreshToken": "TODO REFRESHTOKEN"
 }
 ```

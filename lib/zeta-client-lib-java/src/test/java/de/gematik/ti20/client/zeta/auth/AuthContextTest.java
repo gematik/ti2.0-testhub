@@ -48,11 +48,11 @@ class AuthContextTest {
   @Test
   void testSetAccessToken() {
     AuthContext context = new AuthContext(mock(ZetaHttpRequest.class));
-    context.setAccessToken(Map.of("accessToken", "abc123"));
+    context.setAccessToken(Map.of("access_token", "abc123"));
     // Zugriff auf getRequestAuthorized() setzt den Header, gibt aber das gleiche Objekt zurück
     ZetaHttpRequest request = mock(ZetaHttpRequest.class);
     AuthContext context2 = new AuthContext(request);
-    context2.setAccessToken(Map.of("accessToken", "token456"));
+    context2.setAccessToken(Map.of("access_token", "token456"));
     context2.getRequestAuthorized();
     verify(request).setHeaderAuthorization(ZetaHttpRequest.AuthorizationType.DPOP, "token456");
   }

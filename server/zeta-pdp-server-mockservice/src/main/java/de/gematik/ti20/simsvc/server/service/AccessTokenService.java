@@ -76,6 +76,7 @@ public class AccessTokenService {
         new JwtConsumerBuilder()
             .setSkipSignatureVerification()
             .setSkipDefaultAudienceValidation()
+            .setSkipAllDefaultValidators()
             .build();
 
     JwtClaims smcbClaims = jwtConsumer.processToClaims(smcBAccessToken);

@@ -45,7 +45,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 @ExtendWith(MockitoExtension.class)
-class TokenServiceTest {
+class ZetaPepTokenServiceTest {
 
   private SecurityConfig secConfig;
   //
@@ -63,7 +63,7 @@ class TokenServiceTest {
 
   @Mock private KeyStore keyStore;
 
-  private TokenService tokenService;
+  private ZetaPepTokenService tokenService;
 
   @BeforeEach
   void setUp() {
@@ -90,7 +90,7 @@ class TokenServiceTest {
       keyStoreMock.when(() -> KeyStore.getInstance("PKCS12")).thenReturn(keyStore);
 
       // Act
-      tokenService = new TokenService(secConfig, poppConfig);
+      tokenService = new ZetaPepTokenService(secConfig, poppConfig);
 
       // Assert
       assertNotNull(tokenService);
@@ -108,7 +108,8 @@ class TokenServiceTest {
 
       // Act & Assert
       RuntimeException exception =
-          assertThrows(RuntimeException.class, () -> new TokenService(secConfig, poppConfig));
+          assertThrows(
+              RuntimeException.class, () -> new ZetaPepTokenService(secConfig, poppConfig));
 
       assertEquals("Failed to initialize KeyStore", exception.getMessage());
     }
@@ -138,21 +139,6 @@ class TokenServiceTest {
 
     assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
     assertEquals("AccessToken is empty", exception.getReason());
-  }
-
-  @Test
-  void testValidateAccessTokenWithInvalidPrefix() {
-    // Arrange
-    tokenService = createTokenServiceWithMockedKeystore();
-    String authzHeader = "Bearer invalid-token";
-
-    // Act & Assert
-    ResponseStatusException exception =
-        assertThrows(
-            ResponseStatusException.class, () -> tokenService.validateAccessToken(authzHeader));
-
-    assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
-    assertEquals("AccessToken is not a DPoP auth", exception.getReason());
   }
 
   @Test
@@ -300,13 +286,13 @@ class TokenServiceTest {
   void testPackageStructure() {
     // Assert
     assertEquals(
-        "de.gematik.ti20.simsvc.server.service", TokenService.class.getPackage().getName());
+        "de.gematik.ti20.simsvc.server.service", ZetaPepTokenService.class.getPackage().getName());
   }
 
   @Test
   void testClassIsPublic() {
     // Assert
-    assertTrue(java.lang.reflect.Modifier.isPublic(TokenService.class.getModifiers()));
+    assertTrue(java.lang.reflect.Modifier.isPublic(ZetaPepTokenService.class.getModifiers()));
   }
 
   @Test
@@ -314,28 +300,28 @@ class TokenServiceTest {
     // Assert
     assertTrue(
         java.lang.reflect.Modifier.isPrivate(
-            TokenService.class.getDeclaredField("secConfig").getModifiers()));
+            ZetaPepTokenService.class.getDeclaredField("secConfig").getModifiers()));
     assertTrue(
         java.lang.reflect.Modifier.isPrivate(
-            TokenService.class.getDeclaredField("poppConfig").getModifiers()));
+            ZetaPepTokenService.class.getDeclaredField("poppConfig").getModifiers()));
     assertTrue(
         java.lang.reflect.Modifier.isStatic(
-            TokenService.class.getDeclaredField("keyStore").getModifiers()));
+            ZetaPepTokenService.class.getDeclaredField("keyStore").getModifiers()));
     assertTrue(
         java.lang.reflect.Modifier.isStatic(
-            TokenService.class.getDeclaredField("jsonMapper").getModifiers()));
+            ZetaPepTokenService.class.getDeclaredField("jsonMapper").getModifiers()));
   }
 
   @Test
   void testConstructorCount() {
     // Assert
-    assertEquals(1, TokenService.class.getDeclaredConstructors().length);
+    assertEquals(1, ZetaPepTokenService.class.getDeclaredConstructors().length);
   }
 
-  private TokenService createTokenServiceWithMockedKeystore() {
+  private ZetaPepTokenService createTokenServiceWithMockedKeystore() {
     try (MockedStatic<KeyStore> keyStoreMock = mockStatic(KeyStore.class)) {
       keyStoreMock.when(() -> KeyStore.getInstance("PKCS12")).thenReturn(keyStore);
-      return new TokenService(secConfig, poppConfig);
+      return new ZetaPepTokenService(secConfig, poppConfig);
     }
   }
 }

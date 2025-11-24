@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 class PepProxyServiceTest {
 
   @Test
-  void testSendDelegatesToSuper() throws Exception {
+  void testSendDelegatesToSuper() {
     ZetaClientService zetaClientService = mock(ZetaClientService.class);
     PepProxyService service =
         new PepProxyService(zetaClientService) {
@@ -50,16 +50,14 @@ class PepProxyServiceTest {
   }
 
   @Test
-  void testRequestWellKnownSetsWellKnownFromPep() throws Exception {
+  void testRequestWellKnownSetsWellKnownFromPep() {
     ZetaClientService zetaClientService = mock(ZetaClientService.class);
     ZetaClientConfig.UserAgentConfig mockUserAgent =
         new ZetaClientConfig.UserAgentConfig("App", "1.0");
 
     var config = mock(de.gematik.ti20.client.zeta.config.ZetaClientConfig.class);
     when(config.getUserAgent()).thenReturn(mockUserAgent);
-
     when(zetaClientService.getZetaClientConfig()).thenReturn(config);
-    when(config.getPathWellKnownRS()).thenReturn("/.well-known/rs");
 
     AuthContext ac = mock(AuthContext.class);
     ZetaHttpRequest origRequest = mock(ZetaHttpRequest.class);

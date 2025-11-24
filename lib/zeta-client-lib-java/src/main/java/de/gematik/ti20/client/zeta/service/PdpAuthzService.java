@@ -21,12 +21,13 @@
 package de.gematik.ti20.client.zeta.service;
 
 import de.gematik.ti20.client.zeta.auth.AuthContext;
+import de.gematik.ti20.client.zeta.config.ZetaClientConfig;
 import de.gematik.ti20.client.zeta.exception.ZetaHttpException;
 import de.gematik.ti20.client.zeta.request.ZetaHttpRequest;
 import de.gematik.ti20.client.zeta.request.ZetaHttpRequest.HeaderName;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 public class PdpAuthzService extends HttpService {
@@ -38,15 +39,18 @@ public class PdpAuthzService extends HttpService {
   public void requestAccessToken(final AuthContext ac) throws ZetaHttpException {
     String url;
     try {
-      URL urlAS = new URL(ac.getWellKnownFromPep().getAuthorization_endpoint());
-      URL urlToken =
-          new URL(
-              urlAS.getProtocol(),
+      URI urlAS = new URI(ac.getWellKnownFromPep().getAuthorization_endpoint());
+      URI urlToken =
+          new URI(
+              urlAS.getScheme(),
+              null,
               urlAS.getHost(),
               urlAS.getPort(),
-              zetaClientService.getZetaClientConfig().getPathTokenAS());
+              ZetaClientConfig.PATH_TOKEN_AS,
+              null,
+              null);
       url = urlToken.toString();
-    } catch (MalformedURLException e) {
+    } catch (URISyntaxException e) {
       throw new ZetaHttpException("Failed to create /token URL", e, ac.getRequest());
     }
 

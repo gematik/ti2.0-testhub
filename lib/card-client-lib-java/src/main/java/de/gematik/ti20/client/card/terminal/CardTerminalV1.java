@@ -28,6 +28,7 @@ import de.gematik.ti20.client.card.message.CardResult;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import okhttp3.OkHttpClient;
 
 public class CardTerminalV1 extends TerminalSlotV1.TerminalSlotEventHandler {
 
@@ -67,11 +68,13 @@ public class CardTerminalV1 extends TerminalSlotV1.TerminalSlotEventHandler {
     void onError(CardTerminalException exception);
   }
 
-  public CardTerminalV1(CardTerminalConfig config) {
+  public CardTerminalV1(CardTerminalConfig config, OkHttpClient okHttpClient) {
     this.config = config;
     config
         .getSlots()
-        .forEach(slotConfig -> slots.add(TerminalSlotFactoryV1.createFrom(slotConfig, this)));
+        .forEach(
+            slotConfig ->
+                slots.add(TerminalSlotFactoryV1.createFrom(slotConfig, this, okHttpClient)));
   }
 
   public CardTerminalConfig getConfig() {
@@ -83,27 +86,6 @@ public class CardTerminalV1 extends TerminalSlotV1.TerminalSlotEventHandler {
         .filter(slot -> slot.getConfig().getSlotId().equals(slotId))
         .findFirst()
         .orElse(null);
-  }
-
-  public synchronized List<TerminalSlotV1> getSlots() {
-    return slots;
-  }
-
-  public synchronized String getSlotListAsString() {
-    StringBuilder sb = new StringBuilder();
-    for (TerminalSlotV1 slot : slots) {
-      sb.append(slot.getConfig().getSlotId()).append(", ");
-    }
-    return sb.toString();
-  }
-
-  public synchronized void mergeFrom(CardTerminalV1 other) {
-    if (this.config.getType() != other.config.getType()) {
-      throw new IllegalArgumentException("Cannot merge terminals of different types");
-    }
-
-    this.config.setConnection(other.config.getConnection());
-    slots.addAll(other.slots);
   }
 
   public void init() {

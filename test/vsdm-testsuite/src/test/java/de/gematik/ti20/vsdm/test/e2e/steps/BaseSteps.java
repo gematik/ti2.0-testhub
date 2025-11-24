@@ -45,7 +45,7 @@ public class BaseSteps {
   protected static final String BASE_URL_POPP_SERVER_SIM = "http://localhost:9210";
   protected static final String TERMINAL_ID = "0";
   protected static final Boolean IS_FIRE_XML = false;
-  protected static final Boolean FORCE_UPDATE = true;
+  protected static final Boolean FORCE_UPDATE = false;
 
   protected String generatePoppToken(SmcbCardInfo smcbCardInfo, EgkCardInfo egkCardInfo)
       throws Exception {

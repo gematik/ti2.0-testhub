@@ -7,13 +7,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.0.3</version>
+        <version>1.1.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.client</groupId>
     <artifactId>card-client-lib</artifactId>
-    <version>1.0.3</version>
+    <version>1.1.0</version>
 
     <name>Card Client Library</name>
     <description>Card Client Library for TI 2.0</description>

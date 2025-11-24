@@ -21,7 +21,6 @@
 package de.gematik.ti20.simsvc.server.controller;
 
 import de.gematik.ti20.simsvc.server.config.HttpConfig;
-import de.gematik.ti20.simsvc.server.service.TokenService;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,19 +42,14 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 public class WsProxyController extends TextWebSocketHandler {
 
   private final HttpConfig httpConfig;
-  private final TokenService tokenService;
   private final Map<WebSocketSession, WebSocketSession> sessionMap = new ConcurrentHashMap<>();
   private final Map<WebSocketSession, WebSocketSession> reverseSessionMap =
       new ConcurrentHashMap<>();
   private final WebSocketClient webSocketClient;
   private HandshakeInterceptor handshakeInterceptor;
 
-  public WsProxyController(
-      HttpConfig httpConfig,
-      TokenService tokenService,
-      WsHandshakeInterceptor wsHandshakeInterceptor) {
+  public WsProxyController(HttpConfig httpConfig, WsHandshakeInterceptor wsHandshakeInterceptor) {
     this.httpConfig = httpConfig;
-    this.tokenService = tokenService;
     this.webSocketClient = new StandardWebSocketClient();
     this.handshakeInterceptor = wsHandshakeInterceptor;
   }

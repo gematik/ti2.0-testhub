@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 class PdpAuthzServiceTest {
 
   @Test
-  void testRequestAccessTokenSetsAccessToken() throws Exception {
+  void testRequestAccessTokenSetsAccessToken() {
     // Mocks für Abhängigkeiten
     ZetaClientService zetaClientService = mock(ZetaClientService.class);
     ZetaClientConfig config = mock(ZetaClientConfig.class);
@@ -44,7 +44,6 @@ class PdpAuthzServiceTest {
 
     when(config.getUserAgent()).thenReturn(mockUserAgent);
     when(zetaClientService.getZetaClientConfig()).thenReturn(config);
-    when(config.getPathTokenAS()).thenReturn("/token");
 
     AuthContext ac = mock(AuthContext.class);
     ZetaHttpRequest origRequest = mock(ZetaHttpRequest.class);

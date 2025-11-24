@@ -48,7 +48,7 @@ import org.springframework.web.server.ResponseStatusException;
 @ExtendWith(MockitoExtension.class)
 class HttpProxyServiceTest {
 
-  @Mock private TokenService tokenService;
+  @Mock private ZetaPepTokenService tokenService;
 
   @Mock private HttpServletRequest request;
 

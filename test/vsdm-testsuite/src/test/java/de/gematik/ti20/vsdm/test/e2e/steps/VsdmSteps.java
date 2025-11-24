@@ -20,39 +20,73 @@
  */
 package de.gematik.ti20.vsdm.test.e2e.steps;
 
-import static io.restassured.RestAssured.given;
+import static net.serenitybdd.screenplay.GivenWhenThen.*;
+import static org.hamcrest.Matchers.*;
 
 import de.gematik.test.tiger.lib.TigerDirector;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
+import de.gematik.ti20.vsdm.test.e2e.abilities.CallCardClient;
+import de.gematik.ti20.vsdm.test.e2e.abilities.CallPoppService;
+import de.gematik.ti20.vsdm.test.e2e.abilities.CallVsdmClient;
+import de.gematik.ti20.vsdm.test.e2e.questions.*;
+import de.gematik.ti20.vsdm.test.e2e.tasks.*;
+import io.cucumber.java.Before;
 import io.cucumber.java.de.Angenommen;
 import io.cucumber.java.de.Dann;
 import io.cucumber.java.de.Und;
 import io.cucumber.java.de.Wenn;
-import io.restassured.response.Response;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import net.serenitybdd.core.Serenity;
+import net.serenitybdd.screenplay.Actor;
+import net.serenitybdd.screenplay.actors.OnStage;
+import net.serenitybdd.screenplay.actors.OnlineCast;
 import org.hl7.fhir.r4.model.Coverage;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.jupiter.api.Assertions;
 
-public class VsdmSteps extends BaseSteps {
+public class VsdmSteps {
+
   private static final List<Long> answerTimes = new ArrayList<>();
-  private final LinkedList<Response> responses = new LinkedList<>();
-  private VsdmBundle vsdmBundle;
-  private String poppToken;
-  private String etag = "0";
-  private Integer smcbSlot;
-  private Integer egkSlot;
-  private String egkId;
+
+  private Actor hccs() {
+    return OnStage.theActorInTheSpotlight();
+  }
+
+  @Before
+  public void setTheStage() {
+    OnStage.setTheStage(new OnlineCast());
+    OnStage.theActorCalled("Primärsystem")
+        .can(CallCardClient.at("http://localhost:8000"))
+        .can(CallVsdmClient.at("http://localhost:8220"))
+        .can(CallPoppService.at("http://localhost:9210"));
+  }
+
+  @Angenommen("das Primärsystem in der LEI verwendet ein korrekt konfiguriertes Terminal")
+  public void givenHccsIsUsingTerminalCorrectly() {
+    hccs().attemptsTo(ConfigureTerminal.withDefaultConfig());
+  }
+
+  @Angenommen("das Primärsystem in der LEI verwendet eine SMC-B {string} im Slot {int}")
+  public void givenHccsIsUsingItsSmcb(String smcbCard, Integer slot) {
+    hccs().attemptsTo(InsertSmcbCard.fromFileInSlot(smcbCard, slot));
+  }
+
+  @Angenommen("der Versicherte in der LEI verwendet eine eGK {string} im Slot {int}")
+  public void givenPatientIsUsingItsEgk(String egkCard, Integer slot) {
+    hccs().attemptsTo(InsertEgkCard.fromFileInSlot(egkCard, slot));
+  }
 
   @Angenommen("das Primärsystem hat die VSD bereits einmal im Quartal abgefragt")
   public void givenVsdmClientHasAlreadyRequestVsdBefore() {
-    smcbSlot = Serenity.sessionVariableCalled("smcbSlot");
-    egkSlot = Serenity.sessionVariableCalled("egkSlot");
-    responses.add(getVsd(etag, poppToken, smcbSlot, egkSlot));
-    etag = responses.getLast().header("etag");
+    hccs().attemptsTo(RequestVsdFromServer.withEtagAndNoPoppToken("0"));
+    String etag = LastEtag.value().answeredBy(hccs());
+    hccs().remember("etag", etag);
+  }
+
+  @Angenommen("das Primärsystem hat den Versorgungskontext als PoPP-Token gespeichert")
+  public void givenClientSystemHasStoredPoppToken() {
+    hccs().attemptsTo(GeneratePoppToken.now());
   }
 
   @Angenommen("der Fachdienst VSDM 2.0 befindet sich unter {int}% Maximallast")
@@ -64,22 +98,33 @@ public class VsdmSteps extends BaseSteps {
 
   @Wenn("das Primärsystem die VSD mittels PoPP- und Access-Token vom VSDM Ressource Server abfragt")
   public void whenClientSystemIsRequestingVsdWithAccessAndPoppToken() {
-    smcbSlot = Serenity.sessionVariableCalled("smcbSlot");
-    egkSlot = Serenity.sessionVariableCalled("egkSlot");
-    responses.add(getVsd(etag, poppToken, smcbSlot, egkSlot));
+    String etag = hccs().recall("etag");
+    hccs()
+        .attemptsTo(
+            RequestVsdFromServer.withEtagAndNoPoppToken(Objects.requireNonNullElse(etag, "0")));
   }
 
   @Und("der VSDM Ressource Server beim E-Tag-Vergleich einen Unterschied feststellt")
   public void andRessourceServerIsFindingDifferentEtag() {
-    Assertions.assertNotEquals(etag, responses.getLast().header("etag"));
+    String previousEtag = hccs().recall("etag");
+    String lastEtag = LastEtag.value().answeredBy(hccs());
+    Assertions.assertNotEquals(previousEtag, lastEtag);
+  }
+
+  @Und("der VSDM Ressource Server beim E-Tag-Vergleich keinen Unterschied feststellt")
+  public void andRessourceServerIsFindingEqualEtag() {
+    String previousEtag = hccs().recall("etag");
+    String lastEtag = LastEtag.value().answeredBy(hccs());
+    Assertions.assertEquals(previousEtag, lastEtag);
   }
 
   @Dann(
       "sendet der VSDM Ressource Server die aktualisierten VSD mit dem Statuscode {int} zum Primärsystem")
   public void thenVsdmRessourceServerIsSendingStatusCodeOkayWithVsd(int httpCode) {
-    vsdmBundle = getVsdmBundle(responses.getLast());
-    Assertions.assertNotNull(vsdmBundle);
-    responses.getLast().then().assertThat().statusCode(httpCode);
+    hccs().should(seeThat(LastStatusCode.value(), is(httpCode)));
+    hccs().should(seeThat(LastVsdmBundle.value(), is(notNullValue())));
+
+    VsdmBundle vsdmBundle = LastVsdmBundle.value().answeredBy(hccs());
 
     Patient patient = (Patient) vsdmBundle.getEntry().get(0).getResource();
     Assertions.assertNotNull(patient);
@@ -91,89 +136,82 @@ public class VsdmSteps extends BaseSteps {
     Assertions.assertNotNull(coverage);
   }
 
-  @Und("das Primärsystem speichert die aktualisierten VSD in seiner lokalen Datenbank")
-  public void andClientSystemIsStoringCurrentVsdLocally() {
-    getCachedVsd();
-    responses.getLast().then().assertThat().statusCode(200);
-    Assertions.assertNotNull(responses.getLast().jsonPath().get("vsdmData"));
-  }
-
-  @Und("das Primärsystem speichert den PoPP-Token in seiner lokalen Datenbank")
-  public void andClientSystemIsStoringPoppTokenLocally() {
-    getCachedPoppToken();
-    responses.getLast().then().assertThat().statusCode(200);
-    poppToken = responses.getLast().body().asString();
-    Assertions.assertNotNull(poppToken);
-  }
-
-  @Und("das Primärsystem speichert das E-Tag in seiner lokalen Datenbank")
-  public void andClientSystemIsStoringEtagLocally() {
-    getCachedVsd();
-    responses.getLast().then().assertThat().statusCode(200);
-    etag = responses.getLast().jsonPath().get("etag");
-    Assertions.assertNotNull(etag);
-  }
-
-  @Und("das Primärsystem speichert die Prüfziffer in seiner lokalen Datenbank")
-  public void andClientSystemIsStoringProofNumberLocally() {
-    getCachedVsd();
-    responses.getLast().then().assertThat().statusCode(200);
-    Assertions.assertNotNull(responses.getLast().jsonPath().get("pruefziffer"));
-  }
-
   @Und("die Antwortzeit des Fachdienstes VSDM 2.0 überschreitet nicht den Maximalwert von {int} ms")
   public void andVsdmRessourceServerIsAnsweringInTime(int maxAnswerTime) {
-    long answerTime = responses.getLast().time();
+    long answerTime = LastResponseTime.value().answeredBy(hccs());
     TigerDirector.pauseExecution(
         String.format("Der VSDM 2.0 Fachdienst antwortete in %d Millisekunden.", answerTime));
     Assertions.assertTrue(answerTime < maxAnswerTime);
   }
 
-  @Und("der VSDM Ressource Server beim E-Tag-Vergleich keinen Unterschied feststellt")
-  public void andRessourceServerIsFindingEqualEtag() {
-    Assertions.assertEquals(etag, responses.getLast().header("etag"));
+  @Dann("sendet der VSDM Ressource Server den Statuscode {int} ohne VSD zum Primärsystem")
+  public void thenVsdmRessourceServerIsSendingStatusCodeNotModifiedWithoutVsd(int httpCode) {
+    hccs().should(seeThat(LastStatusCode.value(), is(httpCode)));
+    hccs().should(seeThat(LastVsdmBundle.value(), is(nullValue())));
   }
 
-  @Dann("sendet der VSDM Ressource Server den Statuscode {int} ohne VSD zum Primärsystem")
-  public void thenVsdmRessourceServerIsSendingStatusCodeNotModifiedWithoutVsd(int statusCode) {
-    vsdmBundle = getVsdmBundle(responses.getLast());
-    Assertions.assertNull(vsdmBundle);
-    responses.getLast().then().assertThat().statusCode(statusCode);
+  @Und("das Primärsystem speichert die aktualisierten VSD in seiner lokalen Datenbank")
+  public void andClientSystemIsStoringCurrentVsdLocally() {
+    hccs().attemptsTo(RequestVsdmData.fromCache());
+    String cachedVsd = CachedVsdmData.value().answeredBy(hccs());
+    Assertions.assertFalse(cachedVsd.isEmpty());
+  }
+
+  @Und("das Primärsystem speichert den PoPP-Token in seiner lokalen Datenbank")
+  public void andClientSystemIsStoringPoppTokenLocally() {
+    hccs().attemptsTo(RequestPoppToken.fromCache());
+    String cachedPoppToken = CachedPoppToken.value().answeredBy(hccs());
+    Assertions.assertFalse(cachedPoppToken.isEmpty());
+  }
+
+  @Und("das Primärsystem speichert die Prüfziffer in seiner lokalen Datenbank")
+  public void andClientSystemIsStoringPruefzifferLocally() {
+    hccs().attemptsTo(RequestVsdmData.fromCache());
+    String cachedCheckDigit = CachedPruefziffer.value().answeredBy(hccs());
+    Assertions.assertFalse(cachedCheckDigit.isEmpty());
+  }
+
+  @Und("das Primärsystem speichert das E-Tag in seiner lokalen Datenbank")
+  public void andClientSystemIsStoringEtagLocally() {
+    hccs().attemptsTo(RequestVsdmData.fromCache());
+    String cachedEtag = CachedEtag.value().answeredBy(hccs());
+    Assertions.assertFalse(cachedEtag.isEmpty());
+  }
+
+  @Wenn(
+      "das Primärsystem die VSD mit einem ungültigen PoPP-Token vom VSDM Ressource Server abfragt TODO")
+  public void whenClientSystemIsRequestingVsdWithInvalidPoppToken() {
+    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken("0", "INVALID_POPP_TOKEN"));
+  }
+
+  @Dann("antwortet der VSDM Ressource Server mit dem Fehlercode {int} und dem Text {string} TODO")
+  public void thenVsdmAnswersWithCorrespondingBdeCodeAndText(Integer httpCode, String bdeText) {
+    hccs().should(seeThat(LastStatusCode.value(), is(httpCode)));
+    // TODO: Implement VsdmOutcome check as soon as ZETA MS2 is available.
   }
 
   @Wenn(
       "das Primärsystem die VSD direkt von einer gültigen eGK des Versicherten in der LEI abfragt")
   public void whenClientSystemRequestsVsdFromValidEgkCardDirectly() {
-    getEgk();
+    hccs().attemptsTo(RequestVsdFromCard.readEgk());
   }
 
   @Dann("werden die VSD von der eGK gelesen und der Versicherte kann versorgt werden")
   public void thenClientSystemIsReceivingVsdFromEgkCardDirectly() {
-    responses.getLast().then().assertThat().statusCode(200);
-    vsdmBundle = getVsdmBundle(responses.getLast());
-    Assertions.assertNotNull(vsdmBundle);
+    hccs().should(seeThat(LastVsdmBundle.value(), is(notNullValue())));
 
-    Patient patient = (Patient) vsdmBundle.getEntry().get(0).getResource();
+    VsdmBundle vsdmBundle = LastVsdmBundle.value().answeredBy(hccs());
+
+    Patient patient = (Patient) vsdmBundle.getEntry().getFirst().getResource();
     Assertions.assertNotNull(patient);
+
     Assertions.assertEquals(1, vsdmBundle.getEntry().size()); // Reduced VSD w/o coverage.
-  }
-
-  @Wenn(
-      "das Primärsystem die VSD direkt von einer ungültigen eGK des Versicherten in der LEI abfragt")
-  public void whenClientSystemRequestsVsdFromInvalidEgkCardDirectly() {
-    getEgk();
-  }
-
-  @Dann("werden die VSD nicht von der eGK gelesen und der Versicherte kann nicht versorgt werden")
-  public void thenClientSystemIsNotReceivingVsdFromEgkCardDirectly() {
-    responses.getLast().then().assertThat().statusCode(401);
-    vsdmBundle = getVsdmBundle(responses.getLast());
-    Assertions.assertNull(vsdmBundle);
   }
 
   @Wenn("das Primärsystem {int} Anfragen mit VSD Update an den Fachdienst VSDM 2.0 sendet")
   public void whenClientSystemIsRequestingVsdPeriodicallyWithUpdate(int nbrCalls)
       throws InterruptedException {
+    answerTimes.clear();
     sendReadVsd(nbrCalls, true);
   }
 
@@ -206,44 +244,6 @@ public class VsdmSteps extends BaseSteps {
     }
   }
 
-  private void getEgk() {
-    egkSlot = Serenity.sessionVariableCalled("egkSlot");
-    egkId = Serenity.sessionVariableCalled("egkId");
-
-    responses.add(
-        given()
-            .baseUri(BASE_URL_VSDM_CLIENT_SIM)
-            .queryParam("terminalId", TERMINAL_ID)
-            .queryParam("egkSlotId", egkSlot)
-            .get("client/test/readEgk"));
-  }
-
-  private void getCachedPoppToken() {
-    egkSlot = Serenity.sessionVariableCalled("egkSlot");
-    egkId = Serenity.sessionVariableCalled("egkId");
-
-    responses.add(
-        given()
-            .baseUri(BASE_URL_VSDM_CLIENT_SIM)
-            .queryParam("terminalId", TERMINAL_ID)
-            .queryParam("slotId", egkSlot)
-            .queryParam("cardId", egkId)
-            .get("client/test/poppToken"));
-  }
-
-  private void getCachedVsd() {
-    egkSlot = Serenity.sessionVariableCalled("egkSlot");
-    egkId = Serenity.sessionVariableCalled("egkId");
-
-    responses.add(
-        given()
-            .baseUri(BASE_URL_VSDM_CLIENT_SIM)
-            .queryParam("terminalId", TERMINAL_ID)
-            .queryParam("slotId", egkSlot)
-            .queryParam("cardId", egkId)
-            .get("client/test/vsdmData"));
-  }
-
   private void sendReadVsd(int nbrCalls, boolean withUpdateVsd) throws InterruptedException {
     for (int i = 0; i < nbrCalls; i++) {
       whenClientSystemIsRequestingVsdWithAccessAndPoppToken();
@@ -252,7 +252,7 @@ public class VsdmSteps extends BaseSteps {
       } else {
         andRessourceServerIsFindingEqualEtag();
       }
-      answerTimes.add(responses.getLast().time());
+      answerTimes.add(LastResponseTime.value().answeredBy(hccs()));
       Thread.sleep(ThreadLocalRandom.current().nextInt(10, 100));
     }
   }

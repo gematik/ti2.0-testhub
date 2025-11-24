@@ -28,3 +28,7 @@
 
 - Minor corrections
 
+## Release 1.1.0
+
+- Integration of ZETA prototype
+- Introducing Serenity's screen play pattern

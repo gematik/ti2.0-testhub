@@ -32,12 +32,12 @@ class VsdmConfigTest {
   @BeforeEach
   void setUp() {
     vsdmConfig = new VsdmConfig();
-    vsdmConfig.setUrl("http://example.com/vsdm");
+    vsdmConfig.setResourceServerUrl("http://example.com/vsdm");
   }
 
   @Test
   void testGetHttpUrl() {
-    assertNotNull(vsdmConfig.getUrl());
-    assertEquals("http://example.com/vsdm", vsdmConfig.getUrl());
+    assertNotNull(vsdmConfig.getResourceServerUrl());
+    assertEquals("http://example.com/vsdm", vsdmConfig.getResourceServerUrl());
   }
 }

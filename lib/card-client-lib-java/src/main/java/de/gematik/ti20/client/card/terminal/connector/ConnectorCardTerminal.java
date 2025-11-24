@@ -42,6 +42,20 @@ public class ConnectorCardTerminal extends CardTerminal {
   private ConnectorClient client;
   private SignatureService signatureService;
 
+  public ConnectorCardTerminal(
+      final String name,
+      final CardTerminalType type,
+      final ConnectorConnectionConfig config,
+      final Dispatch<SOAPMessage> dispatch,
+      final ConnectorClient client,
+      final SignatureService signatureService) {
+    super(name, type);
+    this.config = config;
+    this.dispatch = dispatch;
+    this.client = client;
+    this.signatureService = signatureService;
+  }
+
   /** Constructs a new Connector card terminal. */
   public ConnectorCardTerminal(ConnectorConnectionConfig config) {
 

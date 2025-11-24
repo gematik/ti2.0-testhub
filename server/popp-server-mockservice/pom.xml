@@ -7,13 +7,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.0.3</version>
+        <version>1.1.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.simsvc.server</groupId>
     <artifactId>popp-server-mockservice</artifactId>
-    <version>1.0.3</version>
+    <version>1.1.0</version>
 
     <name>PoPP Server Mockservice</name>
     <description>Simulator-Mock-Service for PoPP Service</description>
@@ -22,7 +22,7 @@
         <start-class>de.gematik.ti20.simsvc.server.Main</start-class>
         <skip.unittests>false</skip.unittests>
         <skip.inttests>true</skip.inttests>
-        <image.docker.tag>${project.artifactId}:local</image.docker.tag>
+        <image.docker.tag>${project.groupId}/${project.artifactId}:local</image.docker.tag>
     </properties>
 
     <dependencies>

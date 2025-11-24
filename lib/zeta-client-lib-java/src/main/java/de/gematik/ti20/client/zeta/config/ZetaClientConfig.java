@@ -26,9 +26,8 @@ import java.util.List;
 
 public class ZetaClientConfig {
 
-  private String pathWellKnownRS = "/.well-known/oauth-protected-resource";
-  private String pathWellKnownAS = "/.well-known/oauth-authorization-server";
-  private String pathTokenAS = "/token";
+  public static final String PATH_WELLKNOWN_RS = "/.well-known/oauth-protected-resource";
+  public static final String PATH_TOKEN_AS = "/token";
 
   private List<CardTerminalConnectionConfig> terminalConnectionConfigs = new ArrayList<>();
 
@@ -59,18 +58,6 @@ public class ZetaClientConfig {
 
   public ZetaClientConfig(UserAgentConfig userAgent) {
     this.userAgent = userAgent;
-  }
-
-  public String getPathWellKnownRS() {
-    return pathWellKnownRS;
-  }
-
-  public String getPathWellKnownAS() {
-    return pathWellKnownAS;
-  }
-
-  public String getPathTokenAS() {
-    return pathTokenAS;
   }
 
   public UserAgentConfig getUserAgent() {

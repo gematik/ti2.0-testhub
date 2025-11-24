@@ -39,11 +39,13 @@ public class TerminalSlotJsonV1 extends TerminalSlotV1 {
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-  private final OkHttpClient client = new OkHttpClient();
+  private final OkHttpClient client;
   private WebSocket ws;
 
-  public TerminalSlotJsonV1(TerminalSlotConfig config, CardTerminalV1 terminal) {
+  public TerminalSlotJsonV1(
+      TerminalSlotConfig config, CardTerminalV1 terminal, OkHttpClient okHttpClient) {
     super(config, terminal);
+    client = okHttpClient;
   }
 
   private final WebSocketListener listener =

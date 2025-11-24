@@ -1,6 +1,10 @@
+include:
+  - ./compose-popp-server.yaml
+  - ./compose-vsdm-server.yaml
+
 services:
   card-terminal-client:
-    image: card-terminal-client-simservice:local
+    image: de.gematik.ti20.simsvc.client/card-terminal-client-simservice:local
     ports:
       - "8000:80"
       - "5005:5005"
@@ -12,106 +16,18 @@ services:
       - otel-collector
 
   vsdm-client:
-    image: vsdm-client-simservice:local
+    image: de.gematik.ti20.simsvc.client/vsdm-client-simservice:local
     ports:
       - "8220:80"
       - "5006:5006"
     environment:
-      - POPP_HTTP_URL=http://zeta-pep-popp
-      - POPP_WS_URL=ws://zeta-pep-popp
-      - VSDM_HTTP_URL=http://zeta-pep-vsdm
+      - POPP_HTTP_URL=http://popp-zeta-pep:80
+      - POPP_WS_URL=ws://popp-zeta-pep:80
+      - VSDM_RESOURCE_SERVER_URL=http://vsdm-zeta-pep:80
+      - VSDM_PDP_URL=http://vsdm-zeta-pdp:80/auth/realms/zeta-guard
       - OTEL_SERVICE_NAME=vsdm-client
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006"
-    depends_on:
-      - otel-collector
-
-  zeta-pep-popp:
-    image: zeta-pep-server-mockservice:local
-    ports:
-      - "9110:80"
-      - "5007:5007"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker-popp
-      - PROXY_HTTP_URL=http://popp-server
-      - PROXY_WS_URL=http://popp-server
-      - WK_ISSUER=http://zeta-pep-popp
-      - WK_AUTH_EP=http://zeta-pdp-popp/auth
-      - WK_TOKEN_EP=http://zeta-pdp-popp/token
-      - WK_NONCE_EP=http://zeta-pdp-popp/nonce
-      - OTEL_SERVICE_NAME=zeta-pep-popp
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-      - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5007"
-    depends_on:
-      - otel-collector
-
-  zeta-pdp-popp:
-    image: zeta-pdp-server-mockservice:local
-    ports:
-      - "9112:80"
-      - "5008:5008"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker-popp
-      - OTEL_SERVICE_NAME=zeta-pdp-popp
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-      - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5008"
-    depends_on:
-      - otel-collector
-
-  popp-server:
-    image: popp-server-mockservice:local
-    ports:
-      - "9210:80"
-      - "5009:5009"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - OTEL_SERVICE_NAME=zeta-pep-popp
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-      - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5009"
-    depends_on:
-      - otel-collector
-
-  zeta-pep-vsdm:
-    image: zeta-pep-server-mockservice:local
-    ports:
-      - "9120:80"
-      - "5010:5010"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker-vsdm
-      - PROXY_HTTP_URL=http://vsdm-server
-      - PROXY_WS_URL=http://vsdm-server
-      - WK_ISSUER=http://zeta-pep-vsdm
-      - WK_AUTH_EP=http://zeta-pdp-vsdm/auth
-      - WK_TOKEN_EP=http://zeta-pdp-vsdm/token
-      - WK_NONCE_EP=http://zeta-pdp-vsdm/nonce
-      - OTEL_SERVICE_NAME=zeta-pep-popp
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-      - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5010"
-    depends_on:
-      - otel-collector
-
-  zeta-pdp-vsdm:
-    image: zeta-pdp-server-mockservice:local
-    ports:
-      - "9122:80"
-      - "5011:5011"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker-vsdm
-      - OTEL_SERVICE_NAME=zeta-pdp-vsdm
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-      - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5011"
-    depends_on:
-      - otel-collector
-
-  vsdm-server:
-    image: vsdm-server-simservice:local
-    ports:
-      - "9130:80"
-      - "5012:5012"
-    environment:
-      - OTEL_SERVICE_NAME=vsdm-server
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-      - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5012"
     depends_on:
       - otel-collector
 

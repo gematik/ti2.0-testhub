@@ -20,7 +20,6 @@
  */
 package de.gematik.ti20.simsvc.server.service;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.Map;
@@ -79,7 +78,8 @@ public class EtagService {
     }
   }
 
-  public boolean checkEtag(final String kvnr, final HttpServletRequest request) {
+  public boolean checkEtag(final String kvnr, final String requestEtag) {
+    log.error("Request Etag: {}", requestEtag);
     if (kvnr == null || kvnr.isEmpty()) {
       return false;
     }
@@ -90,11 +90,9 @@ public class EtagService {
     }
     log.debug("Etag found: {}", etag);
 
-    final String requestEtag = request.getHeader("If-None-Match");
     if (requestEtag == null) {
       return false;
     }
-    log.debug("Request Etag: {}", requestEtag);
 
     return etag.equals(requestEtag);
   }

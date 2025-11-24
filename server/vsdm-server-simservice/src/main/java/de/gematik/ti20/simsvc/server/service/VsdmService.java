@@ -33,7 +33,6 @@ import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
 import de.gematik.ti20.vsdm.fhir.def.VsdmCoverage;
 import de.gematik.ti20.vsdm.fhir.def.VsdmPatient;
 import de.gematik.ti20.vsdm.fhir.def.VsdmPayorOrganization;
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Address;
@@ -57,14 +56,12 @@ public class VsdmService {
     this.data = data;
   }
 
-  public String readKVNR(final HttpServletRequest request) {
+  public String readKVNR(final String poppTokenFromRequest) {
     String kvnr;
     try {
-      final PoppToken poppToken =
-          this.tokenService.parsePoppToken(request.getHeader("zeta-popp-token-content"));
+      final PoppToken poppToken = this.tokenService.parsePoppToken(poppTokenFromRequest);
 
       kvnr = poppToken.getClaimValue("patientId");
-      log.debug("2. ReadVsd for KVNR {}", kvnr);
 
       final String iknr = poppToken.getClaimValue("insurerId");
       if (!iknr.equals(vsdmConfig.getIknr())) {
@@ -81,10 +78,10 @@ public class VsdmService {
     return kvnr;
   }
 
-  public Resource readVsd(final HttpServletRequest request) {
+  public Resource readVsd(final String poppToken) {
     log.debug("Reading vsd resource");
 
-    final String kvnr = readKVNR(request);
+    final String kvnr = readKVNR(poppToken);
 
     final VsdmPatient patient = getPatient(kvnr);
     final VsdmPayorOrganization payorOrganization = mockPayorOrganization();

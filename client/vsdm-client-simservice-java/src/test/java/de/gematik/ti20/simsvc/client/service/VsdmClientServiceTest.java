@@ -39,20 +39,18 @@ import de.gematik.ti20.client.popp.service.PoppClientService;
 import de.gematik.ti20.client.popp.service.PoppTokenSession;
 import de.gematik.ti20.client.popp.service.PoppTokenSessionEventHandler;
 import de.gematik.ti20.client.zeta.config.ZetaClientConfig;
-import de.gematik.ti20.client.zeta.exception.ZetaHttpException;
-import de.gematik.ti20.client.zeta.request.ZetaHttpRequest;
-import de.gematik.ti20.client.zeta.response.ZetaHttpResponse;
 import de.gematik.ti20.client.zeta.service.ZetaClientService;
 import de.gematik.ti20.simsvc.client.config.VsdmConfig;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
 import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
-import de.gematik.ti20.vsdm.fhir.builder.VsdmOperationOutcomeBuilder;
-import de.gematik.ti20.vsdm.fhir.def.*;
+import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
+import io.ktor.client.plugins.ServerResponseException;
+import io.ktor.http.HeadersKt;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import kotlin.Unit;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -68,6 +66,7 @@ class VsdmClientServiceTest {
   private VsdmConfig vsdmConfig;
   private ZetaClientService mockZetaClientService;
   private ZetaClientConfig mockZetaClientConfig;
+  private ZetaSdkClientAdapter mockZetaSdkAdapter;
   private PoppClientService mockPoppClientService;
   private PoppClientConfig mockPoppClientConfig;
   private FhirService mockFhirService;
@@ -77,10 +76,17 @@ class VsdmClientServiceTest {
   private EgkInfo mockEgkInfo;
   private SimulatorAttachedCard mockEgkCard;
 
+  private String traceId = "traceId";
+  private String terminalId = "terminal1";
+  private Integer egkSlotId = 1;
+  private Integer smcBSlotId = 2;
+  private String cardId = "card1";
+  private String poppToken = "token123";
+
   @BeforeEach
   void setUp() throws Exception {
     vsdmConfig = new VsdmConfig();
-    vsdmConfig.setUrl("http://localhost:8080");
+    vsdmConfig.setResourceServerUrl("http://localhost:8080");
 
     mockZetaClientConfig = mock(ZetaClientConfig.class);
     mockZetaClientService = mock(ZetaClientService.class);
@@ -108,20 +114,19 @@ class VsdmClientServiceTest {
     when(mockPoppClientService.getZetaClientService()).thenReturn(mockZetaClientService);
     when(mockPoppClientService.getAttachedCards()).thenReturn((List) Arrays.asList(mockEgkCard));
 
+    mockZetaSdkAdapter = mock(ZetaSdkClientAdapter.class);
+
     vsdmClientService =
         new VsdmClientService(
-            vsdmConfig,
             mockPoppClientService,
             mockFhirService,
             mockPoppTokenRepository,
-            mockVsdmDataRepository);
+            mockVsdmDataRepository,
+            mockZetaSdkAdapter);
   }
 
   @Test
   void testRequestPoppToken_FromRepository() throws Exception {
-    String terminalId = "terminal1";
-    Integer egkSlotId = 1;
-    Integer smcBSlotId = 2;
     String expectedToken = "cached-token";
     boolean forceUpdate = false;
 
@@ -138,9 +143,6 @@ class VsdmClientServiceTest {
 
   @Test
   void testRequestPoppToken_FromService() throws Exception {
-    String terminalId = "terminal1";
-    Integer egkSlotId = 1;
-    Integer smcBSlotId = 2;
     String expectedToken = "service-token";
     boolean forceUpdate = false;
 
@@ -172,9 +174,6 @@ class VsdmClientServiceTest {
 
   @Test
   void testRequestPoppToken_ForceUpdate_FromService() throws Exception {
-    String terminalId = "terminal1";
-    Integer egkSlotId = 1;
-    Integer smcBSlotId = 2;
     String expectedToken = "cached-token";
     boolean forceUpdate = true;
 
@@ -206,9 +205,6 @@ class VsdmClientServiceTest {
 
   @Test
   void testRequestPoppToken_PoppClientException() throws Exception {
-    String terminalId = "terminal1";
-    Integer egkSlotId = 1;
-    Integer smcBSlotId = 2;
     boolean forceUpdate = false;
 
     when(mockPoppTokenRepository.get(terminalId, egkSlotId, "card1")).thenReturn(null);
@@ -230,25 +226,26 @@ class VsdmClientServiceTest {
   }
 
   @Test
+  @SneakyThrows
   void testRequestVsd_Success() {
-    Integer egkSlotId = 1;
-    Integer smcBSlotId = 2;
-
-    ZetaHttpResponse mockResponse = mock(ZetaHttpResponse.class);
-    when(mockResponse.getStatusCode()).thenReturn(200);
-    when(mockResponse.getBody()).thenReturn(Optional.of("{\"resourceType\":\"Bundle\"}"));
-    when(mockResponse.getHeaders()).thenReturn(java.util.Map.of());
-    when(mockZetaClientService.sendToPepProxy(any(ZetaHttpRequest.class), eq(true)))
-        .thenReturn(mockResponse);
+    ZetaSdkClientAdapter.Response mockResponse =
+        new ZetaSdkClientAdapter.Response(
+            HttpStatus.OK,
+            HeadersKt.headersOf(),
+            """
+            {"resourceType":"Bundle"}\
+            """);
+    when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenReturn(mockResponse);
 
     VsdmBundle mockBundle = mock(VsdmBundle.class);
-    when(mockFhirService.parseString(anyString(), eq("json"))).thenReturn(mockBundle);
+    when(mockFhirService.parseString(anyString(), eq("json"), eq(VsdmBundle.class)))
+        .thenReturn(mockBundle);
     when(mockFhirService.encodeResponse(eq(mockBundle), eq(EncodingType.JSON)))
         .thenReturn("encoded response");
 
     ResponseEntity<String> response =
         vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token123", "etag123", false, false);
+            terminalId, egkSlotId, smcBSlotId, mockEgkCard, "token123", "etag123", false, false);
 
     assertNotNull(response);
     assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -256,12 +253,12 @@ class VsdmClientServiceTest {
   }
 
   @Test
+  @SneakyThrows
   void testRequestVsd_ServerUnreachable() {
-    Integer egkSlotId = 1;
-    Integer smcBSlotId = 2;
-
-    when(mockZetaClientService.sendToPepProxy(any(ZetaHttpRequest.class), eq(true)))
-        .thenThrow(new ZetaHttpException("Service unreachable", null));
+    // kotlin is accessing deeply nested info when creating an instance, we avoid that pain by
+    // mocking
+    final ServerResponseException serverResponseException = mock(ServerResponseException.class);
+    when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenThrow(serverResponseException);
 
     ResponseEntity<String> response =
         vsdmClientService.requestVsd(
@@ -324,19 +321,15 @@ class VsdmClientServiceTest {
 
   @Test
   void testRequestVsd_FromCache() {
-    String terminal = "terminal1";
-    Integer egkSlotId = 1;
-    Integer smcBSlotId = 2;
-    String cardId = "card1";
     String poppToken = "token123";
     String ifNoneMatch = "etag123";
 
     VsdmCachedValue cachedValue = new VsdmCachedValue("etag123", "pz123", "cached data");
-    when(mockVsdmDataRepository.get(terminal, egkSlotId, cardId)).thenReturn(cachedValue);
+    when(mockVsdmDataRepository.get(terminalId, egkSlotId, cardId)).thenReturn(cachedValue);
 
     ResponseEntity<String> response =
         vsdmClientService.requestVsd(
-            terminal, egkSlotId, smcBSlotId, mockEgkCard, poppToken, ifNoneMatch, false, false);
+            terminalId, egkSlotId, smcBSlotId, mockEgkCard, poppToken, ifNoneMatch, false, false);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals("cached data", response.getBody());
@@ -346,115 +339,107 @@ class VsdmClientServiceTest {
   }
 
   @Test
+  @SneakyThrows
   void testRequestVsd_SuccessfulServerResponse() {
-    String terminal = "terminal1";
-    Integer egkSlotId = 1;
-    Integer smcBSlotId = 2;
-    String cardId = "card1";
     String poppToken = "token123";
 
-    when(mockVsdmDataRepository.get(terminal, egkSlotId, cardId)).thenReturn(null);
+    when(mockVsdmDataRepository.get(terminalId, egkSlotId, cardId)).thenReturn(null);
 
-    ZetaHttpResponse mockResponse = mock(ZetaHttpResponse.class);
-    when(mockResponse.getStatusCode()).thenReturn(200);
-    when(mockResponse.getBody()).thenReturn(Optional.of("{\"resourceType\":\"Bundle\"}"));
-    when(mockResponse.getHeaders())
-        .thenReturn(
-            Map.of(
-                "etag", List.of("new-etag"),
-                "VSDM-Pz", List.of("new-pz"),
-                "Content-Type", List.of("application/fhir+json")));
-    when(mockZetaClientService.sendToPepProxy(any(ZetaHttpRequest.class), eq(true)))
-        .thenReturn(mockResponse);
+    final ZetaSdkClientAdapter.Response mockResponse =
+        new ZetaSdkClientAdapter.Response(
+            HttpStatus.OK,
+            HeadersKt.headers(
+                headersBuilder -> {
+                  headersBuilder.set("etag", "new-etag");
+                  headersBuilder.set("VSDM-Pz", "new-pz");
+                  headersBuilder.set("Content-Type", "application/fhir+json");
+                  return Unit.INSTANCE;
+                }),
+            """
+            {"resourceType":"Bundle"}\
+            """);
+
+    when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenReturn(mockResponse);
 
     VsdmBundle mockBundle = mock(VsdmBundle.class);
-    when(mockFhirService.parseString(anyString(), eq("json"))).thenReturn(mockBundle);
+    when(mockFhirService.parseString(anyString(), eq("json"), eq(VsdmBundle.class)))
+        .thenReturn(mockBundle);
     when(mockFhirService.encodeResponse(eq(mockBundle), eq(EncodingType.JSON)))
         .thenReturn("encoded response");
 
     ResponseEntity<String> response =
         vsdmClientService.requestVsd(
-            terminal, egkSlotId, smcBSlotId, mockEgkCard, poppToken, null, false, false);
+            terminalId, egkSlotId, smcBSlotId, mockEgkCard, poppToken, null, false, false);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals("encoded response", response.getBody());
     verify(mockVsdmDataRepository)
-        .put(eq(terminal), eq(egkSlotId), eq(cardId), any(VsdmCachedValue.class));
+        .put(eq(terminalId), eq(egkSlotId), eq(cardId), any(VsdmCachedValue.class));
   }
 
   @Test
+  @SneakyThrows
   void testRequestVsd_WithXmlFormat() {
-    String terminal = "terminal1";
-    Integer egkSlotId = 1;
-    Integer smcBSlotId = 2;
-    String cardId = "card1";
     String poppToken = "token123";
 
-    when(mockVsdmDataRepository.get(terminal, egkSlotId, cardId)).thenReturn(null);
+    when(mockVsdmDataRepository.get(terminalId, egkSlotId, cardId)).thenReturn(null);
 
-    ZetaHttpResponse mockResponse = mock(ZetaHttpResponse.class);
-    when(mockResponse.getStatusCode()).thenReturn(200);
-    when(mockResponse.getBody())
-        .thenReturn(Optional.of("<Bundle xmlns=\"http://hl7.org/fhir\"></Bundle>"));
-    when(mockResponse.getHeaders()).thenReturn(Map.of());
-    when(mockZetaClientService.sendToPepProxy(any(ZetaHttpRequest.class), eq(true)))
-        .thenReturn(mockResponse);
+    final ZetaSdkClientAdapter.Response mockResponse =
+        new ZetaSdkClientAdapter.Response(
+            HttpStatus.OK,
+            HeadersKt.headersOf(),
+            """
+            <Bundle xmlns="http://hl7.org/fhir"></Bundle>
+            """);
+    when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenReturn(mockResponse);
 
     VsdmBundle mockBundle = mock(VsdmBundle.class);
-    when(mockFhirService.parseString(anyString(), eq("xml"))).thenReturn(mockBundle);
-    when(mockFhirService.encodeResponse(eq(mockBundle), eq(EncodingType.JSON)))
+    when(mockFhirService.parseString(anyString(), eq("xml"), eq(VsdmBundle.class)))
+        .thenReturn(mockBundle);
+    when(mockFhirService.encodeResponse(mockBundle, EncodingType.JSON))
         .thenReturn("encoded xml response");
 
     ResponseEntity<String> response =
         vsdmClientService.requestVsd(
-            terminal, egkSlotId, smcBSlotId, mockEgkCard, poppToken, null, true, false);
+            terminalId, egkSlotId, smcBSlotId, mockEgkCard, poppToken, null, true, false);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals("encoded xml response", response.getBody());
 
-    ArgumentCaptor<ZetaHttpRequest> requestCaptor = ArgumentCaptor.forClass(ZetaHttpRequest.class);
-    verify(mockZetaClientService).sendToPepProxy(requestCaptor.capture(), eq(true));
-    assertEquals("application/fhir+xml", requestCaptor.getValue().getHeader("Accept"));
+    ArgumentCaptor<ZetaSdkClientAdapter.RequestParameters> requestCaptor =
+        ArgumentCaptor.forClass(ZetaSdkClientAdapter.RequestParameters.class);
+    verify(mockZetaSdkAdapter).httpGet(anyString(), requestCaptor.capture());
+    assertTrue(requestCaptor.getValue().isFhirXml());
   }
 
   @Test
+  @SneakyThrows
   void testRequestVsd_ServerError() {
-    String terminal = "terminal1";
-    Integer egkSlotId = 1;
-    Integer smcBSlotId = 2;
-    String cardId = "card1";
     String poppToken = "token123";
 
     vsdmClientService =
         new VsdmClientService(
-            vsdmConfig,
             mockPoppClientService,
             new FhirService(),
             mockPoppTokenRepository,
-            mockVsdmDataRepository);
+            mockVsdmDataRepository,
+            mockZetaSdkAdapter);
 
-    when(mockVsdmDataRepository.get(terminal, egkSlotId, cardId)).thenReturn(null);
+    when(mockVsdmDataRepository.get(terminalId, egkSlotId, cardId)).thenReturn(null);
 
-    ZetaHttpResponse mockResponse = mock(ZetaHttpResponse.class);
-    when(mockResponse.getStatusCode()).thenReturn(500);
+    final ZetaSdkClientAdapter.Response mockResponse =
+        new ZetaSdkClientAdapter.Response(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            HeadersKt.headersOf(),
+            "{\"resourceType\":\"Bundle\",\"id\":\"9f8a388d-c6ba-47d3-a644-34750542d1a0\",\"meta\":{\"profile\":[\"https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMBundle\"]},\"identifier\":{\"system\":\"urn:ietf:rfc:3986\",\"value\":\"urn:uuid:9f8a388d-c6ba-47d3-a644-34750542d1a0\"},\"type\":\"document\",\"timestamp\":\"2025-08-21T14:15:33.402+02:00\",\"entry\":[{\"fullUrl\":\"https://gematik.de/fhir/OperationOutcome/70237e55-ec26-4ee9-8b8d-1e5cc7f0af26\",\"resource\":{\"resourceType\":\"OperationOutcome\",\"id\":\"70237e55-ec26-4ee9-8b8d-1e5cc7f0af26\",\"meta\":{\"profile\":[\"https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMOperationOutcome\"]},\"issue\":[{\"severity\":\"fatal\",\"code\":\"invalid\",\"details\":{\"coding\":[{\"code\":\"VSDSERVICE_INTERNAL_SERVER_ERROR\",\"display\":\"Unerwarteter"
+                + " interner Fehler des Fachdienstes VSDM. \"}],\"text\":\"Unerwarteter interner"
+                + " Fehler des Fachdienstes VSDM. \"}}]}}]}");
 
-    VsdmOperationOutcome operationOutcome =
-        VsdmOperationOutcomeBuilder.create()
-            .withCode("79010")
-            .withReference("VSDSERVICE_INTERNAL_SERVER_ERROR")
-            .withText("text")
-            .build();
-    String operationOutcomeJson =
-        new FhirService().encodeResponse(operationOutcome, EncodingType.JSON);
-    when(mockResponse.getBody()).thenReturn(Optional.of(operationOutcomeJson));
-
-    when(mockResponse.getHeaders()).thenReturn(Map.of());
-    when(mockZetaClientService.sendToPepProxy(any(ZetaHttpRequest.class), eq(true)))
-        .thenReturn(mockResponse);
+    when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenReturn(mockResponse);
 
     ResponseEntity<String> response =
         vsdmClientService.requestVsd(
-            terminal, egkSlotId, smcBSlotId, mockEgkCard, poppToken, null, false, false);
+            terminalId, egkSlotId, smcBSlotId, mockEgkCard, poppToken, null, false, false);
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     assertTrue(response.hasBody());
@@ -464,32 +449,26 @@ class VsdmClientServiceTest {
   }
 
   @Test
+  @SneakyThrows
   void testRequestVsd_WithIfNoneMatchHeader() {
-    String terminal = "terminal1";
-    Integer egkSlotId = 1;
-    Integer smcBSlotId = 2;
-    String cardId = "card1";
-    String poppToken = "token123";
     String ifNoneMatch = "existing-etag";
 
-    when(mockVsdmDataRepository.get(terminal, egkSlotId, cardId)).thenReturn(null);
+    when(mockVsdmDataRepository.get(terminalId, egkSlotId, cardId)).thenReturn(null);
 
-    ZetaHttpResponse mockResponse = mock(ZetaHttpResponse.class);
-    when(mockResponse.getStatusCode()).thenReturn(304);
-    when(mockResponse.getBody()).thenReturn(Optional.empty());
-    when(mockResponse.getHeaders()).thenReturn(Map.of());
-    when(mockZetaClientService.sendToPepProxy(any(ZetaHttpRequest.class), eq(true)))
-        .thenReturn(mockResponse);
+    final ZetaSdkClientAdapter.Response mockResponse =
+        new ZetaSdkClientAdapter.Response(HttpStatus.NOT_MODIFIED, HeadersKt.headersOf(), "");
+    when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenReturn(mockResponse);
 
     ResponseEntity<String> response =
         vsdmClientService.requestVsd(
-            terminal, egkSlotId, smcBSlotId, mockEgkCard, poppToken, ifNoneMatch, false, false);
+            terminalId, egkSlotId, smcBSlotId, mockEgkCard, poppToken, ifNoneMatch, false, false);
 
     assertEquals(HttpStatus.NOT_MODIFIED, response.getStatusCode());
 
-    ArgumentCaptor<ZetaHttpRequest> requestCaptor = ArgumentCaptor.forClass(ZetaHttpRequest.class);
-    verify(mockZetaClientService).sendToPepProxy(requestCaptor.capture(), eq(true));
-    assertEquals("existing-etag", requestCaptor.getValue().getHeader("If-None-Match"));
+    ArgumentCaptor<ZetaSdkClientAdapter.RequestParameters> requestCaptor =
+        ArgumentCaptor.forClass(ZetaSdkClientAdapter.RequestParameters.class);
+    verify(mockZetaSdkAdapter).httpGet(anyString(), requestCaptor.capture());
+    assertEquals("existing-etag", requestCaptor.getValue().ifNoneMatch());
   }
 
   @Nested

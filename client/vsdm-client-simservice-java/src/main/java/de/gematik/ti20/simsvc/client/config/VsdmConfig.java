@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 public class VsdmConfig {
-
-  private String url;
+  private String resourceServerUrl; // Entry point of the backend VSDM service
+  private String pdpUrl; // Authorization endpoint of the backend VSDM service (must end with
+  // protocol/openid-connect/ for Zeta SDK 0.1.0)
 }

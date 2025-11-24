@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-mvn clean install
-doc/bin/vsdm/docker-build-all-local.sh
+mvn clean install -Pdocker
 doc/bin/vsdm/docker-compose-local-restart.sh

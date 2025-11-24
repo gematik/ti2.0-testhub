@@ -21,13 +21,15 @@
 package de.gematik.ti20.client.card.terminal;
 
 import de.gematik.ti20.client.card.config.TerminalSlotConfig;
+import okhttp3.OkHttpClient;
 
 public class TerminalSlotFactoryV1 {
 
-  public static TerminalSlotV1 createFrom(TerminalSlotConfig config, CardTerminalV1 terminal) {
+  public static TerminalSlotV1 createFrom(
+      TerminalSlotConfig config, CardTerminalV1 terminal, OkHttpClient okHttpClient) {
     switch (config.getType()) {
       case JSON:
-        return new TerminalSlotJsonV1(config, terminal);
+        return new TerminalSlotJsonV1(config, terminal, okHttpClient);
       default:
         throw new IllegalArgumentException("Unknown terminal type: " + config.getType());
     }

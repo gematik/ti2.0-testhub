@@ -1,6 +1,4 @@
-<br/>
-<img style="float: right;" width="250" height="47" src="../../images/Gematik_Logo_Flag_With_Background.png" alt=""/>
-<br/>
+<img align="right" width="250" height="47" src="images/Gematik_Logo_Flag_With_Background.png"/><br/>
 
 # VSDM 2.0 Testsuite
 
@@ -10,6 +8,17 @@ Die vorliegende Testsuite beinhaltet verschiedene E2E- und IT-Tests, welche die 
 prüfen und sich an der gematik Spezifikation für den Fachdienst VSDM 2.0 (gemSpec_VSDM_2) orientieren. Die Testfälle
 sind mittels Gherkin beschrieben und werden durch das Cucumber und Serenity-Framework zur Ausführung gebracht.
 Zusätzlich wird das Tiger-Framework der gematik zur Visualisierung und Auswertung der Tests verwendet.
+
+### Screenplay Pattern
+
+Die Implementierung der Testschritte folgt dem sogenannten Screenplay Pattern von Serenity. Im Zentrum steht der Actor,
+hier das Primärsystem, welcher bestimmte Fähigkeiten (abilities) besitzt, um bestimmte Aufgaben (tasks) übernehmen zu
+können. Schließlich kann der Actor auch Fragen (questions) beantworten, welche die Ergebnisse der Aufgaben prüfen.
+
+* Actor --> HCCS (Healthcare Client System)
+* Abilities --> API-Knowledge
+* Tasks --> API-Requests
+* Questions --> API-Responses
 
 Weiterhin bietet die VSDM 2.0 Testsuite eine Lastsimulation basierend auf Gatling an. Diese Simulation kann je nach
 Konfiguration verschiedene Laststufen und Lastkurven (linear, nicht-linear) generieren. Die Konfiguration für die
@@ -37,19 +46,12 @@ Docker-Container gestartet werden: (Der Skript-Aufruf sollte im Projekt-Root-Ver
 ./doc/bin/vsdm/docker-compose-local-rebuild.sh
 ```
 
-Das obige Skript kennt die folgenden Parameter:
-
-* -h --help --> Anzeige der Hilfe
-* -d --dry-run --> Anzeige der Befehle
-* -s --skip-tests --> Alle Tests überspringen
-* -p --projects LIST --> Auswahl einzelner Projekte
-
 Die untere Grafik zeigt den TI 2.0 TestHub in seiner ersten Ausbaustufe, welche ausschließlich aus Simulatoren bzw.
 Mocks besteht. Die VSDM 2.0 Testsuite sendet Anfragen an den Card, den PoPP und den VSDM Client Simulator. Diese
 kommunizieren mit den jeweiligen Server Simulatoren bzw. Mocks.
 
 <br/>
-<img width="1108" height="744" src="./src/test/resources/images/TI20_TestHub.png" alt=""/>
+<img width="1108" height="744" src="./src/test/resources/images/TI20_TestHub_Stufe_2.png" alt=""/>
 <br/>
 
 ## Integrationstests
