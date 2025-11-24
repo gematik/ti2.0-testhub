@@ -66,9 +66,11 @@ All components are designed as mock/simulation services for development and test
 The Testhub implements a **Zero Trust Architecture** with multiple layers of services communicating through
 authenticated channels.
 
-### Component Overview (Stufe 1)
+### Component Overview (Stufe 2)
 
-<img align="left" src="images/ti20-testhub-ausbaustufe-1.png"/><br/>
+<br/>
+<img width="1108" height="744" src="images/TI20_TestHub_Stufe_2.png" alt=""/>
+<br/>
 
 ### Service Descriptions
 

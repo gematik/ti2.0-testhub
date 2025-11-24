@@ -7,13 +7,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.1.0</version>
+        <version>1.1.1</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.simsvc.server</groupId>
     <artifactId>zeta-pep-server-mockservice</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
 
     <name>ZeTA Policy Enforcement Point Mockservice</name>
     <description>Mock-Service for ZeTA Policy Enforcement Point</description>

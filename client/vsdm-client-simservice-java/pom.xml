@@ -7,13 +7,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.1.0</version>
+        <version>1.1.1</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.simsvc.client</groupId>
     <artifactId>vsdm-client-simservice</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
 
     <name>VSDM Client Simulator Service</name>
     <description>Simulator-Service for VSDM2 related activities in client</description>
