@@ -3,9 +3,9 @@ server:
 
 proxy:
   http:
-    url: http://popp-server
+    url: ${PROXY_HTTP_URL:http://popp-server}
   ws:
-    url: ws://popp-server
+    url: ${PROXY_WS_URL:ws://popp-server}
   sec:
     store:
       path: "./zetakeystore.p12"
@@ -19,7 +19,7 @@ otel:
     disabled: true
 
 well-known:
-  issuer: http://zeta-pep-popp
-  auth_ep: http://zeta-pdp-popp/auth
-  token_ep: http://zeta-pdp-popp/token
-  nonce_ep: http://zeta-pdp-popp/nonce
+  issuer: ${WK_ISSUER:http://zeta-pep-popp}
+  auth_ep: ${WK_AUTH_EP:http://zeta-pdp-popp/auth}
+  token_ep: ${WK_TOKEN_EP:http://zeta-pdp-popp/token}
+  nonce_ep: ${WK_NONCE_EP:http://zeta-pdp-popp/nonce}

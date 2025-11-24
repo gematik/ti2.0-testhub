@@ -5,7 +5,7 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>1.0.3</version>
+    <version>1.1.0</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>
@@ -29,6 +29,8 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.release>21</maven.compiler.release>
+
+        <zeta-sdk-jvm.version>0.1.2</zeta-sdk-jvm.version>
 
         <version.maven-antrun-plugin>3.1.0</version.maven-antrun-plugin>
         <version.maven.surefire>3.5.4</version.maven.surefire>
@@ -211,21 +213,21 @@
             <scope>test</scope>
         </dependency>
 
-        <!--        <dependency>-->
-        <!--            <groupId>de.gematik.bbriccs</groupId>-->
-        <!--            <artifactId>utility-bricks</artifactId>-->
-        <!--            <version>${version.gem.bbriccs}</version>-->
-        <!--            <type>pom</type>-->
-        <!--            <scope>provided</scope>-->
-        <!--        </dependency>-->
-        <!--        -->
-        <!--        <dependency>-->
-        <!--            <groupId>de.gematik.bbriccs</groupId>-->
-        <!--            <artifactId>restful-bricks</artifactId>-->
-        <!--            <version>${version.gem.bbriccs}</version>-->
-        <!--            <type>pom</type>-->
-        <!--            <scope>provided</scope>-->
-        <!--        </dependency>-->
+        <dependency>
+            <groupId>de.gematik.bbriccs</groupId>
+            <artifactId>utility-bricks</artifactId>
+            <version>${version.gem.bbriccs}</version>
+            <type>pom</type>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>de.gematik.bbriccs</groupId>
+            <artifactId>restful-bricks</artifactId>
+            <version>${version.gem.bbriccs}</version>
+            <type>pom</type>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

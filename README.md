@@ -169,22 +169,28 @@ This will:
 
 ### 3. Build Docker Images
 
-Create Docker images for all services:
+To create Docker images for all services, run maven install with activated docker profile:
 
 ```bash
-./doc/bin/vsdm/docker-build-all-local.sh
+mvn clean install -Pdocker
 ```
 
 This will create Docker images for all components and tag them with `local/<component>:latest`.
 
 **Images created:**
 
-- `card-terminal-client-simservice:local`
-- `vsdm-client-simservice:local`
-- `vsdm-server-simservice:local`
-- `popp-server-mockservice:local`
-- `zeta-pdp-server-mockservice:local`
-- `zeta-pep-server-mockservice:local`
+- `de.gematik.ti20.simsvc.client/card-terminal-client-simservice:local`
+- `de.gematik.ti20.simsvc.client/vsdm-client-simservice:local`
+- `de.gematik.ti20.simsvc.server/vsdm-server-simservice:local`
+- `de.gematik.ti20.simsvc.server/popp-server-mockservice:local`
+- `de.gematik.ti20.simsvc.server/zeta-pdp-server-mockservice:local`
+- `de.gematik.ti20.simsvc.server/zeta-pep-server-mockservice:local`
+
+To create only specific images, navigate to the respective module directory and run:
+
+```bash
+docker build .
+```
 
 ## Getting Started
 
@@ -269,7 +275,7 @@ Each service can be configured via environment variables. Key configuration opti
 #### Client Services
 
 - `POPP_HTTP_URL` - PoPP service HTTP URL
-- `VSDM_HTTP_URL` - VSDM service HTTP URL
+- `VSDM_RESOURCE_SERVER_URL` - VSDM service HTTP URL
 
 ### Docker Compose Profiles
 

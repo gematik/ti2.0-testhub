@@ -7,23 +7,25 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.0.3</version>
+        <version>1.1.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.simsvc.client</groupId>
     <artifactId>vsdm-client-simservice</artifactId>
-    <version>1.0.3</version>
+    <version>1.1.0</version>
 
     <name>VSDM Client Simulator Service</name>
     <description>Simulator-Service for VSDM2 related activities in client</description>
 
     <properties>
         <start-class>de.gematik.ti20.simsvc.client.Main</start-class>
-
         <skip.unittests>false</skip.unittests>
         <skip.inttests>true</skip.inttests>
-        <image.docker.tag>${project.artifactId}:local</image.docker.tag>
+        <image.docker.tag>${project.groupId}/${project.artifactId}:local</image.docker.tag>
+
+        <!-- Exclude ZetaSdkClientAdapter from Test Coverage analysis as it is tested in integration tests (VsdmClientIT.java) and is not feasible to be tested via unit tests -->
+        <sonar.exclusions>**/ZetaSdkClientAdapter.java</sonar.exclusions>
     </properties>
 
     <dependencies>
@@ -60,8 +62,19 @@
             <artifactId>card-client-lib</artifactId>
         </dependency>
         <dependency>
-            <groupId>de.gematik.ti20.client</groupId>
-            <artifactId>zeta-client-lib</artifactId>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-client-java-jvm</artifactId>
+            <version>3.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-jdk8</artifactId>
+            <version>1.10.2</version>
+        </dependency>
+        <dependency>
+            <groupId>de.gematik.zeta</groupId>
+            <artifactId>zeta-sdk-jvm</artifactId>
+            <version>${zeta-sdk-jvm.version}</version>
         </dependency>
         <dependency>
             <groupId>de.gematik.ti20.client</groupId>

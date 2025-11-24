@@ -121,9 +121,7 @@ class EtagServiceTest {
     etagService.addEtagHeader(kvnr, encodedResponse, headers);
     String etag = headers.getFirst(EtagService.HEADER_NAME);
 
-    when(request.getHeader("If-None-Match")).thenReturn(etag);
-
-    boolean result = etagService.checkEtag(kvnr, request);
+    boolean result = etagService.checkEtag(kvnr, etag);
 
     assertTrue(result);
   }
@@ -137,9 +135,7 @@ class EtagServiceTest {
     // Generate etag first
     etagService.addEtagHeader(kvnr, encodedResponse, headers);
 
-    when(request.getHeader("If-None-Match")).thenReturn("different-etag");
-
-    boolean result = etagService.checkEtag(kvnr, request);
+    boolean result = etagService.checkEtag(kvnr, "different-etag");
 
     assertFalse(result);
   }
@@ -153,23 +149,21 @@ class EtagServiceTest {
     // Generate etag first
     etagService.addEtagHeader(kvnr, encodedResponse, headers);
 
-    when(request.getHeader("If-None-Match")).thenReturn(null);
-
-    boolean result = etagService.checkEtag(kvnr, request);
+    boolean result = etagService.checkEtag(kvnr, null);
 
     assertFalse(result);
   }
 
   @Test
   void testCheckEtag_EmptyKvnr() {
-    boolean result = etagService.checkEtag("", request);
+    boolean result = etagService.checkEtag("", "0");
 
     assertFalse(result);
   }
 
   @Test
   void testCheckEtag_NullKvnr() {
-    boolean result = etagService.checkEtag(null, request);
+    boolean result = etagService.checkEtag(null, "0");
 
     assertFalse(result);
   }
@@ -177,7 +171,7 @@ class EtagServiceTest {
   @Test
   void testCheckEtag_NoStoredEtag() {
     String kvnr = "X999999999";
-    boolean result = etagService.checkEtag(kvnr, request);
+    boolean result = etagService.checkEtag(kvnr, "0");
 
     assertFalse(result);
   }
@@ -209,8 +203,7 @@ class EtagServiceTest {
     String firstEtag = headers.getFirst(EtagService.HEADER_NAME);
 
     // Check etag exists in store
-    when(request.getHeader("If-None-Match")).thenReturn(firstEtag);
-    assertTrue(etagService.checkEtag(kvnr, request));
+    assertTrue(etagService.checkEtag(kvnr, firstEtag));
 
     // Generate another etag for same kvnr - should return same etag
     HttpHeaders headers2 = new HttpHeaders();

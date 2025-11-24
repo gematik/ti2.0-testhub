@@ -6,13 +6,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.0.3</version>
+        <version>1.1.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.simsvc.client</groupId>
     <artifactId>card-terminal-client-simservice</artifactId>
-    <version>1.0.3</version>
+    <version>1.1.0</version>
 
     <name>Card Terminal Simulator</name>
     <description>A simulator for smart card terminals with REST API</description>
@@ -20,7 +20,7 @@
     <properties>
         <skip.unittests>false</skip.unittests>
         <skip.inttests>true</skip.inttests>
-        <image.docker.tag>${project.artifactId}:local</image.docker.tag>
+        <image.docker.tag>${project.groupId}/${project.artifactId}:local</image.docker.tag>
     </properties>
 
     <dependencies>

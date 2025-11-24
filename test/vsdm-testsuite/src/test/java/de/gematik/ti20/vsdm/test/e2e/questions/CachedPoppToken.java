@@ -18,19 +18,22 @@
  *
  * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
-package de.gematik.ti20.vsdm.test.e2e.steps;
+package de.gematik.ti20.vsdm.test.e2e.questions;
 
-import de.gematik.ti20.vsdm.test.e2e.models.EgkCardInfo;
-import de.gematik.ti20.vsdm.test.e2e.models.SmcbCardInfo;
-import io.cucumber.java.de.Angenommen;
-import net.serenitybdd.core.Serenity;
+import io.restassured.response.Response;
+import java.util.Objects;
+import net.serenitybdd.screenplay.Actor;
+import net.serenitybdd.screenplay.Question;
 
-public class PoppSteps extends BaseSteps {
+public class CachedPoppToken implements Question<String> {
 
-  @Angenommen("das Primärsystem hat den Versorgungskontext als PoPP-Token gespeichert")
-  public void givenClientSystemHasStoredPoppToken() throws Exception {
-    SmcbCardInfo smcbCardInfo = Serenity.sessionVariableCalled("smcbCardInfo");
-    EgkCardInfo egkCardInfo = Serenity.sessionVariableCalled("egkCardInfo");
-    generatePoppToken(smcbCardInfo, egkCardInfo);
+  public static CachedPoppToken value() {
+    return new CachedPoppToken();
+  }
+
+  @Override
+  public String answeredBy(Actor actor) {
+    Response response = actor.recall("lastResponse");
+    return Objects.requireNonNull(response.getBody().asString());
   }
 }

@@ -73,6 +73,12 @@ public class TestController {
       @RequestParam final String terminalId,
       @RequestParam final Integer slotId,
       @RequestParam final String cardId) {
+    log.info(
+        "getVsdmData called with terminalId: {}, slotId: {}, cardId: {}",
+        terminalId,
+        slotId,
+        cardId);
+
     return vsdmDataRepository.get(terminalId, slotId, cardId);
   }
 
@@ -80,6 +86,7 @@ public class TestController {
   public ResponseEntity<String> readEgk(
       @RequestParam final String terminalId, @RequestParam final Integer egkSlotId)
       throws CardTerminalException {
+    log.info("readEgk called with terminalId: {}, egkSlotId: {}", terminalId, egkSlotId);
 
     final AttachedCard attachedCard = vsdmClientService.getAttachedCard(terminalId, egkSlotId);
     final String egkData = vsdmClientService.loadTruncatedDataFromCard(attachedCard);

@@ -12,4 +12,5 @@ popp:
     url: ws://localhost:9110
 
 vsdm:
-  url: http://localhost:9120
+  resourceServerUrl: http://localhost:9120
+  pdpUrl: http://localhost:9122

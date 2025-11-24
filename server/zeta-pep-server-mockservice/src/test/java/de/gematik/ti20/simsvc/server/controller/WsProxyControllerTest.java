@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import de.gematik.ti20.simsvc.server.config.HttpConfig;
-import de.gematik.ti20.simsvc.server.service.TokenService;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
@@ -43,15 +42,13 @@ class WsProxyControllerTest {
 
   private WsProxyController wsProxyController;
   private HttpConfig httpConfig;
-  private TokenService tokenService;
   private WsHandshakeInterceptor wsHandshakeInterceptor;
 
   @BeforeEach
   void setUp() {
     httpConfig = mock(HttpConfig.class);
-    tokenService = mock(TokenService.class);
     wsHandshakeInterceptor = mock(WsHandshakeInterceptor.class);
-    wsProxyController = new WsProxyController(httpConfig, tokenService, wsHandshakeInterceptor);
+    wsProxyController = new WsProxyController(httpConfig, wsHandshakeInterceptor);
   }
 
   @Test

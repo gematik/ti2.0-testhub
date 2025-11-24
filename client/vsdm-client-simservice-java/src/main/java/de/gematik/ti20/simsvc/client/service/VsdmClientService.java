@@ -20,6 +20,7 @@
  */
 package de.gematik.ti20.simsvc.client.service;
 
+import com.google.common.base.Strings;
 import de.gematik.bbriccs.fhir.EncodingType;
 import de.gematik.bbriccs.rest.fd.MediaType;
 import de.gematik.ti20.client.card.card.AttachedCard;
@@ -32,18 +33,15 @@ import de.gematik.ti20.client.popp.message.TokenMessage;
 import de.gematik.ti20.client.popp.service.PoppClientService;
 import de.gematik.ti20.client.popp.service.PoppTokenSession;
 import de.gematik.ti20.client.popp.service.PoppTokenSessionEventHandler;
-import de.gematik.ti20.client.zeta.exception.ZetaHttpException;
-import de.gematik.ti20.client.zeta.exception.ZetaHttpResponseException;
-import de.gematik.ti20.client.zeta.request.ZetaHttpRequest;
-import de.gematik.ti20.client.zeta.response.ZetaHttpResponse;
 import de.gematik.ti20.client.zeta.service.ZetaClientService;
-import de.gematik.ti20.simsvc.client.config.VsdmConfig;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
 import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
 import de.gematik.ti20.vsdm.fhir.builder.VsdmBundleBuilder;
 import de.gematik.ti20.vsdm.fhir.builder.VsdmPatientBuilder;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
+import io.ktor.client.plugins.ClientRequestException;
+import io.ktor.client.plugins.ServerResponseException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,8 +50,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import kotlin.Unit;
 import lombok.extern.slf4j.Slf4j;
-import org.hl7.fhir.r4.model.Resource;
+import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,12 +66,12 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
   public static final String HEADER_VSDM_PZ = "VSDM-Pz";
   public static final String HEADER_ETAG = "etag";
 
-  private final VsdmConfig vsdmConfig;
   private final PoppClientService poppClientService;
-  private final ZetaClientService zetaClientService;
+  private final ZetaClientService poppZetaClient;
 
   private final PoppTokenRepository poppTokenRepository;
   private final VsdmDataRepository vsdmDataRepository;
+  private final ZetaSdkClientAdapter vsdmZetaClient;
 
   private List<CardTerminalConnectionConfig> terminalConnectionConfigs;
 
@@ -81,21 +80,21 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
   private Map<String, CompletableFuture<TokenMessage>> tokenFutures = new ConcurrentHashMap<>();
 
   public VsdmClientService(
-      final VsdmConfig vsdmConfig,
       final PoppClientService poppClientService,
       final FhirService fhirService,
       final PoppTokenRepository poppTokenRepository,
-      final VsdmDataRepository vsdmDataRepository) {
-    this.vsdmConfig = vsdmConfig;
+      final VsdmDataRepository vsdmDataRepository,
+      final ZetaSdkClientAdapter vsdmZetaClient) {
 
     this.poppClientService = poppClientService;
-    this.zetaClientService = poppClientService.getZetaClientService();
+    this.poppZetaClient = poppClientService.getZetaClientService();
     this.fhirService = fhirService;
 
     this.poppTokenRepository = poppTokenRepository;
     this.vsdmDataRepository = vsdmDataRepository;
 
     this.terminalConnectionConfigs = new ArrayList<>();
+    this.vsdmZetaClient = vsdmZetaClient;
   }
 
   public ResponseEntity<String> read(
@@ -196,6 +195,10 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
           "Timeout error on waiting for completing of PoppTokenSession with card {}",
           attachedCard.getId());
       throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      log.error("Thread interrupted while waiting for completing of PoppTokenSession with card", e);
+      throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
     } catch (final Exception e) {
       log.error(
           "Error on waiting for completing of PoppTokenSession with card {} ",
@@ -217,6 +220,7 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
 
     final VsdmCachedValue vsdmCachedValue =
         forceUpdate ? null : vsdmDataRepository.get(terminal, egkSlotId, attachedCard.getId());
+    final String traceId = MDC.get("traceId");
     if (vsdmCachedValue != null) {
       return ResponseEntity.status(HttpStatus.OK)
           .header(HEADER_VSDM_PZ, vsdmCachedValue.getPruefziffer())
@@ -224,59 +228,42 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
           .body(vsdmCachedValue.getVsdmData());
     }
 
-    final String vsdmServerUrl = vsdmConfig.getUrl();
-
-    final ZetaHttpRequest zetaHttpRequest =
-        new ZetaHttpRequest(vsdmServerUrl + "/vsdservice/v1/vsdmbundle");
-
-    zetaHttpRequest.setHeader("PoPP", poppToken);
-    zetaHttpRequest.setHeader(
-        "Accept", (isFhirXml) ? "application/fhir+xml" : "application/fhir+json");
-    zetaHttpRequest.setHeader("smcbSlotId", String.valueOf(smcbSlotId));
-    if (ifNoneMatch != null) {
-      log.debug("Setting If-None-Match header: {}", ifNoneMatch);
-      zetaHttpRequest.setHeader("If-None-Match", ifNoneMatch);
-    } else {
-      log.debug("Setting If-None-Match header: empty");
-    }
-
     try {
-      // this response can be XML or JSON, but we return only JSON
-      final ZetaHttpResponse responseFromServer =
-          zetaClientService.sendToPepProxy(zetaHttpRequest, true);
+      final ZetaSdkClientAdapter.RequestParameters requestParameters =
+          new ZetaSdkClientAdapter.RequestParameters(traceId, poppToken, isFhirXml, ifNoneMatch);
+      final ZetaSdkClientAdapter.Response responseFromServer =
+          vsdmZetaClient.httpGet("vsdservice/v1/vsdmbundle", requestParameters);
 
-      log.debug(
-          "Received response from VSD server: {}; {}",
-          responseFromServer.getStatusCode(),
-          responseFromServer.getBody().orElse("empty"));
-
-      final String responseToCaller = encodeVsdmBundle(isFhirXml, responseFromServer);
-      if (responseFromServer.getStatusCode() == HttpURLConnection.HTTP_OK) {
-        if (responseToCaller == null) {
-          throw new ResponseStatusException(
-              HttpStatus.INTERNAL_SERVER_ERROR, "Could not parse valid FHIR response");
-        }
-        final HttpHeaders responseHeaders = copyApplicableHeaders(responseFromServer);
-        responseHeaders.put("Content-Type", List.of(MediaType.FHIR_JSON.asString()));
-
-        vsdmDataRepository.put(
-            terminal,
-            egkSlotId,
-            attachedCard.getId(),
-            new VsdmCachedValue(
-                responseHeaders.getETag(),
-                responseHeaders.getFirst(HEADER_VSDM_PZ),
-                responseToCaller));
-
-        return ResponseEntity.status(HttpStatus.OK).headers(responseHeaders).body(responseToCaller);
-      } else {
-        return ResponseEntity.status(responseFromServer.getStatusCode())
+      if (!responseFromServer.statusCode().is2xxSuccessful()) {
+        return ResponseEntity.status(responseFromServer.statusCode())
             .headers(copyApplicableHeaders(responseFromServer))
-            .body(responseToCaller);
+            .body(responseFromServer.body());
       }
-    } catch (final ZetaHttpResponseException e) {
-      return ResponseEntity.status(e.getCode()).body(e.getMessage());
-    } catch (final ZetaHttpException e) {
+
+      final String responseToCaller = encodeVsdmBundle(isFhirXml, responseFromServer.body());
+
+      if (responseToCaller == null) {
+        throw new ResponseStatusException(
+            HttpStatus.INTERNAL_SERVER_ERROR, "Could not parse valid FHIR response");
+      }
+      final HttpHeaders responseHeaders = copyApplicableHeaders(responseFromServer);
+      responseHeaders.put("Content-Type", List.of(MediaType.FHIR_JSON.asString()));
+
+      vsdmDataRepository.put(
+          terminal,
+          egkSlotId,
+          attachedCard.getId(),
+          new VsdmCachedValue(
+              responseHeaders.getETag(),
+              responseHeaders.getFirst(HEADER_VSDM_PZ),
+              responseToCaller));
+
+      return ResponseEntity.status(HttpStatus.OK).headers(responseHeaders).body(responseToCaller);
+
+    } catch (final ClientRequestException e) {
+      final int responseStatus = e.getResponse().getStatus().getValue();
+      return ResponseEntity.status(responseStatus).body(e.getMessage());
+    } catch (final ServerResponseException e) {
       log.error("Error while connecting to VSDM server: {}", e.getMessage(), e);
 
       try {
@@ -289,23 +276,24 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
         log.error("Error while loading truncated data from card: {}", cardEx.getMessage(), cardEx);
         throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
       }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      log.error("Thread interrupted while requesting VsdBundle with token", e);
+      throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
     } catch (final Exception e) {
       log.error("Error on requesting VsdBundle with token", e);
       throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
     }
   }
 
-  private String encodeVsdmBundle(
-      final boolean isFhirXml, final ZetaHttpResponse responseFromServer) {
-    final String responseFromServerBody = responseFromServer.getBody().orElse(null);
-    if (responseFromServerBody != null && !responseFromServerBody.isEmpty()) {
-      final Resource resource =
-          fhirService.parseString(responseFromServerBody, isFhirXml ? "xml" : "json");
-
-      return fhirService.encodeResponse(resource, EncodingType.JSON);
+  private String encodeVsdmBundle(final boolean isFhirXml, final String body) {
+    if (Strings.isNullOrEmpty(body)) {
+      return null;
     }
 
-    return null;
+    final VsdmBundle vsdmBundle =
+        fhirService.parseString(body, isFhirXml ? "xml" : "json", VsdmBundle.class);
+    return fhirService.encodeResponse(vsdmBundle, EncodingType.JSON);
   }
 
   public String loadTruncatedDataFromCard(final AttachedCard attachedCard)
@@ -329,10 +317,11 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
     return fhirService.encodeResponse(truncatedDataBundle, EncodingType.JSON);
   }
 
-  private HttpHeaders copyApplicableHeaders(final ZetaHttpResponse responseFromServer) {
+  private HttpHeaders copyApplicableHeaders(
+      final ZetaSdkClientAdapter.Response responseFromServer) {
     final HttpHeaders responseHeaders = new HttpHeaders();
     responseFromServer
-        .getHeaders()
+        .headers()
         .forEach(
             (key, values) -> {
               if (key.equalsIgnoreCase(HEADER_VSDM_PZ)
@@ -341,6 +330,7 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
                   || key.equalsIgnoreCase("Content-Length")) {
                 responseHeaders.put(key, values);
               }
+              return Unit.INSTANCE;
             });
 
     return responseHeaders;
@@ -355,7 +345,7 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
 
     terminalConnectionConfigs = configs;
 
-    zetaClientService.getZetaClientConfig().setTerminalConnectionConfigs(configs);
+    poppZetaClient.getZetaClientConfig().setTerminalConnectionConfigs(configs);
     poppClientService.getPoppClientConfig().setTerminalConnectionConfigs(configs);
   }
 

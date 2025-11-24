@@ -20,13 +20,13 @@
  */
 package de.gematik.ti20.simsvc.server.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import de.gematik.ti20.simsvc.server.model.TokenRequestBody;
 import de.gematik.ti20.simsvc.server.service.AccessTokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,7 +41,7 @@ public class AuthzController {
     this.accessTokenService = accessTokenService;
   }
 
-  @PostMapping(path = "/token", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+  @PostMapping(path = "/token")
   public ResponseEntity<?> getAccessToken(
       HttpServletRequest request, @ModelAttribute TokenRequestBody tokenRequestBody) {
 
@@ -62,7 +62,10 @@ public class AuthzController {
   @AllArgsConstructor
   public static class TokenData {
 
+    @JsonProperty("access_token")
     private String accessToken;
+
+    @JsonProperty("refresh_token")
     private String refreshToken;
   }
 }

@@ -329,10 +329,7 @@ public class ZetaClientService {
     URL urlAS = new URL(ac.getWellKnownFromPep().getAuthorization_endpoint());
     URL urlToken =
         new URL(
-            urlAS.getProtocol(),
-            urlAS.getHost(),
-            urlAS.getPort(),
-            getZetaClientConfig().getPathTokenAS());
+            urlAS.getProtocol(), urlAS.getHost(), urlAS.getPort(), ZetaClientConfig.PATH_TOKEN_AS);
 
     // String urlToken = "TEMPORARY_URL_FOR_TOKEN"; // TODO: Replace with actual URL logic
 

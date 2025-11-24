@@ -33,9 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @ExtendWith(MockitoExtension.class)
@@ -130,18 +128,6 @@ class AuthzControllerTest {
   @Test
   void testRestControllerAnnotation() {
     assertTrue(AuthzController.class.isAnnotationPresent(RestController.class));
-  }
-
-  @Test
-  void testPostMappingAnnotation() throws NoSuchMethodException {
-    var method =
-        AuthzController.class.getDeclaredMethod(
-            "getAccessToken", HttpServletRequest.class, TokenRequestBody.class);
-    PostMapping annotation = method.getAnnotation(PostMapping.class);
-
-    assertNotNull(annotation);
-    assertEquals("/token", annotation.path()[0]);
-    assertEquals(MediaType.APPLICATION_FORM_URLENCODED_VALUE, annotation.consumes()[0]);
   }
 
   @Test

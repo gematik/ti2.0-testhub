@@ -77,12 +77,11 @@ class VsdmServiceTest {
     String iknr = "109500969";
     String tokenHeader = "valid.token.content";
 
-    when(request.getHeader("zeta-popp-token-content")).thenReturn(tokenHeader);
     when(tokenService.parsePoppToken(tokenHeader)).thenReturn(poppToken);
     when(poppToken.getClaimValue("patientId")).thenReturn(expectedKvnr);
     when(poppToken.getClaimValue("insurerId")).thenReturn(iknr);
 
-    String result = vsdmService.readKVNR(request);
+    String result = vsdmService.readKVNR(tokenHeader);
 
     assertEquals(expectedKvnr, result);
     verify(tokenService).parsePoppToken(tokenHeader);
@@ -93,11 +92,10 @@ class VsdmServiceTest {
   void testReadKVNR_InvalidToken() {
     String tokenHeader = "invalid.token";
 
-    when(request.getHeader("zeta-popp-token-content")).thenReturn(tokenHeader);
     when(tokenService.parsePoppToken(tokenHeader)).thenThrow(new RuntimeException("Invalid token"));
 
     ResponseStatusException exception =
-        assertThrows(ResponseStatusException.class, () -> vsdmService.readKVNR(request));
+        assertThrows(ResponseStatusException.class, () -> vsdmService.readKVNR(tokenHeader));
 
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
     assertEquals("Invalid POPP token", exception.getReason());
@@ -105,11 +103,10 @@ class VsdmServiceTest {
 
   @Test
   void testReadKVNR_NoTokenHeader() {
-    when(request.getHeader("zeta-popp-token-content")).thenReturn(null);
     when(tokenService.parsePoppToken(null)).thenThrow(new RuntimeException("No token"));
 
     ResponseStatusException exception =
-        assertThrows(ResponseStatusException.class, () -> vsdmService.readKVNR(request));
+        assertThrows(ResponseStatusException.class, () -> vsdmService.readKVNR(null));
 
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
     assertEquals("Invalid POPP token", exception.getReason());
@@ -121,7 +118,6 @@ class VsdmServiceTest {
     String iknr = "109500969";
     String tokenHeader = "valid.token";
 
-    when(request.getHeader("zeta-popp-token-content")).thenReturn(tokenHeader);
     when(tokenService.parsePoppToken(tokenHeader)).thenReturn(poppToken);
     when(poppToken.getClaimValue("patientId")).thenReturn(kvnr);
     when(poppToken.getClaimValue("insurerId")).thenReturn(iknr);
@@ -151,7 +147,7 @@ class VsdmServiceTest {
         .thenReturn(Optional.of("Musterstraße 1"));
     when(testDataRepository.getStringFor(addressElement, "$.line2")).thenReturn(Optional.of(""));
 
-    Resource result = vsdmService.readVsd(request);
+    Resource result = vsdmService.readVsd(tokenHeader);
 
     assertNotNull(result);
     assertInstanceOf(VsdmBundle.class, result);
@@ -179,12 +175,11 @@ class VsdmServiceTest {
     String iknr = "109500969";
     String tokenHeader = "valid.token";
 
-    when(request.getHeader("zeta-popp-token-content")).thenReturn(tokenHeader);
     when(tokenService.parsePoppToken(tokenHeader)).thenReturn(poppToken);
     when(poppToken.getClaimValue("patientId")).thenReturn(kvnr);
     when(poppToken.getClaimValue("insurerId")).thenReturn(iknr);
 
-    Resource result = vsdmService.readVsd(request);
+    Resource result = vsdmService.readVsd(tokenHeader);
 
     assertNotNull(result);
     assertInstanceOf(VsdmBundle.class, result);
@@ -212,13 +207,12 @@ class VsdmServiceTest {
     String iknr = "UnknownIKNR";
     String tokenHeader = "valid.token";
 
-    when(request.getHeader("zeta-popp-token-content")).thenReturn(tokenHeader);
     when(tokenService.parsePoppToken(tokenHeader)).thenReturn(poppToken);
     when(poppToken.getClaimValue("patientId")).thenReturn(kvnr);
     when(poppToken.getClaimValue("insurerId")).thenReturn(iknr);
 
     ResponseStatusException exception =
-        assertThrows(ResponseStatusException.class, () -> vsdmService.readVsd(request));
+        assertThrows(ResponseStatusException.class, () -> vsdmService.readVsd(tokenHeader));
 
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
     assertEquals("VSDSERVICE_INVALID_IK", exception.getReason());
@@ -230,13 +224,12 @@ class VsdmServiceTest {
     String iknr = "109500969";
     String tokenHeader = "valid.token";
 
-    when(request.getHeader("zeta-popp-token-content")).thenReturn(tokenHeader);
     when(tokenService.parsePoppToken(tokenHeader)).thenReturn(poppToken);
     when(poppToken.getClaimValue("patientId")).thenReturn(kvnr);
     when(poppToken.getClaimValue("insurerId")).thenReturn(iknr);
 
     ResponseStatusException exception =
-        assertThrows(ResponseStatusException.class, () -> vsdmService.readVsd(request));
+        assertThrows(ResponseStatusException.class, () -> vsdmService.readVsd(tokenHeader));
 
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
     assertEquals("VSDSERVICE_INVALID_KVNR", exception.getReason());
@@ -248,20 +241,14 @@ class VsdmServiceTest {
     String iknr = "109500969";
     String tokenHeader = "valid.token";
 
-    when(request.getHeader("zeta-popp-token-content")).thenReturn(tokenHeader);
     when(tokenService.parsePoppToken(tokenHeader)).thenReturn(poppToken);
     when(poppToken.getClaimValue("patientId")).thenReturn(kvnr);
     when(poppToken.getClaimValue("insurerId")).thenReturn(iknr);
 
     ResponseStatusException exception =
-        assertThrows(ResponseStatusException.class, () -> vsdmService.readVsd(request));
+        assertThrows(ResponseStatusException.class, () -> vsdmService.readVsd(tokenHeader));
 
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
     assertEquals("VSDSERVICE_PATIENT_RECORD_NOT_FOUND", exception.getReason());
-  }
-
-  @Test
-  void testToPatient_MissingPersonData() {
-    assertThrows(ResponseStatusException.class, () -> vsdmService.readVsd(request));
   }
 }

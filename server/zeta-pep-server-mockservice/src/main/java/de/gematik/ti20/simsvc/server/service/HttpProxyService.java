@@ -47,11 +47,11 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class HttpProxyService {
 
-  private final TokenService tokenService;
+  private final ZetaPepTokenService tokenService;
 
   private final RestTemplate restTemplate = new RestTemplate();
 
-  public HttpProxyService(@Autowired TokenService tokenService) {
+  public HttpProxyService(@Autowired ZetaPepTokenService tokenService) {
     this.tokenService = tokenService;
 
     this.restTemplate

@@ -69,21 +69,24 @@ class VsdmControllerV1Test {
     String kvnr = "X123456789";
     String responseBody = "{\"resourceType\":\"Bundle\"}";
     Resource mockResource = new Bundle();
+    String poppToken = "mock-popp-token";
+    String userInfo = "mock-user-info";
+    String etag = "0";
 
-    when(vsdmService.readKVNR(request)).thenReturn(kvnr);
-    when(etagService.checkEtag(kvnr, request)).thenReturn(false);
-    when(vsdmService.readVsd(request)).thenReturn(mockResource);
+    when(vsdmService.readKVNR(poppToken)).thenReturn(kvnr);
+    when(etagService.checkEtag(kvnr, etag)).thenReturn(false);
+    when(vsdmService.readVsd(poppToken)).thenReturn(mockResource);
     when(fhirService.encodeResponse(eq(mockResource), eq(request), any(HttpHeaders.class)))
         .thenReturn(responseBody);
 
-    ResponseEntity<?> response = vsdmController.vsdmbundle(request);
+    ResponseEntity<?> response = vsdmController.vsdmbundle(poppToken, userInfo, etag, request);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(responseBody, response.getBody());
 
-    verify(vsdmService).readKVNR(request);
-    verify(etagService).checkEtag(kvnr, request);
-    verify(vsdmService).readVsd(request);
+    verify(vsdmService).readKVNR(poppToken);
+    verify(etagService).checkEtag(kvnr, etag);
+    verify(vsdmService).readVsd(poppToken);
     verify(fhirService).encodeResponse(eq(mockResource), eq(request), any(HttpHeaders.class));
     verify(checksumService).addChecksumHeader(eq(responseBody), any(HttpHeaders.class));
     verify(etagService).addEtagHeader(eq(kvnr), eq(responseBody), any(HttpHeaders.class));
@@ -94,24 +97,28 @@ class VsdmControllerV1Test {
     String kvnr = "X123456789";
     String responseBody = "{\"resourceType\":\"Bundle\"}";
     Resource mockResource = new Bundle();
+    String poppToken = "mock-popp-token";
+    String userInfo = "mock-user-info";
+    String etag = "0";
+
     String expectedContentType = "application/fhir+json";
 
     // Mock request headers to contain specific content-type
-    when(vsdmService.readKVNR(request)).thenReturn(kvnr);
-    when(etagService.checkEtag(kvnr, request)).thenReturn(false);
-    when(vsdmService.readVsd(request)).thenReturn(mockResource);
+    when(vsdmService.readKVNR(poppToken)).thenReturn(kvnr);
+    when(etagService.checkEtag(kvnr, etag)).thenReturn(false);
+    when(vsdmService.readVsd(poppToken)).thenReturn(mockResource);
     when(fhirService.encodeResponse(eq(mockResource), eq(request), any(HttpHeaders.class)))
         .thenReturn(responseBody);
 
-    ResponseEntity<?> response = vsdmController.vsdmbundle(request);
+    ResponseEntity<?> response = vsdmController.vsdmbundle(poppToken, userInfo, etag, request);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(responseBody, response.getBody());
 
     // Verify that the request was called with the expected content-type
-    verify(vsdmService).readKVNR(request);
-    verify(etagService).checkEtag(kvnr, request);
-    verify(vsdmService).readVsd(request);
+    verify(vsdmService).readKVNR(poppToken);
+    verify(etagService).checkEtag(kvnr, etag);
+    verify(vsdmService).readVsd(poppToken);
     verify(fhirService).encodeResponse(eq(mockResource), eq(request), any(HttpHeaders.class));
   }
 
@@ -121,14 +128,17 @@ class VsdmControllerV1Test {
     String responseBodyWithUmlaut =
         "{\"resourceType\":\"Bundle\",\"name\":\"Müller\",\"city\":\"München\"}";
     Resource mockResource = new Bundle();
+    String poppToken = "mock-popp-token";
+    String userInfo = "mock-user-info";
+    String etag = "0";
 
-    when(vsdmService.readKVNR(request)).thenReturn(kvnr);
-    when(etagService.checkEtag(kvnr, request)).thenReturn(false);
-    when(vsdmService.readVsd(request)).thenReturn(mockResource);
+    when(vsdmService.readKVNR(poppToken)).thenReturn(kvnr);
+    when(etagService.checkEtag(kvnr, etag)).thenReturn(false);
+    when(vsdmService.readVsd(poppToken)).thenReturn(mockResource);
     when(fhirService.encodeResponse(eq(mockResource), eq(request), any(HttpHeaders.class)))
         .thenReturn(responseBodyWithUmlaut);
 
-    ResponseEntity<?> response = vsdmController.vsdmbundle(request);
+    ResponseEntity<?> response = vsdmController.vsdmbundle(poppToken, userInfo, etag, request);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(responseBodyWithUmlaut, response.getBody());
@@ -145,18 +155,21 @@ class VsdmControllerV1Test {
   @Test
   void testVsdmbundle_NotModified() {
     String kvnr = "X123456789";
+    String poppToken = "mock-popp-token";
+    String userInfo = "mock-user-info";
+    String etag = "0";
 
-    when(vsdmService.readKVNR(request)).thenReturn(kvnr);
-    when(etagService.checkEtag(kvnr, request)).thenReturn(true);
+    when(vsdmService.readKVNR(poppToken)).thenReturn(kvnr);
+    when(etagService.checkEtag(kvnr, etag)).thenReturn(true);
 
-    ResponseEntity<?> response = vsdmController.vsdmbundle(request);
+    ResponseEntity<?> response = vsdmController.vsdmbundle(poppToken, userInfo, etag, request);
 
     assertEquals(HttpStatus.NOT_MODIFIED, response.getStatusCode());
     assertNull(response.getBody());
 
-    verify(vsdmService).readKVNR(request);
-    verify(etagService).checkEtag(kvnr, request);
-    verify(vsdmService, never()).readVsd(request);
+    verify(vsdmService).readKVNR(poppToken);
+    verify(etagService).checkEtag(kvnr, etag);
+    verify(vsdmService, never()).readVsd(poppToken);
     verify(fhirService, never()).encodeResponse(any(), any(), any());
     verify(checksumService, never()).addChecksumHeader(any(), any());
     verify(etagService, never()).addEtagHeader(any(), any(), any());

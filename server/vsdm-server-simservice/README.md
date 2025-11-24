@@ -136,7 +136,7 @@ Test the main VSDM endpoint:
 ```bash
 curl -X 'GET' \
   'http://localhost:9220/vsdservice/v1/vsdmbundle' \
-  -H 'zeta-popp-token-content: <VALID_POPP_TOKEN>' \
+  -H 'popp: <VALID_POPP_TOKEN>' \
   -H 'zeta-user-info: ' \
   -H 'If-None-Match: 0' \
   -H 'accept: application/fhir+json'
@@ -234,7 +234,7 @@ commands:
 ```bash
 curl -X 'GET' \
   'http://localhost:9220/vsdservice/v1/vsdmbundle' \
-  -H 'zeta-popp-token-content: POPP_TOKEN' \
+  -H 'popp: POPP_TOKEN' \
   -H 'zeta-user-info: USER_INFO' \
   -H 'If-None-Match: 0' \
   -H 'accept: application/fhir+json'
@@ -244,7 +244,7 @@ Returns the VSDM bundle for the KVNr and IKNr encoded in the PoPP token.
 
 **Required Headers:**
 
-- `zeta-popp-token-content` - Must contain a valid PoPP token with KVNr and IKNr
+- `popp` - Must contain a valid PoPP token with KVNr and IKNr
 - `zeta-user-info` - Must be specified but can be empty
 
 **Optional Headers:**

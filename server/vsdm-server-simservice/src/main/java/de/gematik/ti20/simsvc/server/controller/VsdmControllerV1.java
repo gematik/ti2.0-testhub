@@ -33,6 +33,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -59,19 +60,25 @@ public class VsdmControllerV1 {
   }
 
   @GetMapping(value = "/vsdmbundle", produces = "application/fhir+json")
-  public ResponseEntity<?> vsdmbundle(final HttpServletRequest request) {
-    log.debug("Received request for readVsd");
+  public ResponseEntity<?> vsdmbundle(
+      @RequestHeader(value = "zeta-popp-token-content", required = false) final String poppToken,
+      @RequestHeader(value = "zeta-user-info", required = false, defaultValue = "mock-user-info")
+          final String _userInfo,
+      @RequestHeader(value = "if-none-match", required = false, defaultValue = "0")
+          final String ifNoneMatch,
+      final HttpServletRequest request) {
+    log.info("Received request for readVsd");
     validateHeaders(request);
 
     final HttpHeaders responseHeaders = new HttpHeaders();
 
-    final String kvnr = vsdmService.readKVNR(request);
+    final String kvnr = vsdmService.readKVNR(poppToken);
 
-    if (etagService.checkEtag(kvnr, request)) {
+    if (etagService.checkEtag(kvnr, ifNoneMatch)) {
       return new ResponseEntity<>(responseHeaders, HttpStatus.NOT_MODIFIED);
     }
 
-    final Resource fhirResourceOut = vsdmService.readVsd(request);
+    final Resource fhirResourceOut = vsdmService.readVsd(poppToken);
     final String responseBody =
         fhirService.encodeResponse(fhirResourceOut, request, responseHeaders);
 

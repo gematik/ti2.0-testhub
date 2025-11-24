@@ -33,6 +33,11 @@ class VsdmClientControllerTest {
   private VsdmClientService mockVsdmClientService;
   private VsdmClientController vsdmClientController;
 
+  private final String traceId = "traceId";
+  private final String terminalId = "terminalId";
+  private final Integer egkSlotId = 1;
+  private final Integer smcbSlotId = 2;
+
   @BeforeEach
   void setUp() {
     mockVsdmClientService = mock(VsdmClientService.class);
@@ -41,16 +46,20 @@ class VsdmClientControllerTest {
 
   @Test
   void testReadVsd_Success() {
-    String terminalId = "terminalId";
-    Integer egkSlotId = 1;
-    Integer smcbSlotId = 2;
+
     String ifNoneMatch = "etag123";
     boolean isFhirXml = true;
     boolean forceUpdate = false;
 
     ResponseEntity<String> mockResponse = ResponseEntity.ok("Success");
     when(mockVsdmClientService.read(
-            terminalId, egkSlotId, smcbSlotId, isFhirXml, forceUpdate, null, ifNoneMatch))
+            eq(terminalId),
+            eq(egkSlotId),
+            eq(smcbSlotId),
+            eq(isFhirXml),
+            eq(forceUpdate),
+            eq(null),
+            eq(ifNoneMatch)))
         .thenReturn(mockResponse);
 
     ResponseEntity<?> response =
@@ -64,15 +73,18 @@ class VsdmClientControllerTest {
 
   @Test
   void testReadVsd_DefaultIsFhirXml() {
-    String terminalId = "terminal123";
-    Integer egkSlotId = 1;
-    Integer smcbSlotId = 1;
     String ifNoneMatch = "etag123";
     boolean forceUpdate = false;
 
     ResponseEntity<String> mockResponse = ResponseEntity.ok("Success");
     when(mockVsdmClientService.read(
-            terminalId, egkSlotId, smcbSlotId, false, forceUpdate, null, ifNoneMatch))
+            eq(terminalId),
+            eq(egkSlotId),
+            eq(smcbSlotId),
+            eq(false),
+            eq(forceUpdate),
+            eq(null),
+            eq(ifNoneMatch)))
         .thenReturn(mockResponse);
 
     ResponseEntity<?> response =

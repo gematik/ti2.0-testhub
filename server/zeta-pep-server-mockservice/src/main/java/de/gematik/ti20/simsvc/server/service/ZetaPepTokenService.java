@@ -38,16 +38,17 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
 @Service
-public class TokenService {
+public class ZetaPepTokenService {
 
   private final SecurityConfig secConfig;
   private final PoppConfig poppConfig;
 
   private static KeyStore keyStore;
 
-  private static ObjectMapper jsonMapper = new ObjectMapper();
+  private static final ObjectMapper jsonMapper = new ObjectMapper();
 
-  public TokenService(@Autowired SecurityConfig secConfig, @Autowired PoppConfig poppConfig) {
+  public ZetaPepTokenService(
+      @Autowired SecurityConfig secConfig, @Autowired PoppConfig poppConfig) {
     this.secConfig = secConfig;
     this.poppConfig = poppConfig;
     init();
@@ -75,14 +76,9 @@ public class TokenService {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "AccessToken is empty");
     }
 
-    if (!authzHeader.startsWith("DPoP ")) {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "AccessToken is not a DPoP auth");
-    }
-
     try {
       String jwt = authzHeader.substring(authzHeader.indexOf(" ") + 1);
-      AccessToken at = AccessToken.fromJwt(jwt, keyStore);
-      return at;
+      return AccessToken.fromJwt(jwt, keyStore);
     } catch (Exception e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
@@ -99,8 +95,7 @@ public class TokenService {
     }
 
     try {
-      String jwt = poppToken;
-      PoppToken pt = PoppToken.fromJwt(jwt, keyStore);
+      PoppToken pt = PoppToken.fromJwt(poppToken, keyStore);
 
       if (!pt.getClaims().getActorId().equals(at.getClaims().getClientId())) {
         log.error(

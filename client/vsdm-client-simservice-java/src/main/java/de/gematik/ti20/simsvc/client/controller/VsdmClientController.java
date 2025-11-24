@@ -46,7 +46,7 @@ public class VsdmClientController {
       @RequestParam(required = false) final Boolean forceUpdate,
       @RequestHeader(name = "poppToken", required = false) final String poppToken,
       @RequestHeader(name = "If-None-Match", required = false) final String ifNoneMatch) {
-    log.debug(
+    log.info(
         "readVsd initiated with terminalId = {}, egkSlotId={}, smcBSlotId = {}, if-none-match={}",
         terminalId,
         egkSlotId,

@@ -69,7 +69,10 @@ public class VsdmClientIT {
     final Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     logger.setLevel(Level.INFO);
 
-    httpClient = new OkHttpClient();
+    httpClient =
+        new OkHttpClient.Builder()
+            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS) // set to 30 seconds
+            .build();
     fhirCodec = FhirCodec.forR4().andDummyValidator();
   }
 
@@ -125,6 +128,7 @@ public class VsdmClientIT {
 
   @Test
   @Order(2)
+  // Caution! The test fails with Timeout during the first run. Further analysis is required.
   public void testPruefzifferHasCorrectLength() throws Exception {
     final Result result = readVsdOnce("0");
     assertEquals(200, result.response.code());

@@ -30,20 +30,6 @@ import org.junit.jupiter.api.Test;
 class ZetaClientConfigTest {
 
   @Test
-  void testConstructorAndGetters() {
-    ZetaClientConfig.UserAgentConfig userAgent =
-        new ZetaClientConfig.UserAgentConfig("TestApp", "2.1");
-    ZetaClientConfig config = new ZetaClientConfig(userAgent);
-
-    assertEquals("/.well-known/oauth-protected-resource", config.getPathWellKnownRS());
-    assertEquals("/.well-known/oauth-authorization-server", config.getPathWellKnownAS());
-    assertEquals("/token", config.getPathTokenAS());
-    assertEquals(userAgent, config.getUserAgent());
-    assertNotNull(config.getTerminalConnectionConfigs());
-    assertTrue(config.getTerminalConnectionConfigs().isEmpty());
-  }
-
-  @Test
   void testUserAgentConfig() {
     ZetaClientConfig.UserAgentConfig userAgent =
         new ZetaClientConfig.UserAgentConfig("MyApp", "1.0.0");

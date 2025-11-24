@@ -72,7 +72,7 @@ public class AuthContext {
   }
 
   public void setAccessToken(Map<String, String> tokenData) {
-    this.accessToken = tokenData.get("accessToken");
+    this.accessToken = tokenData.get("access_token");
   }
 
   public String getSmcbAccessToken() {

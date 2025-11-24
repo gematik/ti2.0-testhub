@@ -15,6 +15,7 @@ pactconfig-local.properties
 jenkinsfiles
 /doc/k8s
 .owaspignore
+/test/popp-testsuite
 /test/vsdm-testsuite/src/test/java/de/gematik/ti20/vsdm/test/e2e/poc
 /test/vsdm-testsuite/src/test/resources/features/poc
 /test/vsdm-testsuite/src/test/resources/features/parallel

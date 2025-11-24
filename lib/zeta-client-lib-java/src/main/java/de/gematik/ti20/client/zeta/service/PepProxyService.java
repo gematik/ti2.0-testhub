@@ -21,13 +21,14 @@
 package de.gematik.ti20.client.zeta.service;
 
 import de.gematik.ti20.client.zeta.auth.AuthContext;
+import de.gematik.ti20.client.zeta.config.ZetaClientConfig;
 import de.gematik.ti20.client.zeta.exception.ZetaHttpException;
 import de.gematik.ti20.client.zeta.request.ZetaHttpRequest;
 import de.gematik.ti20.client.zeta.request.ZetaHttpRequest.HeaderName;
 import de.gematik.ti20.client.zeta.request.ZetaWsRequest;
 import de.gematik.ti20.zeta.base.model.WellKnown;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class PepProxyService extends HttpService {
 
@@ -42,15 +43,18 @@ public class PepProxyService extends HttpService {
     }
 
     try {
-      URL urlBase = new URL(url);
-      URL urlWellKnown =
-          new URL(
-              urlBase.getProtocol(),
+      URI urlBase = new URI(url);
+      URI urlWellKnown =
+          new URI(
+              urlBase.getScheme(),
+              null,
               urlBase.getHost(),
               urlBase.getPort(),
-              zetaClientService.getZetaClientConfig().getPathWellKnownRS());
+              ZetaClientConfig.PATH_WELLKNOWN_RS,
+              null,
+              null);
       url = urlWellKnown.toString();
-    } catch (MalformedURLException e) {
+    } catch (URISyntaxException e) {
       throw new ZetaHttpException("Failed to create well-known URL", e, ac.getRequest());
     }
 

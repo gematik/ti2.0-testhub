@@ -7,20 +7,20 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.0.3</version>
+        <version>1.1.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.simsvc.server</groupId>
     <artifactId>vsdm-server-simservice</artifactId>
-    <version>1.0.3</version>
+    <version>1.1.0</version>
 
     <name>VSDM Server Simservice</name>
     <description>Simulator-Service for VSDM2 Service</description>
 
     <properties>
         <start-class>de.gematik.ti20.simsvc.server.Main</start-class>
-        <image.docker.tag>${project.artifactId}:local</image.docker.tag>
+        <image.docker.tag>${project.groupId}/${project.artifactId}:local</image.docker.tag>
     </properties>
 
     <dependencies>
