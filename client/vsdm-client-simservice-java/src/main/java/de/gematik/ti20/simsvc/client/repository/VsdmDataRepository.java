@@ -45,4 +45,9 @@ public class VsdmDataRepository {
   public VsdmCachedValue get(final String terminalId, final Integer slotId, final String cardId) {
     return cache.get(Objects.hash(terminalId, slotId, cardId));
   }
+
+  /** Remove all cached data. */
+  public void clear() {
+    cache.clear();
+  }
 }

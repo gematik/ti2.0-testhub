@@ -247,6 +247,13 @@ curl -X 'GET' \
 
 Returns the truncated Vsd data stored on the specified card.
 
+```
+curl -X 'DELETE' \
+   'http://localhost:8220/client/test/vsdmData'
+```
+
+Clear cached VSDM data.
+
 ### Status endpoint
 
 ```

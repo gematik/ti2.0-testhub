@@ -46,12 +46,16 @@ import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.CheckForNull;
 import kotlin.Unit;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -99,31 +103,22 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
 
   public ResponseEntity<String> read(
       final String terminalId,
-      final Integer egkSlotId,
-      final Integer smcbSlotId,
+      final int egkSlotId,
+      final int smcbSlotId,
       final boolean isFhirXml,
-      final boolean forceUpdate,
       final String poppTokenInjected,
       final String ifNoneMatch) {
 
     final AttachedCard attachedCard = getAttachedCard(terminalId, egkSlotId);
 
     final String poppToken =
-        poppTokenInjected != null
-            ? poppTokenInjected
-            : requestPoppToken(terminalId, egkSlotId, smcbSlotId, attachedCard, forceUpdate);
+        Optional.ofNullable(poppTokenInjected)
+            .orElseGet(() -> requestPoppToken(terminalId, egkSlotId, smcbSlotId, attachedCard));
     log.debug("Received PoPP token: {}", poppToken);
 
     final ResponseEntity<String> vsd =
         requestVsd(
-            terminalId,
-            egkSlotId,
-            smcbSlotId,
-            attachedCard,
-            poppToken,
-            ifNoneMatch,
-            isFhirXml,
-            forceUpdate);
+            terminalId, egkSlotId, smcbSlotId, attachedCard, poppToken, ifNoneMatch, isFhirXml);
     log.debug("Received VSD: {}", vsd);
 
     return vsd;
@@ -157,14 +152,13 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
 
   protected String requestPoppToken(
       final String terminalId,
-      final Integer egkSlotId,
-      final Integer smcbSlotId,
-      final AttachedCard attachedCard,
-      final boolean forceUpdate) {
+      final int egkSlotId,
+      final int smcbSlotId,
+      final AttachedCard attachedCard) {
     log.debug("Requesting PoPP token for attached card: {}", attachedCard.getId());
 
     final String poppTokenFromRepository =
-        forceUpdate ? null : poppTokenRepository.get(terminalId, egkSlotId, attachedCard.getId());
+        poppTokenRepository.get(terminalId, egkSlotId, attachedCard.getId());
 
     if (poppTokenFromRepository != null) {
       log.debug("PoPP token found in repository: {}", poppTokenFromRepository);
@@ -210,43 +204,49 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
 
   protected ResponseEntity<String> requestVsd(
       final String terminal,
-      final Integer egkSlotId,
-      final Integer smcbSlotId,
+      final int egkSlotId,
+      final int smcbSlotId,
       final AttachedCard attachedCard,
       final String poppToken,
-      final String ifNoneMatch,
-      final boolean isFhirXml,
-      final boolean forceUpdate) {
+      @CheckForNull final String ifNoneMatch,
+      final boolean isFhirXml) {
 
     final VsdmCachedValue vsdmCachedValue =
-        forceUpdate ? null : vsdmDataRepository.get(terminal, egkSlotId, attachedCard.getId());
-    final String traceId = MDC.get("traceId");
+        vsdmDataRepository.get(terminal, egkSlotId, attachedCard.getId());
+
     if (vsdmCachedValue != null) {
       return ResponseEntity.status(HttpStatus.OK)
-          .header(HEADER_VSDM_PZ, vsdmCachedValue.getPruefziffer())
-          .header(HEADER_ETAG, vsdmCachedValue.getEtag())
-          .body(vsdmCachedValue.getVsdmData());
+          .header(HEADER_VSDM_PZ, vsdmCachedValue.pruefziffer())
+          .header(HEADER_ETAG, vsdmCachedValue.etag())
+          .body(vsdmCachedValue.vsdmData());
     }
 
     try {
+      final String traceId = MDC.get("traceId");
       final ZetaSdkClientAdapter.RequestParameters requestParameters =
           new ZetaSdkClientAdapter.RequestParameters(traceId, poppToken, isFhirXml, ifNoneMatch);
       final ZetaSdkClientAdapter.Response responseFromServer =
           vsdmZetaClient.httpGet("vsdservice/v1/vsdmbundle", requestParameters);
 
-      if (!responseFromServer.statusCode().is2xxSuccessful()) {
+      final boolean isNotModified =
+          responseFromServer.statusCode().isSameCodeAs(HttpStatus.NOT_MODIFIED);
+      if (!responseFromServer.statusCode().is2xxSuccessful() && !isNotModified) {
         return ResponseEntity.status(responseFromServer.statusCode())
             .headers(copyApplicableHeaders(responseFromServer))
             .body(responseFromServer.body());
       }
 
+      if (isNotModified) {
+        return handleNotModified(terminal, egkSlotId, attachedCard, responseFromServer);
+      }
+
+      final HttpHeaders responseHeaders = copyApplicableHeaders(responseFromServer);
       final String responseToCaller = encodeVsdmBundle(isFhirXml, responseFromServer.body());
 
       if (responseToCaller == null) {
         throw new ResponseStatusException(
             HttpStatus.INTERNAL_SERVER_ERROR, "Could not parse valid FHIR response");
       }
-      final HttpHeaders responseHeaders = copyApplicableHeaders(responseFromServer);
       responseHeaders.put("Content-Type", List.of(MediaType.FHIR_JSON.asString()));
 
       vsdmDataRepository.put(
@@ -284,6 +284,33 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
       log.error("Error on requesting VsdBundle with token", e);
       throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
     }
+  }
+
+  /** Process a 304 from the VSDM backend and update the cache accordingly. */
+  private @NotNull ResponseEntity<String> handleNotModified(
+      final String terminal,
+      final Integer egkSlotId,
+      final AttachedCard attachedCard,
+      final ZetaSdkClientAdapter.Response responseFromServer) {
+    final HttpHeaders responseHeaders = copyApplicableHeaders(responseFromServer);
+    final String etagHeader = responseFromServer.headers().get(HEADER_ETAG);
+    Objects.requireNonNull(
+        etagHeader, "'%s' header must be set by VSDM backend on 304".formatted(HEADER_ETAG));
+    final String checkDigitHeader = responseFromServer.headers().get(HEADER_VSDM_PZ);
+    Objects.requireNonNull(
+        checkDigitHeader,
+        "'%s' header must be set by VSDM backend on 304".formatted(HEADER_VSDM_PZ));
+
+    final VsdmCachedValue cachedValue =
+        vsdmDataRepository.get(terminal, egkSlotId, attachedCard.getId());
+    final VsdmCachedValue updatedCacheValue;
+    if (cachedValue == null) {
+      updatedCacheValue = new VsdmCachedValue(etagHeader, checkDigitHeader, "");
+    } else {
+      updatedCacheValue = cachedValue.copyWith(etagHeader, checkDigitHeader);
+    }
+    vsdmDataRepository.put(terminal, egkSlotId, attachedCard.getId(), updatedCacheValue);
+    return ResponseEntity.status(HttpStatus.NOT_MODIFIED).headers(responseHeaders).build();
   }
 
   private String encodeVsdmBundle(final boolean isFhirXml, final String body) {

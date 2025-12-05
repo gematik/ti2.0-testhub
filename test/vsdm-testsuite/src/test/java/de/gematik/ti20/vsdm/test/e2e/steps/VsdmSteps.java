@@ -79,7 +79,7 @@ public class VsdmSteps {
 
   @Angenommen("das Primärsystem hat die VSD bereits einmal im Quartal abgefragt")
   public void givenVsdmClientHasAlreadyRequestVsdBefore() {
-    hccs().attemptsTo(RequestVsdFromServer.withEtagAndNoPoppToken("0"));
+    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken("0", null));
     String etag = LastEtag.value().answeredBy(hccs());
     hccs().remember("etag", etag);
   }
@@ -98,10 +98,8 @@ public class VsdmSteps {
 
   @Wenn("das Primärsystem die VSD mittels PoPP- und Access-Token vom VSDM Ressource Server abfragt")
   public void whenClientSystemIsRequestingVsdWithAccessAndPoppToken() {
-    String etag = hccs().recall("etag");
-    hccs()
-        .attemptsTo(
-            RequestVsdFromServer.withEtagAndNoPoppToken(Objects.requireNonNullElse(etag, "0")));
+    String etag = Optional.ofNullable(hccs().recall("etag")).orElse("0").toString();
+    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken(etag, null));
   }
 
   @Und("der VSDM Ressource Server beim E-Tag-Vergleich einen Unterschied feststellt")
@@ -152,7 +150,7 @@ public class VsdmSteps {
 
   @Und("das Primärsystem speichert die aktualisierten VSD in seiner lokalen Datenbank")
   public void andClientSystemIsStoringCurrentVsdLocally() {
-    hccs().attemptsTo(RequestVsdmData.fromCache());
+    hccs().attemptsTo(RequestVsdmDataFromCache.readCache());
     String cachedVsd = CachedVsdmData.value().answeredBy(hccs());
     Assertions.assertFalse(cachedVsd.isEmpty());
   }
@@ -166,14 +164,14 @@ public class VsdmSteps {
 
   @Und("das Primärsystem speichert die Prüfziffer in seiner lokalen Datenbank")
   public void andClientSystemIsStoringPruefzifferLocally() {
-    hccs().attemptsTo(RequestVsdmData.fromCache());
+    hccs().attemptsTo(RequestVsdmDataFromCache.readCache());
     String cachedCheckDigit = CachedPruefziffer.value().answeredBy(hccs());
     Assertions.assertFalse(cachedCheckDigit.isEmpty());
   }
 
   @Und("das Primärsystem speichert das E-Tag in seiner lokalen Datenbank")
   public void andClientSystemIsStoringEtagLocally() {
-    hccs().attemptsTo(RequestVsdmData.fromCache());
+    hccs().attemptsTo(RequestVsdmDataFromCache.readCache());
     String cachedEtag = CachedEtag.value().answeredBy(hccs());
     Assertions.assertFalse(cachedEtag.isEmpty());
   }

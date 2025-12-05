@@ -131,7 +131,7 @@ class VsdmClientServicePactTest {
 
     var patientBundleAsString =
         vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token123", "etag123", false, false);
+            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token123", "etag123", false);
 
     assertThat(patientBundleAsString.getStatusCodeValue()).isEqualTo(200);
     assertThat(patientBundleAsString.getBody()).isNotEmpty();
@@ -149,7 +149,7 @@ class VsdmClientServicePactTest {
 
     var patientBundleAsString =
         vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token456", "etag456", false, false);
+            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token456", "etag456", false);
 
     String responseBody = patientBundleAsString.getBody();
     ObjectMapper objectMapper = new ObjectMapper();
@@ -170,7 +170,7 @@ class VsdmClientServicePactTest {
 
     var patientBundleAsString =
         vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token456", "etag456", false, false);
+            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token456", "etag456", false);
 
     String responseBody = patientBundleAsString.getBody();
     ObjectMapper objectMapper = new ObjectMapper();
@@ -203,7 +203,7 @@ class VsdmClientServicePactTest {
 
     var patientBundleAsString =
         vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token789", "etag789", false, false);
+            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token789", "etag789", false);
 
     String responseBody = patientBundleAsString.getBody();
     ObjectMapper objectMapper = new ObjectMapper();
@@ -228,7 +228,7 @@ class VsdmClientServicePactTest {
 
     var patientBundleAsString =
         vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token101", "etag101", false, false);
+            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token101", "etag101", false);
 
     String responseBody = patientBundleAsString.getBody();
     ObjectMapper objectMapper = new ObjectMapper();
@@ -253,7 +253,7 @@ class VsdmClientServicePactTest {
 
     var patientBundleAsString =
         vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token202", "etag202", false, false);
+            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token202", "etag202", false);
 
     String responseBody = patientBundleAsString.getBody();
     ObjectMapper objectMapper = new ObjectMapper();

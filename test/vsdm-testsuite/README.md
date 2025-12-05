@@ -179,8 +179,10 @@ System-Parameter (Option -D) überschrieben werden.
 
 ## Hinweise
 
-In der aktuellen Ausbaustufe sind die ZETA-Komponenten nur als Mocks implementiert und sollen zeitnah durch die realen
-Komponenten ersetzt werden. Daher enthalten die Testschritte zur Authentifizierung am ZETA Guard keine Implementierung.
+In der aktuellen Ausbaustufe sind ZETA-Client und ZETA-Guard als Prototyp implementiert, wobei der ZETA-Guard-Prototyp
+nur erfolgreiche Antworten (HTTP-OK/200) vom VSDM Ressource Server korrekt weiterleitet. Alle anderen Antworten, auch
+HTTP-NOT-MODIFIED/304, werden vom ZETA-Guard als Fehler HTTP-INTERNAL-SERVER-ERROR/500 weitergeleitet. Daher liefern
+alle Tests, welche auf den Return-Code 304 aufbauen, eine False-Negative Resultat.
 
-Die PoPP-Komponenten sind ebenfalls nur als Mocks ausgeführt und sollen zeitnah durch eine Beispiel-Implementierung
+Die PoPP-Komponenten sind aktuell noch als Mocks ausgeführt und sollen zeitnah durch eine Beispiel-Implementierung
 ersetzt werden. Gegenwärtig generiert der PoPP-Server-Mock nur einen PoPP-Token basierend auf der IK- und KV-Nummer.
