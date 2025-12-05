@@ -28,6 +28,7 @@ import javax.crypto.spec.SecretKeySpec;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @Service
@@ -73,13 +74,13 @@ public class EtagService {
     if (encodedResponse != null && !encodedResponse.isEmpty()) {
       final String etag = calculateEtag(kvnr, encodedResponse);
       if (etag != null) {
-        responseHeaders.add(HEADER_NAME, etag);
+        responseHeaders.add(HEADER_NAME, addEtagPadding(etag));
       }
     }
   }
 
   public boolean checkEtag(final String kvnr, final String requestEtag) {
-    log.error("Request Etag: {}", requestEtag);
+    log.debug("Request Etag: {}", requestEtag);
     if (kvnr == null || kvnr.isEmpty()) {
       return false;
     }
@@ -94,6 +95,24 @@ public class EtagService {
       return false;
     }
 
-    return etag.equals(requestEtag);
+    return etag.equals(removeEtagPadding(requestEtag));
+  }
+
+  // etag response headers must be padded with quotes
+  private String addEtagPadding(String etag) {
+    if (StringUtils.hasLength(etag)
+        && (!(etag.startsWith("\"") || etag.startsWith("W/\"")) || !etag.endsWith("\""))) {
+      etag = "\"" + etag + "\"";
+    }
+    return etag;
+  }
+
+  private String removeEtagPadding(String etag) {
+    if (StringUtils.hasLength(etag)) {
+      if (etag.startsWith("\"") && etag.endsWith("\"")) {
+        etag = etag.substring(1, etag.length() - 1);
+      }
+    }
+    return etag;
   }
 }

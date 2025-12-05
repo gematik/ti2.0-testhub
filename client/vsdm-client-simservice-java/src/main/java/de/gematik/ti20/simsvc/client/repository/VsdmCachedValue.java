@@ -20,18 +20,18 @@
  */
 package de.gematik.ti20.simsvc.client.repository;
 
-import lombok.Getter;
+import javax.annotation.Nonnull;
 
-@Getter
-public class VsdmCachedValue {
+public record VsdmCachedValue(String etag, String pruefziffer, String vsdmData) {
 
-  private final String etag;
-  private final String pruefziffer;
-  private final String vsdmData;
-
-  public VsdmCachedValue(final String etag, final String pruefziffer, final String vsdmData) {
-    this.etag = etag;
-    this.pruefziffer = pruefziffer;
-    this.vsdmData = vsdmData;
+  /**
+   * Return a copy of this object and replace the given parameters.
+   *
+   * @param etag The new etag value to set.
+   * @param pruefziffer The new pruefziffer value to set.
+   */
+  @Nonnull
+  public VsdmCachedValue copyWith(@Nonnull final String etag, @Nonnull final String pruefziffer) {
+    return new VsdmCachedValue(etag, pruefziffer, vsdmData);
   }
 }

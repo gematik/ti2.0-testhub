@@ -5,7 +5,7 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>

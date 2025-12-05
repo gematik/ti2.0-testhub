@@ -79,11 +79,9 @@ authenticated channels.
 | **Card Terminal Client** | 8000 | Simulates electronic health card (eGK, SMC-B, HBA) terminal operations with PACE protocol support | [README](./client/card-terminal-client-simservice/README.md) |
 | **VSDM Client**          | 8220 | Simulates VSDM2 client operations including data retrieval and PoPP token validation              | [README](./client/vsdm-client-simservice-java/README.md)     |
 | **ZeTA PEP PoPP**        | 9110 | Policy Enforcement Point proxy for PoPP - validates tokens and forwards requests                  | [README](./server/zeta-pep-server-mockservice/README.md)     |
-| **ZeTA PEP VSDM**        | 9111 | Policy Enforcement Point proxy for VSDM - validates tokens and forwards requests                  | [README](./server/zeta-pep-server-mockservice/README.md)     |
-| **ZeTA PDP PoPP**        | 9100 | Policy Decision Point for PoPP - performs OAuth 2.0 token exchange (RFC 8693)                     | [README](./server/zeta-pdp-server-mockservice/README.md)     |
-| **ZeTA PDP VSDM**        | 9101 | Policy Decision Point for VSDM - performs OAuth 2.0 token exchange (RFC 8693)                     | [README](./server/zeta-pdp-server-mockservice/README.md)     |
-| **PoPP Server**          | 9120 | Backend PoPP service - generates and validates Proof of Possession tokens                         | [README](./server/popp-server-mockservice/README.md)         |
-| **VSDM Server**          | 9121 | Backend VSDM service - provides VSDM2 data from YAML test fixtures                                | [README](./server/vsdm-server-simservice/README.md)          |
+| **ZeTA PDP PoPP**        | 9112 | Policy Decision Point for PoPP - performs OAuth 2.0 token exchange (RFC 8693)                     | [README](./server/zeta-pdp-server-mockservice/README.md)     |
+| **PoPP Server**          | 9210 | Backend PoPP service - generates and validates Proof of Possession tokens                         | [README](./server/popp-server-mockservice/README.md)         |
+| **VSDM Server**          | 9130 | Backend VSDM service - provides VSDM2 data from YAML test fixtures                                | [README](./server/vsdm-server-simservice/README.md)          |
 
 ### References
 
@@ -230,20 +228,14 @@ curl http://localhost:8220/service/status
 # ZeTA PEP PoPP
 curl http://localhost:9110/service/status
 
-# ZeTA PEP VSDM
-curl http://localhost:9111/service/status
-
 # ZeTA PDP PoPP
-curl http://localhost:9100/service/status
-
-# ZeTA PDP VSDM
-curl http://localhost:9101/service/status
+curl http://localhost:9112/service/status
 
 # PoPP Server
-curl http://localhost:9120/service/status
+curl http://localhost:9210/service/status
 
 # VSDM Server
-curl http://localhost:9121/service/status
+curl http://localhost:9130/service/status
 ```
 
 ### Stop All Services

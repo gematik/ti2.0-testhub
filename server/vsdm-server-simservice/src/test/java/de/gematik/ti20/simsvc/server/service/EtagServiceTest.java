@@ -21,20 +21,12 @@
 package de.gematik.ti20.simsvc.server.service;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 
-@ExtendWith(MockitoExtension.class)
 class EtagServiceTest {
-
-  @Mock private HttpServletRequest request;
 
   private EtagService etagService;
 
@@ -120,6 +112,21 @@ class EtagServiceTest {
     // Generate etag first
     etagService.addEtagHeader(kvnr, encodedResponse, headers);
     String etag = headers.getFirst(EtagService.HEADER_NAME);
+
+    boolean result = etagService.checkEtag(kvnr, etag);
+
+    assertTrue(result);
+  }
+
+  @Test
+  void testCheckEtag_ValidMatchUnquoted() {
+    String kvnr = "X123456789";
+    String encodedResponse = "{\"resourceType\":\"Bundle\"}";
+    HttpHeaders headers = new HttpHeaders();
+
+    // Generate etag first
+    etagService.addEtagHeader(kvnr, encodedResponse, headers);
+    String etag = headers.getFirst(EtagService.HEADER_NAME).replace("\"", "");
 
     boolean result = etagService.checkEtag(kvnr, etag);
 

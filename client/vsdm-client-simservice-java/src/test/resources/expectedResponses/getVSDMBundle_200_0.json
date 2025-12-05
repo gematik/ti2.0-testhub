@@ -38,8 +38,7 @@
       "type" : {
         "coding" : [ {
           "code" : "55188-7",
-          "system" : "http://loinc.org",
-          "display" : "Patient data Document"
+          "system" : "http://loinc.org"
         } ]
       },
       "author" : [ {

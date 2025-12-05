@@ -96,6 +96,19 @@ public class VsdmServerIT {
   }
 
   @Test
+  @Order(1)
+  public void testCallNotModified() throws Exception {
+    final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "1");
+    assertEquals(200, result.response.code());
+
+    final String etag = result.response.header("etag");
+    assertNotNull(etag);
+
+    final Result result2 = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, etag);
+    assertEquals(304, result2.response.code());
+  }
+
+  @Test
   @Order(2)
   public void testUnknownKVNR() throws Exception {
     final Result result = callOnce(MOCK_POPP_TOKEN_UNKNOWN_KVNR, MOCK_USER_INFO, "0");
@@ -182,6 +195,14 @@ public class VsdmServerIT {
     final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "0");
 
     assertNotNull(result.response.header("etag"));
+  }
+
+  @Test
+  @Order(7)
+  public void testResponseContainsPz() throws Exception {
+    final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "0");
+
+    assertNotNull(result.response.header("VSDM-Pz"));
   }
 
   @Test

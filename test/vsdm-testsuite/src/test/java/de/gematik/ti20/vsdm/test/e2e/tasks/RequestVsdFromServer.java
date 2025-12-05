@@ -37,18 +37,29 @@ public class RequestVsdFromServer implements Task {
     this.poppToken = poppToken;
   }
 
+  /*
+    ETag with "0" value:
+    - VsdmClientSimulator is using If-None-Match "0" while requesting VSD from VsdmServerSimulator.
+    - VsdmServerSimulator is always responding with return code 200 and with VsdmBundle.
+
+    ETag with "string" value:
+    - VsdmClientSimulator is using If-None-Match "string" while requesting VSD from VsdmServerSimulator.
+    - VsdmServerSimulator is responding with return code 200 or 304 and with or without VsdmBundle.
+
+    ETag with null value:
+    - VsdmClientSimulator is reading ETag from its own cache if available.
+    - If not available, request is sent without any If-None-Match header causing a server error.
+    - Then, VsdmServerSimulator is responding with error code 428 and corresponding OperationOutcome.
+
+    PoPP-Token with "string" value:
+    - VsdmClientSimulator is using PoPP-Token "string" while requesting VSD from VsdmServerSimulator.
+
+    PoPP-Token with null value:
+    - VsdmClientSimulator is reading PoPP-Token from its own cache if available.
+    - Or, VsdmClientSimulator is requesting new PoPP-Token from PoppServerMockService.
+  */
   public static RequestVsdFromServer withEtagAndPoppToken(String etag, String poppToken) {
     return instrumented(RequestVsdFromServer.class, etag, poppToken);
-  }
-
-  // PoPP-Token generation will be controlled by VSDM client itself.
-  public static RequestVsdFromServer withEtagAndNoPoppToken(String etag) {
-    return withEtagAndPoppToken(etag, null);
-  }
-
-  // Sending request w/o Etag will force an error situation on VSDM server.
-  public static RequestVsdFromServer withNoEtagAndPoppToken(String poppToken) {
-    return withEtagAndPoppToken(null, poppToken);
   }
 
   @Override
@@ -61,7 +72,6 @@ public class RequestVsdFromServer implements Task {
 
     var request =
         api.request()
-            .queryParam("forceUpdate", false)
             .queryParam("terminalId", "0")
             .queryParam("isFhirXml", false)
             .queryParam("smcBSlotId", smcbSlot)

@@ -27,10 +27,10 @@ import io.restassured.response.Response;
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Task;
 
-public class RequestVsdmData implements Task {
+public class RequestVsdmDataFromCache implements Task {
 
-  public static RequestVsdmData fromCache() {
-    return instrumented(RequestVsdmData.class);
+  public static RequestVsdmDataFromCache readCache() {
+    return instrumented(RequestVsdmDataFromCache.class);
   }
 
   @Override

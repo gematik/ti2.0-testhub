@@ -34,18 +34,18 @@ class VsdmCachedValueTest {
 
     VsdmCachedValue cachedValue = new VsdmCachedValue(etag, pruefziffer, vsdmData);
 
-    assertEquals(etag, cachedValue.getEtag());
-    assertEquals(pruefziffer, cachedValue.getPruefziffer());
-    assertEquals(vsdmData, cachedValue.getVsdmData());
+    assertEquals(etag, cachedValue.etag());
+    assertEquals(pruefziffer, cachedValue.pruefziffer());
+    assertEquals(vsdmData, cachedValue.vsdmData());
   }
 
   @Test
   void testConstructorWithNullValues() {
     VsdmCachedValue cachedValue = new VsdmCachedValue(null, null, null);
 
-    assertNull(cachedValue.getEtag());
-    assertNull(cachedValue.getPruefziffer());
-    assertNull(cachedValue.getVsdmData());
+    assertNull(cachedValue.etag());
+    assertNull(cachedValue.pruefziffer());
+    assertNull(cachedValue.vsdmData());
   }
 
   @Test
@@ -54,9 +54,9 @@ class VsdmCachedValueTest {
 
     VsdmCachedValue cachedValue = new VsdmCachedValue(emptyString, emptyString, emptyString);
 
-    assertEquals(emptyString, cachedValue.getEtag());
-    assertEquals(emptyString, cachedValue.getPruefziffer());
-    assertEquals(emptyString, cachedValue.getVsdmData());
+    assertEquals(emptyString, cachedValue.etag());
+    assertEquals(emptyString, cachedValue.pruefziffer());
+    assertEquals(emptyString, cachedValue.vsdmData());
   }
 
   @Test
@@ -68,8 +68,8 @@ class VsdmCachedValueTest {
     VsdmCachedValue cachedValue =
         new VsdmCachedValue(originalEtag, originalPruefziffer, originalVsdmData);
 
-    assertEquals(originalEtag, cachedValue.getEtag());
-    assertEquals(originalPruefziffer, cachedValue.getPruefziffer());
-    assertEquals(originalVsdmData, cachedValue.getVsdmData());
+    assertEquals(originalEtag, cachedValue.etag());
+    assertEquals(originalPruefziffer, cachedValue.pruefziffer());
+    assertEquals(originalVsdmData, cachedValue.vsdmData());
   }
 }

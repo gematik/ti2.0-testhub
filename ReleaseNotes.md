@@ -32,3 +32,10 @@
 
 - Integration of ZETA prototype
 - Introducing Serenity's screen play pattern
+
+## Release 1.1.2
+
+- Changing vsdm-client-simservice interface, removing forceUpdate parameter
+- Adding component titles to swagger UI
+- Correcting component ports listed in README
+- Fixed handling of Etag header

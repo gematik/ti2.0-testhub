@@ -20,6 +20,7 @@
  */
 package de.gematik.ti20.simsvc.client.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -45,9 +46,9 @@ class VsdmDataRepositoryTest {
     VsdmCachedValue result = repository.get(terminalId, slotId, cardId);
 
     assertEquals(cachedValue, result);
-    assertEquals("etag123", result.getEtag());
-    assertEquals("pz456", result.getPruefziffer());
-    assertEquals("test data", result.getVsdmData());
+    assertEquals("etag123", result.etag());
+    assertEquals("pz456", result.pruefziffer());
+    assertEquals("test data", result.vsdmData());
   }
 
   @Test
@@ -70,7 +71,7 @@ class VsdmDataRepositoryTest {
     VsdmCachedValue result = repository.get(terminalId, slotId, cardId);
 
     assertEquals(newValue, result);
-    assertEquals("new-etag", result.getEtag());
+    assertEquals("new-etag", result.etag());
   }
 
   @Test
@@ -136,5 +137,22 @@ class VsdmDataRepositoryTest {
 
     assertEquals(cachedValue, repository.get(terminalId, slotId, cardId));
     assertEquals(cachedValue, repository.get(terminalId, slotId, cardId));
+  }
+
+  @Test
+  void testThatClearRemovesAllData() {
+    final VsdmDataRepository data = new VsdmDataRepository();
+    data.put("", 1, "", new VsdmCachedValue("", "", ""));
+    data.put("", 2, "", new VsdmCachedValue("", "", ""));
+    data.put("", 3, "", new VsdmCachedValue("", "", ""));
+
+    assertThat(data.get("", 1, "")).isNotNull();
+    assertThat(data.get("", 2, "")).isNotNull();
+    assertThat(data.get("", 3, "")).isNotNull();
+
+    data.clear();
+    assertThat(data.get("", 1, "")).isNull();
+    assertThat(data.get("", 2, "")).isNull();
+    assertThat(data.get("", 3, "")).isNull();
   }
 }

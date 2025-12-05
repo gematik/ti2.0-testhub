@@ -18,18 +18,30 @@
  *
  * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
-package de.gematik.ti20.simsvc.client;
+package de.gematik.ti20.simsvc.client.controller;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.info.Info;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import static org.junit.jupiter.api.Assertions.*;
 
-@OpenAPIDefinition(info = @Info(title = "Card Terminal Client Simulator Service"))
-@SpringBootApplication
-public class Main {
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-  public static void main(String[] args) {
-    SpringApplication.run(Main.class, args);
+public class ServiceControllerTest {
+
+  private ServiceController serviceController;
+
+  @BeforeEach
+  void setUp() {
+    serviceController = new ServiceController();
+  }
+
+  @Test
+  void testStatus_Success() {
+    ResponseEntity<?> response = serviceController.status();
+
+    assertNotNull(response);
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNull(response.getBody());
   }
 }
