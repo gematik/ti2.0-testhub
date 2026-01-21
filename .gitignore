@@ -20,4 +20,5 @@ jenkinsfiles
 /test/vsdm-testsuite/src/test/resources/features/parallel
 /test/vsdm-testsuite/src/test/resources/features/zeta
 /test/vsdm-testsuite/src/test/resources/features/bde
-/doc/docker/vsdm/zeta/smcb-private/**
+/doc/docker/backend/zeta/smcb-private/**
+
