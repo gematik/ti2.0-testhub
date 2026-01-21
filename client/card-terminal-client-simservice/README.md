@@ -77,26 +77,20 @@ extensive card terminal functionality but operates entirely in simulation mode w
 
 2. **Build the project**
    ```bash
-   mvn clean install
+   ../../mvnw clean install
    ```
 
 3. **Build without tests (faster)**
    ```bash
-   mvn clean install -DskipTests
+   ../../mvnw clean install -DskipTests
    ```
 
 ### Docker Build
 
-Use the provided script to build a Docker image:
+To build a Docker Image use the docker profile:
 
 ```bash
-./bin/docker-build.sh
-```
-
-or use
-
-``` bash
-mvn clean install -Ddocker
+../../mvnw install -Pdocker
 ```
 
 ## Getting Started
@@ -106,13 +100,13 @@ mvn clean install -Ddocker
 **Option 1: Run with Maven**
 
 ```bash
-mvn spring-boot:run
+../../mvnw spring-boot:run
 ```
 
 **Option 2: Run with local profile**
 
 ```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=local
+../../mvnw spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
 **Option 3: Run the JAR file**

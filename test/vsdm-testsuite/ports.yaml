@@ -1,0 +1,6 @@
+ports:
+  tigerWorkflowUiPort: 6800
+  localTigerProxyAdminPort: 6900
+  localTigerProxyProxyPort: 80
+  cardTerminalPort: 8000
+  vsdmClientPort: 8220

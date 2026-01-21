@@ -81,7 +81,7 @@ the [gemSpecPages](https://gemspec.gematik.de/docs/gemSpec/gemSpec_ZETA/latest/)
 ### Build the Project
 
 ```bash
-mvn clean install
+../../mvnw clean install
 ```
 
 ## Getting Started
@@ -90,12 +90,12 @@ mvn clean install
 
 1. **Run the service:**
    ```bash
-   mvn spring-boot:run
+   ../../mvnw spring-boot:run
    ```
 
 2. **Using Docker:**
    ```bash
-   ./bin/docker-build.sh
+   ../../mvnw install -Pdocker
    docker run -p 80:80 zeta-pep-server-mockservice
    ```
 

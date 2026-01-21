@@ -23,13 +23,11 @@ Funktionalität: Abfrage der Versichertenstammdaten von der eGK
     Angenommen das Primärsystem in der LEI verwendet ein korrekt konfiguriertes Terminal
     Angenommen das Primärsystem in der LEI verwendet eine SMC-B <Smcb-Card> im Slot <Smcb-Slot>
     Angenommen der Versicherte in der LEI verwendet eine eGK <Egk-Card> im Slot <Egk-Slot>
-    Wenn das Primärsystem sich mit seiner SMC-B beim ZETA Guard des VSDM 2.0 Fachdienstes authentifiziert
-    Dann erhält das Primärsystem einen Access- und Refresh-Token vom ZETA Guard
-    Wenn das Primärsystem die VSD mit einem ungültigen PoPP-Token vom VSDM Ressource Server abfragt TODO
-    Dann antwortet der VSDM Ressource Server mit dem Fehlercode <Http-Code> und dem Text <Bde-Text> TODO
+    Wenn das Primärsystem die VSD mit einem ungültigen PoPP-Token vom VSDM Ressource Server abfragt
+    Dann antwortet der VSDM Ressource Server mit dem Fehlercode <Http-Code> und dem Text <Bde-Text>
     Wenn das Primärsystem die VSD direkt von einer gültigen eGK des Versicherten in der LEI abfragt
     Dann werden die VSD von der eGK gelesen und der Versicherte kann versorgt werden
 
     Beispiele:
       | Smcb-Card           | Smcb-Slot | Egk-Card           | Egk-Slot | Http-Code | Bde-Text                           |
-      | "smcbCardImage.xml" | 1         | "egkCardImage.xml" | 2        | 500       | "VSDSERVICE_INTERNAL_SERVER_ERROR" |
+      | "smcbCardImage.xml" | 1         | "egkCardImage.xml" | 2        | 500       | "SERVICE_INTERNAL_SERVER_ERROR" |

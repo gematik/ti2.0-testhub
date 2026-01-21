@@ -20,11 +20,7 @@
  */
 package de.gematik.ti20.client.zeta.service;
 
-import de.gematik.ti20.client.card.card.AttachedCard;
-import de.gematik.ti20.client.card.card.CardCertInfoSmcb;
-import de.gematik.ti20.client.card.card.CardConnection;
-import de.gematik.ti20.client.card.card.CardType;
-import de.gematik.ti20.client.card.card.SignOptions;
+import de.gematik.ti20.client.card.card.*;
 import de.gematik.ti20.client.card.card.SignOptions.HashAlgorithm;
 import de.gematik.ti20.client.card.card.SignOptions.SignatureType;
 import de.gematik.ti20.client.card.terminal.CardTerminalException;
@@ -47,6 +43,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jose4j.jwt.JwtClaims;
@@ -149,26 +146,29 @@ public class ZetaClientService {
     var eh =
         new ZetaWsEventHandler() {
 
+          @Override
           public void onConnected(ZetaWsSession ws) {
             eventHandler.onConnected(ws);
           }
 
+          @Override
           public void onDisconnected(ZetaWsSession ws) {
             eventHandler.onDisconnected(ws);
             resultFuture.complete(ws);
           }
 
+          @Override
           public void onException(ZetaWsSession ws, ZetaHttpException e) {
-            if (e instanceof ZetaHttpResponseException) {
-              if (((ZetaHttpResponseException) e).isUnauthorized()) {
-                resultFuture.completeExceptionally(e);
-                return;
-              }
+            if (e instanceof ZetaHttpResponseException zetaExc && zetaExc.isUnauthorized()) {
+              resultFuture.completeExceptionally(e);
+              return;
             }
+
             eventHandler.onException(ws, e);
             resultFuture.completeExceptionally(e);
           }
 
+          @Override
           public void onMessage(ZetaWsSession ws) {
             eventHandler.onMessage(ws);
             // resultFuture.complete(ws);
@@ -179,25 +179,23 @@ public class ZetaClientService {
     try {
       /*var wsm =*/ resultFuture.get(5, TimeUnit.MINUTES);
     } catch (final ExecutionException e) {
-      if (e.getCause() instanceof ZetaHttpResponseException
-          && ((ZetaHttpResponseException) e.getCause()).isUnauthorized()) {
+      if (e.getCause() instanceof ZetaHttpResponseException zetaExc && zetaExc.isUnauthorized()) {
         authorizeAndReconnect(request, eventHandler);
         return;
       }
+      log.error("CompletableFuture resolution exception on {}", request.getTraceId(), e);
+    } catch (final RuntimeException | InterruptedException | TimeoutException e) {
+      log.error("CompletableFuture resolution exception on {}", request.getTraceId(), e);
 
-      log.error("CompletableFuture resolution exception on {}", request.getTraceId(), e);
-    } catch (final Exception e) {
-      log.error("CompletableFuture resolution exception on {}", request.getTraceId(), e);
+      if (e instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
 
       eventHandler.onException(eventHandler.getWsSession(), new ZetaHttpException(e, request));
     }
   }
 
-  /**
-   * Authorizes the request and reconnects to the PEP Proxy via websocket.
-   *
-   * @param eventHandler
-   */
+  /** Authorizes the request and reconnects to the PEP Proxy via websocket. */
   public void authorizeAndReconnect(
       final ZetaHttpRequest request, final ZetaWsEventHandler eventHandler)
       throws ZetaHttpException {

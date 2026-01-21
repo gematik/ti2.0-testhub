@@ -34,11 +34,10 @@ class GlobalExceptionHandlerTest {
   @Test
   void thatInternalServerErrorIsPropagated() {
     final ResponseStatusException ex =
-        new ResponseStatusException(
-            HttpStatus.INTERNAL_SERVER_ERROR, "VSDSERVICE_UNSUPPORTED_MEDIATYPE");
+        new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "SERVICE_UNSUPPORTED_MEDIATYPE");
     final ResponseEntity<String> response =
         globalExceptionHandler.handleResponseStatusException(ex);
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_ACCEPTABLE);
   }
 
   @Test
@@ -47,6 +46,6 @@ class GlobalExceptionHandlerTest {
     final ResponseEntity<String> response =
         globalExceptionHandler.handleResponseStatusException(ex);
     assertThat(response.getStatusCode().value()).isEqualTo(123);
-    assertThat(response.getBody()).contains("VSDSERVICE_INTERNAL_SERVER_ERROR");
+    assertThat(response.getBody()).contains("SERVICE_INTERNAL_SERVER_ERROR");
   }
 }

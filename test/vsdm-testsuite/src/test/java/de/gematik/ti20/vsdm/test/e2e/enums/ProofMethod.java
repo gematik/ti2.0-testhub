@@ -20,6 +20,9 @@
  */
 package de.gematik.ti20.vsdm.test.e2e.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum ProofMethod {
   HEALTHID("healthid"),
   EHC_PRACTITIONER_TRUSTEDCHANNEL("ehc-practitioner-trustedchannel"),
@@ -35,18 +38,5 @@ public enum ProofMethod {
 
   ProofMethod(String value) {
     this.value = value;
-  }
-
-  public String getValue() {
-    return value;
-  }
-
-  public static ProofMethod fromValue(String value) {
-    for (ProofMethod method : values()) {
-      if (method.value.equals(value)) {
-        return method;
-      }
-    }
-    throw new IllegalArgumentException("Unknown proof method: " + value);
   }
 }

@@ -22,8 +22,6 @@ package de.gematik.ti20.vsdm.test.unit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 import de.gematik.bbriccs.fhir.codec.FhirCodec;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
 import de.gematik.ti20.vsdm.fhir.def.VsdmOperationOutcome;
@@ -35,10 +33,9 @@ import org.hl7.fhir.r4.model.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 
 @Slf4j
-public class VsdmServerIT {
+class VsdmServerIT {
 
   private static final String VSDM_SERVER_URL = "http://localhost:9130";
   private static final String VSDM_ENDPOINT = VSDM_SERVER_URL + "/vsdservice/v1/vsdmbundle";
@@ -56,17 +53,14 @@ public class VsdmServerIT {
   private static FhirCodec fhirCodec;
 
   @BeforeAll
-  public static void setup() {
-    final Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-    logger.setLevel(Level.INFO);
-
+  static void setup() {
     httpClient = new OkHttpClient.Builder().build();
     fhirCodec = FhirCodec.forR4().andDummyValidator();
   }
 
   @Test
   @Order(1)
-  public void testCallSuccessful() throws Exception {
+  void testCallSuccessful() throws Exception {
     final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "0");
 
     assertEquals(200, result.response.code());
@@ -124,7 +118,7 @@ public class VsdmServerIT {
     assertNotNull(cc);
 
     assertEquals("VSDSERVICE_INVALID_KVNR", cc.getCoding().get(0).getCode());
-    assertEquals("Ungültige oder nicht bekannte Krankenversichertennummer <kvnr>.", cc.getText());
+    assertEquals("[kvnr] aus dem PoPP-Token weist Formatfehler auf.", cc.getText());
   }
 
   @Test
@@ -142,7 +136,7 @@ public class VsdmServerIT {
     final CodeableConcept cc = vsdmOperationOutcome.getIssue().get(0).getDetails();
     assertNotNull(cc);
     assertEquals("VSDSERVICE_INVALID_IK", cc.getCoding().get(0).getCode());
-    assertEquals("Ungültige oder nicht bekannte Institutionskennung <ik>.", cc.getText());
+    assertEquals("[ik] aus dem PoPP-Token weist Formatfehler auf.", cc.getText());
   }
 
   @Test
@@ -160,7 +154,7 @@ public class VsdmServerIT {
 
     final CodeableConcept cc = operationOutcome.getIssue().get(0).getDetails();
     assertNotNull(cc);
-    assertEquals("Der erforderliche HTTP-Header <header> fehlt oder ist ungültig.", cc.getText());
+    assertEquals("Der erforderliche HTTP-Header [header] ist ungültig.", cc.getText());
   }
 
   @Test
@@ -178,7 +172,7 @@ public class VsdmServerIT {
 
     final CodeableConcept cc = vsdmOperationOutcome.getIssue().get(0).getDetails();
     assertNotNull(cc);
-    assertEquals("Der erforderliche HTTP-Header <header> fehlt oder ist ungültig.", cc.getText());
+    assertEquals("Der erforderliche HTTP-Header [header] ist ungültig.", cc.getText());
   }
 
   @Test

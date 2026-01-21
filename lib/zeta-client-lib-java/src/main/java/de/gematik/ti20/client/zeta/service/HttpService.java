@@ -30,13 +30,12 @@ import de.gematik.ti20.client.zeta.websocket.ZetaWsEventHandler;
 import de.gematik.ti20.client.zeta.websocket.ZetaWsSession;
 import java.net.*;
 import java.util.concurrent.TimeUnit;
-import okhttp3.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
 
+@Slf4j
 public class HttpService {
-
-  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   protected final ZetaClientService zetaClientService;
   private final OkHttpClient client;
@@ -56,7 +55,7 @@ public class HttpService {
   }
 
   public ZetaHttpResponse send(final ZetaHttpRequest request) throws ZetaHttpException {
-    log.debug("Sending message with traceId {} to {}", request.getTraceId(), request.getUrl());
+    log.info("Sending message with traceId {} to {}", request.getTraceId(), request.getUrl());
     extendRequest(request);
     final long startTime = System.currentTimeMillis();
 
@@ -68,7 +67,13 @@ public class HttpService {
       }
     } catch (final ZetaHttpResponseException e) {
       if (e.getCode() != 401) {
-        log.error("Request failed with code {} and message '{}'", e.getCode(), e.getMessage(), e);
+        log.error(
+            "Request {} to {} failed with code {} and message '{}'",
+            request.getTraceId(),
+            request.getUrl(),
+            e.getCode(),
+            e.getMessage(),
+            e);
       }
       throw e;
     } catch (final SocketTimeoutException e) {
@@ -113,12 +118,14 @@ public class HttpService {
 
     if (proxyUrl != null && !proxyUrl.isEmpty()) {
       try {
+        log.info("Found Proxy-URL in environment variables: {}", proxyUrl);
         URI proxyUri = new URI(proxyUrl);
         String host = proxyUri.getHost();
         int port = proxyUri.getPort();
 
         if (host != null && port != -1) {
           builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port)));
+          log.info("Using proxy with settings from environment variable: {}:{}", host, port);
         }
       } catch (URISyntaxException e) {
         System.err.println("Invalid proxy URL from environment variable: " + proxyUrl);

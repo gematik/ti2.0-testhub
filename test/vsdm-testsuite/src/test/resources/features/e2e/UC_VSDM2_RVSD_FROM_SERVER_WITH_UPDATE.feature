@@ -27,11 +27,11 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0
     Angenommen das Primärsystem in der LEI verwendet ein korrekt konfiguriertes Terminal
     Angenommen das Primärsystem in der LEI verwendet eine SMC-B <Smcb-Card> im Slot <Smcb-Slot>
     Angenommen der Versicherte in der LEI verwendet eine eGK <Egk-Card> im Slot <Egk-Slot>
-    Wenn das Primärsystem sich mit seiner SMC-B beim ZETA Guard des VSDM 2.0 Fachdienstes authentifiziert
-    Dann erhält das Primärsystem einen Access- und Refresh-Token vom ZETA Guard
     Wenn das Primärsystem die VSD mittels PoPP- und Access-Token vom VSDM Ressource Server abfragt
     Und der VSDM Ressource Server beim E-Tag-Vergleich einen Unterschied feststellt
     Dann sendet der VSDM Ressource Server die aktualisierten VSD mit dem Statuscode <Http-Code> zum Primärsystem
+    Und die aktualisierten VSD enthalten das VsdmBundle mit den korrekten Patientendaten
+    Und die aktualisierten VSD enthalten das VsdmBundle mit den korrekten Versicherungsdaten
     Und das Primärsystem speichert die aktualisierten VSD in seiner lokalen Datenbank
     Und das Primärsystem speichert den PoPP-Token in seiner lokalen Datenbank
     Und das Primärsystem speichert die Prüfziffer in seiner lokalen Datenbank

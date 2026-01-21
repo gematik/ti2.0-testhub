@@ -39,3 +39,7 @@
 - Adding component titles to swagger UI
 - Correcting component ports listed in README
 - Fixed handling of Etag header
+
+## Release 1.1.3
+
+- Introduced Tiger-Proxy into the PS - to - Server communication

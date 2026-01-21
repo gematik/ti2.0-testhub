@@ -38,8 +38,8 @@ public class PepProxyService extends HttpService {
 
   public void requestWellKnown(final AuthContext ac) throws ZetaHttpException {
     String url = ac.getRequest().getUrl();
-    if (ac.getRequest() instanceof ZetaWsRequest) {
-      url = ((ZetaWsRequest) ac.getRequest()).getUrlHttpEndpoint();
+    if (ac.getRequest() instanceof ZetaWsRequest zetaRequest) {
+      url = zetaRequest.getUrlHttpEndpoint();
     }
 
     try {

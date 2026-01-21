@@ -45,4 +45,9 @@ public class CallVsdmClient implements Ability {
   public RequestSpecification request() {
     return given().baseUri(baseUrl);
   }
+
+  @Override
+  public String toString() {
+    return "call vsdm client at " + baseUrl;
+  }
 }

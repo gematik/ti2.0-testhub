@@ -14,4 +14,16 @@ popp:
 
 vsdm:
   resourceServerUrl: ${VSDM_RESOURCE_SERVER_URL}
-  pdpUrl: ${VSDM_PDP_URL}
+
+zetasdk:
+  smcbAliasPath: ${ZETASDK_SMCB_ALIAS_PATH}
+  smcbPrivateKeyPasswordPath: ${ZETASDK_SMCB_PRIVATE_KEY_PASSWORD_PATH}
+  smcbPrivateKeyPath: ${ZETASDK_SMCB_PRIVATE_KEY_PATH}
+
+spring:
+  ssl:
+    bundle:
+      pem:
+        client:
+          truststore:
+            certificate: "classpath:tigerProxy.pem"

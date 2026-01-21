@@ -13,7 +13,7 @@ patients:
         given: Petra Franziska
         family: Rot
         alt: Stauffenbërg-Kleinschmidt
-      birthDate: 1935-06-22
+      birthDate: "1935-06-22"
       kvnr: N430869088
       address:
         post:

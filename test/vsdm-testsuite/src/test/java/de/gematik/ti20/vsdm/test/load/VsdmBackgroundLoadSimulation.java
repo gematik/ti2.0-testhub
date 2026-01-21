@@ -46,7 +46,7 @@ public class VsdmBackgroundLoadSimulation extends BaseSimulation {
           .feed(POPP_TOKEN_FEEDER)
           .exec(
               http("ReadVSD")
-                  .get(VSDM_SERVER_URL + "/vsdservice/v1/vsdmbundle")
+                  .get(URL_SERVER_VSDM + "/vsdservice/v1/vsdmbundle")
                   .header("zeta-popp-token-content", "#{popp_token}")
                   .header("zeta-user-info", "MOCK_USER_INFO")
                   .header("if-none-match", "0")
@@ -59,7 +59,9 @@ public class VsdmBackgroundLoadSimulation extends BaseSimulation {
     } else {
       setUp(
               readVsdScenario.injectOpen(
-                  rampUsersPerSec(USERS_PER_SEC).to(USERS_PER_SEC).during(USERS_DURATION_SECS)))
+                  rampUsersPerSec(RAMP_USERS_STEADY_NUMBER)
+                      .to(RAMP_USERS_STEADY_NUMBER)
+                      .during(RAMP_USERS_STEADY_DURATION)))
           .protocols(httpProtocol);
     }
   }

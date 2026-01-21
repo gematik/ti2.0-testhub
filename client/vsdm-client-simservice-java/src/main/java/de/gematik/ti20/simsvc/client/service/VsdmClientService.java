@@ -40,6 +40,7 @@ import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
 import de.gematik.ti20.vsdm.fhir.builder.VsdmBundleBuilder;
 import de.gematik.ti20.vsdm.fhir.builder.VsdmPatientBuilder;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
+import de.gematik.zeta.sdk.*;
 import io.ktor.client.plugins.ClientRequestException;
 import io.ktor.client.plugins.ServerResponseException;
 import java.net.HttpURLConnection;
@@ -53,8 +54,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckForNull;
-import kotlin.Unit;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
@@ -81,7 +82,8 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
 
   private final FhirService fhirService;
 
-  private Map<String, CompletableFuture<TokenMessage>> tokenFutures = new ConcurrentHashMap<>();
+  private final Map<String, CompletableFuture<TokenMessage>> tokenFutures =
+      new ConcurrentHashMap<>();
 
   public VsdmClientService(
       final PoppClientService poppClientService,
@@ -185,10 +187,11 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
 
       return poppTokenFromService;
     } catch (final TimeoutException e) {
-      log.error(
-          "Timeout error on waiting for completing of PoppTokenSession with card {}",
-          attachedCard.getId());
-      throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
+      val errorMsg =
+          "Timeout error on waiting for completing of PoppTokenSession with card %s"
+              .formatted(attachedCard.getId());
+      log.error(errorMsg, attachedCard.getId());
+      throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, errorMsg, e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       log.error("Thread interrupted while waiting for completing of PoppTokenSession with card", e);
@@ -350,14 +353,13 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
     responseFromServer
         .headers()
         .forEach(
-            (key, values) -> {
+            (key, value) -> {
               if (key.equalsIgnoreCase(HEADER_VSDM_PZ)
                   || key.equalsIgnoreCase(HEADER_ETAG)
                   || key.equalsIgnoreCase("Content-Type")
                   || key.equalsIgnoreCase("Content-Length")) {
-                responseHeaders.put(key, values);
+                responseHeaders.put(key, List.of(value));
               }
-              return Unit.INSTANCE;
             });
 
     return responseHeaders;

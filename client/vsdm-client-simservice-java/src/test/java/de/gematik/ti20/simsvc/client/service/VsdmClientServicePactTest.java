@@ -39,11 +39,9 @@ import de.gematik.ti20.client.card.terminal.simsvc.SimulatorAttachedCard;
 import de.gematik.ti20.simsvc.client.config.VsdmConfig;
 import de.gematik.ti20.simsvc.client.pact.PactConfig;
 import de.gematik.zeta.sdk.ZetaSdkClient;
-import io.ktor.client.HttpClient;
-import io.ktor.client.HttpClientKt;
-import io.ktor.client.engine.java.Java;
+import de.gematik.zeta.sdk.network.http.client.ZetaHttpClient;
+import de.gematik.zeta.sdk.network.http.client.ZetaHttpClientBuilder;
 import java.nio.charset.StandardCharsets;
-import kotlin.Unit;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
@@ -82,8 +80,7 @@ class VsdmClientServicePactTest {
     // add any zetaSpecific headers and does not do any additional authentication with a zeta
     // service.
     //  In this way the test returns the mocked responses and registers the pact into the pact file.
-    HttpClient customKtorHttpClient =
-        HttpClientKt.HttpClient(Java.INSTANCE, config -> Unit.INSTANCE);
+    ZetaHttpClient customKtorHttpClient = new ZetaHttpClientBuilder("fake:///base-url").build();
     when(zetaSdkClient.httpClient(any())).thenReturn(customKtorHttpClient);
 
     mockEgkCard = mock(SimulatorAttachedCard.class);

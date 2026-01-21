@@ -20,27 +20,26 @@
  */
 package de.gematik.ti20.vsdm.test.unit;
 
+import static de.gematik.ti20.vsdm.test.util.ClasspathUtils.loadClasspathRessourceWithTigerResolving;
 import static org.junit.jupiter.api.Assertions.*;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 import de.gematik.bbriccs.fhir.codec.FhirCodec;
+import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
+import de.gematik.test.tiger.lib.TigerDirector;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import okhttp3.MediaType;
 import okhttp3.Request;
 import org.hl7.fhir.r4.model.*;
 import org.junit.jupiter.api.*;
-import org.slf4j.LoggerFactory;
 
 @Slf4j
-public class VsdmClientIT {
+class VsdmClientIT {
 
-  private static final String CARD_CLIENT_URL = "http://localhost:8000";
-  private static final String VSDM_CLIENT_URL = "http://localhost:8220";
+  private static final String CARD_CLIENT_URL = "http://127.0.0.1:8000";
+  private static final String VSDM_CLIENT_URL = "http://127.0.0.1:8220";
 
   private static final Integer TERMINAL_ID = 1;
   private static final Boolean IS_FIRE_XML = false;
@@ -65,19 +64,18 @@ public class VsdmClientIT {
   // 1. All VSDM components are running via docker-compose.
 
   @BeforeAll
-  public static void setup() {
-    final Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-    logger.setLevel(Level.INFO);
-
+  static void setup() {
+    TigerGlobalConfiguration.putValue("tiger.lib.activateWorkflowUi", "false");
+    TigerDirector.start();
     httpClient =
         new OkHttpClient.Builder()
-            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS) // set to 30 seconds
+            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .build();
     fhirCodec = FhirCodec.forR4().andDummyValidator();
   }
 
   @BeforeEach
-  public void beforeEach() throws Exception {
+  void beforeEach() throws Exception {
     removeCardFromSlot(EGK_SLOT);
     removeCardFromSlot(SMCB_SLOT);
 
@@ -89,7 +87,7 @@ public class VsdmClientIT {
 
   @Test
   @Order(1)
-  public void testReadVsdReturnsExpectedData() throws Exception {
+  void testReadVsdReturnsExpectedData() throws Exception {
     final Result result = readVsdOnce("0");
     assertEquals(200, result.response.code());
     assertNotNull(result.resource);
@@ -298,13 +296,8 @@ public class VsdmClientIT {
     assertTrue(!readTruncatedDataBody.isEmpty());
   }
 
-  private static String loadFile(final String fileName) throws Exception {
-    final InputStream is = VsdmClientIT.class.getClassLoader().getResourceAsStream(fileName);
-    return new String(is.readAllBytes(), StandardCharsets.UTF_8);
-  }
-
   private static void insertCard(final String filename, final int slot) throws Exception {
-    final String cardImage = loadFile(filename);
+    final String cardImage = loadClasspathRessourceWithTigerResolving(filename);
 
     final Request insertCard =
         new Request.Builder()
@@ -329,7 +322,8 @@ public class VsdmClientIT {
   }
 
   private static void configureTerminal() throws Exception {
-    final String terminalConfig = loadFile("data/cards/terminal.json");
+    final String terminalConfig =
+        loadClasspathRessourceWithTigerResolving("data/cards/terminal.json");
 
     final Request configureTerminal =
         new Request.Builder()
@@ -357,7 +351,17 @@ public class VsdmClientIT {
 
   private static Result readVsdOnce(final String ifNoneMatch) throws Exception {
     final Request readVsd =
-        new Request.Builder().url(VSDM_ENDPOINT).header("If-None-Match", ifNoneMatch).get().build();
+        new Request.Builder()
+            .url(VSDM_ENDPOINT)
+            .header("If-None-Match", ifNoneMatch)
+            // For some reason, VSDM client produces the error
+            // 'o.a.coyote.http11.Http11Processor - Error state [CLOSE_CONNECTION_NOW] reported
+            // while processing request'
+            // if connection is kept alive, so we close it via the following header.
+            // Further analysis is needed.
+            .header("Connection", "close")
+            .get()
+            .build();
 
     final Response readVsdResponse = httpClient.newCall(readVsd).execute();
     final String readVsdBody = readVsdResponse.body().string();
@@ -368,7 +372,8 @@ public class VsdmClientIT {
     VsdmBundle vsdmBundle = null;
     try {
       vsdmBundle = fhirCodec.decode(VsdmBundle.class, readVsdBody);
-    } catch (final Exception ignored) {
+    } catch (final Exception e) {
+      log.debug("Response body is not a valid VsdmBundle", e);
     }
 
     return new Result(vsdmBundle, readVsdResponse);

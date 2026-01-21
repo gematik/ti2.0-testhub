@@ -9,7 +9,6 @@
 *.xml.versionsBackup
 **/*.xml.versionsBackup
 pactconfig-local.properties
-
 /.idea/
 /.vscode/
 jenkinsfiles
@@ -21,4 +20,4 @@ jenkinsfiles
 /test/vsdm-testsuite/src/test/resources/features/parallel
 /test/vsdm-testsuite/src/test/resources/features/zeta
 /test/vsdm-testsuite/src/test/resources/features/bde
-
+/doc/docker/vsdm/zeta/smcb-private/**

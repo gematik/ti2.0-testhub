@@ -20,28 +20,15 @@
  */
 package de.gematik.ti20.simsvc.server.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import lombok.Value;
 
+@Value
 public class TokenGenerationParams {
 
-  private final List<TokenParams> tokenParamsList;
-  private final SecurityParams securityParams;
+  @JsonProperty(required = true)
+  List<TokenParams> tokenParamsList;
 
-  @JsonCreator
-  public TokenGenerationParams(
-      @JsonProperty(value = "tokenParamsList", required = true) List<TokenParams> tokenParamsList,
-      @JsonProperty(value = "securityParams", required = false) SecurityParams securityParams) {
-    this.tokenParamsList = tokenParamsList;
-    this.securityParams = securityParams;
-  }
-
-  public List<TokenParams> getTokenParamsList() {
-    return tokenParamsList;
-  }
-
-  public SecurityParams getSecurityParams() {
-    return securityParams;
-  }
+  @JsonProperty SecurityParams securityParams;
 }

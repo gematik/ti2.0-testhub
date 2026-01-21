@@ -30,8 +30,6 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0 unte
     Angenommen der Versicherte in der LEI verwendet eine eGK <Egk-Card> im Slot <Egk-Slot>
     Angenommen das Primärsystem hat den Versorgungskontext als PoPP-Token gespeichert
     Angenommen der Fachdienst VSDM 2.0 befindet sich unter <Load-Level>% Maximallast
-    Wenn das Primärsystem sich mit seiner SMC-B beim ZETA Guard des VSDM 2.0 Fachdienstes authentifiziert
-    Dann erhält das Primärsystem einen Access- und Refresh-Token vom ZETA Guard
     Wenn das Primärsystem <Number-Calls> Anfragen mit VSD Update an den Fachdienst VSDM 2.0 sendet
     Dann überschreiten die Antworten des Fachdienstes VSDM 2.0 nicht den Maximalwert von <Max-Answer-Time> ms
 

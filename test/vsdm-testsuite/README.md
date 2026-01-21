@@ -43,7 +43,7 @@ Sämtliche Tests der VSDM-Testsuite setzen diese simulierten Dienste voraus. Die
 Docker-Container gestartet werden: (Der Skript-Aufruf sollte im Projekt-Root-Verzeichnis erfolgen.)
 
 ```
-./doc/bin/vsdm/docker-compose-local-rebuild.sh
+./doc/bin/docker-compose-local-rebuild.sh
 ```
 
 Die untere Grafik zeigt den TI 2.0 TestHub in seiner ersten Ausbaustufe, welche ausschließlich aus Simulatoren bzw.
@@ -65,7 +65,7 @@ und somit deren Funktionsweise demonstrieren. Die Tests verwenden das Jupiter-Fr
 Die Integrationstests können mit folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
 
 ```
-mvn -Dit.test="Vsdm*IT" -Dskip.inttests=false verify
+../../mvnw -Dit.test="Vsdm*IT" -Dskip.inttests=false verify
 ```
 
 ## E2E-Tests
@@ -90,7 +90,7 @@ dies nicht möglich, da die eGK ungültig ist. Testfälle:
 Die E2E-Tests können mit folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
 
 ```
-mvn clean verify -Dcucumber.filter.tags="@TYPE:E2E" -Dskip.inttests=false
+../../mvnw clean verify -Dcucumber.filter.tags="@TYPE:E2E" -Dskip.inttests=false
 ```
 
 ## Lasttests
@@ -108,7 +108,7 @@ Testfälle:
 Die Lasttests können mit folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
 
 ```
-mvn clean verify -Dcucumber.filter.tags="@TYPE:LOAD" -Dskip.inttests=false
+../../mvnw clean verify -Dcucumber.filter.tags="@TYPE:LOAD" -Dskip.inttests=false
 ```
 
 ## Gatling-Simulationen
@@ -125,7 +125,7 @@ Simulation
 kann mittels Maven und folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
 
 ```
-mvn gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.GeneratePoppTokenSimulation
+../../mvnw gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.GeneratePoppTokenSimulation
 ```
 
 ### PoppVsdmServerSimulation.java
@@ -135,7 +135,7 @@ Popp-Token zurückliefert. Danach wird dieser Popp-Token während der Abfrage de
 Die Simulation kann mittels Maven und folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
 
 ```
-mvn gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.PoppVsdmServerSimulation [-DrandomReadVsd=true]
+../../mvnw gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.PoppVsdmServerSimulation
 ```
 
 ### VsdmClientJourneySimulation.java
@@ -144,7 +144,7 @@ Diese Simulation simuliert den kompletten Ablauf vom Einstecken der Karten, übe
 bis hin zur Abfrage der VSD vom Fachdienst VSDM 2.0 und kann im Verzeichnis 'vsdm-testsuite' wie folgt gestartet werden:
 
 ```
-mvn gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmClientJourneySimulation [-DrandomReadVsd=true]
+../../mvnw gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmClientJourneySimulation
 ```
 
 ### VsdmBackgroundLoadSimulation.java
@@ -154,28 +154,22 @@ VsdmServerSimulator ab und wird in Verbindung mit den Lasttests zur Generierung 
 Die Simulation kann mittels Maven und folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
 
 ```
-mvn gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmBackgroundLoadSimulation [-DrandomReadVsd=true]
+../../mvnw gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmBackgroundLoadSimulation
 ```
 
-Die Hintergrundlast ist aktuell in der Datei "BaseSimulation.java" so konfiguriert, dass diese maximal 25 Aufrufe in
-der Sekunde über einen Zeitraum von ca. fünf Minuten versendet. Das Versenden kann mit dem Parameter "randomReadVsd"
-gleichförmig oder variabel erfolgen. Bei Auswahl einer variablen Hintergrundlast bewegen sich die Aufrufe zufällig
-zwischen den Werten 5 bis 25 Aufrufe pro Sekunde. Natürlich können die aktuell eingestellten Parameter durch passende
-System-Parameter (Option -D) überschrieben werden.
+### Konfiguration der Simulationen
 
-### Beispiel: Gleichförmige Hintergrundlast (25 Aufrufe/sec für 60 Sekunden)
+Die Lastverteilung ist aktuell in der Datei "simulation.conf" so konfiguriert, dass diese eine zufällige Last ziwschen 
+5 und 25 Aufrufen über einen Zeitraum von 300 Sekunden versendet. Wird der Parameter "randomReadVsd" in dieser Datei auf
+den Wert "false" gesetzt, werden stattdessen konstant 25 Aufrufe über einen Zeitraum von 60 Sekunden gesendet.
 
-* randomReadVsd=false
-* usersPerSec=25
-* usersDurationSecs=60
+Der Anwender kann auch eine eigene Konfigurationsdatei, welche sich im Resource-Ordner befinden sollte, definieren. Die
+eigene Datei muss sich jedoch strukturell an der Datei "simulation.conf" orientieren. Für eine Datei mit dem Pfad
+"src/test/resources/my-own-simulation.conf" sähe dieser Parameter dann wie folgt aus:
 
-### Beispiel: Variable Hintergrundlast (5-25 Aufrufe/sec für 300 Sekunden)
-
-* randomReadVsd=true
-* readVsdPerSecMin=5
-* readVsdPerSecMax=25
-* readVsdDurationSecs=30
-* readVsdNumberCycles=10
+```
+-Dconfig.resource=my-own-simulation.conf
+```
 
 ## Hinweise
 

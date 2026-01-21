@@ -27,11 +27,7 @@ import de.gematik.test.testdata.exceptions.TestDataInitializationException;
 import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 import java.util.Optional;
-import java.util.TimeZone;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Repository;
 
@@ -96,24 +92,6 @@ public class TestDataRepository {
           }
         }
       }
-    }
-    return Optional.empty();
-  }
-
-  public Optional<Date> getDateFor(RbelElement parent, String rbelPath) {
-    var value = getStringFor(parent, rbelPath);
-    if (value.isEmpty()) {
-      return Optional.empty();
-    }
-
-    String pattern = "EEE MMM dd HH:mm:ss z yyyy";
-    SimpleDateFormat dateFormat = new SimpleDateFormat(pattern, Locale.ENGLISH);
-    dateFormat.setTimeZone(TimeZone.getTimeZone("CET"));
-
-    try {
-      return Optional.of(dateFormat.parse(value.get()));
-    } catch (Exception e) {
-      // TODO: log warning
     }
     return Optional.empty();
   }

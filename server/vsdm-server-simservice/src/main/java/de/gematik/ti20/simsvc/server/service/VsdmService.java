@@ -85,7 +85,7 @@ public class VsdmService {
 
     final VsdmPatient patient = getPatient(kvnr);
     final VsdmPayorOrganization payorOrganization = mockPayorOrganization();
-    final VsdmCoverage coverage = mockCoverage(patient, payorOrganization);
+    final VsdmCoverage coverage = mockCoverage(kvnr, patient, payorOrganization);
 
     final VsdmBundle vsdmBundle =
         VsdmBundleBuilder.create()
@@ -136,7 +136,7 @@ public class VsdmService {
                 data.getStringFor(pd.get(), "$.name.family").orElse(""),
                 data.getStringFor(pd.get(), "$.name.given").orElse(""))
             .withKvnr(data.getStringFor(pd.get(), "$.kvnr").orElse(""))
-            .withBirthDate(data.getDateFor(pd.get(), "$.birthdate").orElse(null))
+            .withBirthDate(data.getStringFor(pd.get(), "$.birthdate").orElse(null))
             .build();
 
     patient.setAddress(addresses);
@@ -160,7 +160,7 @@ public class VsdmService {
         VsdmPatientBuilder.create()
             .withKvnr(kvnr)
             .withNames("family-name-" + kvnr, "given-name-" + kvnr)
-            .withBirthDate(new GregorianCalendar(1980, Calendar.JANUARY, 1).getTime())
+            .withBirthDate("1980-01-01")
             .build();
 
     final List<Address> addresses = new ArrayList<>();
@@ -179,19 +179,21 @@ public class VsdmService {
   private VsdmPayorOrganization mockPayorOrganization() {
     final VsdmPayorOrganization payorOrganization =
         VsdmPayorOrganizationBuilder.create()
-            .iknr("107723372")
+            .iknr(vsdmConfig.getIknr())
             .name("Test GKV Krankenkasse")
             .build();
 
     return payorOrganization;
   }
 
-  private VsdmCoverage mockCoverage(VsdmPatient patient, VsdmPayorOrganization payorOrganization) {
+  private VsdmCoverage mockCoverage(
+      final String kvnr, final VsdmPatient patient, final VsdmPayorOrganization payorOrganization) {
     final VsdmCoverage coverage =
         VsdmCoverageBuilder.create()
             .withStatus("active")
             .withPayor("https://gematik.de/fhir/Organization/" + payorOrganization.getId())
             .withBeneficiary("https://gematik.de/fhir/Patient/" + patient.getId())
+            .withKvnr(kvnr)
             .build();
 
     return coverage;

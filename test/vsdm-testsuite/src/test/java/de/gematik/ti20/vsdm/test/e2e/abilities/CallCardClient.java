@@ -45,4 +45,9 @@ public class CallCardClient implements Ability {
   public RequestSpecification request() {
     return given().baseUri(baseUrl);
   }
+
+  @Override
+  public String toString() {
+    return "call card client at " + baseUrl;
+  }
 }

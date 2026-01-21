@@ -41,7 +41,7 @@ public class PoppVsdmServerSimulation extends BaseSimulation {
       scenario("Generate Popp Token and Read VSD")
           .exec(
               http("GeneratePoppToken")
-                  .post(POPP_SERVER_URL + "/popp/test/api/v1/token-generator")
+                  .post(URL_SERVER_POPP + "/popp/test/api/v1/token-generator")
                   .header("Content-Type", "application/json")
                   .header("Accept", "application/json")
                   .body(StringBody(session -> getPoppTokenJsonBody("109500969", "X110639491")))
@@ -50,7 +50,7 @@ public class PoppVsdmServerSimulation extends BaseSimulation {
                   .check(status().is(200)))
           .exec(
               http("ReadVSD")
-                  .get(VSDM_SERVER_URL + "/vsdservice/v1/vsdmbundle")
+                  .get(URL_SERVER_VSDM + "/vsdservice/v1/vsdmbundle")
                   .header("zeta-popp-token-content", "#{poppToken}")
                   .header("zeta-user-info", "MOCK_USER_INFO")
                   .header("if-none-match", "0")
@@ -63,7 +63,9 @@ public class PoppVsdmServerSimulation extends BaseSimulation {
     } else {
       setUp(
               readVsdScenario.injectOpen(
-                  rampUsersPerSec(USERS_PER_SEC).to(USERS_PER_SEC).during(USERS_DURATION_SECS)))
+                  rampUsersPerSec(RAMP_USERS_STEADY_NUMBER)
+                      .to(RAMP_USERS_STEADY_NUMBER)
+                      .during(RAMP_USERS_STEADY_DURATION)))
           .protocols(httpProtocol);
     }
   }
