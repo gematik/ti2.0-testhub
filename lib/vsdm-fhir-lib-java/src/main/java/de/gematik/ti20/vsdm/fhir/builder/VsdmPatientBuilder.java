@@ -25,7 +25,6 @@ import de.gematik.bbriccs.fhir.builder.ResourceBuilder;
 import de.gematik.ti20.vsdm.fhir.def.VsdmPatient;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import org.hl7.fhir.r4.model.*;
 
@@ -34,7 +33,7 @@ public final class VsdmPatientBuilder extends ResourceBuilder<VsdmPatient, VsdmP
   protected String nameFamily;
   protected List<String> namesGiven = new ArrayList<>();
   protected String kvnr;
-  protected Date birthDate;
+  protected String birthDate;
   protected List<Address> addresses = new ArrayList<>();
 
   private VsdmPatientBuilder() {}
@@ -56,7 +55,7 @@ public final class VsdmPatientBuilder extends ResourceBuilder<VsdmPatient, VsdmP
     return this;
   }
 
-  public VsdmPatientBuilder withBirthDate(final Date birthDate) {
+  public VsdmPatientBuilder withBirthDate(final String birthDate) {
     this.birthDate = birthDate;
     return this;
   }
@@ -80,7 +79,7 @@ public final class VsdmPatientBuilder extends ResourceBuilder<VsdmPatient, VsdmP
     identifiers.add(new Identifier().setSystem("http://fhir.de/sid/gkv/kvid-10").setValue(kvnr));
     patient.setIdentifier(identifiers);
 
-    patient.setBirthDate(birthDate == null ? new Date() : birthDate);
+    patient.setBirthDateElement(new DateType(birthDate));
     patient.setGender(Enumerations.AdministrativeGender.MALE);
     addresses.forEach(patient::addAddress);
 

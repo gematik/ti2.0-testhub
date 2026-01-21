@@ -59,7 +59,7 @@ public class PoppTestControllerV1 {
   @Operation(summary = "Generates mock POPP tokens")
   public ResponseEntity<?> generate(
       @RequestBody final TokenGenerationParams tokenGenerationParams) {
-    log.debug("Received request to generate tokens.");
+    log.info("Received request to generate tokens with parameters: {}", tokenGenerationParams);
 
     final List<TokenParams> tokenParamsList = tokenGenerationParams.getTokenParamsList();
 

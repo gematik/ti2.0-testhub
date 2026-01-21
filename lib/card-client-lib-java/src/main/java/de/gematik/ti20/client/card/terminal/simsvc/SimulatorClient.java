@@ -30,6 +30,7 @@ import de.gematik.ti20.client.card.card.CardCertInfoSmcb;
 import de.gematik.ti20.client.card.card.SignOptions;
 import de.gematik.ti20.client.card.card.apdu.ApduUtil;
 import java.io.IOException;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
@@ -59,10 +60,10 @@ public class SimulatorClient {
    */
   public SimulatorClient(final String baseUrl) {
     this.baseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
-    this.httpClient = new OkHttpClient();
+    this.httpClient = createClientWithEnvProxy().build();
     this.objectMapper = new ObjectMapper();
 
-    log.debug("CardSimulatorClient initialized with baseUrl: {}", this.baseUrl);
+    log.info("CardSimulatorClient initialized with baseUrl: {}", this.baseUrl);
   }
 
   /**
@@ -72,11 +73,10 @@ public class SimulatorClient {
    * @throws IOException if communication with the API fails
    */
   public List<AttachedCardInfo> getAvailableCards() throws IOException {
+    log.info("Getting available cards from CardSimulator at {}", baseUrl);
     Request request = new Request.Builder().url(baseUrl + "cards/").get().build();
 
-    log.debug("Getting available cards from CardSimulator at {}", baseUrl);
     log.debug("Sending request to get available cards");
-
     Call call = httpClient.newCall(request);
     try (Response response = call.execute()) {
       if (!response.isSuccessful()) {
@@ -469,5 +469,33 @@ public class SimulatorClient {
     public void setCertificate(String certificate) {
       this.certificate = certificate;
     }
+  }
+
+  public static OkHttpClient.Builder createClientWithEnvProxy() {
+    OkHttpClient.Builder builder = new OkHttpClient.Builder();
+
+    String proxyUrl = System.getenv("HTTP_PROXY");
+    if (proxyUrl == null || proxyUrl.isEmpty()) {
+      proxyUrl = System.getenv("http_proxy"); // Check for lowercase as well
+    }
+
+    if (proxyUrl != null && !proxyUrl.isEmpty()) {
+      try {
+        log.info("Found Proxy-URL in environment variables: {}", proxyUrl);
+        URI proxyUri = new URI(proxyUrl);
+        String host = proxyUri.getHost();
+        int port = proxyUri.getPort();
+
+        if (host != null && port != -1) {
+          builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port)));
+          log.info("Using proxy with settings from environment variable: {}:{}", host, port);
+        }
+      } catch (URISyntaxException e) {
+        System.err.println("Invalid proxy URL from environment variable: " + proxyUrl);
+        throw new RuntimeException("Invalid proxy URL: " + proxyUrl, e);
+      }
+    }
+
+    return builder;
   }
 }

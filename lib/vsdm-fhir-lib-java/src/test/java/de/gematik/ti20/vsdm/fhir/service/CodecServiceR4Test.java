@@ -40,7 +40,11 @@ class CodecServiceR4Test {
   @Test
   void testValidPatientFhir() {
     VsdmPatient patient =
-        VsdmPatientBuilder.create().withKvnr("X123456789").withNames("family", "given").build();
+        VsdmPatientBuilder.create()
+            .withKvnr("X123456789")
+            .withNames("family", "given")
+            .withBirthDate("1990-07-17")
+            .build();
 
     String json = codec.encode(patient, EncodingType.JSON);
 
@@ -169,7 +173,11 @@ class CodecServiceR4Test {
   @Test
   void testValidBundleFhir() {
     VsdmPatient patient =
-        VsdmPatientBuilder.create().withKvnr("X123456789").withNames("family", "given").build();
+        VsdmPatientBuilder.create()
+            .withKvnr("X123456789")
+            .withNames("family", "given")
+            .withBirthDate("1990-07-17")
+            .build();
 
     VsdmPayorOrganization payorOrganization =
         VsdmPayorOrganizationBuilder.create()

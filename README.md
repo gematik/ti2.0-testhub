@@ -2,30 +2,14 @@
 
 # TI 2.0 Testhub
 
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li><a href="#about-the-project">About The Project</a></li>
-    <li><a href="#architecture">Architecture</a></li>
-    <li><a href="#prerequisites">Prerequisites</a></li>
-    <li><a href="#installation">Installation</a></li>
-    <li><a href="#getting-started">Getting Started</a></li>
-    <li><a href="#configuration">Configuration</a></li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#folder-structure">Folder Structure</a></li>
-    <li><a href="#release-notes">Release Notes</a></li>
-    <li><a href="#changelog">Changelog</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#additional-notes-and-disclaimer">Additional Notes and Disclaimer</a></li>
-  </ol>
-</details>
+**NOTE:** This project is not meant to be run in production and we strongly
+advise against!
 
-## About the Project
-
-The **TI 2.0 Testhub** provides a comprehensive test environment for the modernized German Telematics Infrastructure (
-TI) version 2.0. As the healthcare telematics infrastructure undergoes significant architectural improvements, a core
-aspect is the implementation of **Zero Trust Architecture (ZeTA)** security concepts.
+The **TI 2.0 Testhub** provides a comprehensive test environment for the
+modernized German Telematics Infrastructure ( TI) version 2.0. As the healthcare
+telematics infrastructure undergoes significant architectural improvements, a
+core aspect is the implementation of **Zero Trust Architecture (ZeTA)** security
+concepts.
 
 This project enables developers and testers to:
 
@@ -35,7 +19,145 @@ This project enables developers and testers to:
 - **Develop and test** client applications against mock backend services
 - **Understand integration patterns** for TI 2.0 ecosystem
 
-### Key Components
+### Table of Contents
+
+- [Getting Started](#getting-started)
+- [Usage](#usage)
+- [Architecture](#architecture)
+- [Configuration](#configuration)
+- [Folder Structure](#folder-structure)
+- [Release Notes](#release-notes)
+- [Changelog](#changelog)
+- [Contributing](#contributing)
+- [License](#license)
+- [Additional Notes And Disclaimer](#additional-notes-and-disclaimer)
+
+# Getting started
+
+Install required software:
+
+- Java 21
+- Docker
+- Docker Compose
+
+Then run in a shell from project root:
+
+``` bash
+./doc/bin/test-with-compose-local-rebuild.sh
+```
+
+This will:
+
+1. compile the sources
+2. build the required Docker Images
+3. run `docker compose`
+4. execute available test suites against the local Testhub instance
+
+# Usage
+
+> [!IMPORTANT]  
+> Running Testhub testsuits requires a valid SMC-B certificate and key pair. Please request a test SMC-B at [gematik Anfrageportal](https://service.gematik.de/servicedesk/customer/portal/37)
+> Please place them in the `doc/docker/vsdm/zeta/smcb-private` folder as follows:  `smcb_private.p12` (p12 file with AUT_E256_X509 certificate), `smcb_private.alias.txt` (alias of the smcb certificate in the p12 file, default is `alias`) and `smcb_private.pw.txt` (password of the p12 file).
+
+After making changes to the code you can either run
+
+``` bash
+./doc/bin/docker-compose-local-rebuild.sh
+```
+
+or for more fine-grained control use
+
+``` bash
+./mvnw install -Pdocker
+```
+
+To stop all services:
+
+```bash
+./doc/bin/docker-compose-down.sh
+```
+
+## Running Tests
+
+The Testhub includes a test suite for validating VSDM2 workflows:
+
+```bash
+cd test/vsdm-testsuite
+../../mvnw verify -Dskip.inttests=false
+```
+
+## Running Tests manually
+
+Tests are written using Cucumber and Gherkin. The files are located in `test/`.
+
+To execute tests manually using IntelliJ:
+
+1. Install the plugins Gherkin and Cucumber for Java.
+2. [Configure IntelliJ using the Tiger manual](https://gematik.github.io/app-Tiger/Tiger-User-Manual.html#intellij)
+3. Locate your desired test case and run it in IntelliJ
+
+## Accessing Swagger UI
+
+Most services expose Swagger UI for API exploration:
+
+- **Card Terminal Client**: http://localhost:8000/swagger-ui/index.html
+- **VSDM Client**: http://localhost:8220/swagger-ui/index.html
+- **ZeTA PDP PoPP**: http://localhost:9100/swagger-ui/index.html
+- **PoPP Server**: http://localhost:9120/swagger-ui/index.html
+- **VSDM Server**: http://localhost:9121/swagger-ui/index.html
+
+## Example Workflows using Curl
+
+### 1. VSDM Data Retrieval
+
+```bash
+
+###### Get VSDM data through the client
+
+curl -X GET 'http://localhost:8220/vsdm/data' \
+  -H 'Authorization: Bearer <ACCESS_TOKEN>'
+```
+
+### 2. Card Terminal Operations
+
+```bash
+
+###### Load a card
+
+curl -X POST 'http://localhost:8000/card/load' \
+  -H 'Content-Type: application/json' \
+  -d '{"cardPath": "cards/egk/valid-egk.xml"}'
+```
+
+### 3. Token Exchange (OAuth 2.0 RFC 8693)
+
+```bash
+
+###### Exchange SMC-B token for ZeTA token
+
+curl -X POST 'http://localhost:9100/token' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'grant_type=urn:ietf:params:oauth:grant-type:token-exchange&subject_token=<SMC_B_TOKEN>&subject_token_type=urn:ietf:params:oauth:token-type:access_token'
+```
+
+## Debugging
+
+You can connect to the following ports for remote Java debugging:
+
+- Card Terminal Client: Port 5005
+- VSDM Client: Port 5006
+- ZeTA PEP PoPP: Port 5007
+- ZeTA PDP PoPP: Port 5001
+- ZeTA PDP VSDM: Port 5022
+- PoPP Server: Port 5003
+- VSDM Server: Port 5004
+
+# Architecture
+
+The Testhub implements a **Zero Trust Architecture** with multiple layers of services communicating through
+authenticated channels.
+
+## Key Components
 
 The Testhub consists of several interconnected services:
 
@@ -48,8 +170,7 @@ The Testhub consists of several interconnected services:
 
 - **VSDM Server SimService** - Provides VSDM2 data for testing
 - **PoPP Server MockService** - Simulates Proof of Possession authentication server
-- **ZeTA PDP Server MockService** - Policy Decision Point for Zero Trust Architecture
-- **ZeTA PEP Server MockService** - Policy Enforcement Point proxy service
+- **ZeTA Guard** - Access control for other services based on Zero Trust Access specification
 
 **Libraries:**
 
@@ -61,18 +182,14 @@ The Testhub consists of several interconnected services:
 All components are designed as mock/simulation services for development and testing purposes, **not for production use
 **.
 
-## Architecture
+## Component Overview (Stufe 2)
 
-The Testhub implements a **Zero Trust Architecture** with multiple layers of services communicating through
-authenticated channels.
-
-### Component Overview (Stufe 2)
 
 <br/>
-<img width="1108" height="744" src="images/TI20_TestHub_Stufe_2.png" alt=""/>
+<img src='images/architecture.png' width='800' alt='architecture diagram'/>
 <br/>
 
-### Service Descriptions
+## Service Descriptions
 
 | Service                  | Port | Purpose                                                                                           | Documentation                                                |
 |:-------------------------|:-----|:--------------------------------------------------------------------------------------------------|:-------------------------------------------------------------|
@@ -81,9 +198,11 @@ authenticated channels.
 | **ZeTA PEP PoPP**        | 9110 | Policy Enforcement Point proxy for PoPP - validates tokens and forwards requests                  | [README](./server/zeta-pep-server-mockservice/README.md)     |
 | **ZeTA PDP PoPP**        | 9112 | Policy Decision Point for PoPP - performs OAuth 2.0 token exchange (RFC 8693)                     | [README](./server/zeta-pdp-server-mockservice/README.md)     |
 | **PoPP Server**          | 9210 | Backend PoPP service - generates and validates Proof of Possession tokens                         | [README](./server/popp-server-mockservice/README.md)         |
+| **VSDM ZeTA Ingress**    | 9119 | ZETA Guard endpoint for VSDM service                                                              |
 | **VSDM Server**          | 9130 | Backend VSDM service - provides VSDM2 data from YAML test fixtures                                | [README](./server/vsdm-server-simservice/README.md)          |
+| **Tiger Proxy UI**       | 6901 | Local Tiger Proxy between PS-Simulation and PoPP and VSDM-Servers                                 | -                                                            | 
 
-### References
+## References
 
 **ZeTA**:
 
@@ -102,183 +221,20 @@ authenticated channels.
 - [VSDM 2.0 GitHub Repository](https://github.com/gematik/spec-VSDM2/tree/main)
 - [VSDM 2.0 FHIR Specification](https://simplifier.net/vsdm2/~introduction)
 
-## Prerequisites
+# Configuration
 
-Before you begin, ensure you have the following installed on your system:
+## Environment Variables
 
-### Required Software
+Each service can be configured via environment variables. See documentation of the respective service for more information.
 
-- **Java 21** - The project uses Java 21 as the language level
-- **Maven 3.6 or higher** - Build tool for Java projects
-- **Docker** - Container runtime for running services
-- **Docker Compose** - Multi-container orchestration tool
-
-### System Requirements
-
-- **Operating System**: Linux, macOS, or Windows with WSL2
-- **Memory**: Minimum 8GB RAM (16GB recommended for running all services)
-- **Disk Space**: At least 10GB free space
-
-### Verify Installation
-
-Check your Java version:
-
-```bash
-java -version
-```
-
-Check your Maven version:
-
-```bash
-mvn -version
-```
-
-Check Docker and Docker Compose:
-
-```bash
-docker --version
-docker compose version
-```
-
-## Installation
-
-### 1. Clone the Repository
-
-```bash
-git clone <repository-url>
-cd ti2.0-testhub
-```
-
-### 2. Build All Components
-
-Build all Maven modules and run tests:
-
-```bash
-mvn clean install
-```
-
-This will:
-
-- Build all client services
-- Build all server services
-- Build all library modules
-- Run unit and integration tests
-- Install artifacts in your local Maven repository (~/.m2)
-
-**Build time:** Approximately 5-10 minutes depending on your system.
-
-### 3. Build Docker Images
-
-To create Docker images for all services, run maven install with activated docker profile:
-
-```bash
-mvn clean install -Pdocker
-```
-
-This will create Docker images for all components and tag them with `local/<component>:latest`.
-
-**Images created:**
-
-- `de.gematik.ti20.simsvc.client/card-terminal-client-simservice:local`
-- `de.gematik.ti20.simsvc.client/vsdm-client-simservice:local`
-- `de.gematik.ti20.simsvc.server/vsdm-server-simservice:local`
-- `de.gematik.ti20.simsvc.server/popp-server-mockservice:local`
-- `de.gematik.ti20.simsvc.server/zeta-pdp-server-mockservice:local`
-- `de.gematik.ti20.simsvc.server/zeta-pep-server-mockservice:local`
-
-To create only specific images, navigate to the respective module directory and run:
-
-```bash
-docker build .
-```
-
-## Getting Started
-
-### Quick Start (All Services)
-
-**Option 1: Start existing images**
-
-```bash
-./doc/bin/vsdm/docker-compose-local-restart.sh
-```
-
-**Option 2: Rebuild and start (recommended for first run)**
-
-```bash
-./doc/bin/vsdm/docker-compose-local-rebuild.sh
-```
-
-This will:
-
-1. Build all Maven projects
-2. Create Docker images
-3. Start all services with Docker Compose
-
-### Verify Services are Running
-
-Check service health by accessing the status endpoints:
-
-```bash
-# Card Terminal Client
-curl http://localhost:8000/service/status
-
-# VSDM Client
-curl http://localhost:8220/service/status
-
-# ZeTA PEP PoPP
-curl http://localhost:9110/service/status
-
-# ZeTA PDP PoPP
-curl http://localhost:9112/service/status
-
-# PoPP Server
-curl http://localhost:9210/service/status
-
-# VSDM Server
-curl http://localhost:9130/service/status
-```
-
-### Stop All Services
-
-```bash
-./doc/bin/vsdm/docker-compose-down.sh
-```
-
-## Configuration
-
-### Environment Variables
-
-Each service can be configured via environment variables. Key configuration options:
-
-#### ZeTA PEP Services
-
-- `PROXY_HTTP_URL` - Backend HTTP URL to proxy requests to
-- `PROXY_WS_URL` - Backend WebSocket URL to proxy requests to
-- `PROXY_POPP_REQUIRED` - Whether PoPP token validation is required (true/false)
-- `WK_ISSUER` - OAuth 2.0 issuer URL
-- `WK_AUTH_EP` - Authorization endpoint
-- `WK_TOKEN_EP` - Token endpoint
-
-#### ZeTA PDP Services
-
-- `AUTHZ_SEC_STORE_PATH` - Path to PKCS12 keystore file
-- `AUTHZ_SEC_STORE_PASS` - Keystore password
-- `AUTHZ_SEC_KEY_ALIAS` - Key alias in keystore
-- `AUTHZ_SEC_KEY_PASS` - Private key password
-
-#### Client Services
-
-- `POPP_HTTP_URL` - PoPP service HTTP URL
-- `VSDM_RESOURCE_SERVER_URL` - VSDM service HTTP URL
-
-### Docker Compose Profiles
+## Docker Compose Profiles
 
 The project uses different Docker Compose profiles for various scenarios:
 
 **VSDM Test Setup** (default):
 
 ```bash
-./doc/bin/vsdm/docker-compose-local-restart.sh
+./doc/bin/docker-compose-local-restart.sh
 ```
 
 **PoPP Test Setup**:
@@ -287,79 +243,26 @@ The project uses different Docker Compose profiles for various scenarios:
 docker compose -f doc/docker/vsdm/compose-local.yaml --profile popp up
 ```
 
-### Custom Configuration
+## Custom Configuration
 
 To customize service configuration:
 
 1. Edit `doc/docker/vsdm/compose-local.yaml` for Docker Compose setup
 2. Or create custom `application-<profile>.yaml` files in each service's `src/main/resources` directory
 
-## Usage
+## How to integrate custom PS (Primärsystem)
 
-### Running Tests
+Integrating a custom Primärsystem (PS) is a primary design goal of the TI 2.0 Testhub. Currently, however, it requires some manual steps:
+* In doc/docker/backend/compose-local.yaml the existing vsdm-client has to be deactivated (commented out)
+* The custom PS has to be started (e.g. add as a new service in doc/docker/backend/compose-local.yaml, but could simply be started outside of docker compose as well)
+* Optional: To use the PS with the VSDM-Testsuite it has to implement the same API as the existing vsdm-client (which can be seen at http://localhost:8220/v3/api-docs)
+* The server-addresses to use are as follows:
+  * VSDM-Server: http://localhost:9119/ (This is the vsdm-zeta-ingress address)
+  * PoPP-Server: http://localhost:9200/ (This is the popp-server-mockservice address)
+* Right now ZETA is only configured for the VSDM-Server, not the PoPP-Server. 
+* The usage of the Zeta-SDK can be seen in the existing vsdm-client-simservice-java implementation. The class ZetaSdkClientAdapter.java uses the client while VsdmZetaSdkClientConfig.java configures it.
 
-The Testhub includes a test suite for validating VSDM2 workflows:
-
-```bash
-cd test/vsdm-testsuite
-mvn test
-```
-
-### Accessing Swagger UI
-
-Most services expose Swagger UI for API exploration:
-
-- **Card Terminal Client**: http://localhost:8000/swagger-ui/index.html
-- **VSDM Client**: http://localhost:8220/swagger-ui/index.html
-- **ZeTA PDP PoPP**: http://localhost:9100/swagger-ui/index.html
-- **ZeTA PDP VSDM**: http://localhost:9101/swagger-ui/index.html
-- **PoPP Server**: http://localhost:9120/swagger-ui/index.html
-- **VSDM Server**: http://localhost:9121/swagger-ui/index.html
-
-### Example Workflows
-
-#### 1. VSDM Data Retrieval
-
-```bash
-# Get VSDM data through the client
-curl -X GET 'http://localhost:8220/vsdm/data' \
-  -H 'Authorization: Bearer <ACCESS_TOKEN>'
-```
-
-#### 2. Card Terminal Operations
-
-```bash
-# Load a card
-curl -X POST 'http://localhost:8000/card/load' \
-  -H 'Content-Type: application/json' \
-  -d '{"cardPath": "cards/egk/valid-egk.xml"}'
-```
-
-#### 3. Token Exchange (OAuth 2.0 RFC 8693)
-
-```bash
-# Exchange SMC-B token for ZeTA token
-curl -X POST 'http://localhost:9100/token' \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'grant_type=urn:ietf:params:oauth:grant-type:token-exchange&subject_token=<SMC_B_TOKEN>&subject_token_type=urn:ietf:params:oauth:token-type:access_token'
-```
-
-### Debugging
-
-All services support remote debugging on different ports:
-
-- Card Terminal Client: Port 5005
-- VSDM Client: Port 5006
-- ZeTA PEP PoPP: Port 5007
-- ZeTA PEP VSDM: Port 5008
-- ZeTA PDP PoPP: Port 5001
-- ZeTA PDP VSDM: Port 5002
-- PoPP Server: Port 5003
-- VSDM Server: Port 5004
-
-Configure your IDE to connect to these ports for debugging.
-
-## Folder Structure
+# Folder Structure
 
 This project has the following folders:
 
@@ -387,15 +290,15 @@ This project has the following folders:
 | **images/**                         | Static assets             | Images for README documentation           |
 | **jenkinsfiles/**                   | CI/CD pipelines           | Jenkins pipeline definitions              |
 
-## Release Notes
+# Release Notes
 
 See [ReleaseNotes.md](./ReleaseNotes.md) for all information regarding the (latest) releases.
 
-## Changelog
+# Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md) for information about changes.
 
-## Contributing
+# Contributing
 
 If you want to contribute, please check our [CONTRIBUTING.md](./CONTRIBUTING.md).
 

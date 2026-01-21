@@ -20,12 +20,12 @@
  */
 package de.gematik.ti20.vsdm.test.e2e.tasks;
 
+import static de.gematik.ti20.vsdm.test.util.ClasspathUtils.loadClasspathRessourceWithTigerResolving;
 import static net.serenitybdd.screenplay.Tasks.instrumented;
 
 import de.gematik.ti20.vsdm.test.e2e.abilities.CallVsdmClient;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
-import java.io.File;
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Task;
 
@@ -42,7 +42,7 @@ public class ConfigureTerminal implements Task {
     Response response =
         api.request()
             .contentType(ContentType.JSON)
-            .body(new File("src/test/resources/data/cards/terminal.json"))
+            .body(loadClasspathRessourceWithTigerResolving("data/cards/terminal.json"))
             .put("/client/config/terminal");
 
     response.then().statusCode(200);

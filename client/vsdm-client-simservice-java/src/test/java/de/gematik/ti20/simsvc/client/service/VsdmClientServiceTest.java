@@ -46,11 +46,10 @@ import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
 import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
 import io.ktor.client.plugins.ServerResponseException;
-import io.ktor.http.Headers;
-import io.ktor.http.HeadersKt;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import kotlin.Unit;
+import java.util.Map;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -193,6 +192,7 @@ class VsdmClientServiceTest {
 
   @Nested
   class RequestVSD {
+
     @Test
     @SneakyThrows
     void testRequestVsd_SuccessfulServerResponse() {
@@ -201,16 +201,13 @@ class VsdmClientServiceTest {
       final ZetaSdkClientAdapter.Response mockResponse =
           new ZetaSdkClientAdapter.Response(
               HttpStatus.OK,
-              HeadersKt.headers(
-                  headersBuilder -> {
-                    headersBuilder.set("etag", "new-etag");
-                    headersBuilder.set("VSDM-Pz", "new-pz");
-                    headersBuilder.set("Content-Type", "application/fhir+json");
-                    return Unit.INSTANCE;
-                  }),
+              Map.of(
+                  "etag", "new-etag",
+                  "VSDM-Pz", "new-pz",
+                  "Content-Type", "application/fhir+json"),
               """
-                      {"resourceType":"Bundle"}\
-                      """);
+            {"resourceType":"Bundle"}\
+            """);
 
       when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenReturn(mockResponse);
 
@@ -238,10 +235,10 @@ class VsdmClientServiceTest {
       final ZetaSdkClientAdapter.Response mockResponse =
           new ZetaSdkClientAdapter.Response(
               HttpStatus.OK,
-              HeadersKt.headersOf(),
+              new HashMap<>(),
               """
-                      <Bundle xmlns="http://hl7.org/fhir"></Bundle>
-                      """);
+            <Bundle xmlns="http://hl7.org/fhir"></Bundle>
+            """);
       when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenReturn(mockResponse);
 
       VsdmBundle mockBundle = mock(VsdmBundle.class);
@@ -279,7 +276,7 @@ class VsdmClientServiceTest {
       final ZetaSdkClientAdapter.Response mockResponse =
           new ZetaSdkClientAdapter.Response(
               HttpStatus.INTERNAL_SERVER_ERROR,
-              HeadersKt.headersOf(),
+              new HashMap<>(),
               "{\"resourceType\":\"Bundle\",\"id\":\"9f8a388d-c6ba-47d3-a644-34750542d1a0\",\"meta\":{\"profile\":[\"https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMBundle\"]},\"identifier\":{\"system\":\"urn:ietf:rfc:3986\",\"value\":\"urn:uuid:9f8a388d-c6ba-47d3-a644-34750542d1a0\"},\"type\":\"document\",\"timestamp\":\"2025-08-21T14:15:33.402+02:00\",\"entry\":[{\"fullUrl\":\"https://gematik.de/fhir/OperationOutcome/70237e55-ec26-4ee9-8b8d-1e5cc7f0af26\",\"resource\":{\"resourceType\":\"OperationOutcome\",\"id\":\"70237e55-ec26-4ee9-8b8d-1e5cc7f0af26\",\"meta\":{\"profile\":[\"https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMOperationOutcome\"]},\"issue\":[{\"severity\":\"fatal\",\"code\":\"invalid\",\"details\":{\"coding\":[{\"code\":\"VSDSERVICE_INTERNAL_SERVER_ERROR\",\"display\":\"Unerwarteter"
                   + " interner Fehler des Fachdienstes VSDM. \"}],\"text\":\"Unerwarteter interner"
                   + " Fehler des Fachdienstes VSDM. \"}}]}}]}");
@@ -303,10 +300,10 @@ class VsdmClientServiceTest {
       ZetaSdkClientAdapter.Response mockResponse =
           new ZetaSdkClientAdapter.Response(
               HttpStatus.OK,
-              HeadersKt.headersOf(),
+              new HashMap<>(),
               """
-                      {"resourceType":"Bundle"}\
-                      """);
+            {"resourceType":"Bundle"}\
+            """);
       when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenReturn(mockResponse);
 
       VsdmBundle mockBundle = mock(VsdmBundle.class);
@@ -363,10 +360,10 @@ class VsdmClientServiceTest {
       final ZetaSdkClientAdapter.Response mockResponse =
           new ZetaSdkClientAdapter.Response(
               HttpStatus.OK,
-              HeadersKt.headersOf(),
+              new HashMap<>(),
               """
-                      {"resourceType":"Bundle"}\
-                      """);
+            {"resourceType":"Bundle"}\
+            """);
       when(mockZetaSdkAdapter.httpGet(any(), any())).thenReturn(mockResponse);
       final VsdmBundle mockBundle = mock(VsdmBundle.class);
       when(mockFhirService.parseString(anyString(), eq("json"), eq(VsdmBundle.class)))
@@ -389,13 +386,10 @@ class VsdmClientServiceTest {
       // GIVEN a no cached entry exists
       when(mockVsdmDataRepository.get(terminalId, 1, mockEgkCard.getId())).thenReturn(null);
 
-      final Headers responseHeaders =
-          HeadersKt.headers(
-              header -> {
-                header.append(VsdmClientService.HEADER_ETAG, "etag");
-                header.append(VsdmClientService.HEADER_VSDM_PZ, "ziffer-1");
-                return Unit.INSTANCE;
-              });
+      final Map<String, String> responseHeaders =
+          Map.of(
+              VsdmClientService.HEADER_ETAG, "etag",
+              VsdmClientService.HEADER_VSDM_PZ, "ziffer-1");
 
       // AND the VSDM backend returns 304
       when(mockZetaSdkAdapter.httpGet(any(), any()))
@@ -469,6 +463,7 @@ class VsdmClientServiceTest {
 
   @Nested
   class getAttachedCard {
+
     @Test
     void thatGetAttachedCardWorks() {
       final AttachedCard attachedCard = vsdmClientService.getAttachedCard("id", 1);

@@ -20,10 +20,16 @@
  */
 package de.gematik.ti20.vsdm.test.load;
 
+import static de.gematik.ti20.vsdm.test.util.ClasspathUtils.loadClasspathRessourceWithTigerResolving;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.internal.HttpCheckBuilders.status;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
+import de.gematik.test.tiger.lib.TigerDirector;
 import io.gatling.javaapi.core.FeederBuilder;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.ScenarioBuilder;
@@ -48,39 +54,68 @@ public class VsdmClientJourneySimulation extends BaseSimulation {
           .feed(EGK_FEEDER)
           .exec(
               http("Removing SMC-B card")
-                  .delete(CARD_CLIENT_URL + "/slots/#{smcb_slot}")
+                  .delete(URL_CLIENT_CARD + "/slots/#{smcb_slot}")
                   .check(status().in(200, 204, 404)))
           .exec(
               http("Inserting SMC-B card")
-                  .put(CARD_CLIENT_URL + "/slots/#{smcb_slot}")
+                  .put(URL_CLIENT_CARD + "/slots/#{smcb_slot}")
                   .body(ElFileBody("data/cards/smcbCardImage.xml"))
                   .asXml()
                   .check(status().is(201)))
           .exec(
               http("Removing eGK card")
-                  .delete(CARD_CLIENT_URL + "/slots/#{egk_slot}")
+                  .delete(URL_CLIENT_CARD + "/slots/#{egk_slot}")
                   .check(status().in(200, 204, 404)))
           .exec(
               http("Inserting eGK card")
-                  .put(CARD_CLIENT_URL + "/slots/#{egk_slot}")
+                  .put(URL_CLIENT_CARD + "/slots/#{egk_slot}")
                   .body(ElFileBody("data/cards/egkCardImage.xml"))
                   .asXml()
                   .check(status().is(201)))
           .exec(
               http("Configuring Terminals")
-                  .put(VSDM_CLIENT_URL + "/client/config/terminal")
-                  .body(ElFileBody("data/cards/terminal.json"))
+                  .put(URL_CLIENT_VSDM + "/client/config/terminal")
+                  .body(
+                      StringBody(
+                          loadClasspathRessourceWithTigerResolving("data/cards/terminal.json")))
                   .asJson()
                   .check(status().is(200)))
           .exec(
               http("Reading VSD")
-                  .get(VSDM_CLIENT_URL + "/client/vsdm/vsd")
+                  .get(URL_CLIENT_VSDM + "/client/vsdm/vsd")
                   .header("If-None-Match", "0")
                   .queryParam("terminalId", "#{egk_slot}")
                   .queryParam("egkSlotId", "#{egk_slot}")
                   .queryParam("smcBSlotId", "#{smcb_slot}")
                   .queryParam("isFhirXml", false)
                   .check(status().is(200)));
+
+  private static void logConfiguration(String baseKey) {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.setSerializationInclusion(Include.NON_NULL);
+    mapper.setSerializationInclusion(Include.NON_EMPTY);
+    mapper.setSerializationInclusion(Include.NON_DEFAULT);
+    mapper.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
+    try {
+      log.info(
+          "Tiger configuration (baseKey {}): "
+              + mapper
+                  .writerWithDefaultPrettyPrinter()
+                  .writeValueAsString(TigerGlobalConfiguration.readMap(baseKey)),
+          baseKey);
+    } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public void before() {
+    System.setProperty("TIGER_TESTENV_CFGFILE", "test/vsdm-testsuite/tiger.yaml");
+    TigerGlobalConfiguration.putValue("tiger.lib.activateWorkflowUi", "false");
+    logConfiguration("tiger");
+    logConfiguration("ports");
+    TigerDirector.start();
+  }
 
   {
     if (RANDOM_READ_VSD) {
@@ -89,7 +124,9 @@ public class VsdmClientJourneySimulation extends BaseSimulation {
     } else {
       setUp(
               readVsdScenario.injectOpen(
-                  rampUsersPerSec(USERS_PER_SEC).to(USERS_PER_SEC).during(USERS_DURATION_SECS)))
+                  rampUsersPerSec(RAMP_USERS_STEADY_NUMBER)
+                      .to(RAMP_USERS_STEADY_NUMBER)
+                      .during(RAMP_USERS_STEADY_DURATION)))
           .protocols(httpProtocol);
     }
   }

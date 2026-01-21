@@ -23,26 +23,24 @@ package de.gematik.ti20.simsvc.client.service;
 import com.google.common.base.Strings;
 import de.gematik.ti20.simsvc.client.config.VsdmConfig;
 import de.gematik.zeta.sdk.ZetaSdkClient;
-import io.ktor.client.HttpClient;
-import io.ktor.client.request.BuildersKt;
+import de.gematik.zeta.sdk.network.http.client.ZetaHttpClient;
+import de.gematik.zeta.sdk.network.http.client.ZetaHttpResponse;
 import io.ktor.client.request.HttpRequestBuilder;
 import io.ktor.client.request.HttpRequestKt;
-import io.ktor.client.statement.HttpResponse;
-import io.ktor.client.statement.HttpResponseKt;
-import io.ktor.http.Headers;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import kotlin.Unit;
 import kotlin.coroutines.EmptyCoroutineContext;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 /** Hide the Kotlin implementation details from the code */
 @Service
 @RequiredArgsConstructor
+@Setter
 public class ZetaSdkClientAdapter {
 
   @Nonnull private final ZetaSdkClient zetaClient;
@@ -56,7 +54,7 @@ public class ZetaSdkClientAdapter {
 
   /** Wraps the response from the Zeta client for convenience */
   public record Response(
-      @Nonnull HttpStatus statusCode, @Nonnull Headers headers, @Nonnull String body) {}
+      @Nonnull HttpStatus statusCode, @Nonnull Map<String, String> headers, @Nonnull String body) {}
 
   /**
    * Perform a get request using the Zeta client.
@@ -69,29 +67,31 @@ public class ZetaSdkClientAdapter {
   public Response httpGet(
       @Nonnull final String url, @Nonnull final ZetaSdkClientAdapter.RequestParameters parameters)
       throws InterruptedException {
-    try (HttpClient httpClient = zetaClient.httpClient(b -> Unit.INSTANCE)) {
-      final HttpResponse response =
+
+    try (ZetaHttpClient httpClient =
+        zetaClient.httpClient(
+            it -> {
+              it.disableServerValidation(true);
+              return Unit.INSTANCE;
+            })) {
+
+      ZetaHttpResponse response =
           kotlinx.coroutines.BuildersKt.runBlocking(
               EmptyCoroutineContext.INSTANCE,
               (scope, cont) ->
-                  BuildersKt.request(
-                      httpClient,
-                      req -> {
-                        return executeRequest(url, parameters, req);
-                      },
-                      cont));
+                  httpClient.get(url, req -> executeRequest(url, parameters, req), cont));
+
       final HttpStatus httpStatusCode = HttpStatus.valueOf(response.getStatus().getValue());
-      final Headers headers = response.getHeaders();
+      final Map<String, String> responseHeaders = response.getHeaders();
       final String bodyAsString = getBodyAsString(response);
-      return new Response(httpStatusCode, headers, bodyAsString);
+      return new Response(httpStatusCode, responseHeaders, bodyAsString);
     }
   }
 
   @Nonnull
   private Unit executeRequest(
       @Nonnull String urlPath, @Nonnull RequestParameters parameters, HttpRequestBuilder req) {
-    final URI uri = URI.create(vsdmConfig.getResourceServerUrl());
-    HttpRequestKt.url(req, "http", uri.getHost(), uri.getPort(), urlPath, x -> Unit.INSTANCE);
+    HttpRequestKt.url(req, vsdmConfig.getResourceServerUrl() + "/" + urlPath);
     HttpRequestKt.headers(
         req,
         headers -> {
@@ -108,9 +108,9 @@ public class ZetaSdkClientAdapter {
   }
 
   @Nonnull
-  private String getBodyAsString(@Nonnull final HttpResponse response) throws InterruptedException {
+  private String getBodyAsString(@Nonnull final ZetaHttpResponse response)
+      throws InterruptedException {
     return kotlinx.coroutines.BuildersKt.runBlocking(
-        EmptyCoroutineContext.INSTANCE,
-        (scope, cont) -> HttpResponseKt.bodyAsText(response, StandardCharsets.UTF_8, cont));
+        EmptyCoroutineContext.INSTANCE, (scope, cont) -> response.bodyAsText(cont));
   }
 }

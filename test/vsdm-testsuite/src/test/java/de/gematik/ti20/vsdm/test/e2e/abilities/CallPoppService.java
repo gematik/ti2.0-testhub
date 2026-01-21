@@ -45,4 +45,9 @@ public class CallPoppService implements Ability {
   public RequestSpecification request() {
     return given().baseUri(baseUrl);
   }
+
+  @Override
+  public String toString() {
+    return "call popp service at " + baseUrl;
+  }
 }

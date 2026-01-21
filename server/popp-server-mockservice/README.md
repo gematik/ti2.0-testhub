@@ -51,7 +51,7 @@ See the [LICENSE](./LICENSE) for the specific language governing permissions and
 
 ## How to run
 
-To start the server, run mvn spring-boot:run in the project directory.
+To start the server, run `../../mvnw spring-boot:run` in the project directory.
 Configuration parameters such as port, keystore paths and passwords can be set in
 src/main/resources/application.properties.
 Once the server is running, you can access the Swagger UI at http://localhost:9210/swagger-ui/index.html to explore and

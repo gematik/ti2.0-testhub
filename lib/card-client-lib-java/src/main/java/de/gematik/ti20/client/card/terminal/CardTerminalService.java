@@ -77,7 +77,7 @@ public class CardTerminalService {
   public List<CardTerminal> getAvailableTerminals() {
     final List<CardTerminal> terminals = new ArrayList<>();
 
-    if (connectionConfigs == null || connectionConfigs.isEmpty()) {
+    if (connectionConfigs.isEmpty()) {
       log.warn("No terminal configurations provided");
       return terminals;
     }

@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.gematik.ti20.vsdm.test.e2e.enums.ProofMethod;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.Simulation;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,42 +40,46 @@ import org.jetbrains.annotations.NotNull;
 @Slf4j
 public class BaseSimulation extends Simulation {
 
-  protected static final boolean RANDOM_READ_VSD =
-      Boolean.parseBoolean(System.getProperty("randomReadVsd", "true"));
+  protected static final SimulationConfigBean CFG = SimulationConfigProvider.getInstance();
+  protected static final boolean RANDOM_READ_VSD = CFG.isRandomReadVsd();
 
   // Equal load: cardsPerSec * cardsDurationSecs should be 1000 to insert 1.000 cards
-  protected static final int USERS_PER_SEC = Integer.getInteger("usersPerSec", 25);
-  protected static final int USERS_DURATION_SECS = Integer.getInteger("usersDurationSecs", 40);
+  protected static final int RAMP_USERS_STEADY_NUMBER =
+      CFG.getRamp().getUsers().getSteady().getNumber();
+  protected static final Duration RAMP_USERS_STEADY_DURATION =
+      CFG.getRamp().getUsers().getSteady().getDuration();
 
   // Non-equal load: Controlling min and max of sawtooth curve in readVSD load scenario.
-  protected static final int READ_VSD_PER_SEC_MIN = Integer.getInteger("readVsdPerSecMin", 5);
-  protected static final int READ_VSD_PER_SEC_MAX = Integer.getInteger("readVsdPerSecMax", 25);
+  protected static final int RAMP_USERS_RANDOM_MIN = CFG.getRamp().getUsers().getRandom().getMin();
+  protected static final int RAMP_USERS_RANDOM_MAX = CFG.getRamp().getUsers().getRandom().getMax();
 
   // Non-equal load: Controlling duration time of sawtooth curves in readVSD load scenario.
-  protected static final int READ_VSD_DURATION_SECS = Integer.getInteger("readVsdDurationSecs", 10);
-  protected static final int READ_VSD_NUMBER_CYCLES = Integer.getInteger("readVsdNumberCycles", 30);
+  protected static final Duration RAMP_USERS_RANDOM_DURATION =
+      CFG.getRamp().getUsers().getRandom().getDuration();
+  protected static final int RAMP_USERS_RANDOM_CYCLES =
+      CFG.getRamp().getUsers().getRandom().getCycles();
 
-  protected static final String CARD_CLIENT_URL = "http://localhost:8000";
-  protected static final String VSDM_CLIENT_URL = "http://localhost:8220";
-  protected static final String POPP_SERVER_URL = "http://localhost:9210";
-  protected static final String VSDM_SERVER_URL = "http://localhost:9130";
+  protected static final String URL_CLIENT_CARD = CFG.getUrl().getClient().getCard();
+  protected static final String URL_CLIENT_VSDM = CFG.getUrl().getClient().getVsdm();
+  protected static final String URL_SERVER_POPP = CFG.getUrl().getServer().getPopp();
+  protected static final String URL_SERVER_VSDM = CFG.getUrl().getServer().getVsdm();
 
   @NotNull
   protected static List<OpenInjectionStep> getRandomReadVsdSteps() {
     List<OpenInjectionStep> steps = new ArrayList<>();
 
     // Ramp up and ramp down cycles like a sawtooth curve.
-    for (int i = 1; i <= READ_VSD_NUMBER_CYCLES; i++) {
+    for (int i = 1; i <= RAMP_USERS_RANDOM_CYCLES; i++) {
       int readVsdPerSecMaxRandom =
-          new Random().nextInt(READ_VSD_PER_SEC_MIN, READ_VSD_PER_SEC_MAX + 1);
+          new Random().nextInt(RAMP_USERS_RANDOM_MIN, RAMP_USERS_RANDOM_MAX + 1);
       steps.add(
-          rampUsersPerSec(READ_VSD_PER_SEC_MIN)
+          rampUsersPerSec(RAMP_USERS_RANDOM_MIN)
               .to(readVsdPerSecMaxRandom)
-              .during(READ_VSD_DURATION_SECS / 2));
+              .during(RAMP_USERS_RANDOM_DURATION.getSeconds() / 2));
       steps.add(
           rampUsersPerSec(readVsdPerSecMaxRandom)
-              .to(READ_VSD_PER_SEC_MIN)
-              .during(READ_VSD_DURATION_SECS / 2));
+              .to(RAMP_USERS_RANDOM_MIN)
+              .during(RAMP_USERS_RANDOM_DURATION.getSeconds() / 2));
     }
     return steps;
   }

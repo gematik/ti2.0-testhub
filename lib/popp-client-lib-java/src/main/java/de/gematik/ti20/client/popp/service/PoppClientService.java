@@ -30,6 +30,7 @@ import de.gematik.ti20.client.zeta.service.ZetaClientService;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,11 +38,10 @@ public class PoppClientService {
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-  private final PoppClientConfig poppClientConfig;
-  private final ZetaClientService zetaClientService;
+  @Getter private final PoppClientConfig poppClientConfig;
+  @Getter private final ZetaClientService zetaClientService;
   private final CardTerminalService cardTerminalService;
-
-  private Map<String, PoppTokenSession> poppTokenSessions = new ConcurrentHashMap<>();
+  private final Map<String, PoppTokenSession> poppTokenSessions = new ConcurrentHashMap<>();
 
   public PoppClientService(
       final PoppClientConfig poppClientConfig,
@@ -60,20 +60,7 @@ public class PoppClientService {
         new CardTerminalService(poppClientConfig.getTerminalConnectionConfigs()));
   }
 
-  public PoppClientConfig getPoppClientConfig() {
-    return poppClientConfig;
-  }
-
-  public ZetaClientService getZetaClientService() {
-    return zetaClientService;
-  }
-
-  /**
-   * Returns the list of currently attached cards that are relevant for POPP processes (EGK)
-   *
-   * @return
-   * @throws CardTerminalException
-   */
+  /** Returns the list of currently attached cards that are relevant for POPP processes (EGK) */
   public synchronized List<? extends AttachedCard> getAttachedCards() throws CardTerminalException {
     return cardTerminalService.getAttachedCards().stream().filter(AttachedCard::isEgk).toList();
   }
@@ -82,13 +69,7 @@ public class PoppClientService {
     return cardTerminalService.getEgkInfo(attachedCard);
   }
 
-  /**
-   * Starts the session for requesting a new PoPP Token
-   *
-   * @param card
-   * @param eventHandler
-   * @throws PoppClientException
-   */
+  /** Starts the session for requesting a new PoPP Token */
   public synchronized void startPoppTokenSession(
       final AttachedCard card,
       final Integer smcbSlotId,

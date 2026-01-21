@@ -49,11 +49,10 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(ZetaHttpException.class)
   public ResponseEntity<Map<String, String>> handleZetaHttpException(final ZetaHttpException e) {
-    LOGGER.warn("ZetaHttpException handler: {}", e.getMessage());
+    LOGGER.warn("ZetaHttpException handler: {}", e.getMessage(), e);
 
     Map<String, String> errorResponse =
         Map.of("error", "Zeta HTTP error", "message", e.getMessage());
-
     return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(errorResponse);
   }
 

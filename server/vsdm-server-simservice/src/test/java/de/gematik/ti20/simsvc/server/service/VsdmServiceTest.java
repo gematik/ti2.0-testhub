@@ -30,7 +30,6 @@ import de.gematik.ti20.simsvc.server.repository.TestDataRepository;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
 import de.gematik.ti20.vsdm.fhir.def.VsdmPatient;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Date;
 import java.util.Optional;
 import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Resource;
@@ -134,8 +133,8 @@ class VsdmServiceTest {
         .thenReturn(Optional.of("Max"));
     when(testDataRepository.getStringFor(personDataElement, "$.kvnr"))
         .thenReturn(Optional.of(kvnr));
-    when(testDataRepository.getDateFor(personDataElement, "$.birthdate"))
-        .thenReturn(Optional.of(new Date()));
+    when(testDataRepository.getStringFor(personDataElement, "$.birthdate"))
+        .thenReturn(Optional.of("1990-07-17"));
 
     // Mock address data
     when(testDataRepository.getStringFor(addressElement, "$.country"))
@@ -165,6 +164,10 @@ class VsdmServiceTest {
     HumanName name = patient.getNameFirstRep();
     assertEquals("Mustermann", name.getFamily());
     assertEquals("Max", name.getGiven().getFirst().getValue());
+
+    assertEquals(1990, patient.getBirthDateElement().getYear());
+    assertEquals(6, patient.getBirthDateElement().getMonth()); // month is 0-based
+    assertEquals(17, patient.getBirthDateElement().getDay());
 
     verify(testDataRepository).findElementByKeyValue("persondata.kvnr", kvnr);
   }

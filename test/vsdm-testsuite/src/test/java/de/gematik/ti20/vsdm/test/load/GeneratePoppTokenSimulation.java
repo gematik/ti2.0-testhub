@@ -70,7 +70,7 @@ public class GeneratePoppTokenSimulation extends BaseSimulation {
           .feed(IKNR_KVNR_FEEDER)
           .exec(
               http("GeneratePoppToken")
-                  .post(POPP_SERVER_URL + "/popp/test/api/v1/token-generator")
+                  .post(URL_SERVER_POPP + "/popp/test/api/v1/token-generator")
                   .header("Content-Type", "application/json")
                   .header("Accept", "application/json")
                   .body(

@@ -61,28 +61,22 @@ the [gemSpecPages](https://gemspec.gematik.de/docs/gemSpec/gemSpec_VSDM_2/latest
 
 ### Build from Source
 
-1. **Clone the repository**
+1. **Build the project**
    ```bash
-   git clone <repository-url>
-   cd vsdm-server-simservice
+   ../../mvnw clean install
    ```
 
-2. **Build the project**
+2. **Build without tests (faster)**
    ```bash
-   mvn clean install
-   ```
-
-3. **Build without tests (faster)**
-   ```bash
-   mvn clean install -DskipTests
+   ../../mvnw clean install -DskipTests
    ```
 
 ### Docker Build
 
-Use the provided script to build a Docker image:
+To build a Docker Image use the docker profile:
 
 ```bash
-./bin/docker-build.sh
+../../mvnw install -Pdocker
 ```
 
 ## Getting Started

@@ -94,11 +94,17 @@ public class VsdmControllerV1 {
   private void validateHeaders(final HttpServletRequest request) {
     if (request.getHeader("zeta-popp-token-content") == null) {
       throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, ErrorCase.VSDSERVICE_MISSING_OR_INVALID_HEADER.getBdeReference());
+          HttpStatus.BAD_REQUEST,
+          ErrorCase.SERVICE_MISSING_OR_INVALID_HEADER
+              .getBdeReference()
+              .replaceAll("<header>", "zeta-popp-token-content"));
     }
     if (request.getHeader("zeta-user-info") == null) {
       throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, ErrorCase.VSDSERVICE_MISSING_OR_INVALID_HEADER.getBdeReference());
+          HttpStatus.BAD_REQUEST,
+          ErrorCase.SERVICE_MISSING_OR_INVALID_HEADER
+              .getBdeReference()
+              .replaceAll("<header>", "zeta-user-info"));
     }
     if (request.getHeader("if-none-match") == null) {
       throw new ResponseStatusException(

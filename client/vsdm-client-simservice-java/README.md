@@ -71,20 +71,20 @@ visit [gemSpecPages](https://gemspec.gematik.de/docs/gemSpec/gemSpec_VSDM_2/late
 
 2. **Build the project**
    ```bash
-   mvn clean install
+   ../../mvnw clean install
    ```
 
 3. **Build without tests (faster)**
    ```bash
-   mvn clean install -DskipTests
+   ../../mvnw clean install -DskipTests
    ```
 
 ### Docker Build
 
-Alternatively, use the provided script to build a Docker image:
+To build a Docker Image use the docker profile:
 
 ```bash
-./bin/docker-build.sh
+../../mvnw install -Pdocker
 ```
 
 ## Getting Started
@@ -94,7 +94,7 @@ Alternatively, use the provided script to build a Docker image:
 **Option 1: Run with Maven**
 
 ```bash
-mvn spring-boot:run
+../../mvnw spring-boot:run
 ```
 
 **Option 2: Run the JAR file**
@@ -148,7 +148,7 @@ Specific to the application, you can configure the following properties:
 |:--------------|-------------------------------------------------------------------|
 | popp.http.url | URL of the HTTP endpoint of a PoppServer providing the popp token |
 | popp.ws.url   | URL of the WS endpoint of a PoppServer providing the popp token   |
-| vsdm.url      | URL of the VSDM server providing the data                         |
+| vsdm.resourceServerUrl      | URL of the VSDM server providing the data                         |
 
 An example configuration is provided in the `application-local.yaml` file.
 To use this configuration, you can specify the `spring.profiles.active=local` property when starting the server.
@@ -266,7 +266,7 @@ Returns the status of the server.
 
 ## Contract Testing (internal)
 
-1) Build the project, with `./doc/bin/vsdm/mvn-install-all.sh --skip-tests`
+1) Build the project, with `./doc/bin/mvn-install-all.sh --skip-tests`
 2) Run the Pact test suite in `./src/test/java/de.gematik.ti20.simsvc.client/service/VsdmClientServicePactTest`
 3) Read the results in `./target/pacts`
 

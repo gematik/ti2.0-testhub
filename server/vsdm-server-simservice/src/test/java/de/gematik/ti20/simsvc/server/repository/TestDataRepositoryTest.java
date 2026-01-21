@@ -29,7 +29,6 @@ import de.gematik.test.testdata.TestDataManager;
 import de.gematik.test.testdata.exceptions.TestDataInitializationException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -152,48 +151,6 @@ class TestDataRepositoryTest {
     when(mockParent.findElement("testPath")).thenReturn(Optional.empty());
 
     Optional<String> result = testDataRepository.getStringFor(mockParent, "testPath");
-
-    assertTrue(result.isEmpty());
-  }
-
-  @Test
-  void testGetDateFor_ValidDate() {
-    RbelElement mockParent = mock(RbelElement.class);
-    RbelElement mockElement = mock(RbelElement.class);
-    RbelValueFacet mockFacet = mock(RbelValueFacet.class);
-
-    String dateString = "Mon Jan 01 12:00:00 CET 2024";
-    when(mockParent.findElement("datePath")).thenReturn(Optional.of(mockElement));
-    when(mockElement.getFacet(RbelValueFacet.class)).thenReturn(Optional.of(mockFacet));
-    when(mockFacet.getValue()).thenReturn(dateString);
-
-    Optional<Date> result = testDataRepository.getDateFor(mockParent, "datePath");
-
-    assertTrue(result.isPresent());
-    assertNotNull(result.get());
-  }
-
-  @Test
-  void testGetDateFor_InvalidDate() {
-    RbelElement mockParent = mock(RbelElement.class);
-    RbelElement mockElement = mock(RbelElement.class);
-    RbelValueFacet mockFacet = mock(RbelValueFacet.class);
-
-    when(mockParent.findElement("datePath")).thenReturn(Optional.of(mockElement));
-    when(mockElement.getFacet(RbelValueFacet.class)).thenReturn(Optional.of(mockFacet));
-    when(mockFacet.getValue()).thenReturn("invalid date format");
-
-    Optional<Date> result = testDataRepository.getDateFor(mockParent, "datePath");
-
-    assertTrue(result.isEmpty());
-  }
-
-  @Test
-  void testGetDateFor_NoDateValue() {
-    RbelElement mockParent = mock(RbelElement.class);
-    when(mockParent.findElement("datePath")).thenReturn(Optional.empty());
-
-    Optional<Date> result = testDataRepository.getDateFor(mockParent, "datePath");
 
     assertTrue(result.isEmpty());
   }

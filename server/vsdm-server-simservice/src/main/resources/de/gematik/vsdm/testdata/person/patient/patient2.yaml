@@ -13,7 +13,7 @@ patients:
       name:
         given: Sabina-Thao
         family: Jørgenssøñ-Çrűż
-      birthDate: 2015-09-02
+      birthDate: "2015-09-02"
       kvnr: Y091263771
       address:
         post:

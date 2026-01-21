@@ -1,0 +1,33 @@
+tigerProxy:
+  proxyPort: 80
+  adminPort: 8080
+  activateRbelParsingFor:
+    - websocket
+  proxyRoutes:
+    - from: /
+      hosts: ["popp-zeta-pep"]
+      to: http://popp-zeta-pep
+    - from: /
+      hosts: ["popp-zeta-pdp"]
+      to: http://popp-zeta-pdp
+
+    - from: /pep
+      to: http://popp-zeta-pep
+    - from: /pdp
+      to: http://popp-zeta-pdp
+  modifications:
+    - condition: '$.path =^ "/auth/realms/zeta-guard/"'
+      targetElement: "$.header.X-Forwarded-For"
+      replaceWith: "popp-zeta-pdp"
+    - condition: '$.path =^ "/auth/realms/zeta-guard/"'
+      targetElement: "$.header.X-Forwarded-Host"
+      replaceWith: "popp-zeta-pdp"
+    - condition: '$.path =^ "/auth/realms/zeta-guard/"'
+      targetElement: "$.header.X-Forwarded-Scheme"
+      replaceWith: "https"
+    - condition: '$.path =^ "/auth/realms/zeta-guard/"'
+      targetElement: "$.header.X-Forwarded-Proto"
+      replaceWith: "https"
+    - condition: '$.path =^ "/auth/realms/zeta-guard/"'
+      targetElement: "$.header.X-Forwarded-Proto"
+      replaceWith: "https"

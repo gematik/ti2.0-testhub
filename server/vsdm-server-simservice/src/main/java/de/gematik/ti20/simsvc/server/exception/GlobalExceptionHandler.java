@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
       return ResponseEntity.status(errorCase.getHttpCode()).body(operationOutcome(errorCase));
     } else {
       return ResponseEntity.status(ex.getStatusCode())
-          .body(operationOutcome(ErrorCase.VSDSERVICE_INTERNAL_SERVER_ERROR));
+          .body(operationOutcome(ErrorCase.SERVICE_INTERNAL_SERVER_ERROR));
     }
   }
 
@@ -54,9 +54,6 @@ public class GlobalExceptionHandler {
             .withReference(errorCase.getBdeReference())
             .build();
 
-    final String encodedOperationOutcome =
-        FhirCodec.forR4().andDummyValidator().encode(vsdmOperationOutcome, EncodingType.JSON);
-
-    return encodedOperationOutcome;
+    return FhirCodec.forR4().andDummyValidator().encode(vsdmOperationOutcome, EncodingType.JSON);
   }
 }

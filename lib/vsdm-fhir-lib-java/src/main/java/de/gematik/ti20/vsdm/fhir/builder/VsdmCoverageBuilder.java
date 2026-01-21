@@ -31,6 +31,7 @@ public class VsdmCoverageBuilder extends ResourceBuilder<VsdmCoverage, VsdmCover
   protected String status;
   protected String beneficiary;
   protected String payor;
+  protected String kvnr;
 
   private VsdmCoverageBuilder() {}
 
@@ -53,6 +54,11 @@ public class VsdmCoverageBuilder extends ResourceBuilder<VsdmCoverage, VsdmCover
     return this;
   }
 
+  public VsdmCoverageBuilder withKvnr(String kvnr) {
+    this.kvnr = kvnr;
+    return this;
+  }
+
   @Override
   public VsdmCoverage build() {
     var type = new CanonicalType(VsdmCoverage.class.getAnnotation(ResourceDef.class).profile());
@@ -71,7 +77,7 @@ public class VsdmCoverageBuilder extends ResourceBuilder<VsdmCoverage, VsdmCover
     // identier
     Identifier identifier = new Identifier();
     identifier.setSystem("http://fhir.de/sid/gkv/kvid-10");
-    identifier.setValue("A123454321");
+    identifier.setValue(kvnr);
     coverage.setIdentifier(List.of(identifier));
 
     // payor

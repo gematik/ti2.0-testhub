@@ -89,7 +89,7 @@ class VsdmPatientBuilderTest {
 
   @Test
   void testWithBirthDate() {
-    Date birthDate = new Date();
+    String birthDate = "1990-07-17";
     VsdmPatientBuilder builder = VsdmPatientBuilder.create().withBirthDate(birthDate);
 
     assertNotNull(builder);
@@ -145,7 +145,7 @@ class VsdmPatientBuilderTest {
         VsdmPatientBuilder.create()
             .withNames("Mustermann", "Max Peter")
             .withKvnr("X123456789")
-            .withBirthDate(birthDate)
+            .withBirthDate("1990-07-17")
             .addAddress(address)
             .build();
 
@@ -155,28 +155,31 @@ class VsdmPatientBuilderTest {
     assertEquals("Max", patient.getName().get(0).getGiven().get(0).getValue());
     assertEquals("Peter", patient.getName().get(0).getGiven().get(1).getValue());
     assertEquals("X123456789", patient.getIdentifier().get(0).getValue());
-    assertEquals(birthDate, patient.getBirthDate());
+    assertEquals(1990, patient.getBirthDateElement().getYear());
+    assertEquals(6, patient.getBirthDateElement().getMonth()); // month is 0-based
+    assertEquals(17, patient.getBirthDateElement().getDay());
     assertEquals(1, patient.getAddress().size());
     assertEquals("Berlin", patient.getAddress().get(0).getCity());
   }
 
   @Test
   void testChainedCalls() {
-    Date birthDate = new Date();
     Address address = new Address().setCity("Berlin");
 
     VsdmPatient patient =
         VsdmPatientBuilder.create()
             .withNames("Mustermann", "Max")
             .withKvnr("X123456789")
-            .withBirthDate(birthDate)
+            .withBirthDate("1990-07-17")
             .addAddress(address)
             .build();
 
     assertNotNull(patient);
     assertEquals("Mustermann", patient.getName().get(0).getFamily());
     assertEquals("X123456789", patient.getIdentifier().get(0).getValue());
-    assertEquals(birthDate, patient.getBirthDate());
+    assertEquals(1990, patient.getBirthDateElement().getYear());
+    assertEquals(6, patient.getBirthDateElement().getMonth()); // month is 0-based
+    assertEquals(17, patient.getBirthDateElement().getDay());
     assertEquals(1, patient.getAddress().size());
   }
 

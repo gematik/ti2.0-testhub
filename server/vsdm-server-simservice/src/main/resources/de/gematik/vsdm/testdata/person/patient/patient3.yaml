@@ -14,7 +14,7 @@ patients:
       name:
         given: Kriemhild
         family: Amelie Abigail H. Freifrau Bruser
-      birthDate: 2015-09-02
+      birthDate: "1990-07-17"
       kvnr: X110639491
       address:
         post:
