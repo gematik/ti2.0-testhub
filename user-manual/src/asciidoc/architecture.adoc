@@ -1,0 +1,67 @@
+== Architecture
+
+The Testhub implements a **Zero Trust Architecture** with multiple layers of services communicating through
+authenticated channels.
+
+=== Key Components
+
+The Testhub consists of several interconnected services:
+
+**Client Services:**
+
+- **VSDM Client SimService** - Simulates VSDM2 client operations
+- **Card Terminal Client SimService** - Simulates electronic health card (eGK) terminal operations
+
+**Server Services:**
+
+- **VSDM Server SimService** - Provides VSDM2 data for testing
+- **PoPP Server MockService** - Simulates Proof of Possession authentication server
+- **ZeTA PDP Server MockService** - Policy Decision Point for Zero Trust Architecture
+- **ZeTA PEP Server MockService** - Policy Enforcement Point proxy service
+
+**Libraries:**
+
+- **Card Client Library** - Reusable card terminal operations
+- **PoPP Client Library** - PoPP authentication client functionality
+- **VSDM FHIR Library** - FHIR resource handling for VSDM
+- **ZeTA Client Library** - ZeTA integration utilities
+
+All components are designed as mock/simulation services for development and
+testing purposes, **not for production use**.
+
+=== Component Overview (Stufe 2)
+
+image::images/architecture.png[An architecture diagram of Testhub]
+
+
+=== Service Descriptions
+
+|===
+| Service                  | Port | Purpose                                                                                           | Documentation
+
+| **Card Terminal Client** | 8000 | Simulates electronic health card (eGK, SMC-B, HBA) terminal operations with PACE protocol support | link:./client/card-terminal-client-simservice/README.md[README]
+| **VSDM Client**          | 8220 | Simulates VSDM2 client operations including data retrieval and PoPP token validation              | link:./client/vsdm-client-simservice-java/README.md[README]
+| **ZeTA PEP PoPP**        | 9110 | Policy Enforcement Point proxy for PoPP validates tokens and forwards requests                  | link:./server/zeta-pep-server-mockservice/README.md[README]
+| **ZeTA PDP PoPP**        | 9112 | Policy Decision Point for PoPP performs OAuth 2.0 token exchange (RFC 8693)                     | link:./server/zeta-pdp-server-mockservice/README.md[README]
+| **PoPP Server**          | 9210 | Backend PoPP service generates and validates Proof of Possession tokens                         | link:./server/popp-server-mockservice/README.md[README]
+| **VSDM Server**          | 9130 | Backend VSDM service provides VSDM2 data from YAML test fixtures                                | link:./server/vsdm-server-simservice/README.md[README]
+| **Tiger Proxy UI**       | 6901 | Local Tiger Proxy between PS-Simulation and PoPP and VSDM-Servers | -
+|===
+=== References
+
+**ZeTA**
+
+* link:https://gemspec.gematik.de/docs/gemSpec/gemSpec_Zero_Trust_Architecture/latest/[gemSpecPages ZeTA Documentation]
+* link:https://github.com/gematik/zeta[ZeTA GitHub Repository]
+
+**PoPP**
+
+* link:https://gemspec.gematik.de/prereleases/Draft_PoPP_25_1/gemSpec_PoPP_Service_V1.0.0_CC2/[gemSpecPages PoPP Prerelease Documentation]
+* link:https://github.com/gematik/spec-ilf-popp-client[PoPP client GitHub Repository]
+* link:https://github.com/gematik/popp-token-generator[PoPP token generator GitHub Repository]
+
+**VSDM2**
+
+* link:https://gemspec.gematik.de/docs/gemSpec/gemSpec_VSDM_2/latest/[gemSpecPages VSDM 2.0 Documentation]
+* link:https://github.com/gematik/spec-VSDM2/tree/main[VSDM 2.0 GitHub Repository]
+* link:https://simplifier.net/vsdm2/~introduction[VSDM 2.0 FHIR Specification]

@@ -5,32 +5,19 @@
 **NOTE:** This project is not meant to be run in production and we strongly
 advise against!
 
-The **TI 2.0 Testhub** provides a comprehensive test environment for the
-modernized German Telematics Infrastructure ( TI) version 2.0. As the healthcare
+the **ti 2.0 testhub** provides a comprehensive test environment for the
+modernized german telematics infrastructure ( ti) version 2.0. as the healthcare
 telematics infrastructure undergoes significant architectural improvements, a
-core aspect is the implementation of **Zero Trust Architecture (ZeTA)** security
+core aspect is the implementation of **zero trust architecture (zeta)** security
 concepts.
 
-This project enables developers and testers to:
+this project enables developers and testers to:
 
-- **Simulate and validate** Zero Trust Architecture (ZeTA) components
-- **Test PoPP** (Proof of Possession) workflows for secure authentication
-- **Validate VSDM2** (Versichertenstammdatenmanagement 2.0) functionality
-- **Develop and test** client applications against mock backend services
-- **Understand integration patterns** for TI 2.0 ecosystem
-
-### Table of Contents
-
-- [Getting Started](#getting-started)
-- [Usage](#usage)
-- [Architecture](#architecture)
-- [Configuration](#configuration)
-- [Folder Structure](#folder-structure)
-- [Release Notes](#release-notes)
-- [Changelog](#changelog)
-- [Contributing](#contributing)
-- [License](#license)
-- [Additional Notes And Disclaimer](#additional-notes-and-disclaimer)
+- **simulate and validate** zero trust architecture (zeta) components
+- **test popp** (proof of possession) workflows for secure authentication
+- **validate vsdm2** (versichertenstammdatenmanagement 2.0) functionality
+- **develop and test** client applications against mock backend services
+- **understand integration patterns** for ti 2.0 ecosystem
 
 # Getting started
 
@@ -95,200 +82,6 @@ To execute tests manually using IntelliJ:
 1. Install the plugins Gherkin and Cucumber for Java.
 2. [Configure IntelliJ using the Tiger manual](https://gematik.github.io/app-Tiger/Tiger-User-Manual.html#intellij)
 3. Locate your desired test case and run it in IntelliJ
-
-## Accessing Swagger UI
-
-Most services expose Swagger UI for API exploration:
-
-- **Card Terminal Client**: http://localhost:8000/swagger-ui/index.html
-- **VSDM Client**: http://localhost:8220/swagger-ui/index.html
-- **ZeTA PDP PoPP**: http://localhost:9100/swagger-ui/index.html
-- **PoPP Server**: http://localhost:9120/swagger-ui/index.html
-- **VSDM Server**: http://localhost:9121/swagger-ui/index.html
-
-## Example Workflows using Curl
-
-### 1. VSDM Data Retrieval
-
-```bash
-
-###### Get VSDM data through the client
-
-curl -X GET 'http://localhost:8220/vsdm/data' \
-  -H 'Authorization: Bearer <ACCESS_TOKEN>'
-```
-
-### 2. Card Terminal Operations
-
-```bash
-
-###### Load a card
-
-curl -X POST 'http://localhost:8000/card/load' \
-  -H 'Content-Type: application/json' \
-  -d '{"cardPath": "cards/egk/valid-egk.xml"}'
-```
-
-### 3. Token Exchange (OAuth 2.0 RFC 8693)
-
-```bash
-
-###### Exchange SMC-B token for ZeTA token
-
-curl -X POST 'http://localhost:9100/token' \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'grant_type=urn:ietf:params:oauth:grant-type:token-exchange&subject_token=<SMC_B_TOKEN>&subject_token_type=urn:ietf:params:oauth:token-type:access_token'
-```
-
-## Debugging
-
-You can connect to the following ports for remote Java debugging:
-
-- Card Terminal Client: Port 5005
-- VSDM Client: Port 5006
-- ZeTA PEP PoPP: Port 5007
-- ZeTA PDP PoPP: Port 5001
-- ZeTA PDP VSDM: Port 5022
-- PoPP Server: Port 5003
-- VSDM Server: Port 5004
-
-# Architecture
-
-The Testhub implements a **Zero Trust Architecture** with multiple layers of services communicating through
-authenticated channels.
-
-## Key Components
-
-The Testhub consists of several interconnected services:
-
-**Client Services:**
-
-- **VSDM Client SimService** - Simulates VSDM2 client operations
-- **Card Terminal Client SimService** - Simulates electronic health card (eGK) terminal operations
-
-**Server Services:**
-
-- **VSDM Server SimService** - Provides VSDM2 data for testing
-- **PoPP Server MockService** - Simulates Proof of Possession authentication server
-- **ZeTA Guard** - Access control for other services based on Zero Trust Access specification
-
-**Libraries:**
-
-- **Card Client Library** - Reusable card terminal operations
-- **PoPP Client Library** - PoPP authentication client functionality
-- **VSDM FHIR Library** - FHIR resource handling for VSDM
-- **ZeTA Client Library** - ZeTA integration utilities
-
-All components are designed as mock/simulation services for development and testing purposes, **not for production use
-**.
-
-## Component Overview (Stufe 2)
-
-
-<br/>
-<img src='images/architecture.png' width='800' alt='architecture diagram'/>
-<br/>
-
-## Service Descriptions
-
-| Service                  | Port | Purpose                                                                                           | Documentation                                                |
-|:-------------------------|:-----|:--------------------------------------------------------------------------------------------------|:-------------------------------------------------------------|
-| **Card Terminal Client** | 8000 | Simulates electronic health card (eGK, SMC-B, HBA) terminal operations with PACE protocol support | [README](./client/card-terminal-client-simservice/README.md) |
-| **VSDM Client**          | 8220 | Simulates VSDM2 client operations including data retrieval and PoPP token validation              | [README](./client/vsdm-client-simservice-java/README.md)     |
-| **ZeTA PEP PoPP**        | 9110 | Policy Enforcement Point proxy for PoPP - validates tokens and forwards requests                  | [README](./server/zeta-pep-server-mockservice/README.md)     |
-| **ZeTA PDP PoPP**        | 9112 | Policy Decision Point for PoPP - performs OAuth 2.0 token exchange (RFC 8693)                     | [README](./server/zeta-pdp-server-mockservice/README.md)     |
-| **PoPP Server**          | 9210 | Backend PoPP service - generates and validates Proof of Possession tokens                         | [README](./server/popp-server-mockservice/README.md)         |
-| **VSDM ZeTA Ingress**    | 9119 | ZETA Guard endpoint for VSDM service                                                              |
-| **VSDM Server**          | 9130 | Backend VSDM service - provides VSDM2 data from YAML test fixtures                                | [README](./server/vsdm-server-simservice/README.md)          |
-| **Tiger Proxy UI**       | 6901 | Local Tiger Proxy between PS-Simulation and PoPP and VSDM-Servers                                 | -                                                            | 
-
-## References
-
-**ZeTA**:
-
-- [gemSpecPages ZeTA Documentation](https://gemspec.gematik.de/docs/gemSpec/gemSpec_Zero_Trust_Architecture/latest/)
-- [ZeTA GitHub Repository](https://github.com/gematik/zeta)
-
-**PoPP**:
-
-- [gemSpecPages PoPP Prerelease Documentation](https://gemspec.gematik.de/prereleases/Draft_PoPP_25_1/gemSpec_PoPP_Service_V1.0.0_CC2/)
-- [PoPP client GitHub Repository](https://github.com/gematik/spec-ilf-popp-client)
-- [PoPP token generator GitHub Repository](https://github.com/gematik/popp-token-generator)
-
-**VSDM2**:
-
-- [gemSpecPages VSDM 2.0 Documentation](https://gemspec.gematik.de/docs/gemSpec/gemSpec_VSDM_2/latest/)
-- [VSDM 2.0 GitHub Repository](https://github.com/gematik/spec-VSDM2/tree/main)
-- [VSDM 2.0 FHIR Specification](https://simplifier.net/vsdm2/~introduction)
-
-# Configuration
-
-## Environment Variables
-
-Each service can be configured via environment variables. See documentation of the respective service for more information.
-
-## Docker Compose Profiles
-
-The project uses different Docker Compose profiles for various scenarios:
-
-**VSDM Test Setup** (default):
-
-```bash
-./doc/bin/docker-compose-local-restart.sh
-```
-
-**PoPP Test Setup**:
-
-```bash
-docker compose -f doc/docker/vsdm/compose-local.yaml --profile popp up
-```
-
-## Custom Configuration
-
-To customize service configuration:
-
-1. Edit `doc/docker/vsdm/compose-local.yaml` for Docker Compose setup
-2. Or create custom `application-<profile>.yaml` files in each service's `src/main/resources` directory
-
-## How to integrate custom PS (Primärsystem)
-
-Integrating a custom Primärsystem (PS) is a primary design goal of the TI 2.0 Testhub. Currently, however, it requires some manual steps:
-* In doc/docker/backend/compose-local.yaml the existing vsdm-client has to be deactivated (commented out)
-* The custom PS has to be started (e.g. add as a new service in doc/docker/backend/compose-local.yaml, but could simply be started outside of docker compose as well)
-* Optional: To use the PS with the VSDM-Testsuite it has to implement the same API as the existing vsdm-client (which can be seen at http://localhost:8220/v3/api-docs)
-* The server-addresses to use are as follows:
-  * VSDM-Server: http://localhost:9119/ (This is the vsdm-zeta-ingress address)
-  * PoPP-Server: http://localhost:9200/ (This is the popp-server-mockservice address)
-* Right now ZETA is only configured for the VSDM-Server, not the PoPP-Server. 
-* The usage of the Zeta-SDK can be seen in the existing vsdm-client-simservice-java implementation. The class ZetaSdkClientAdapter.java uses the client while VsdmZetaSdkClientConfig.java configures it.
-
-# Folder Structure
-
-This project has the following folders:
-
-| Folder                              | Content                   | Description                               |
-|:------------------------------------|:--------------------------|:------------------------------------------|
-| **client/**                         | Client-side components    | Simulated client applications             |
-| ├─ card-terminal-client-simservice/ |                           | Electronic health card terminal simulator |
-| └─ vsdm-client-simservice-java/     |                           | VSDM2 client simulator                    |
-| **server/**                         | Server-side components    | Backend services and proxies              |
-| ├─ popp-server-mockservice/         |                           | PoPP token generation service             |
-| ├─ vsdm-server-simservice/          |                           | VSDM2 data provider                       |
-| ├─ zeta-pdp-server-mockservice/     |                           | Zero Trust Policy Decision Point          |
-| └─ zeta-pep-server-mockservice/     |                           | Zero Trust Policy Enforcement Point       |
-| **lib/**                            | Reusable libraries        | Shared functionality across services      |
-| ├─ card-client-lib-java/            |                           | Card terminal operations library          |
-| ├─ popp-client-lib-java/            |                           | PoPP authentication client library        |
-| ├─ vsdm-fhir-lib-java/              |                           | FHIR resource handling for VSDM           |
-| └─ zeta-client-lib-java/            |                           | ZeTA integration utilities                |
-| **test/**                           | Test suites               | Integration and end-to-end tests          |
-| └─ vsdm-testsuite/                  |                           | VSDM2 workflow test suite                 |
-| **doc/**                            | Documentation and scripts | Build and deployment automation           |
-| ├─ bin/vsdm/                        |                           | Build and Docker Compose scripts          |
-| ├─ docker/vsdm/                     |                           | Docker Compose configuration              |
-| └─ k8s/                             |                           | Kubernetes deployment manifests           |
-| **images/**                         | Static assets             | Images for README documentation           |
-| **jenkinsfiles/**                   | CI/CD pipelines           | Jenkins pipeline definitions              |
 
 # Release Notes
 
