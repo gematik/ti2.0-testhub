@@ -35,4 +35,5 @@ public class VsdmConfig {
 
   private String validKvnrPrefix;
   private String invalidKvnrPrefix;
+  private String unknownKvnrPrefix;
 }

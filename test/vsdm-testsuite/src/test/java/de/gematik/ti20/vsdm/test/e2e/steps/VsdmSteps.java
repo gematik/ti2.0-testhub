@@ -24,6 +24,7 @@ import static de.gematik.ti20.vsdm.test.e2e.helper.DateNormalizer.normalizeToLoc
 import static net.serenitybdd.screenplay.GivenWhenThen.*;
 import static org.hamcrest.Matchers.*;
 
+import de.gematik.test.tiger.common.config.TigerTypedConfigurationKey;
 import de.gematik.test.tiger.lib.TigerDirector;
 import de.gematik.ti20.vsdm.test.e2e.abilities.CallCardClient;
 import de.gematik.ti20.vsdm.test.e2e.abilities.CallPoppService;
@@ -39,19 +40,22 @@ import io.cucumber.java.de.Und;
 import io.cucumber.java.de.Wenn;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.core.Serenity;
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.actors.OnStage;
 import net.serenitybdd.screenplay.actors.OnlineCast;
-import net.serenitybdd.screenplay.ensure.Ensure;
 import org.hl7.fhir.r4.model.Coverage;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.jupiter.api.Assertions;
 
+@Slf4j
 public class VsdmSteps {
 
   private static final List<Long> answerTimes = new ArrayList<>();
+  private static final TigerTypedConfigurationKey<Boolean> VSDM_LOAD_TESTING_ACTIVE =
+      new TigerTypedConfigurationKey<>("vsdm.loadTesting.active", Boolean.class, Boolean.FALSE);
 
   private Actor hccs() {
     return OnStage.theActorInTheSpotlight();
@@ -92,11 +96,13 @@ public class VsdmSteps {
     hccs().attemptsTo(GeneratePoppToken.now());
   }
 
-  @Angenommen("der Fachdienst VSDM 2.0 befindet sich unter {int}% Maximallast")
-  public void givenTheVsdmServiceIsUnderLoad(int load) {
-    TigerDirector.pauseExecution(
-        String.format(
-            "Bitte legen Sie jetzt eine Hintergrundlast von %d%% der Maximallast an.", load));
+  @Angenommen("der Fachdienst VSDM 2.0 verarbeitet aktuell {int}% der definierten Maximallast")
+  public void givenTheVsdmServiceIsProcessingLoadLevel(int load) {
+    if (VSDM_LOAD_TESTING_ACTIVE.getValueOrDefault()) {
+      TigerDirector.pauseExecution(
+          String.format(
+              "Bitte legen Sie jetzt eine Hintergrundlast von %d%% der Maximallast an.", load));
+    }
   }
 
   @Wenn("das Primärsystem die VSD mittels PoPP- und Access-Token vom VSDM Ressource Server abfragt")
@@ -158,8 +164,14 @@ public class VsdmSteps {
       "die Antwortzeit des Fachdienstes VSDM 2.0 überschreitet nicht den Maximalwert von {long} ms")
   public void andVsdmRessourceServerIsAnsweringInTime(long maxAnswerTime) {
     long answerTime = LastResponseTime.value().answeredBy(hccs());
-    TigerDirector.pauseExecution(
-        String.format("Der VSDM 2.0 Fachdienst antwortete in %d Millisekunden.", answerTime));
+    String result =
+        String.format("Der VSDM 2.0 Fachdienst antwortete in %d Millisekunden.", answerTime);
+
+    if (VSDM_LOAD_TESTING_ACTIVE.getValueOrDefault()) {
+      TigerDirector.pauseExecution(result);
+    }
+    log.info(result);
+
     hccs().should(seeThat(LastResponseTime.value(), is(lessThan(maxAnswerTime))));
 
     Serenity.recordReportData()
@@ -225,22 +237,27 @@ public class VsdmSteps {
   }
 
   @Dann("überschreiten die Antworten des Fachdienstes VSDM 2.0 nicht den Maximalwert von {long} ms")
-  public void thenVsdmRessourceServerIsAnsweringInTime(long maxTimeToAnswer) {
+  public void thenVsdmRessourceServerIsAnsweringInTime(long maxAnswerTime) {
     OptionalLong min = answerTimes.stream().mapToLong(Long::longValue).min();
     OptionalLong max = answerTimes.stream().mapToLong(Long::longValue).max();
     OptionalDouble avg = answerTimes.stream().mapToLong(Long::longValue).average();
     int answerTimesSize = answerTimes.size();
 
-    TigerDirector.pauseExecution(
+    String result =
         String.format(
             """
-                Die folgenden Antwortzeiten des Fachdienstes VSDM 2.0 wurden ermittelt:
-                Minimum: %d ms,
-                Maximum: %d ms,
-                Durchschnitt: %.2f ms
-                (Anfragen: %d)
-                """,
-            min.orElse(0L), max.orElse(0L), avg.orElse(0D), answerTimesSize));
+            Die folgenden Antwortzeiten des Fachdienstes VSDM 2.0 wurden ermittelt:
+            Minimum: %d ms,
+            Maximum: %d ms,
+            Durchschnitt: %.2f ms
+            (Anfragen: %d)
+            """,
+            min.orElse(0L), max.orElse(0L), avg.orElse(0D), answerTimesSize);
+
+    if (VSDM_LOAD_TESTING_ACTIVE.getValueOrDefault()) {
+      TigerDirector.pauseExecution(result);
+    }
+    log.info(result);
 
     Serenity.recordReportData()
         .withTitle("Anzahl Anfragen an den Fachdienstes VSDM 2.0")
@@ -256,22 +273,40 @@ public class VsdmSteps {
         .andContents(avg.orElse(0D) + " Millisekunden");
 
     for (Long answerTime : answerTimes) {
-      Ensure.that(answerTime).isLessThan(maxTimeToAnswer);
+      Assertions.assertTrue(answerTime <= maxAnswerTime);
     }
   }
 
-  @Wenn("das Primärsystem die VSD mit einer falschen IK-Nummer vom VSDM Ressource Server abfragt")
-  public void whenClientSystemIsRequestingVsdWithWrongIkNumber() {
+  @Wenn("das Primärsystem die VSD mit einer ungültigen IK-Nummer vom VSDM Ressource Server abfragt")
+  public void whenClientSystemIsRequestingVsdWithInvalidIkNumber() {
     EgkCardInfo egk = hccs().recall("egkCardInfo");
     egk.setIknr("WRONG_IKNR");
     hccs().attemptsTo(GeneratePoppToken.now());
     hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken("0", hccs().recall("poppToken")));
   }
 
-  @Wenn("das Primärsystem die VSD mit einer falschen KVNR-Nummer vom VSDM Ressource Server abfragt")
-  public void whenClientSystemIsRequestingVsdWithWrongKvnrNumber() {
+  @Wenn(
+      "das Primärsystem die VSD mit einer unbekannten IK-Nummer vom VSDM Ressource Server abfragt")
+  public void whenClientSystemIsRequestingVsdWithUnknownIkNumber() {
+    EgkCardInfo egk = hccs().recall("egkCardInfo");
+    egk.setIknr("123456789"); // Well-known IK: 109500969
+    hccs().attemptsTo(GeneratePoppToken.now());
+    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken("0", hccs().recall("poppToken")));
+  }
+
+  @Wenn("das Primärsystem die VSD mit einer ungültigen KV-Nummer vom VSDM Ressource Server abfragt")
+  public void whenClientSystemIsRequestingVsdWithInvalidKvNumber() {
     EgkCardInfo egk = hccs().recall("egkCardInfo");
     egk.setKvnr("WRONG_KVNR");
+    hccs().attemptsTo(GeneratePoppToken.now());
+    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken("0", hccs().recall("poppToken")));
+  }
+
+  @Wenn(
+      "das Primärsystem die VSD mit einer unbekannten KV-Nummer vom VSDM Ressource Server abfragt")
+  public void whenClientSystemIsRequestingVsdWithUnknownKvNumber() {
+    EgkCardInfo egk = hccs().recall("egkCardInfo");
+    egk.setKvnr("X987654321");
     hccs().attemptsTo(GeneratePoppToken.now());
     hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken("0", hccs().recall("poppToken")));
   }
@@ -289,11 +324,11 @@ public class VsdmSteps {
   }
 
   @Dann("antwortet der VSDM Ressource Server mit dem Fehlercode {int} und dem Text {string}")
-  public void thenVsdmAnswersWithCorrespondingBdeCodeAndText(Integer httpCode, String bdeText) {
+  public void thenVsdmAnswersWithErrorCodeAndText(Integer httpCode, String errorCode) {
     hccs().should(seeThat(LastStatusCode.value(), is(httpCode)));
     hccs().should(seeThat(LastOperationOutcome.value(), is(notNullValue())));
-    hccs().should(seeThat(LastOperationOutcome.code(), is(bdeText)));
-    hccs().should(seeThat(LastOperationOutcome.text(), is(Error.valueOf(bdeText).getValue())));
+    hccs().should(seeThat(LastOperationOutcome.code(), is(errorCode)));
+    hccs().should(seeThat(LastOperationOutcome.text(), is(Error.valueOf(errorCode).getValue())));
   }
 
   private void sendReadVsd(int nbrCalls, boolean withUpdateVsd) throws InterruptedException {

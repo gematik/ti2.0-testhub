@@ -34,10 +34,10 @@ services:
       - SPRING_PROFILES_ACTIVE=docker-popp
       - PROXY_HTTP_URL=http://popp-server
       - PROXY_WS_URL=http://popp-server
-      - WK_ISSUER=http://popp-zeta-pep
-      - WK_AUTH_EP=http://popp-zeta-pdp/auth
-      - WK_TOKEN_EP=http://popp-zeta-pdp/token
-      - WK_NONCE_EP=http://popp-zeta-pdp/nonce
+      - WK_ISSUER=http://popp-zeta-pep:443
+      - WK_AUTH_EP=http://popp-zeta-pdp:443/auth
+      - WK_TOKEN_EP=http://popp-zeta-pdp:443/token
+      - WK_NONCE_EP=http://popp-zeta-pdp:443/nonce
       - OTEL_SERVICE_NAME=popp-zeta-pep
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5007"

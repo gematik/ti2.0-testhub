@@ -1,0 +1,123 @@
+== How to integrate VSDM services
+
+=== Scenario 1: Replace the Resource Server behind ZetaGuard
+
+If you only want to replace the Resource Server (keeping ZetaGuard as PEP/proxy), follow these steps.
+
+==== Prerequisites
+
+* The external resource server must be started and reachable from the Testhub instance.
+
+==== Steps
+
+* Make sure the vsdm server simulation is not started in the compose setup.
+
+[source,yaml]
+----
+# File: compose-vsdm-server.yaml (or the compose file that contains the vsdm server)
+# Example: comment out the block for the vsdm-server
+# vsdm-server:
+#   image: ...
+#   ports:
+#     - "80:8080"
+----
+
+* In the Testhub compose settings: under the block that describes the PEP (e.g. `vsdm-zeta-pep`), remove or comment out the dependency on the internal `vsdm-server` (depends_on).
+
+[source,yaml]
+----
+# Example: in compose-vsdm-server.yaml or compose-local.yaml
+# under vsdm-zeta-pep:
+#   depends_on:
+#     - vsdm-server
+# => comment out or remove
+----
+
+* Configure the PEP so that it forwards to the external (real) Resource Server.
+
+Edit the `vsdm-zeta-pep.conf` file and replace the `proxy_pass` line:
+
+[source,conf]
+----
+# Before (local vsdm-server in compose):
+proxy_pass http://vsdm-server:80/;
+
+# After (real resource server):
+proxy_pass http://URL_TO_REAL_SERVER/;
+----
+
+Tip: Pay attention to the trailing `/` and to TLS (https://...) when required.
+
+=== Scenario 2: Replace the complete domain service (ZetaGuard + Resource Server)
+
+If the complete domain service (ZetaGuard and the Resource Server) is operated externally, follow these steps.
+
+==== Prerequisites
+
+* The external domain service (ZetaGuard + Resource Server) must be started and reachable from the Testhub instance.
+
+==== Steps
+
+* Do not start the internal simulations: both the vsdm server simulation and the internal ZetaGuard must not be started in the compose configuration.
+
+[source,yaml]
+----
+# In compose-local.yaml: comment out the include of compose-vsdm-server.yaml
+# - include: compose-vsdm-server.yaml
+----
+
+* Replace the `vsdm-zeta-ingress` entry in `tiger.yaml` (or the file that defines the ingress / routing for vsdm) with the URL of the domain service.
+
+[source,yaml]
+----
+# File: tiger.yaml
+# Before:
+vsdm-zeta-ingress: http://vsdm-zeta-ingress
+# After:
+vsdm-zeta-ingress: http://URL_TO_DOMAIN_SERVICE
+----
+
+* Adjust the client configuration: in `vsdm-client/application-local.yaml` configure the `resourceServerUrl` to the URL of the external vsdm-zeta-pep service or directly to the domain service, depending on your architecture.
+
+[source,yaml]
+----
+# File: vsdm-client/application-local.yaml
+resourceServerUrl: "http://URL_TO_VSDM_ZETA_PEP/"
+----
+
+Note: If the external domain service uses TLS, use `https://...` and make sure certificates / CA trust are configured accordingly.
+
+== Examples and useful commands
+
+* Search the compose files for `vsdm-server`, `vsdm-zeta-pep` or `vsdm-zeta-ingress` to quickly find the relevant blocks:
+
+[source,bash]
+----
+grep -R "vsdm-server\|vsdm-zeta-pep\|vsdm-zeta-ingress" -n .
+----
+
+* Example: simple change with sed (local; check with git diff first):
+
+[source,bash]
+----
+# Replace proxy_pass line in vsdm-zeta-pep.conf (create backup first!)
+cp vsdm-zeta-pep.conf vsdm-zeta-pep.conf.bak
+sed -i.bak "s|proxy_pass http://vsdm-server:80/;|proxy_pass http://URL_TO_REAL_SERVER/;|g" vsdm-zeta-pep.conf
+----
+
+== Notes / Troubleshooting
+
+* After changes to compose files always restart the affected containers (e.g. `docker compose down && docker compose up -d` for the changed services).
+* Test reachability of the external service from the Testhub instance (e.g. `curl` from the host/container).
+* Pay attention to CORS, authentication and TLS settings if clients report errors when accessing the external service.
+
+== Summary
+
+This document shows the minimal changes required to either replace only the Resource Server behind ZetaGuard or to operate the complete domain service (ZetaGuard + Resource Server) externally.
+The main changes are:
+
+* Commenting out/removing the internal simulations in the compose files
+
+* Adjusting `proxy_pass` in `vsdm-zeta-pep.conf`
+
+* Replacing ingress/URL references in `tiger.yaml` and `vsdm-client/application-local.yaml`

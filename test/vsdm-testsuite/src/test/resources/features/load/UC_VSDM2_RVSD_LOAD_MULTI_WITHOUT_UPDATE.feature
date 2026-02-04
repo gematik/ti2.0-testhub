@@ -30,7 +30,7 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0 unte
     Angenommen der Versicherte in der LEI verwendet eine eGK <Egk-Card> im Slot <Egk-Slot>
     Angenommen das Primärsystem hat den Versorgungskontext als PoPP-Token gespeichert
     Angenommen das Primärsystem hat die VSD bereits einmal im Quartal abgefragt
-    Angenommen der Fachdienst VSDM 2.0 befindet sich unter <Load-Level>% Maximallast
+    Angenommen der Fachdienst VSDM 2.0 verarbeitet aktuell <Load-Level>% der definierten Maximallast
     Wenn das Primärsystem <Number-Calls> Anfragen ohne VSD Update an den Fachdienst VSDM 2.0 sendet
     Dann überschreiten die Antworten des Fachdienstes VSDM 2.0 nicht den Maximalwert von <Max-Answer-Time> ms
 

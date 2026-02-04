@@ -110,10 +110,6 @@ public class VsdmClientJourneySimulation extends BaseSimulation {
 
   @Override
   public void before() {
-    System.setProperty("TIGER_TESTENV_CFGFILE", "test/vsdm-testsuite/tiger.yaml");
-    TigerGlobalConfiguration.putValue("tiger.lib.activateWorkflowUi", "false");
-    logConfiguration("tiger");
-    logConfiguration("ports");
     TigerDirector.start();
   }
 

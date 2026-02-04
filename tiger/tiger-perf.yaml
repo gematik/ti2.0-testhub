@@ -1,0 +1,28 @@
+tigerProxy:
+  activateRbelParsingFor:
+    - websocket
+servers:
+  card-terminal-client:
+    environment:
+      - "JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+      - "JAVA_FLAGS='Dhttp.proxyHost=host.docker.internal -Dhttp.proxyPort=${ports.localTigerProxyProxyPort} -Dhttps.proxyHost=host.docker.internal -Dhttps.proxyPort=${ports.localTigerProxyProxyPort}'"
+      - "HTTP_PROXY="
+
+  vsdm-client:
+    dockerOptions:
+      networkMode: custom
+      networkName: vsdm_network
+    environment:
+      - "POPP_HTTP_URL=http://popp-zeta-pep"
+      - "POPP_WS_URL=ws://popp-zeta-pep"
+      - "VSDM_RESOURCE_SERVER_URL=https://vsdm-zeta-ingress"
+      - "OTEL_SERVICE_NAME=vsdm-client"
+      - "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318"
+      - "JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006"
+      - "LOGGING_LEVEL_ROOT=DEBUG"
+
+lib:
+  activateWorkflowUi: false
+  logging.level:
+    de.gematik.test.tiger.mockserver: TRACE
+    localTigerProxy: TRACE

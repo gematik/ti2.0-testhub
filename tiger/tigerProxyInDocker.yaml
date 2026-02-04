@@ -1,0 +1,26 @@
+tigerProxy:
+  proxyPort: 9090
+  adminPort: 8080
+  tls:
+    serverRootCa: "tigerProxy.p12"
+  activateRbelParsingFor:
+    - websocket
+    - x509
+  proxyRoutes:
+    - from: http://popp-zeta-pep:443
+      to: http://popp-zeta-pep/
+      matchForProxyType: false
+      preserveHostHeader: true
+    - from: http://popp-zeta-pdp:443
+      to: http://popp-zeta-pdp/
+      matchForProxyType: false
+      preserveHostHeader: true
+    - from: http://vsdm-zeta-ingress:443
+      to: https://vsdm-zeta-ingress:443/
+      matchForProxyType: false
+      preserveHostHeader: true
+    - from: https://vsdm-zeta-ingress
+      to: https://vsdm-zeta-ingress:443/
+      matchForProxyType: false
+      preserveHostHeader: true
+  rewriteHostHeader: false

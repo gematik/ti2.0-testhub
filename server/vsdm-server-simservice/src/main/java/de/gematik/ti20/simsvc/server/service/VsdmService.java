@@ -34,9 +34,11 @@ import de.gematik.ti20.vsdm.fhir.def.VsdmCoverage;
 import de.gematik.ti20.vsdm.fhir.def.VsdmPatient;
 import de.gematik.ti20.vsdm.fhir.def.VsdmPayorOrganization;
 import java.util.*;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Address;
 import org.hl7.fhir.r4.model.Resource;
+import org.jose4j.jwt.MalformedClaimException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -48,6 +50,9 @@ public class VsdmService {
   private final VsdmConfig vsdmConfig;
   private final TokenService tokenService;
   private final TestDataRepository data;
+
+  private static final Pattern VALID_IKNR_PATTERN = Pattern.compile("^[0-9]{9}$");
+  private static final Pattern VALID_KVNR_PATTERN = Pattern.compile("^[A-Z][0-9]{8}[A-Z,0-9]$");
 
   public VsdmService(
       final VsdmConfig vsdmConfig, final TokenService tokenService, final TestDataRepository data) {
@@ -61,21 +66,37 @@ public class VsdmService {
     try {
       final PoppToken poppToken = this.tokenService.parsePoppToken(poppTokenFromRequest);
 
-      kvnr = poppToken.getClaimValue("patientId");
-
-      final String iknr = poppToken.getClaimValue("insurerId");
-      if (!iknr.equals(vsdmConfig.getIknr())) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "VSDSERVICE_INVALID_IK");
-      }
+      kvnr = checkAndGetKvnr(poppToken);
+      checkIknr(poppToken);
+    } catch (final ResponseStatusException ex) {
+      throw ex;
     } catch (final Exception ex) {
-      if (ex instanceof ResponseStatusException) {
-        throw (ResponseStatusException) ex;
-      } else {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid POPP token");
-      }
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid POPP token");
     }
 
     return kvnr;
+  }
+
+  private String checkAndGetKvnr(final PoppToken poppToken) throws MalformedClaimException {
+    final String kvnr = poppToken.getClaimValue("patientId");
+    if (!VALID_KVNR_PATTERN.matcher(kvnr).matches()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "VSDSERVICE_INVALID_KVNR");
+    }
+
+    if (kvnr.startsWith(vsdmConfig.getUnknownKvnrPrefix())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "VSDSERVICE_UNKNOWN_KVNR");
+    }
+    return kvnr;
+  }
+
+  private void checkIknr(final PoppToken poppToken) throws MalformedClaimException {
+    final String iknr = poppToken.getClaimValue("insurerId");
+    if (!VALID_IKNR_PATTERN.matcher(iknr).matches()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "VSDSERVICE_INVALID_IK");
+    }
+    if (!iknr.equals(vsdmConfig.getIknr())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "VSDSERVICE_UNKNOWN_IK");
+    }
   }
 
   public Resource readVsd(final String poppToken) {
