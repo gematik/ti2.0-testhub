@@ -2,7 +2,8 @@
 
 # TI 2.0 Testhub
 
-**NOTE:** This project is not meant to be run in production and we strongly
+> [!CAUTION]
+> This project is not meant to be run in production and we strongly
 advise against!
 
 the **ti 2.0 testhub** provides a comprehensive test environment for the
@@ -39,6 +40,10 @@ This will:
 2. build the required Docker Images
 3. run `docker compose`
 4. execute available test suites against the local Testhub instance
+
+# User manual
+
+The [Testhub user manual](https://gematik.github.io/ti2.0-testhub/) is available online.
 
 # Usage
 
