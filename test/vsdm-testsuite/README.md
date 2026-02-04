@@ -46,14 +46,17 @@ Docker-Container gestartet werden: (Der Skript-Aufruf sollte im Projekt-Root-Ver
 ./doc/bin/docker-compose-local-rebuild.sh
 ```
 
-Die untere Grafik zeigt den TI 2.0 TestHub in seiner ersten Ausbaustufe, welche ausschließlich aus Simulatoren bzw.
-Mocks besteht. Die VSDM 2.0 Testsuite sendet Anfragen an den Card, den PoPP und den VSDM Client Simulator. Diese
-kommunizieren mit den jeweiligen Server Simulatoren bzw. Mocks.
+Die untere Grafik zeigt den TI 2.0 TestHub in seiner aktuellen Ausbaustufe. Die VSDM 2.0 Testsuite sendet Anfragen an
+den Card, den PoPP und den VSDM Client Simulator. Diese kommunizieren mit den jeweiligen Server Simulatoren.
+
+<br/>
+<img width="1108" height="744" src="./src/test/resources/images/TI20_TestHub_README.png" alt=""/>
+<br/>
 
 ## Integrationstests
 
 Die Testsuite enthält zwei Integrationstests (IT), welche die Funktionen der VSDM Client und Server Simulationen prüfen
-und somit deren Funktionsweise demonstrieren. Die Tests verwenden das Jupiter-Framework von jUnit 5. Testfälle:
+und somit deren Funktionsweise demonstrieren. Die Tests verwenden das Jupiter-Framework von junit 5. Testfälle:
 
 * VsdmClientIT.java
 * VsdmServerIT.java
@@ -66,7 +69,7 @@ Die Integrationstests können mit folgender Kommandozeile im Verzeichnis 'vsdm-t
 
 ## E2E-Tests
 
-Die Testsuite beinhaltet vier E2E-Testfälle, welche die Abfrage der Versichertenstammdaten (VSD) vom Fachdienst VSDM 2.0
+Die Testsuite beinhaltet drei E2E-Testfälle, welche die Abfrage der Versichertenstammdaten (VSD) vom Fachdienst VSDM 2.0
 als Testziel haben. Zwei Testfälle behandeln den Normalfall, wenn der Fachdienst verfügbar ist und dem Primärsystem (PS)
 antwortet. Der Fachdienst liefert die VSD aus, wenn sich das sogenannte Entity-Tag (E-Tag), das vom PS gesendet wird,
 vom E-Tag des Fachdienstes unterscheidet. Liefert der Vergleich keinen Unterschied, sendet der Fachdienst keine VSD an
@@ -75,13 +78,10 @@ das PS. Testfälle:
 * UC_VSDM2_RVSD_FROM_SERVER_WITH_UPDATE.feature (E-Tag ungleich)
 * UC_VSDM2_RVSD_FROM_SERVER_WITHOUT_UPDATE.feature (E-Tag gleich)
 
-Zwei weitere Testfälle behandeln den Ausnahmefall, dass der Fachdienst nicht verfügbar ist oder dem PS mit einem Fehler
-antwortet. In diesem Fall liest das PS die wichtigsten VSD von der eGK direkt. Auch hier werden zwei unterschiedliche
-Szenarien getestet. In einem Szenario können die VSD erfolgreich von der eGK gelesen werden, im anderen Szenario ist
-dies nicht möglich, da die eGK ungültig ist. Testfälle:
+Ein weiterer Testfall behandelt den Ausnahmefall, dass der Fachdienst nicht verfügbar ist oder dem PS mit einem Fehler
+antwortet. In diesem Fall liest das PS die wichtigsten VSD von der eGK direkt. Testfall:
 
 * UC_VSDM2_RVSD_FROM_EGK_CARD_VALID.feature
-* UC_VSDM2_RVSD_FROM_EGK_CARD_INVALID.feature
 
 Die E2E-Tests können mit folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
 
@@ -115,10 +115,8 @@ und für unterschiedliche Zwecke einsetzbar sind.
 ### GeneratePoppTokenSimulation.java
 
 Diese Simulation liest eine Liste von IK- und KVNR ein und generiert dann mithilfe des PoppTokenGenerators eine Liste
-aus
-Popp-Token. Diese Liste kann dann später als Feeder für die Simulation der Hintergrundlast verwendet werden. Die
-Simulation
-kann mittels Maven und folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
+aus Popp-Token. Diese Liste kann dann später als Feeder für die Simulation der Hintergrundlast verwendet werden. Die
+Simulation kann mittels Maven und folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
 
 ```
 ../../mvnw gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.GeneratePoppTokenSimulation
@@ -143,6 +141,11 @@ bis hin zur Abfrage der VSD vom Fachdienst VSDM 2.0 und kann im Verzeichnis 'vsd
 ../../mvnw gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmClientJourneySimulation
 ```
 
+> HINWEIS:
+> Durch die aktuelle Integration weiterer Tiger-Komponenten, welche die Client-Simulationen starten und mehrere 
+> Proxies in den Datenverkehr einschleusen, ist die Lauffähigkeit der obigen Gatling-Simulation beeinträchtigt. 
+> Es wird empfohlen, die Last entsprechend zu reduzieren. Siehe Abschnitt "Konfiguration der Simulation".
+
 ### VsdmBackgroundLoadSimulation.java
 
 Diese Simulation verwendet die, von der GeneratePoppTokenSimulation erzeugte, Liste aus Popp-Token, fragt die VSD vom
@@ -155,13 +158,13 @@ Die Simulation kann mittels Maven und folgender Kommandozeile im Verzeichnis 'vs
 
 ### Konfiguration der Simulationen
 
-Die Lastverteilung ist aktuell in der Datei "simulation.conf" so konfiguriert, dass diese eine zufällige Last ziwschen 
-5 und 25 Aufrufen über einen Zeitraum von 300 Sekunden versendet. Wird der Parameter "randomReadVsd" in dieser Datei auf
-den Wert "false" gesetzt, werden stattdessen konstant 25 Aufrufe über einen Zeitraum von 60 Sekunden gesendet.
+Die Lastverteilung ist aktuell in der Datei "simulation.conf" so konfiguriert, dass diese eine zufällige Last im Bereich
+von 5 und 25 Aufrufen über einen Zeitraum von 300 Sekunden versendet. Wird der Parameter "randomReadVsd" in dieser Datei
+auf den Wert "false" gesetzt, werden stattdessen konstant 25 Aufrufe über einen Zeitraum von 60 Sekunden gesendet.
 
 Der Anwender kann auch eine eigene Konfigurationsdatei, welche sich im Resource-Ordner befinden sollte, definieren. Die
 eigene Datei muss sich jedoch strukturell an der Datei "simulation.conf" orientieren. Für eine Datei mit dem Pfad
-"src/test/resources/my-own-simulation.conf" sähe dieser Parameter dann wie folgt aus:
+"src/test/resources/my-own-simulation.conf" sähe der Parameter zur Angabe der Konfiguration dann wie folgt aus:
 
 ```
 -Dconfig.resource=my-own-simulation.conf

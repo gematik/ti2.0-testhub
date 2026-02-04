@@ -44,7 +44,7 @@ This will:
 
 > [!IMPORTANT]  
 > Running Testhub testsuits requires a valid SMC-B certificate and key pair. Please request a test SMC-B at [gematik Anfrageportal](https://service.gematik.de/servicedesk/customer/portal/37)
-> Please place them in the `doc/docker/vsdm/zeta/smcb-private` folder as follows:  `smcb_private.p12` (p12 file with AUT_E256_X509 certificate), `smcb_private.alias.txt` (alias of the smcb certificate in the p12 file, default is `alias`) and `smcb_private.pw.txt` (password of the p12 file).
+> Please place them in the `doc/docker/backend/zeta/smcb-private` folder as follows:  `smcb_private.p12` (p12 file with AUT_E256_X509 certificate), `smcb_private.alias.txt` (alias of the smcb certificate in the p12 file, default is `alias`) and `smcb_private.pw.txt` (password of the p12 file).
 
 After making changes to the code you can either run
 
