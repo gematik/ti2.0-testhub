@@ -2,10 +2,15 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 1.1.7
+
+- TESTHUB-16: adjust README and ensure a index.html is present in user manual.
+
 ## Release 1.1.6
 
 - TESTHUB-16: fix Github Workflow for Github Pages deployment
 - fix SMCB path in README
+- Update README of VSDM2 testsuite
 
 ## Release 1.1.5
 
