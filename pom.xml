@@ -5,7 +5,7 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>1.1.4</version>
+    <version>1.1.5</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>
@@ -23,6 +23,7 @@
         <module>server/zeta-pdp-server-mockservice</module>
         <module>test/vsdm-testsuite</module>
         <module>coverage-report</module>
+        <module>user-manual</module>
     </modules>
 
     <properties>
@@ -36,8 +37,8 @@
         <version.maven.surefire>3.5.4</version.maven.surefire>
         <version.maven.failsafe>3.3.1</version.maven.failsafe>
         <version.maven.jacoco>0.8.14</version.maven.jacoco>
-        <version.tiger>4.1.14</version.tiger>
-        <version.tiger-cloud-extension>4.1.14</version.tiger-cloud-extension>
+        <version.tiger>4.1.16</version.tiger>
+        <version.tiger-cloud-extension>4.1.17</version.tiger-cloud-extension>
         <version.serenity>4.2.30</version.serenity>
         <version.gem.testdata>1.0.9</version.gem.testdata>
         <version.springdoc>2.8.13</version.springdoc>
@@ -346,25 +347,6 @@
                         </execution>
                     </executions>
                 </plugin>
-<!--                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>${version.maven.surefire}</version>
-                    <configuration>
-                        <argLine>${surefireJacocoAgent}
-                            -add-opens java.base/java.lang=ALL-UNNAMED
-                            -add-opens java.base/java.io=ALL-UNNAMED
-                            -add-opens java.base/java.util=ALL-UNNAMED
-                            Dfile.encoding=${project.build.sourceEncoding}
-                        </argLine>
-                        <properties>
-                            <configurationParameters>
-                                junit.jupiter.execution.parallel.mode.default = same_thread
-                                junit.jupiter.execution.parallel.mode.classes.default = concurrent
-                            </configurationParameters>
-                        </properties>
-                    </configuration>
-                </plugin>-->
                 <plugin>
                     <artifactId>sonar-maven-plugin</artifactId>
                     <groupId>org.sonarsource.scanner.maven</groupId>
@@ -464,7 +446,6 @@
                         </execution>
                     </executions>
                 </plugin>
-
             </plugins>
         </pluginManagement>
     </build>

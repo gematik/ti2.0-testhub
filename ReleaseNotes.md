@@ -9,6 +9,14 @@
   </ol>
 </details>
 
+## Release 1.1.5
+
+- TESTHUB-16: add user manual and deploy is Github Pages
+
+## Release 1.1.3
+
+- Adds ZETA Guard MS2 integration for VSDM
+
 ## Release 1.0.0
 
 - First release with major version number greater than zero.

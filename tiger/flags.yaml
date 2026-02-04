@@ -1,0 +1,6 @@
+env: default
+pssim:
+  active: true # default is true – enables PS-Simulation
+vsdm:
+  loadTesting:
+    active: false # default is false – disables load testing features

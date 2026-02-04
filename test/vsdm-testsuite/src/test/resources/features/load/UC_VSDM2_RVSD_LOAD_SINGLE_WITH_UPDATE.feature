@@ -27,7 +27,7 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0 unte
     Angenommen das Primärsystem in der LEI verwendet eine SMC-B <Smcb-Card> im Slot <Smcb-Slot>
     Angenommen der Versicherte in der LEI verwendet eine eGK <Egk-Card> im Slot <Egk-Slot>
     Angenommen das Primärsystem hat den Versorgungskontext als PoPP-Token gespeichert
-    Angenommen der Fachdienst VSDM 2.0 befindet sich unter <Load-Level>% Maximallast
+    Angenommen der Fachdienst VSDM 2.0 verarbeitet aktuell <Load-Level>% der definierten Maximallast
     Wenn das Primärsystem die VSD mittels PoPP- und Access-Token vom VSDM Ressource Server abfragt
     Und der VSDM Ressource Server beim E-Tag-Vergleich einen Unterschied feststellt
     Dann sendet der VSDM Ressource Server die aktualisierten VSD mit dem Statuscode <Http-Code> zum Primärsystem

@@ -9,3 +9,4 @@ vsdm:
   iknr: 109500969
   valid-kvnr-prefix: X1
   invalid-kvnr-prefix: X4
+  unknown-kvnr-prefix: X9

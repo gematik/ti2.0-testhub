@@ -145,11 +145,12 @@ All configuration parameters for the project can be set in the `application.yaml
 
 Specific to the application, you can configure the following properties:
 
-| Name                     | Description                                                                                              |
-|:-------------------------|----------------------------------------------------------------------------------------------------------|
-| vsdm.iknr                | IKNr for which this configuration can return data                                                        |
-| vsdm.valid-kvnr-prefix   | If no testdata is found, the server will respond with synthetic data to KVNRs beginning with this prefix |
-| vsdm.invalid-kvnr-prefix | If no testdata is found, the server will respond with an error to KVNRs beginning with this prefix       |
+| Name                     | Description                                                                                                                |
+|:-------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| vsdm.iknr                | IKNr for which this configuration can return data                                                                          |
+| vsdm.valid-kvnr-prefix   | If no testdata is found, the server will respond with synthetic data to KVNRs beginning with this prefix                   |
+| vsdm.invalid-kvnr-prefix | If no testdata is found, the server will respond with an VSDSERVICE_INVALID_KVNR error to KVNRs beginning with this prefix |
+| vsdm.unknown-kvnr-prefix | If no testdata is found, the server will respond with an VSDSERVICE_UNKNOWN_KVNR error to KVNRs beginning with this prefix |
 
 An example configuration is provided in the `application-local.yaml` file.
 To use this configuration, you can specify the `spring.profiles.active=local` property when starting the server.

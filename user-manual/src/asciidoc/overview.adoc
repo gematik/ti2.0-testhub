@@ -1,0 +1,111 @@
+== Overview
+
+=== Accessing Swagger UI
+
+Most services expose Swagger UI for API exploration.
+
+Run locally (check the application config when in doubt):
+
+- **Card Terminal Client**: http://localhost:80/swagger-ui/index.html
+- **VSDM Client**: http://localhost:80/swagger-ui/index.html
+
+As part of docker compose:
+
+- **ZeTA PDP PoPP**: http://localhost:9112/swagger-ui/index.html
+- **PoPP Server**: http://localhost:9210/swagger-ui/index.html
+- **VSDM Server**: http://localhost:9130/swagger-ui/index.html
+
+=== Folder Structure
+
+This project has the following folders:
+
+[cols="1,1,2", options="header"]
+|===
+| Folder
+| Content
+| Description
+
+| **client/**
+| Client-side components
+| Simulated client applications
+
+| ├─ card-terminal-client-simservice/
+|
+| Electronic health card terminal simulator
+
+| └─ vsdm-client-simservice-java/
+|
+| VSDM2 client simulator
+
+| **server/**
+| Server-side components
+| Backend services and proxies
+
+| ├─ popp-server-mockservice/
+|
+| PoPP token generation service
+
+| ├─ vsdm-server-simservice/
+|
+| VSDM2 data provider
+
+| ├─ zeta-pdp-server-mockservice/
+|
+| Zero Trust Policy Decision Point
+
+| └─ zeta-pep-server-mockservice/
+|
+| Zero Trust Policy Enforcement Point
+
+| **lib/**
+| Reusable libraries
+| Shared functionality across services
+
+| ├─ card-client-lib-java/
+|
+| Card terminal operations library
+
+| ├─ popp-client-lib-java/
+|
+| PoPP authentication client library
+
+| ├─ vsdm-fhir-lib-java/
+|
+| FHIR resource handling for VSDM
+
+| └─ zeta-client-lib-java/
+|
+| ZeTA integration utilities
+
+| **test/**
+| Test suites
+| Integration and end-to-end tests
+
+| └─ vsdm-testsuite/
+|
+| VSDM2 workflow test suite
+
+| **doc/**
+| Documentation and scripts
+| Build and deployment automation
+
+| ├─ bin/vsdm/
+|
+| Build and Docker Compose scripts
+
+| ├─ docker/vsdm/
+|
+| Docker Compose configuration
+
+| └─ k8s/
+|
+| Kubernetes deployment manifests
+
+| **images/**
+| Static assets
+| Images for README documentation
+
+| **jenkinsfiles/**
+| CI/CD pipelines
+| Jenkins pipeline definitions
+|===

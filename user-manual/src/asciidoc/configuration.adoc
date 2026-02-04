@@ -1,0 +1,51 @@
+== Configuration
+
+=== Environment Variables
+
+Each service can be configured via environment variables. Key configuration options:
+
+==== ZeTA PEP Services
+
+- `PROXY_HTTP_URL` - Backend HTTP URL to proxy requests to
+- `PROXY_WS_URL` - Backend WebSocket URL to proxy requests to
+- `PROXY_POPP_REQUIRED` - Whether PoPP token validation is required (true/false)
+- `WK_ISSUER` - OAuth 2.0 issuer URL
+- `WK_AUTH_EP` - Authorization endpoint
+- `WK_TOKEN_EP` - Token endpoint
+
+==== ZeTA PDP Services
+
+- `AUTHZ_SEC_STORE_PATH` - Path to PKCS12 keystore file
+- `AUTHZ_SEC_STORE_PASS` - Keystore password
+- `AUTHZ_SEC_KEY_ALIAS` - Key alias in keystore
+- `AUTHZ_SEC_KEY_PASS` - Private key password
+
+==== Client Services
+
+- `POPP_HTTP_URL` - PoPP service HTTP URL
+- `VSDM_RESOURCE_SERVER_URL` - VSDM service HTTP URL
+
+=== Docker Compose Profiles
+
+The project uses different Docker Compose profiles for various scenarios:
+
+*VSDM Test Setup* (default):
+
+[source,bash]
+----
+./doc/bin/vsdm/docker-compose-local-restart.sh
+----
+
+*PoPP Test Setup*:
+
+[source,bash]
+----
+docker compose -f doc/docker/vsdm/compose-local.yaml --profile popp up
+----
+
+=== Custom Configuration
+
+To customize service configuration:
+
+1.  Edit `doc/docker/vsdm/compose-local.yaml` for Docker Compose setup
+2. Or create custom `application-<profile>.yaml` files in each service's `src/main/resources` directory

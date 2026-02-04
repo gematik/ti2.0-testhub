@@ -50,10 +50,6 @@ Die untere Grafik zeigt den TI 2.0 TestHub in seiner ersten Ausbaustufe, welche 
 Mocks besteht. Die VSDM 2.0 Testsuite sendet Anfragen an den Card, den PoPP und den VSDM Client Simulator. Diese
 kommunizieren mit den jeweiligen Server Simulatoren bzw. Mocks.
 
-<br/>
-<img width="1108" height="744" src="./src/test/resources/images/TI20_TestHub_Stufe_2.png" alt=""/>
-<br/>
-
 ## Integrationstests
 
 Die Testsuite enthält zwei Integrationstests (IT), welche die Funktionen der VSDM Client und Server Simulationen prüfen
@@ -170,13 +166,3 @@ eigene Datei muss sich jedoch strukturell an der Datei "simulation.conf" orienti
 ```
 -Dconfig.resource=my-own-simulation.conf
 ```
-
-## Hinweise
-
-In der aktuellen Ausbaustufe sind ZETA-Client und ZETA-Guard als Prototyp implementiert, wobei der ZETA-Guard-Prototyp
-nur erfolgreiche Antworten (HTTP-OK/200) vom VSDM Ressource Server korrekt weiterleitet. Alle anderen Antworten, auch
-HTTP-NOT-MODIFIED/304, werden vom ZETA-Guard als Fehler HTTP-INTERNAL-SERVER-ERROR/500 weitergeleitet. Daher liefern
-alle Tests, welche auf den Return-Code 304 aufbauen, eine False-Negative Resultat.
-
-Die PoPP-Komponenten sind aktuell noch als Mocks ausgeführt und sollen zeitnah durch eine Beispiel-Implementierung
-ersetzt werden. Gegenwärtig generiert der PoPP-Server-Mock nur einen PoPP-Token basierend auf der IK- und KV-Nummer.

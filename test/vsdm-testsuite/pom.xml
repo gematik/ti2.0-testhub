@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.1.4</version>
+        <version>1.1.5</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.vsdm</groupId>
     <artifactId>vsdm-testsuite</artifactId>
-    <version>1.1.4</version>
+    <version>1.1.5</version>
 
     <name>VSDM 2.0 Testsuite</name>
     <description>Collection of E2E and IT tests to validate VSDM 2.0 service.</description>
@@ -142,12 +142,35 @@
                 <artifactId>gatling-maven-plugin</artifactId>
                 <version>4.16.3</version>
                 <configuration>
-                    <!-- Enterprise Cloud (https://cloud.gatling.io/) configuration reference: https://docs.gatling.io/reference/integrations/build-tools/maven-plugin/#running-your-simulations-on-gatling-enterprise-cloud -->
-                </configuration>
+                    <jvmArgs>
+                        <jvmArg>-Dtiger.testenv.cfgfile=${maven.multiModuleProjectDirectory}/tiger.yaml</jvmArg>
+                        <jvmArg>-Dtiger.rootfolder=${maven.multiModuleProjectDirectory}</jvmArg>
+                        <jvmArg>-Denv=perf</jvmArg>
+                    </jvmArgs>
+                </configuration>                    <!-- Enterprise Cloud (https://cloud.gatling.io/) configuration reference: https://docs.gatling.io/reference/integrations/build-tools/maven-plugin/#running-your-simulations-on-gatling-enterprise-cloud -->
             </plugin>
             <plugin>
                 <groupId>com.spotify.fmt</groupId>
                 <artifactId>fmt-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.2.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <environmentVariables>
+                        <TIGER_TESTENV_CFGFILE>${maven.multiModuleProjectDirectory}/tiger.yaml</TIGER_TESTENV_CFGFILE>
+                        <TIGER_ROOTFOLDER>${maven.multiModuleProjectDirectory}</TIGER_ROOTFOLDER>
+                    </environmentVariables>
+                </configuration>
             </plugin>
         </plugins>
     </build>
