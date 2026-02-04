@@ -2,12 +2,10 @@
 
 # Release Notes TI 2.0 TestHub
 
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li><a href="#release-100">Release 1.0.0</a></li>
-  </ol>
-</details>
+## Release 1.1.6
+
+- TESTHUB-16: fix Github Workflow for Github Pages deployment
+- fix SMCB path in README
 
 ## Release 1.1.5
 

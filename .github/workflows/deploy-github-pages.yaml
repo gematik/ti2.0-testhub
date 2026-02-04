@@ -30,14 +30,14 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Build with Maven
-      run: mvn -B generate-resources -PuserManual -pl userManual
+      run: mvn -B generate-resources -PuserManual -pl user-manual
     - name: Setup Pages
       id: pages
       uses: actions/configure-pages@v5
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: ./userManual/target/generated-docs/
+        path: ./user-manual/target/generated-docs/
 
   # Deployment job
   deploy:
