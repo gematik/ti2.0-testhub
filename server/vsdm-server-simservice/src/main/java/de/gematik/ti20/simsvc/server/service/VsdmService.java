@@ -20,8 +20,6 @@
  */
 package de.gematik.ti20.simsvc.server.service;
 
-import de.gematik.rbellogger.data.RbelElement;
-import de.gematik.test.testdata.exceptions.NoSuchTestDataException;
 import de.gematik.ti20.simsvc.server.config.VsdmConfig;
 import de.gematik.ti20.simsvc.server.model.PoppToken;
 import de.gematik.ti20.simsvc.server.repository.TestDataRepository;
@@ -119,50 +117,7 @@ public class VsdmService {
   }
 
   private VsdmPatient getPatient(final String kvnr) {
-    final VsdmPatient patientFromTestdata = getPatientFromTestdata(kvnr);
-    if (patientFromTestdata != null) {
-      return patientFromTestdata;
-    }
-
-    return syntheticPatient(kvnr);
-  }
-
-  private VsdmPatient getPatientFromTestdata(final String kvnr) {
-    final Optional<RbelElement> patientElement =
-        data.findElementByKeyValue("persondata.kvnr", kvnr);
-    if (patientElement.isEmpty()) {
-      return null;
-    }
-    var pd = patientElement.get().findElement("$.persondata");
-    if (pd.isEmpty()) {
-      throw new NoSuchTestDataException("personData is not set: " + patientElement.get());
-    }
-
-    final List<Address> addresses = new ArrayList<>();
-    var adrPost = pd.get().findElement("$.address.post");
-    if (adrPost.isPresent()) {
-      addresses.add(
-          new Address()
-              .setCountry(data.getStringFor(adrPost.get(), "$.country").orElse(""))
-              .setCity(data.getStringFor(adrPost.get(), "$.city").orElse(""))
-              .setPostalCode(data.getStringFor(adrPost.get(), "$.zip").orElse(""))
-              .addLine(data.getStringFor(adrPost.get(), "$.line1").orElse(""))
-              .addLine(data.getStringFor(adrPost.get(), "$.line2").orElse(""))
-              .setType(Address.AddressType.POSTAL));
-    }
-
-    final VsdmPatient patient =
-        VsdmPatientBuilder.create()
-            .withNames(
-                data.getStringFor(pd.get(), "$.name.family").orElse(""),
-                data.getStringFor(pd.get(), "$.name.given").orElse(""))
-            .withKvnr(data.getStringFor(pd.get(), "$.kvnr").orElse(""))
-            .withBirthDate(data.getStringFor(pd.get(), "$.birthdate").orElse(null))
-            .build();
-
-    patient.setAddress(addresses);
-
-    return patient;
+    return data.patientByKvnr(kvnr).orElseGet(() -> syntheticPatient(kvnr));
   }
 
   private VsdmPatient syntheticPatient(final String kvnr) {

@@ -16,14 +16,19 @@ services:
     ports:
       - "9130:80"
       - "5012:5012"
+    # volumes:
+    #   - type: bind
+    #     source: /tmp/testhub/test-data
+    #     target: /opt/custom-test-data
     environment:
       - LOGGING_LEVEL_ROOT=DEBUG
       - OTEL_SERVICE_NAME=vsdm-server
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5012"
+      # - VSDM_PATH_TO_TEST_DATA=/opt/custom-test-data
 
   vsdm-zeta-pep:
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:0.2.4
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:0.3.0
     container_name: vsdm-zeta-pep
     ports:
       - "9120:80"
@@ -37,7 +42,7 @@ services:
         condition: service_started # TODO: change to "service_healthy" when healthcheck is available
 
   vsdm-zeta-pdp:
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:0.2.4
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:0.3.2
     container_name: vsdm-zeta-pdp
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin

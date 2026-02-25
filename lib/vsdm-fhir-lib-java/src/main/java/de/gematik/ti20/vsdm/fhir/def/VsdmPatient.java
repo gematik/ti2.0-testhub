@@ -21,7 +21,12 @@
 package de.gematik.ti20.vsdm.fhir.def;
 
 import ca.uhn.fhir.model.api.annotation.ResourceDef;
+import de.gematik.test.testdata.model.Address;
+import de.gematik.test.testdata.model.DeliveryAddress;
+import de.gematik.test.testdata.model.PersonData;
+import de.gematik.ti20.vsdm.fhir.builder.VsdmPatientBuilder;
 import java.io.Serial;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.hl7.fhir.r4.model.Patient;
 
@@ -30,6 +35,31 @@ import org.hl7.fhir.r4.model.Patient;
 public class VsdmPatient extends Patient {
 
   @Serial private static final long serialVersionUID = -3866131845663337989L;
+
+  @Nonnull
+  public static VsdmPatient from(@Nonnull final de.gematik.test.testdata.model.Patient patient) {
+    final PersonData personData = patient.getPersonData();
+    final VsdmPatientBuilder vsdmPatientBuilder =
+        VsdmPatientBuilder.create()
+            .withKvnr(personData.getKvnr())
+            .withNames(personData.getName().getFamily(), personData.getName().getGiven())
+            .withBirthDate(personData.getBirthDate());
+
+    final Address address = personData.getAddress();
+    if (address != null) {
+      final org.hl7.fhir.r4.model.Address postalAddress = AddressAdapter.postalAddress(address);
+      vsdmPatientBuilder.addAddress(postalAddress);
+    }
+
+    final DeliveryAddress deliveryAddress = personData.getDeliveryAddress();
+    if (deliveryAddress != null) {
+      final org.hl7.fhir.r4.model.Address fhirDeliveryAddress =
+          AddressAdapter.physicalAddress(deliveryAddress);
+      vsdmPatientBuilder.addAddress(fhirDeliveryAddress);
+    }
+
+    return vsdmPatientBuilder.build();
+  }
 
   public VsdmPatient() {
     super();

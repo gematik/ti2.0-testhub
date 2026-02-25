@@ -36,7 +36,7 @@ import au.com.dius.pact.core.model.annotations.Pact;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.gematik.ti20.client.card.terminal.simsvc.SimulatorAttachedCard;
-import de.gematik.ti20.simsvc.client.config.VsdmConfig;
+import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
 import de.gematik.ti20.simsvc.client.pact.PactConfig;
 import de.gematik.zeta.sdk.ZetaSdkClient;
 import de.gematik.zeta.sdk.network.http.client.ZetaHttpClient;
@@ -62,7 +62,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @Slf4j
 class VsdmClientServicePactTest {
 
-  @Autowired private VsdmConfig vsdmConfig;
+  @Autowired private VsdmClientConfig vsdmConfig;
   @Autowired private VsdmClientService vsdmClientService;
   @Autowired private PactConfig pactConfig;
   @MockitoBean private ZetaSdkClient zetaSdkClient;
@@ -128,7 +128,7 @@ class VsdmClientServicePactTest {
 
     var patientBundleAsString =
         vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token123", "etag123", false);
+            "terminalId", egkSlotId, mockEgkCard, "token123", "etag123", false);
 
     assertThat(patientBundleAsString.getStatusCodeValue()).isEqualTo(200);
     assertThat(patientBundleAsString.getBody()).isNotEmpty();
@@ -146,7 +146,7 @@ class VsdmClientServicePactTest {
 
     var patientBundleAsString =
         vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token456", "etag456", false);
+            "terminalId", egkSlotId, mockEgkCard, "token456", "etag456", false);
 
     String responseBody = patientBundleAsString.getBody();
     ObjectMapper objectMapper = new ObjectMapper();
@@ -167,7 +167,7 @@ class VsdmClientServicePactTest {
 
     var patientBundleAsString =
         vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token456", "etag456", false);
+            "terminalId", egkSlotId, mockEgkCard, "token456", "etag456", false);
 
     String responseBody = patientBundleAsString.getBody();
     ObjectMapper objectMapper = new ObjectMapper();
@@ -200,7 +200,7 @@ class VsdmClientServicePactTest {
 
     var patientBundleAsString =
         vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token789", "etag789", false);
+            "terminalId", egkSlotId, mockEgkCard, "token789", "etag789", false);
 
     String responseBody = patientBundleAsString.getBody();
     ObjectMapper objectMapper = new ObjectMapper();
@@ -225,7 +225,7 @@ class VsdmClientServicePactTest {
 
     var patientBundleAsString =
         vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token101", "etag101", false);
+            "terminalId", egkSlotId, mockEgkCard, "token101", "etag101", false);
 
     String responseBody = patientBundleAsString.getBody();
     ObjectMapper objectMapper = new ObjectMapper();
@@ -250,7 +250,7 @@ class VsdmClientServicePactTest {
 
     var patientBundleAsString =
         vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token202", "etag202", false);
+            "terminalId", egkSlotId, mockEgkCard, "token202", "etag202", false);
 
     String responseBody = patientBundleAsString.getBody();
     ObjectMapper objectMapper = new ObjectMapper();

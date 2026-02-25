@@ -157,42 +157,91 @@ To use this configuration, you can specify the `spring.profiles.active=local` pr
 
 ## Test Data
 
-The data returned by the server is based on YAML files located in the `src/main/resources/de/gematik/vsdm/testdata`
-directory.
+The data returned by the server is based on YAML files located in the
+`<projectRoot>/public-test-data/person` directory. A full walk-through of the
+test data format is out of scope for this document. See below to learn how to
+customize the test data or provide your own.
 
-## Structure of the YAML files
+**Note:** Test data is parsed upon application start. Restart the application for changes to take effect.
 
-- `kvnr`: KVNR (Identifier)
-- `name`:
-    - `family`: Nachname
-    - `given`: Liste der Vornamen
-- `gender`: `m`|`w`|`other`|`unknown`
-- `birthDate`: `YYYY-MM-DD`
-- `address`, `telecom`, `insurer` (iknr)
+**Tip:** Wrap strings with quotes to avoid running into typical YAML issues like the Norway problem.
 
-Example `src/main/resources/de/gematik/vsdm/testdata/person/patient/patient3.yaml`:
+Examples:
 
-    personData:
-      gender: w
-      name:
-        given: Kriemhild
-        family: Amelie Abigail H. Freifrau Bruser
-      birthDate: 2015-09-02
-      kvnr: X110639491
-      address:
-        post:
-          zip: 12345
-          city: Berlin
-          line1: Friedrichstr. 123
-          line2: Wohnung 456
-      insurance: Insurance Gematik
+```yaml
+patients:
+   JonDoe:
+      alias:
+         - 'Jon Doe'
+      personData:
+         gender: 'm'
+         name:
+            given: 'Jon'
+            family: 'Doe'
+         birthDate: '1980-01-01'
+         kvnr: 'J000000001'
+         address:
+            postalCode: '12345'
+            city: 'Sample City'
+            streetName: 'Sample Street'
+            houseNumber: '1'
+         insurance: 'Insurance Example'
+```
 
-## How to add additional patient data
+It's also possible to merge multiple data sets into one file:
 
-1. Create a file at path `src/main/resources/de/gematik/vsdm/testdata/person/patient/`.
-2. Filename: arbitrary, but by convention `patient*.yaml` (e.g. `patient123.yaml`).
-3. Populate the YAML according to the schema above.
-4. Rebuild/restart the project so the resources are loaded.
+```yaml
+patients:
+   test-user-0:
+      personData:
+         kvnr: 'kvnr-1'
+      ownerTestsuite: 'unit-test TestDataCardsTest.java'
+      cards:
+         - file: '/patient/cardImages/EGK_80276883110000164023_gema5.xml'
+   test-user-1:
+      personData:
+         kvnr: 'kvnr-2'
+      ownerTestsuite: 'unit-test TestDataCardsTest.java'
+      cards:
+         - file: '/patient/cardImages/EGK_80276883110000164023_gema5.xml'
+```
+
+### Using custom test data
+
+If you want to customize or reuse your test data you can use Docker Volumes. The
+easiest way to get started is:
+
+1. Copy the examples from `<projectRoot>/public-test-data` to a local folder.
+2. Open `<projectRoot>/doc/docker/vsdm/compose-local.yaml` and check the value
+   of the environment variable `VSDM_PATH_TO_TEST_DATA`.
+3. Add a volume to the compose file and point your local directory to the value
+   of `VSDM_PATH_TO_TEST_DATA`.
+   
+   Example: Assume `VSDM_PATH_TO_TEST_DATA` is set to `/opt/test-data` and the
+   data on your host machine is located at `/tmp/test-data`:
+   
+```yaml
+services:
+  vsdm-server:
+    image: de.gematik.ti20.simsvc.server/vsdm-server-simservice:local
+    volumes:
+      - type: bind
+        # path on your host machine
+        source: /tmp/test-data
+        # value referenced by VSDM_PATH_TO_TEST_DATA
+        target: /opt/test-data
+    environment:
+      - VSDM_PATH_TO_TEST_DATA=/opt/test-data
+      # other variables
+```
+   
+Change some test data e.g. a KVNR and restart Docker for the changes to take
+effect.
+
+You can verify your configuration by:
+- checking the logs for lines containing `TestDataConfiguration` or `TestDataManager`
+- make requests against the `DebugController` to list
+available test data.
 
 ## Behavior on requests (order)
 
@@ -214,10 +263,12 @@ first).
 
 The server exposes the following endpoints:
 
-| Name                          | Description                                                              |
-|:------------------------------|--------------------------------------------------------------------------|
-| GET /vsdservice/v1/vsdmbundle | Returns the VSDM bundle for the KVNr and IKNr encoded in the PoPP token. |
-| GET /service/status           | Returns the status of the server.                                        |
+| Name                          | Description                                                                           |
+|:------------------------------|---------------------------------------------------------------------------------------|
+| GET /vsdservice/v1/vsdmbundle | Returns the VSDM bundle for the KVNr and IKNr encoded in the PoPP token.              |
+| GET /service/status           | Returns the status of the server.                                                     |
+| GET /debug/kvnrs              | Returns a set of KVNRs found in the test data.                                        |
+| GET /debug/patients           | Returns patient data for debugging purposes. Refer to the method for more information |
 
 ## Examples
 

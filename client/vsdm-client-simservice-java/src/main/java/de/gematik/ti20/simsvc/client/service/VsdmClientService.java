@@ -34,13 +34,13 @@ import de.gematik.ti20.client.popp.service.PoppClientService;
 import de.gematik.ti20.client.popp.service.PoppTokenSession;
 import de.gematik.ti20.client.popp.service.PoppTokenSessionEventHandler;
 import de.gematik.ti20.client.zeta.service.ZetaClientService;
+import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
 import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
 import de.gematik.ti20.vsdm.fhir.builder.VsdmBundleBuilder;
 import de.gematik.ti20.vsdm.fhir.builder.VsdmPatientBuilder;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
-import de.gematik.zeta.sdk.*;
 import io.ktor.client.plugins.ClientRequestException;
 import io.ktor.client.plugins.ServerResponseException;
 import java.net.HttpURLConnection;
@@ -53,7 +53,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import javax.annotation.CheckForNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
@@ -71,8 +70,11 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
   public static final String HEADER_VSDM_PZ = "VSDM-Pz";
   public static final String HEADER_ETAG = "etag";
 
+  private final VsdmClientConfig vsdmClientConfig;
+
   private final PoppClientService poppClientService;
   private final ZetaClientService poppZetaClient;
+  private final MockPoppTokenService mockPoppTokenService;
 
   private final PoppTokenRepository poppTokenRepository;
   private final VsdmDataRepository vsdmDataRepository;
@@ -86,14 +88,20 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
       new ConcurrentHashMap<>();
 
   public VsdmClientService(
+      final VsdmClientConfig vsdmClientConfig,
       final PoppClientService poppClientService,
+      final MockPoppTokenService mockPoppTokenService,
       final FhirService fhirService,
       final PoppTokenRepository poppTokenRepository,
       final VsdmDataRepository vsdmDataRepository,
       final ZetaSdkClientAdapter vsdmZetaClient) {
 
+    this.vsdmClientConfig = vsdmClientConfig;
+
     this.poppClientService = poppClientService;
     this.poppZetaClient = poppClientService.getZetaClientService();
+    this.mockPoppTokenService = mockPoppTokenService;
+
     this.fhirService = fhirService;
 
     this.poppTokenRepository = poppTokenRepository;
@@ -119,8 +127,7 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
     log.debug("Received PoPP token: {}", poppToken);
 
     final ResponseEntity<String> vsd =
-        requestVsd(
-            terminalId, egkSlotId, smcbSlotId, attachedCard, poppToken, ifNoneMatch, isFhirXml);
+        requestVsd(terminalId, egkSlotId, attachedCard, poppToken, ifNoneMatch, isFhirXml);
     log.debug("Received VSD: {}", vsd);
 
     return vsd;
@@ -158,6 +165,13 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
       final int smcbSlotId,
       final AttachedCard attachedCard) {
     log.debug("Requesting PoPP token for attached card: {}", attachedCard.getId());
+
+    if (vsdmClientConfig.isUseMockPoppToken()) {
+      log.info("Load mocked PoPP tokk");
+      final String mockPoppToken = loadMockPoppToken(vsdmClientConfig, attachedCard);
+      poppTokenRepository.put(terminalId, egkSlotId, attachedCard.getId(), mockPoppToken);
+      return mockPoppToken;
+    }
 
     final String poppTokenFromRepository =
         poppTokenRepository.get(terminalId, egkSlotId, attachedCard.getId());
@@ -208,10 +222,9 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
   protected ResponseEntity<String> requestVsd(
       final String terminal,
       final int egkSlotId,
-      final int smcbSlotId,
       final AttachedCard attachedCard,
       final String poppToken,
-      @CheckForNull final String ifNoneMatch,
+      final String ifNoneMatch,
       final boolean isFhirXml) {
 
     final VsdmCachedValue vsdmCachedValue =
@@ -299,7 +312,11 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
     final String etagHeader = responseFromServer.headers().get(HEADER_ETAG);
     Objects.requireNonNull(
         etagHeader, "'%s' header must be set by VSDM backend on 304".formatted(HEADER_ETAG));
-    final String checkDigitHeader = responseFromServer.headers().get(HEADER_VSDM_PZ);
+
+    final String checkDigitHeader =
+        responseFromServer.headers().get(HEADER_VSDM_PZ) != null
+            ? responseFromServer.headers().get(HEADER_VSDM_PZ)
+            : responseFromServer.headers().get(HEADER_VSDM_PZ.toLowerCase());
     Objects.requireNonNull(
         checkDigitHeader,
         "'%s' header must be set by VSDM backend on 304".formatted(HEADER_VSDM_PZ));
@@ -345,6 +362,15 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
             .build();
 
     return fhirService.encodeResponse(truncatedDataBundle, EncodingType.JSON);
+  }
+
+  private String loadMockPoppToken(final VsdmClientConfig config, final AttachedCard attachedCard) {
+    try {
+      final EgkInfo egkInfo = poppClientService.getEgkInfo(attachedCard);
+      return mockPoppTokenService.requestPoppToken(config, egkInfo.getIknr(), egkInfo.getKvnr());
+    } catch (final CardTerminalException cardEx) {
+      return null;
+    }
   }
 
   private HttpHeaders copyApplicableHeaders(

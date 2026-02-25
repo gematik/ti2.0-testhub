@@ -25,7 +25,7 @@ import de.gematik.zeta.sdk.StorageConfig;
 import de.gematik.zeta.sdk.TpmConfig;
 import de.gematik.zeta.sdk.ZetaSdk;
 import de.gematik.zeta.sdk.ZetaSdkClient;
-import de.gematik.zeta.sdk.attestation.model.ClientSelfAssessment;
+import de.gematik.zeta.sdk.attestation.model.AttestationConfig;
 import de.gematik.zeta.sdk.attestation.model.PlatformProductId;
 import de.gematik.zeta.sdk.authentication.AuthConfig;
 import de.gematik.zeta.sdk.authentication.SubjectTokenProvider;
@@ -59,7 +59,7 @@ public class VsdmZetaSdkClientConfig {
   private String smcbPrivateKeyPath;
 
   @Bean
-  public ZetaSdkClient vsdmServiceClient(final VsdmConfig vsdmConfig) {
+  public ZetaSdkClient vsdmServiceClient(final VsdmClientConfig vsdmConfig) {
     boolean disableServerValidation = true;
 
     return ZetaSdk.INSTANCE.build(
@@ -70,15 +70,13 @@ public class VsdmZetaSdkClientConfig {
             "sdk-client",
             new StorageConfig(),
             new TpmConfig() {},
-            new AuthConfig(List.of("zero:audience"), 30, true, getTokenProvider()),
-            new ClientSelfAssessment(
-                "name",
-                "clientId",
-                "manufacturerId",
-                "manufacturerName",
-                "test@manufacturertestmail.de",
-                0,
-                new PlatformProductId.AppleProductId("apple", "macos", List.of("bundleX"))),
+            new AuthConfig(
+                List.of("zero:audience"),
+                30,
+                true,
+                getTokenProvider(),
+                AttestationConfig.software()),
+            new PlatformProductId.AppleProductId("apple", "macos", List.of("bundleX")),
             new ZetaHttpClientBuilder("")
                 .disableServerValidation(disableServerValidation)
                 .logging(LogLevel.ALL, message -> log.debug("Ktor HttpClient: {}", message)),

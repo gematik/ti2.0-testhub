@@ -1,102 +1,33 @@
 tigerProxy:
   proxyPort: ${ports.localTigerProxyProxyPort}
   adminPort: ${ports.localTigerProxyAdminPort}
-  tls:
-    serverRootCa: "classpath:tigerProxy.p12"
+#  tls:
+#    serverRootCa: "classpath:tigerProxy.p12"
   trafficEndpoints:
-    - "http://localhost:${free.port.11}"
+    - "http://localhost:${ports.remoteTigerProxyAdminPort}"
   activateRbelParsingFor:
     - websocket
     - x509
   keyFolders:
     - ${tiger.rootFolder|.}/test/vsdm-testsuite
-  proxyRoutes:
-    - from: http://popp-zeta-pep:${ports.localTigerProxyProxyPort}
-      to: http://127.0.0.1:9200/
-      matchForProxyType: false
-      preserveHostHeader: true
-    - from: http://popp-zeta-pdp:${ports.localTigerProxyProxyPort}
-      to: http://127.0.0.1:9200/
-      matchForProxyType: false
-      preserveHostHeader: true
-    - from: http://vsdm-zeta-ingress:${ports.localTigerProxyProxyPort}
-      to: http://127.0.0.1:9119/
-      preserveHostHeader: true
-    - from: https://vsdm-zeta-ingress
-      to: http://127.0.0.1:9119/
-      preserveHostHeader: true
-    - from: /cardTerminalClient
-      to: http://127.0.0.1:${ports.cardTerminalPort}/
-  rewriteHostHeader: false
-
-servers:
-  docker-tiger-proxy:
-    type: docker
-    version: 4.1.16
-    source:
-      - gematik1/tiger-proxy-image
-    healthcheckUrl: http://127.0.0.1:${ports.localTigerProxyAdminPort}/actuator/health
-    startupTimeoutSec: 10000
-    dockerOptions:
-      networkMode: custom
-      networkName: vsdm_network
-      proxied: false
-      ports:
-        - "${free.port.11}:8080"
-        - "443:9090"
-      copyFiles:
-        - sourcePath: ${tiger.rootFolder|.}/tiger/tigerProxyInDocker.yaml
-          destinationPath: /app/application.yaml
-        - sourcePath: ${tiger.rootFolder|.}/tiger/tigerProxy.p12
-          destinationPath: /app/tigerProxy.p12
-
-  card-terminal-client:
-    type: docker
-    active: ${pssim.active}
-    version: local
-    healthcheckUrl: http://127.0.0.1:${ports.cardTerminalPort}/service/status
-    source:
-      - de.gematik.ti20.simsvc.client/card-terminal-client-simservice
-    dockerOptions:
-      networkMode: custom
-      networkName: vsdm_network
-      proxied: false
-      ports:
-        - "${ports.cardTerminalPort}:80"
-        - "5005:5005" #debug port
-
-  vsdm-client:
-    type: docker
-    active: ${pssim.active}
-    version: local
-    source:
-      - de.gematik.ti20.simsvc.client/vsdm-client-simservice
-    healthcheckUrl: http://127.0.0.1:${ports.vsdmClientPort}/service/status
-    dockerOptions:
-      networkMode: custom
-      networkName: vsdm_network
-      proxied: false
-      logContainerOutput: false
-      ports:
-        - "${ports.vsdmClientPort}:80"
-        - "5006:5006" #debug port
-      copyFiles:
-        - sourcePath: ${tiger.rootFolder|.}/doc/docker/backend/zeta/smcb-private/smcb_private.alias.txt
-          destinationPath: /tmp/zeta/smcb_private.alias.txt
-        - sourcePath: ${tiger.rootFolder|.}/doc/docker/backend/zeta/smcb-private/smcb_private.pw.txt
-          destinationPath: /tmp/zeta/smcb_private.pw.txt
-        - sourcePath: ${tiger.rootFolder|.}/doc/docker/backend/zeta/smcb-private/smcb_private.p12
-          destinationPath: /tmp/zeta/smcb_private.p12
-    environment:
-      - "POPP_HTTP_URL=http://popp-zeta-pep:443"
-      - "POPP_WS_URL=ws://popp-zeta-pep:443"
-      - "VSDM_RESOURCE_SERVER_URL=https://vsdm-zeta-ingress"
-      - "OTEL_SERVICE_NAME=vsdm-client"
-      - "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318"
-      - "JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006"
-      - "ZETASDK_SMCB_ALIAS_PATH=/tmp/zeta/smcb_private.alias.txt"
-      - "ZETASDK_SMCB_PRIVATE_KEY_PASSWORD_PATH=/tmp/zeta/smcb_private.pw.txt"
-      - "ZETASDK_SMCB_PRIVATE_KEY_PATH=/tmp/zeta/smcb_private.p12"
+#  proxyRoutes:
+#    - from: http://popp-zeta-pep:${ports.localTigerProxyProxyPort}
+#      to: http://127.0.0.1:9200/
+#      matchForProxyType: false
+#      preserveHostHeader: true
+#    - from: http://popp-zeta-pdp:${ports.localTigerProxyProxyPort}
+#      to: http://127.0.0.1:9200/
+#      matchForProxyType: false
+#      preserveHostHeader: true
+#    - from: http://vsdm-zeta-ingress:${ports.localTigerProxyProxyPort}
+#      to: http://127.0.0.1:9119/
+#      preserveHostHeader: true
+#    - from: https://vsdm-zeta-ingress
+#      to: http://127.0.0.1:9119/
+#      preserveHostHeader: true
+#    - from: /cardTerminalClient
+#      to: http://127.0.0.1:${ports.cardTerminalPort}/
+#  rewriteHostHeader: false
 
 lib:
   workflowUiPort: ${ports.tigerWorkflowUiPort}

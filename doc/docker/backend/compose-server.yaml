@@ -6,8 +6,8 @@ services:
       - "5007:5007"
     environment:
       - SPRING_PROFILES_ACTIVE=docker-popp
-      - PROXY_HTTP_URL=http://popp-server
-      - PROXY_WS_URL=http://popp-server
+      - PROXY_HTTP_URL=http://testhub-popp-server
+      - PROXY_WS_URL=http://testhub-popp-server
       - WK_ISSUER=http://zeta-pep-popp
       - WK_AUTH_EP=http://zeta-pdp-popp/auth
       - WK_TOKEN_EP=http://zeta-pdp-popp/token
@@ -31,7 +31,7 @@ services:
     depends_on:
       - otel-collector
 
-  popp-server:
+  testhub-popp-server:
     image: popp-server-mockservice:local
     ports:
       - "9210:80"
@@ -131,5 +131,5 @@ volumes:
 
 networks:
   default:
-    name: vsdm_network
+    name: testhub_network
 

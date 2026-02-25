@@ -88,7 +88,7 @@ class VsdmControllerV1Test {
     verify(etagService).checkEtag(kvnr, etag);
     verify(vsdmService).readVsd(poppToken);
     verify(fhirService).encodeResponse(eq(mockResource), eq(request), any(HttpHeaders.class));
-    verify(checksumService).addChecksumHeader(eq(responseBody), any(HttpHeaders.class));
+    verify(checksumService).addChecksumHeader(eq(kvnr), any(HttpHeaders.class));
     verify(etagService).addEtagHeader(eq(kvnr), eq(responseBody), any(HttpHeaders.class));
   }
 
@@ -148,7 +148,7 @@ class VsdmControllerV1Test {
     assertTrue(responseString.contains("Müller"));
     assertTrue(responseString.contains("München"));
 
-    verify(checksumService).addChecksumHeader(eq(responseBodyWithUmlaut), any(HttpHeaders.class));
+    verify(checksumService).addChecksumHeader(eq(kvnr), any(HttpHeaders.class));
     verify(etagService).addEtagHeader(eq(kvnr), eq(responseBodyWithUmlaut), any(HttpHeaders.class));
   }
 
@@ -157,14 +157,24 @@ class VsdmControllerV1Test {
     String kvnr = "X123456789";
     String poppToken = "mock-popp-token";
     String userInfo = "mock-user-info";
-    String etag = "0";
+    String etag = "123456789";
 
     when(vsdmService.readKVNR(poppToken)).thenReturn(kvnr);
     when(etagService.checkEtag(kvnr, etag)).thenReturn(true);
+    when(checksumService.calculateChecksum(kvnr)).thenReturn("PZ");
 
     ResponseEntity<?> response = vsdmController.vsdmbundle(poppToken, userInfo, etag, request);
 
     assertEquals(HttpStatus.NOT_MODIFIED, response.getStatusCode());
+
+    assertNotNull(response.getHeaders().get(HttpHeaders.ETAG));
+    assertEquals(1, response.getHeaders().get(HttpHeaders.ETAG).size());
+    assertEquals(etag, response.getHeaders().get(HttpHeaders.ETAG).getFirst());
+
+    assertNotNull(response.getHeaders().get(ChecksumService.HEADER_NAME));
+    assertEquals(1, response.getHeaders().get(ChecksumService.HEADER_NAME).size());
+    assertEquals("PZ", response.getHeaders().get(ChecksumService.HEADER_NAME).getFirst());
+
     assertNull(response.getBody());
 
     verify(vsdmService).readKVNR(poppToken);

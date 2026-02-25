@@ -20,79 +20,43 @@
  */
 package de.gematik.ti20.simsvc.server.repository;
 
-import de.gematik.rbellogger.data.RbelElement;
-import de.gematik.rbellogger.data.core.RbelValueFacet;
 import de.gematik.test.testdata.TestDataManager;
-import de.gematik.test.testdata.exceptions.TestDataInitializationException;
-import jakarta.annotation.PostConstruct;
-import java.io.File;
-import java.net.URL;
+import de.gematik.test.testdata.exceptions.NoSuchTestDataException;
+import de.gematik.test.testdata.model.Patient;
+import de.gematik.ti20.vsdm.fhir.def.VsdmPatient;
 import java.util.Optional;
-import java.util.regex.Pattern;
+import java.util.Set;
+import javax.annotation.Nonnull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Provides access to the data stored in the test data folder. For initialization see {@link
+ * de.gematik.ti20.simsvc.server.config.TestDataConfiguration}.
+ */
 @Repository
 public class TestDataRepository {
 
-  @PostConstruct
-  public void init() {
-    String path = "de/gematik/vsdm/testdata";
-    URL dir = getClass().getClassLoader().getResource(path);
-    File testDataDir = new File(dir.getPath());
-    if (!testDataDir.exists()) {
-      testDataDir = new File("./" + path);
-    }
-    TestDataManager.initialize(testDataDir);
+  private final TestDataManager testDataManager;
+
+  @Autowired
+  public TestDataRepository(final TestDataManager testDataManager) {
+    this.testDataManager = testDataManager;
   }
 
-  private static final Pattern ALIAS_PATTERN = Pattern.compile("^[a-zA-Z0-9äüöÄÜÖß\s]+$");
-
-  public void validateAlias(String alias) {
-    if (alias == null || !ALIAS_PATTERN.matcher(alias).matches()) {
-      throw new IllegalArgumentException("Alias contains invalid characters");
-    }
-  }
-
-  public Optional<RbelElement> findElementByAlias(String alias) {
-
-    validateAlias(alias);
-
-    var elements =
-        TestDataManager.getTestDataRoot()
-            .findRbelPathMembers("$..[?(@.alias.. == '" + alias + "')]");
-    if (elements.isEmpty()) {
+  @Nonnull
+  public Optional<VsdmPatient> patientByKvnr(@Nonnull final String kvnr) {
+    try {
+      final String byKvnr = "$.patients.[?(@..kvnr == '%s')]".formatted(kvnr);
+      final Patient patient = testDataManager.getPatient(byKvnr);
+      return Optional.of(VsdmPatient.from(patient));
+    } catch (final NoSuchTestDataException e) {
       return Optional.empty();
     }
-    if (elements.size() == 1) {
-      return Optional.of(elements.get(0));
-    }
-    throw new TestDataInitializationException(
-        "Wrong testdata initialization, multiple elements found for alias " + alias);
   }
 
-  public Optional<RbelElement> findElementByKeyValue(String key, String value) {
-    var elements =
-        TestDataManager.getTestDataRoot()
-            .findRbelPathMembers("$..[?(@." + key + ".. == '" + value + "')]");
-    if (elements.isEmpty()) {
-      return Optional.empty();
-    }
-    return Optional.of(elements.get(0));
-  }
-
-  public Optional<String> getStringFor(RbelElement parent, String rbelPath) {
-    if (parent != null) {
-      var found = parent.findElement(rbelPath);
-      if (found.isPresent()) {
-        var facet = found.get().getFacet(RbelValueFacet.class);
-        if (facet.isPresent()) {
-          var val = facet.get().getValue();
-          if (val != null) {
-            return Optional.of(val.toString());
-          }
-        }
-      }
-    }
-    return Optional.empty();
+  @Nonnull
+  public Set<String> findAvailableKvnrs() {
+    return Set.copyOf(testDataManager.getClassesFromList("$.patients..kvnr", String.class));
   }
 }

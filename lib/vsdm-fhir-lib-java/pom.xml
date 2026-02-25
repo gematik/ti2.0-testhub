@@ -6,13 +6,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.1.7</version>
+        <version>1.1.8</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.vsdm</groupId>
     <artifactId>vsdm-fhir-lib</artifactId>
-    <version>1.1.7</version>
+    <version>1.1.8</version>
     <packaging>jar</packaging>
 
     <name>VSDM2 FHIR Library</name>
@@ -56,6 +56,10 @@
         <dependency>
             <groupId>de.gematik.bbriccs</groupId>
             <artifactId>unit-test-utility-brick</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.gematik.test</groupId>
+            <artifactId>gem-testdata</artifactId>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>

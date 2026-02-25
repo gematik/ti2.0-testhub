@@ -3,9 +3,9 @@ server:
 
 proxy:
   http:
-    url: ${PROXY_HTTP_URL:http://popp-server}
+    url: ${PROXY_HTTP_URL:http://testhub-popp-server}
   ws:
-    url: ${PROXY_WS_URL:ws://popp-server}
+    url: ${PROXY_WS_URL:ws://testhub-popp-server}
   sec:
     store:
       path: "./zetakeystore.p12"

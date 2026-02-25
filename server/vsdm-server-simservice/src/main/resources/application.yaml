@@ -6,6 +6,7 @@ server:
   port: ${SERVER_PORT:80}
 
 vsdm:
+  path-to-test-data: ${VSDM_PATH_TO_TEST_DATA:./public-test-data}
   iknr: 109500969
   valid-kvnr-prefix: X1
   invalid-kvnr-prefix: X4

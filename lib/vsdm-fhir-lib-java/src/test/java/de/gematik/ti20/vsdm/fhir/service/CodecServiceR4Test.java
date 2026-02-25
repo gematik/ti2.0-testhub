@@ -206,8 +206,7 @@ class CodecServiceR4Test {
         validationResult.getMessages().stream()
             .filter(msg -> msg.getSeverity() == ResultSeverityEnum.ERROR)
             .toList();
-    assertEquals(1, errors.size());
-    assertTrue(errors.get(0).getMessage().contains("VSDMCoverageGKV"));
+    assertEquals(0, errors.size());
   }
 
   @Test

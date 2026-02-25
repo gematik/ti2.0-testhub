@@ -32,19 +32,19 @@ public class ChecksumService {
 
   public static final String HEADER_NAME = "VSDM-Pz";
 
-  public void addChecksumHeader(final String encodedResponse, final HttpHeaders responseHeaders) {
-    if (encodedResponse != null && !encodedResponse.isEmpty()) {
-      final String checksum = calculateChecksum(encodedResponse);
+  public void addChecksumHeader(final String kvnr, final HttpHeaders responseHeaders) {
+    if (kvnr != null && !kvnr.isEmpty()) {
+      final String checksum = calculateChecksum(kvnr);
       if (checksum != null) {
         responseHeaders.add(HEADER_NAME, checksum);
       }
     }
   }
 
-  private String calculateChecksum(final String encodedResponse) {
+  public String calculateChecksum(final String kvnr) {
     try {
       final MessageDigest md = MessageDigest.getInstance("SHA-512");
-      md.update(encodedResponse.getBytes());
+      md.update(kvnr.getBytes());
       final byte[] digest = md.digest();
       return Base64.getUrlEncoder().encodeToString(digest);
     } catch (final Exception e) {

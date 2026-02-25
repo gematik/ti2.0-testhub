@@ -11,7 +11,7 @@ servers:
   vsdm-client:
     dockerOptions:
       networkMode: custom
-      networkName: vsdm_network
+      networkName: testhub_network
     environment:
       - "POPP_HTTP_URL=http://popp-zeta-pep"
       - "POPP_WS_URL=ws://popp-zeta-pep"

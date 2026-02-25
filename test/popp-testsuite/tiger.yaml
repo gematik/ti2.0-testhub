@@ -1,0 +1,27 @@
+lib:
+  rbelPathDebugging: false
+  activateWorkflowUi: true
+  httpClientConfig:
+    activateRbelWriter: true
+  additionalKeyStorePasswords:
+    ["testpassword", "popp-store"]
+
+tigerProxy:
+  activateRbelParsing: true
+  adminPort: 1300
+  activateRbelParsingFor:
+    - websocket
+  proxyPort: 1200
+  proxyRoutes:
+    # route to Popp-server
+    - from: /ws
+      to: https://localhost:8443/ws
+    # route to Popp-client
+    - from: /token
+      to: http://localhost:8081/token
+  tls:
+    serverIdentity: src/test/resources/certificates/mykeystore.p12;popp-store
+    masterSecretsFile: wireshark.txt
+  keyFolders:
+    - .
+

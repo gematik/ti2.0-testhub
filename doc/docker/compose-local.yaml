@@ -1,0 +1,65 @@
+name: "testhub-local"
+
+include:
+  - ./backend/compose-backend.yaml
+
+services:
+  docker-tiger-proxy:
+    image: gematik1/tiger-proxy-image:4.1.16
+    container_name: docker-tiger-proxy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://127.0.0.1:8080/actuator/health" ]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    ports:
+      - "6300:8080"
+      - "6350:9090"
+    volumes:
+      - ./remoteTigerProxy/application.yaml:/app/application.yaml:ro
+      - ./remoteTigerProxy/tigerProxy.p12:/app/tigerProxy.p12:ro
+
+  card-terminal-client:
+    build: ../../client/card-terminal-client-simservice
+    image: de.gematik.ti20.simsvc.client/card-terminal-client-simservice:local
+    container_name: card-terminal-client
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://127.0.0.1:80/service/status" ]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    ports:
+      - "6200:80"
+      - "5005:5005"
+
+  vsdm-client:
+    build: ../../client/vsdm-client-simservice-java
+    image: de.gematik.ti20.simsvc.client/vsdm-client-simservice:local
+    container_name: vsdm-client
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://127.0.0.1:80/service/status" ]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    ports:
+      - "6100:80"
+      - "5006:5006"
+    volumes:
+      - ./backend/zeta/smcb-private/smcb_private.alias.txt:/tmp/zeta/smcb_private.alias.txt:ro
+      - ./backend/zeta/smcb-private/smcb_private.pw.txt:/tmp/zeta/smcb_private.pw.txt:ro
+      - ./backend/zeta/smcb-private/smcb_private.p12:/tmp/zeta/smcb_private.p12:ro
+    environment:
+      - POPP_HTTP_URL=http://popp-zeta-pep:80
+      - POPP_WS_URL=ws://popp-zeta-pep:80
+      - POPP_TOKEN_GENERATOR_URL=http://popp-token-generator:80
+      - VSDM_RESOURCE_SERVER_URL=https://vsdm-zeta-ingress
+      - OTEL_SERVICE_NAME=vsdm-client
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
+      - ZETASDK_SMCB_ALIAS_PATH=/tmp/zeta/smcb_private.alias.txt
+      - ZETASDK_SMCB_PRIVATE_KEY_PASSWORD_PATH=/tmp/zeta/smcb_private.pw.txt
+      - ZETASDK_SMCB_PRIVATE_KEY_PATH=/tmp/zeta/smcb_private.p12
+
+networks:
+  default:
+    name: testhub_network
