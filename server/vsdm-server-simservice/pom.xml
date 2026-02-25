@@ -7,13 +7,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.1.7</version>
+        <version>1.1.8</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.simsvc.server</groupId>
     <artifactId>vsdm-server-simservice</artifactId>
-    <version>1.1.7</version>
+    <version>1.1.8</version>
 
     <name>VSDM Server Simservice</name>
     <description>Simulator-Service for VSDM2 Service</description>
@@ -118,4 +118,56 @@
             </plugin>
         </plugins>
     </build>
+
+    <!-- override the behaviour inherited from the parent project to build docker, because we need to change
+    the base directory so that we can access data outside of the modules directory -->
+    <profiles>
+        <!-- Create Docker Image when profile is active -->
+        <profile>
+            <id>docker</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>${version.maven-antrun-plugin}</version>
+                        <executions>
+                            <execution>
+                                <id>create-docker-image</id>
+                                <!-- must run after spring boot repackage, or we have an incomplete jar -->
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target
+                                            if="image.docker.tag"
+                                            name="build-service-docker-image"
+                                            description="Task to build services docker images">
+                                        <!-- calculate the repository root here so we can invoke docker build with
+                                        the repository root as build context. We need that build context to include
+                                        the public test data. -->
+                                        <property name="repository.root" location="${project.basedir}/../../" />
+                                        <echo>####### Building '${image.docker.tag}'</echo>
+                                        <exec executable="docker" dir="${repository.root}" failonerror="true">
+                                            <arg value="build"/>
+                                            <arg value="--no-cache"/>
+                                            <arg value="--tag"/>
+                                            <arg value="${image.docker.tag}"/>
+                                            <arg value="--file"/>
+                                            <arg value="${project.basedir}/docker/Dockerfile"/>
+                                            <arg value="."/>
+                                        </exec>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

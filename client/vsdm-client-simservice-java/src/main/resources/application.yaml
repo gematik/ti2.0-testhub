@@ -14,6 +14,8 @@ popp:
 
 vsdm:
   resourceServerUrl: ${VSDM_RESOURCE_SERVER_URL}
+  use-mock-popp-token: false
+  popp-token-generator-url: ${POPP_TOKEN_GENERATOR_URL}
 
 zetasdk:
   smcbAliasPath: ${ZETASDK_SMCB_ALIAS_PATH}

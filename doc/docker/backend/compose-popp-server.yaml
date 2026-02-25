@@ -10,8 +10,8 @@ services:
     environment:
       - TIGER_TIGERPROXY_PROXYPORT=80
 
-  popp-server:
-    container_name: popp-server
+  testhub-popp-server:
+    container_name: testhub-popp-server
     image: de.gematik.ti20.simsvc.server/popp-server-mockservice:local
     ports:
       - "9210:80"
@@ -32,12 +32,12 @@ services:
       - "5007:5007"
     environment:
       - SPRING_PROFILES_ACTIVE=docker-popp
-      - PROXY_HTTP_URL=http://popp-server
-      - PROXY_WS_URL=http://popp-server
-      - WK_ISSUER=http://popp-zeta-pep:443
-      - WK_AUTH_EP=http://popp-zeta-pdp:443/auth
-      - WK_TOKEN_EP=http://popp-zeta-pdp:443/token
-      - WK_NONCE_EP=http://popp-zeta-pdp:443/nonce
+      - PROXY_HTTP_URL=http://testhub-popp-server
+      - PROXY_WS_URL=http://testhub-popp-server
+      - WK_ISSUER=http://popp-zeta-pep:80
+      - WK_AUTH_EP=http://popp-zeta-pdp:80/auth
+      - WK_TOKEN_EP=http://popp-zeta-pdp:80/token
+      - WK_NONCE_EP=http://popp-zeta-pdp:80/nonce
       - OTEL_SERVICE_NAME=popp-zeta-pep
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5007"

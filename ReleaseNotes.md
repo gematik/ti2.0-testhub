@@ -2,6 +2,11 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 1.1.8
+
+- LART-1161: (VSDM) allow test data to be read using gem-testdata
+- ZTI-4104: update ZETA components to MS3a release
+
 ## Release 1.1.7
 
 - TESTHUB-16: adjust README and ensure a index.html is present in user manual.

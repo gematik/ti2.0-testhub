@@ -20,6 +20,7 @@
  */
 package de.gematik.ti20.vsdm.test.e2e.steps;
 
+import static de.gematik.test.tiger.common.config.TigerGlobalConfiguration.resolvePlaceholders;
 import static de.gematik.ti20.vsdm.test.e2e.helper.DateNormalizer.normalizeToLocalDate;
 import static net.serenitybdd.screenplay.GivenWhenThen.*;
 import static org.hamcrest.Matchers.*;
@@ -65,9 +66,9 @@ public class VsdmSteps {
   public void setTheStage() {
     OnStage.setTheStage(new OnlineCast());
     OnStage.theActorCalled("Primärsystem")
-        .can(CallCardClient.at("http://127.0.0.1:8000"))
-        .can(CallVsdmClient.at("http://127.0.0.1:8220"))
-        .can(CallPoppService.at("http://127.0.0.1:9210"));
+        .can(CallCardClient.at(resolvePlaceholders("http://127.0.0.1:${ports.cardTerminalPort}")))
+        .can(CallVsdmClient.at(resolvePlaceholders("http://127.0.0.1:${ports.vsdmClientPort}")))
+        .can(CallPoppService.at(resolvePlaceholders("http://127.0.0.1:9210")));
   }
 
   @Angenommen("das Primärsystem in der LEI verwendet ein korrekt konfiguriertes Terminal")
@@ -108,6 +109,7 @@ public class VsdmSteps {
   @Wenn("das Primärsystem die VSD mittels PoPP- und Access-Token vom VSDM Ressource Server abfragt")
   public void whenClientSystemIsRequestingVsdWithAccessAndPoppToken() {
     String etag = Optional.ofNullable(hccs().recall("etag")).orElse("0").toString();
+    hccs().attemptsTo(DeleteVsdmDataFromCache.deleteCache());
     hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken(etag, null));
   }
 

@@ -40,7 +40,7 @@ import de.gematik.ti20.client.popp.service.PoppTokenSession;
 import de.gematik.ti20.client.popp.service.PoppTokenSessionEventHandler;
 import de.gematik.ti20.client.zeta.config.ZetaClientConfig;
 import de.gematik.ti20.client.zeta.service.ZetaClientService;
-import de.gematik.ti20.simsvc.client.config.VsdmConfig;
+import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
 import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
@@ -63,12 +63,13 @@ class VsdmClientServiceTest {
 
   private VsdmClientService vsdmClientService;
 
-  private VsdmConfig vsdmConfig;
+  private VsdmClientConfig vsdmClientConfig;
   private ZetaClientService mockZetaClientService;
   private ZetaClientConfig mockZetaClientConfig;
   private ZetaSdkClientAdapter mockZetaSdkAdapter;
   private PoppClientService mockPoppClientService;
   private PoppClientConfig mockPoppClientConfig;
+  private MockPoppTokenService mockPoppTokenService;
   private FhirService mockFhirService;
   private PoppTokenRepository mockPoppTokenRepository;
   private VsdmDataRepository mockVsdmDataRepository;
@@ -84,8 +85,10 @@ class VsdmClientServiceTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    vsdmConfig = new VsdmConfig();
-    vsdmConfig.setResourceServerUrl("http://localhost:8080");
+    vsdmClientConfig = new VsdmClientConfig();
+    vsdmClientConfig.setResourceServerUrl("http://localhost:8080");
+    vsdmClientConfig.setUseMockPoppToken(false);
+    vsdmClientConfig.setPoppTokenGeneratorUrl("poppTokenGeneratorUrl");
 
     mockZetaClientConfig = mock(ZetaClientConfig.class);
     mockZetaClientService = mock(ZetaClientService.class);
@@ -96,6 +99,10 @@ class VsdmClientServiceTest {
     when(mockPoppClientService.getPoppClientConfig()).thenReturn(mockPoppClientConfig);
     mockEgkInfo = mock(EgkInfo.class);
     when(mockPoppClientService.getEgkInfo(any())).thenReturn(mockEgkInfo);
+
+    mockPoppTokenService = mock(MockPoppTokenService.class);
+    when(mockPoppTokenService.requestPoppToken(vsdmClientConfig, "iknr", "kvnr"))
+        .thenReturn("mocked-token");
 
     mockFhirService = mock(FhirService.class);
 
@@ -117,7 +124,9 @@ class VsdmClientServiceTest {
 
     vsdmClientService =
         new VsdmClientService(
+            vsdmClientConfig,
             mockPoppClientService,
+            mockPoppTokenService,
             mockFhirService,
             mockPoppTokenRepository,
             mockVsdmDataRepository,
@@ -191,6 +200,55 @@ class VsdmClientServiceTest {
   }
 
   @Nested
+  class MockedPoppToken {
+
+    @Test
+    void testRequestPoppToken_FromPoppTokenGenerator() throws Exception {
+      String expectedToken = "mocked-token";
+
+      vsdmClientConfig = new VsdmClientConfig();
+      vsdmClientConfig.setResourceServerUrl("http://localhost:8080");
+      vsdmClientConfig.setUseMockPoppToken(true);
+      vsdmClientConfig.setPoppTokenGeneratorUrl("poppTokenGeneratorUrl");
+
+      vsdmClientService =
+          new VsdmClientService(
+              vsdmClientConfig,
+              mockPoppClientService,
+              mockPoppTokenService,
+              mockFhirService,
+              mockPoppTokenRepository,
+              mockVsdmDataRepository,
+              mockZetaSdkAdapter);
+
+      when(mockPoppClientService.getEgkInfo(any()))
+          .thenReturn(
+              new EgkInfo(
+                  "kvnr",
+                  "iknr",
+                  "patient",
+                  "actual-first",
+                  "actual-last",
+                  "2000",
+                  "insurance",
+                  "card",
+                  "2012",
+                  "true"));
+
+      when(mockPoppTokenService.requestPoppToken(vsdmClientConfig, "iknr", "kvnr"))
+          .thenReturn(expectedToken);
+
+      String result =
+          vsdmClientService.requestPoppToken(terminalId, egkSlotId, smcBSlotId, mockEgkCard);
+
+      assertEquals(expectedToken, result);
+
+      verify(mockPoppTokenRepository, never()).get(any(), any(), any());
+      verify(mockPoppClientService, never()).startPoppTokenSession(any(), any(), any());
+    }
+  }
+
+  @Nested
   class RequestVSD {
 
     @Test
@@ -218,8 +276,7 @@ class VsdmClientServiceTest {
           .thenReturn("encoded response");
 
       ResponseEntity<String> response =
-          vsdmClientService.requestVsd(
-              terminalId, egkSlotId, smcBSlotId, mockEgkCard, poppToken, null, false);
+          vsdmClientService.requestVsd(terminalId, egkSlotId, mockEgkCard, poppToken, null, false);
 
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertEquals("encoded response", response.getBody());
@@ -248,8 +305,7 @@ class VsdmClientServiceTest {
           .thenReturn("encoded xml response");
 
       ResponseEntity<String> response =
-          vsdmClientService.requestVsd(
-              terminalId, egkSlotId, smcBSlotId, mockEgkCard, poppToken, null, true);
+          vsdmClientService.requestVsd(terminalId, egkSlotId, mockEgkCard, poppToken, null, true);
 
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertEquals("encoded xml response", response.getBody());
@@ -265,7 +321,9 @@ class VsdmClientServiceTest {
     void testRequestVsd_ServerError() {
       vsdmClientService =
           new VsdmClientService(
+              vsdmClientConfig,
               mockPoppClientService,
+              mockPoppTokenService,
               new FhirService(),
               mockPoppTokenRepository,
               mockVsdmDataRepository,
@@ -284,8 +342,7 @@ class VsdmClientServiceTest {
       when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenReturn(mockResponse);
 
       ResponseEntity<String> response =
-          vsdmClientService.requestVsd(
-              terminalId, egkSlotId, smcBSlotId, mockEgkCard, poppToken, null, false);
+          vsdmClientService.requestVsd(terminalId, egkSlotId, mockEgkCard, poppToken, null, false);
 
       assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
       assertTrue(response.hasBody());
@@ -314,7 +371,7 @@ class VsdmClientServiceTest {
 
       ResponseEntity<String> response =
           vsdmClientService.requestVsd(
-              terminalId, egkSlotId, smcBSlotId, mockEgkCard, "token123", "etag123", false);
+              terminalId, egkSlotId, mockEgkCard, "token123", "etag123", false);
 
       assertNotNull(response);
       assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -331,7 +388,7 @@ class VsdmClientServiceTest {
 
       ResponseEntity<String> response =
           vsdmClientService.requestVsd(
-              "terminalId", egkSlotId, smcBSlotId, mockEgkCard, "token123", "etag123", false);
+              "terminalId", egkSlotId, mockEgkCard, "token123", "etag123", false);
 
       assertNotNull(response);
       assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -346,7 +403,7 @@ class VsdmClientServiceTest {
 
       // WHEN the client requests data from cache
       final ResponseEntity<String> response =
-          vsdmClientService.requestVsd("terminal", 1, 1, mockEgkCard, poppToken, "", false);
+          vsdmClientService.requestVsd("terminal", 1, mockEgkCard, poppToken, "", false);
 
       // THEN the repository was accessed
       verify(mockVsdmDataRepository, times(1)).get("terminal", 1, mockEgkCard.getId());
@@ -372,7 +429,7 @@ class VsdmClientServiceTest {
           .thenReturn("encoded response");
 
       // WHEN the client requests data from cache
-      vsdmClientService.requestVsd("terminal", 1, 1, mockEgkCard, poppToken, null, false);
+      vsdmClientService.requestVsd("terminal", 1, mockEgkCard, poppToken, null, false);
 
       // AND a request to the VSDM backend sent without header
       ArgumentCaptor<ZetaSdkClientAdapter.RequestParameters> parametersCaptor =
@@ -399,7 +456,7 @@ class VsdmClientServiceTest {
       // WHEN we request data
       final ResponseEntity<String> response =
           vsdmClientService.requestVsd(
-              terminalId, egkSlotId, smcBSlotId, mockEgkCard, poppToken, "etag", false);
+              terminalId, egkSlotId, mockEgkCard, poppToken, "etag", false);
 
       // THEN we update the cache with expected values
       final VsdmCachedValue expectedCacheValue = new VsdmCachedValue("etag", "ziffer-1", "");

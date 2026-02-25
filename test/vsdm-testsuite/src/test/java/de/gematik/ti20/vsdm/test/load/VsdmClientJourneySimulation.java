@@ -25,11 +25,6 @@ import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.internal.HttpCheckBuilders.status;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
-import de.gematik.test.tiger.lib.TigerDirector;
 import io.gatling.javaapi.core.FeederBuilder;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.ScenarioBuilder;
@@ -89,29 +84,6 @@ public class VsdmClientJourneySimulation extends BaseSimulation {
                   .queryParam("smcBSlotId", "#{smcb_slot}")
                   .queryParam("isFhirXml", false)
                   .check(status().is(200)));
-
-  private static void logConfiguration(String baseKey) {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.setSerializationInclusion(Include.NON_NULL);
-    mapper.setSerializationInclusion(Include.NON_EMPTY);
-    mapper.setSerializationInclusion(Include.NON_DEFAULT);
-    mapper.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
-    try {
-      log.info(
-          "Tiger configuration (baseKey {}): "
-              + mapper
-                  .writerWithDefaultPrettyPrinter()
-                  .writeValueAsString(TigerGlobalConfiguration.readMap(baseKey)),
-          baseKey);
-    } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  @Override
-  public void before() {
-    TigerDirector.start();
-  }
 
   {
     if (RANDOM_READ_VSD) {

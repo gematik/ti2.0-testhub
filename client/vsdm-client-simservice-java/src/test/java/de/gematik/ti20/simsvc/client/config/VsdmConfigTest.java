@@ -27,11 +27,11 @@ import org.junit.jupiter.api.Test;
 
 class VsdmConfigTest {
 
-  private VsdmConfig vsdmConfig;
+  private VsdmClientConfig vsdmConfig;
 
   @BeforeEach
   void setUp() {
-    vsdmConfig = new VsdmConfig();
+    vsdmConfig = new VsdmClientConfig();
     vsdmConfig.setResourceServerUrl("http://example.com/vsdm");
   }
 

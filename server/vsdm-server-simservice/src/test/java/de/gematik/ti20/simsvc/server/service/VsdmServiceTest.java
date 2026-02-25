@@ -23,7 +23,6 @@ package de.gematik.ti20.simsvc.server.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import de.gematik.rbellogger.data.RbelElement;
 import de.gematik.ti20.simsvc.server.config.VsdmConfig;
 import de.gematik.ti20.simsvc.server.model.PoppToken;
 import de.gematik.ti20.simsvc.server.repository.TestDataRepository;
@@ -32,6 +31,7 @@ import de.gematik.ti20.vsdm.fhir.def.VsdmPatient;
 import java.util.Optional;
 import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.ResourceType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,12 +51,6 @@ class VsdmServiceTest {
   @Mock private TestDataRepository testDataRepository;
 
   @Mock private PoppToken poppToken;
-
-  @Mock private RbelElement patientElement;
-
-  @Mock private RbelElement personDataElement;
-
-  @Mock private RbelElement addressElement;
 
   private VsdmService vsdmService;
 
@@ -114,63 +108,29 @@ class VsdmServiceTest {
 
   @Test
   void testReadVsd_FromTestdata_Success() throws Exception {
-    String kvnr = "X123456789";
-    String iknr = "109500969";
-    String tokenHeader = "valid.token";
+    final String kvnr = "N430140916";
+    final String iknr = "109500969";
+    final String tokenHeader = "valid.token";
+
+    final VsdmPatient mockPatient = mock(VsdmPatient.class);
+    when(mockPatient.getResourceType()).thenReturn(ResourceType.Patient);
+    when(testDataRepository.patientByKvnr(kvnr)).thenReturn(Optional.of(mockPatient));
+
+    // GIVEN a config
+    final VsdmConfig vsdmConfig = new VsdmConfig();
+    vsdmConfig.setIknr("109500969");
+    vsdmConfig.setValidKvnrPrefix("X1234");
+    vsdmConfig.setInvalidKvnrPrefix("X4321");
+    vsdmConfig.setUnknownKvnrPrefix("X9");
+    // AND the VsdmService is configured
+    vsdmService = new VsdmService(vsdmConfig, tokenService, testDataRepository);
 
     when(tokenService.parsePoppToken(tokenHeader)).thenReturn(poppToken);
     when(poppToken.getClaimValue("patientId")).thenReturn(kvnr);
     when(poppToken.getClaimValue("insurerId")).thenReturn(iknr);
 
-    when(testDataRepository.findElementByKeyValue("persondata.kvnr", kvnr))
-        .thenReturn(Optional.of(patientElement));
-    when(patientElement.findElement("$.persondata")).thenReturn(Optional.of(personDataElement));
-    when(personDataElement.findElement("$.address.post")).thenReturn(Optional.of(addressElement));
-
-    // Mock patient data
-    when(testDataRepository.getStringFor(personDataElement, "$.name.family"))
-        .thenReturn(Optional.of("Mustermann"));
-    when(testDataRepository.getStringFor(personDataElement, "$.name.given"))
-        .thenReturn(Optional.of("Max"));
-    when(testDataRepository.getStringFor(personDataElement, "$.kvnr"))
-        .thenReturn(Optional.of(kvnr));
-    when(testDataRepository.getStringFor(personDataElement, "$.birthdate"))
-        .thenReturn(Optional.of("1990-07-17"));
-
-    // Mock address data
-    when(testDataRepository.getStringFor(addressElement, "$.country"))
-        .thenReturn(Optional.of("Deutschland"));
-    when(testDataRepository.getStringFor(addressElement, "$.city"))
-        .thenReturn(Optional.of("Berlin"));
-    when(testDataRepository.getStringFor(addressElement, "$.zip")).thenReturn(Optional.of("12345"));
-    when(testDataRepository.getStringFor(addressElement, "$.line1"))
-        .thenReturn(Optional.of("Musterstraße 1"));
-    when(testDataRepository.getStringFor(addressElement, "$.line2")).thenReturn(Optional.of(""));
-
-    Resource result = vsdmService.readVsd(tokenHeader);
-
-    assertNotNull(result);
-    assertInstanceOf(VsdmBundle.class, result);
-
-    VsdmBundle vsdmBundle = (VsdmBundle) result;
-    assertEquals(3, vsdmBundle.getEntry().size());
-
-    Resource resource = vsdmBundle.getEntryFirstRep().getResource();
-    assertNotNull(resource);
-    assertInstanceOf(VsdmPatient.class, resource);
-
-    VsdmPatient patient = (VsdmPatient) resource;
-    assertEquals(kvnr, patient.getIdentifierFirstRep().getValue());
-
-    HumanName name = patient.getNameFirstRep();
-    assertEquals("Mustermann", name.getFamily());
-    assertEquals("Max", name.getGiven().getFirst().getValue());
-
-    assertEquals(1990, patient.getBirthDateElement().getYear());
-    assertEquals(6, patient.getBirthDateElement().getMonth()); // month is 0-based
-    assertEquals(17, patient.getBirthDateElement().getDay());
-
-    verify(testDataRepository).findElementByKeyValue("persondata.kvnr", kvnr);
+    vsdmService.readVsd(tokenHeader);
+    verify(testDataRepository).patientByKvnr(kvnr);
   }
 
   void testSuccessful(final String kvnr, final String iknr) throws Exception {
@@ -200,7 +160,7 @@ class VsdmServiceTest {
     assertEquals("family-name-" + kvnr, name.getFamily());
     assertEquals("given-name-" + kvnr, name.getGiven().getFirst().getValue());
 
-    verify(testDataRepository).findElementByKeyValue("persondata.kvnr", kvnr);
+    verify(testDataRepository).patientByKvnr(kvnr);
   }
 
   @Test

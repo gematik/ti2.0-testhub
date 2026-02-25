@@ -21,7 +21,7 @@
 package de.gematik.ti20.simsvc.client.service;
 
 import com.google.common.base.Strings;
-import de.gematik.ti20.simsvc.client.config.VsdmConfig;
+import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
 import de.gematik.zeta.sdk.ZetaSdkClient;
 import de.gematik.zeta.sdk.network.http.client.ZetaHttpClient;
 import de.gematik.zeta.sdk.network.http.client.ZetaHttpResponse;
@@ -44,7 +44,7 @@ import org.springframework.stereotype.Service;
 public class ZetaSdkClientAdapter {
 
   @Nonnull private final ZetaSdkClient zetaClient;
-  @Nonnull private final VsdmConfig vsdmConfig;
+  @Nonnull private final VsdmClientConfig vsdmConfig;
 
   public record RequestParameters(
       @Nonnull String traceId,

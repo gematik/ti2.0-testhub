@@ -1,0 +1,5 @@
+{
+  "kid": '.*',
+  "alg": 'ES256',
+  "typ": 'vnd.telematik.popp+jwt'
+}

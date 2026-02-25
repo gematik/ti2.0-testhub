@@ -1,4 +1,4 @@
-<img align="right" width="250" height="47" src="images/Gematik_Logo_Flag_With_Background.png"/><br/>
+<img align="right" width="250" height="47" src="./src/test/resources/images/Gematik_Logo.png"/><br/>
 
 # VSDM 2.0 Testsuite
 
@@ -50,7 +50,7 @@ Die untere Grafik zeigt den TI 2.0 TestHub in seiner aktuellen Ausbaustufe. Die 
 den Card, den PoPP und den VSDM Client Simulator. Diese kommunizieren mit den jeweiligen Server Simulatoren.
 
 <br/>
-<img width="1108" height="744" src="./src/test/resources/images/TI20_TestHub_README.png" alt=""/>
+<img width="1108" height="744" src="./src/test/resources/images/TI20_TestHub_Stufe_3.png" alt=""/>
 <br/>
 
 ## Integrationstests
@@ -141,10 +141,10 @@ bis hin zur Abfrage der VSD vom Fachdienst VSDM 2.0 und kann im Verzeichnis 'vsd
 ../../mvnw gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmClientJourneySimulation
 ```
 
-> HINWEIS:
+> [!NOTE]
 > Durch die aktuelle Integration weiterer Tiger-Komponenten, welche die Client-Simulationen starten und mehrere 
-> Proxies in den Datenverkehr einschleusen, ist die Lauffähigkeit der obigen Gatling-Simulation beeinträchtigt. 
-> Es wird empfohlen, die Last entsprechend zu reduzieren. Siehe Abschnitt "Konfiguration der Simulation".
+> Proxies in den Datenverkehr einschleusen, ist die Lauffähigkeit der Lastsimulation "VsdmClientJourneySimulation"
+> beeinträchtigt. Es wird empfohlen, die Last entsprechend zu reduzieren. Siehe "Konfiguration der Simulation".
 
 ### VsdmBackgroundLoadSimulation.java
 

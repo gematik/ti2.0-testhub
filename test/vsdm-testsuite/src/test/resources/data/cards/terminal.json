@@ -2,6 +2,6 @@
   {
     "name": "Slot #{egk_slot}",
     "type": "SIMSVC",
-    "url":  "ws://tiger.card-terminal-client:80"
+    "url":  "ws://card-terminal-client"
   }
 ]

@@ -5,7 +5,7 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>1.1.7</version>
+    <version>1.1.8</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>
@@ -22,6 +22,7 @@
         <module>server/zeta-pep-server-mockservice</module>
         <module>server/zeta-pdp-server-mockservice</module>
         <module>test/vsdm-testsuite</module>
+        <module>test/popp-testsuite</module>
         <module>coverage-report</module>
         <module>user-manual</module>
     </modules>
@@ -31,7 +32,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.release>21</maven.compiler.release>
 
-        <zeta-sdk-jvm.version>0.2.6</zeta-sdk-jvm.version>
+        <zeta-sdk-jvm.version>0.3.1</zeta-sdk-jvm.version>
 
         <version.maven-antrun-plugin>3.1.0</version.maven-antrun-plugin>
         <version.maven.surefire>3.5.4</version.maven.surefire>
@@ -40,10 +41,10 @@
         <version.tiger>4.1.16</version.tiger>
         <version.tiger-cloud-extension>4.1.17</version.tiger-cloud-extension>
         <version.serenity>4.2.30</version.serenity>
-        <version.gem.testdata>1.0.9</version.gem.testdata>
+        <version.gem.testdata>1.0.10</version.gem.testdata>
         <version.springdoc>2.8.13</version.springdoc>
         <version.spring-boot>3.5.6</version.spring-boot>
-        <version.gem.bbriccs>0.7.0</version.gem.bbriccs>
+        <version.gem.bbriccs>0.9.0</version.gem.bbriccs>
         <version.pact.consumer>4.6.17</version.pact.consumer>
         <version.gatling.highcharts>3.13.5</version.gatling.highcharts>
         <mycila.license-maven-plugin.version>5.0.0</mycila.license-maven-plugin.version>
@@ -185,7 +186,15 @@
                 <artifactId>commons-lang3</artifactId>
                 <version>3.19.0</version>
             </dependency>
-        </dependencies>
+
+                <dependency>
+                    <groupId>com.squareup.okhttp3</groupId>
+                    <artifactId>okhttp-bom</artifactId>
+                    <version>5.2.0</version>
+                    <type>pom</type>
+                    <scope>import</scope>
+                </dependency>
+            </dependencies>
     </dependencyManagement>
 
     <dependencies>

@@ -75,6 +75,8 @@ public class VsdmControllerV1 {
     final String kvnr = vsdmService.readKVNR(poppToken);
 
     if (etagService.checkEtag(kvnr, ifNoneMatch)) {
+      responseHeaders.set(HttpHeaders.ETAG, ifNoneMatch);
+      responseHeaders.set(ChecksumService.HEADER_NAME, checksumService.calculateChecksum(kvnr));
       return new ResponseEntity<>(responseHeaders, HttpStatus.NOT_MODIFIED);
     }
 
@@ -84,7 +86,7 @@ public class VsdmControllerV1 {
 
     log.debug("Response for readVsd: {}", responseBody);
 
-    checksumService.addChecksumHeader(responseBody, responseHeaders);
+    checksumService.addChecksumHeader(kvnr, responseHeaders);
     etagService.addEtagHeader(kvnr, responseBody, responseHeaders);
 
     responseHeaders.add("Content-Type", "application/fhir+json");

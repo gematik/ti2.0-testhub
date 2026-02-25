@@ -16,5 +16,5 @@ software:
     name: Client Simulator Service für VSDM2
     type: simsvc-vsdm2
     url:
-      local: http://127.0.0.1:8220
+      local: http://vsdm-client
       rudev: todo

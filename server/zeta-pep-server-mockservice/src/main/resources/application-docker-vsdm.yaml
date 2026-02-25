@@ -3,9 +3,9 @@ server:
 
 proxy:
   http:
-    url: http://popp-server
+    url: http://testhub-popp-server
   ws:
-    url: ws://popp-server
+    url: ws://testhub-popp-server
   popp:
     required: true
   sec:

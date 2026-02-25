@@ -40,12 +40,12 @@ The project uses different Docker Compose profiles for various scenarios:
 
 [source,bash]
 ----
-docker compose -f doc/docker/vsdm/compose-local.yaml --profile popp up
+docker compose -f doc/docker/compose-local.yaml --profile popp up
 ----
 
 === Custom Configuration
 
 To customize service configuration:
 
-1.  Edit `doc/docker/vsdm/compose-local.yaml` for Docker Compose setup
+1.  Edit `doc/docker/compose-local.yaml` for Docker Compose setup
 2. Or create custom `application-<profile>.yaml` files in each service's `src/main/resources` directory
