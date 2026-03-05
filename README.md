@@ -43,7 +43,10 @@ This will:
 
 # User manual
 
-The [Testhub user manual](https://gematik.github.io/ti2.0-testhub/) is available online.
+The [Testhub user manual](https://gematik.github.io/ti2.0-testhub/) is available
+online. Make sure to check [the Troubleshooting
+section](https://gematik.github.io/ti2.0-testhub/#_troubleshooting) if you run
+into any issues.
 
 # Usage
 

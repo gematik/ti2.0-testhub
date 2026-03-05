@@ -1,0 +1,137 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>de.gematik</groupId>
+        <artifactId>testhub</artifactId>
+        <version>1.1.9</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>zeta-testsuite</artifactId>
+    <packaging>jar</packaging>
+
+    <name>ZeTA Testsuite</name>
+    <description>Collection of E2E and IT tests to validate ZeTA components (PEP, PDP, Ingress).</description>
+
+    <properties>
+        <skip.inttests>true</skip.inttests>
+    </properties>
+
+    <!-- ========================================================= -->
+    <!-- Dependencies                                              -->
+    <!-- ========================================================= -->
+    <dependencies>
+
+        <!-- Tiger Test Library (bringt Cucumber + Serenity Glue mit) -->
+        <dependency>
+            <groupId>de.gematik.test</groupId>
+            <artifactId>tiger-test-lib</artifactId>
+        </dependency>
+
+        <!-- Tiger Cloud Extension für Docker-Support -->
+        <dependency>
+            <groupId>de.gematik</groupId>
+            <artifactId>tiger-cloud-extension</artifactId>
+        </dependency>
+
+        <!-- Nimbus JOSE JWT für JWT-Handling in Tests -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>10.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.tyrus.bundles</groupId>
+            <artifactId>tyrus-standalone-client</artifactId>
+            <version>2.0.3</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <!-- ========================================================= -->
+    <!-- Build                                                      -->
+    <!-- ========================================================= -->
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>de.gematik.test</groupId>
+                <artifactId>tiger-maven-plugin</artifactId>
+                <version>${version.tiger}</version>
+                <executions>
+                    <execution>
+                        <phase>generate-test-sources</phase>
+                        <id>generate-tiger-drivers</id>
+                        <goals>
+                            <goal>generate-drivers</goal>
+                            <goal>attach-tiger-agent</goal>
+                        </goals>
+                        <configuration>
+                            <glues>
+                                <glue>de.gematik.test.tiger.glue</glue>
+                                <glue>de.gematik.zeta</glue>
+                            </glues>
+                            <skip>${skip.inttests}</skip>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-tiger-report</id>
+                        <goals>
+                            <goal>generate-serenity-reports</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <environmentVariables>
+                        <TIGER_TESTENV_CFGFILE>${maven.multiModuleProjectDirectory}/tiger.yaml</TIGER_TESTENV_CFGFILE>
+                        <TIGER_ROOTFOLDER>${maven.multiModuleProjectDirectory}</TIGER_ROOTFOLDER>
+                    </environmentVariables>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+
+</project>

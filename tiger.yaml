@@ -1,8 +1,6 @@
 tigerProxy:
   proxyPort: ${ports.localTigerProxyProxyPort}
   adminPort: ${ports.localTigerProxyAdminPort}
-#  tls:
-#    serverRootCa: "classpath:tigerProxy.p12"
   trafficEndpoints:
     - "http://localhost:${ports.remoteTigerProxyAdminPort}"
   activateRbelParsingFor:
@@ -10,29 +8,12 @@ tigerProxy:
     - x509
   keyFolders:
     - ${tiger.rootFolder|.}/test/vsdm-testsuite
-#  proxyRoutes:
-#    - from: http://popp-zeta-pep:${ports.localTigerProxyProxyPort}
-#      to: http://127.0.0.1:9200/
-#      matchForProxyType: false
-#      preserveHostHeader: true
-#    - from: http://popp-zeta-pdp:${ports.localTigerProxyProxyPort}
-#      to: http://127.0.0.1:9200/
-#      matchForProxyType: false
-#      preserveHostHeader: true
-#    - from: http://vsdm-zeta-ingress:${ports.localTigerProxyProxyPort}
-#      to: http://127.0.0.1:9119/
-#      preserveHostHeader: true
-#    - from: https://vsdm-zeta-ingress
-#      to: http://127.0.0.1:9119/
-#      preserveHostHeader: true
-#    - from: /cardTerminalClient
-#      to: http://127.0.0.1:${ports.cardTerminalPort}/
-#  rewriteHostHeader: false
 
 lib:
   workflowUiPort: ${ports.tigerWorkflowUiPort}
   rbelPathDebugging: false
-  activateWorkflowUi: true
+  activateWorkflowUi: true # Set to false for headless execution (e.g. in CI)
+  workflowUiStartTimeoutInSeconds: 120
   trafficVisualization: true
   httpClientConfig:
     activateRbelWriter: true
@@ -45,7 +26,9 @@ fhir:
   encoded: json
 
 additionalConfigurationFiles:
+  - filename: tiger/defaults.yaml
   - filename: tiger/ports.yaml
   - filename: tiger/flags.yaml
+  - filename: tiger/paths.yaml
   - filename: tiger/tiger-${env|default}.yaml
     baseKey: tiger

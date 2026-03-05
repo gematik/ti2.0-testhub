@@ -8,7 +8,7 @@ services:
     image: gematik1/tiger-proxy-image:4.1.16
     container_name: docker-tiger-proxy
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://127.0.0.1:8080/actuator/health" ]
+      test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:8080/actuator/health" ]
       interval: 10s
       timeout: 10s
       retries: 3
@@ -24,7 +24,7 @@ services:
     image: de.gematik.ti20.simsvc.client/card-terminal-client-simservice:local
     container_name: card-terminal-client
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://127.0.0.1:80/service/status" ]
+      test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:80/service/status" ]
       interval: 10s
       timeout: 10s
       retries: 3
@@ -37,7 +37,7 @@ services:
     image: de.gematik.ti20.simsvc.client/vsdm-client-simservice:local
     container_name: vsdm-client
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://127.0.0.1:80/service/status" ]
+      test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:80/service/status" ]
       interval: 10s
       timeout: 10s
       retries: 3

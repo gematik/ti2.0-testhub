@@ -1,0 +1,20 @@
+== Troubleshooting
+
+[id=docker-credentials]
+=== Authentication for pulling Docker images
+
+Testhub components are povided as public Docker images. Authentication with a
+registry is not neccessary. Depending on your Docker configuration you may run
+into authentication issues such as these:
+
+....
+ERROR: (gcloud.auth.docker-helper) There was a problem refreshing your current auth tokens: Reauthentication failed. cannot prompt during non-interactive execution.
+Please run:
+
+  $ gcloud auth login
+....
+
+This issue is NOT related to Testhub. To fix the problem either:
+
+* Authenticate using your credential helper such as the `gcloud` CLI
+* Remove the relevant settings from your https://docs.docker.com/reference/cli/docker/#credential-store-options[docker configuration]
