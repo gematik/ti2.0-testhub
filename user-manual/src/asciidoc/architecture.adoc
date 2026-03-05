@@ -37,16 +37,17 @@ image::images/architecture.png[An architecture diagram of Testhub]
 === Service Descriptions
 
 |===
-| Service                  | Port | Purpose                                                                                           | Documentation
+| Service                  | Port | Purpose                                                                                           
 
-| **Card Terminal Client** | 8000 | Simulates electronic health card (eGK, SMC-B, HBA) terminal operations with PACE protocol support | link:./client/card-terminal-client-simservice/README.md[README]
-| **VSDM Client**          | 8220 | Simulates VSDM2 client operations including data retrieval and PoPP token validation              | link:./client/vsdm-client-simservice-java/README.md[README]
-| **ZeTA PEP PoPP**        | 9110 | Policy Enforcement Point proxy for PoPP validates tokens and forwards requests                  | link:./server/zeta-pep-server-mockservice/README.md[README]
-| **ZeTA PDP PoPP**        | 9112 | Policy Decision Point for PoPP performs OAuth 2.0 token exchange (RFC 8693)                     | link:./server/zeta-pdp-server-mockservice/README.md[README]
-| **PoPP Server**          | 9210 | Backend PoPP service generates and validates Proof of Possession tokens                         | link:./server/popp-server-mockservice/README.md[README]
-| **VSDM Server**          | 9130 | Backend VSDM service provides VSDM2 data from YAML test fixtures                                | link:./server/vsdm-server-simservice/README.md[README]
-| **Tiger Proxy UI**       | 6901 | Local Tiger Proxy between PS-Simulation and PoPP and VSDM-Servers | -
+| **Card Terminal Client** | 8000 | Simulates electronic health card (eGK, SMC-B, HBA) terminal operations with PACE protocol support
+| **VSDM Client**          | 8220 | Simulates VSDM2 client operations including data retrieval and PoPP token validation
+| **ZeTA PEP PoPP**        | 9110 | Policy Enforcement Point proxy for PoPP validates tokens and forwards requests
+| **ZeTA PDP PoPP**        | 9112 | Policy Decision Point for PoPP performs OAuth 2.0 token exchange (RFC 8693)
+| **PoPP Server**          | 9210 | Backend PoPP service generates and validates Proof of Possession tokens
+| **VSDM Server**          | 9130 | Backend VSDM service provides VSDM2 data from YAML test fixtures
+| **Tiger Proxy UI**       | 6901 | Local Tiger Proxy between PS-Simulation and PoPP and VSDM-Servers
 |===
+
 === References
 
 **ZeTA**

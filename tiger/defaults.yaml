@@ -1,0 +1,22 @@
+smoke:
+  endpoints:
+    poppZetaPdp:
+      url: http://localhost:9112/service/status
+      path: /service/status
+      name: PoPP ZeTA PDP
+    poppZetaPep:
+      url: http://localhost:9110/service/status
+      path: /service/status
+      name: PoPP ZeTA PEP
+    vsdmZetaIngress:
+      url: https://localhost:9119/.well-known/oauth-protected-resource
+      path: /.well-known/oauth-protected-resource
+      name: VSDM ZeTA Ingress
+    vsdmZetaPep:
+      url: http://localhost:9120/
+      path: /
+      name: VSDM ZeTA PEP
+    vsdmZetaPdp:
+      url: http://localhost:9122/auth/health/live
+      path: /auth/health/live
+      name: VSDM ZeTA PDP

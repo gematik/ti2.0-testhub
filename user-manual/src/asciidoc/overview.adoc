@@ -2,18 +2,15 @@
 
 === Accessing Swagger UI
 
-Most services expose Swagger UI for API exploration.
+Many services expose a Swagger UI on port 80 and the path
+`/swagger-ui/index.html`. Use `docker ps` to find the host port mapping:
 
-Run locally (check the application config when in doubt):
+[listing]
+docker ps --format 'table {{.Names}}\t{{.Ports}}'
 
-- **Card Terminal Client**: http://localhost:80/swagger-ui/index.html
-- **VSDM Client**: http://localhost:80/swagger-ui/index.html
 
-As part of docker compose:
-
-- **ZeTA PDP PoPP**: http://localhost:9112/swagger-ui/index.html
-- **PoPP Server**: http://localhost:9210/swagger-ui/index.html
-- **VSDM Server**: http://localhost:9130/swagger-ui/index.html
+If a container's port 80 is mapped to 9130 you would access Swagger using the
+URL http://localhost:9130/swagger-ui/index.html.
 
 === Folder Structure
 

@@ -2,6 +2,11 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 1.1.9
+
+- TESTHUB-28: (docs) Update user manual with corrections and simplifications
+- Make Healthcheck of VSDM Server Simulator more robust (migration to wget)
+
 ## Release 1.1.8
 
 - LART-1161: (VSDM) allow test data to be read using gem-testdata
@@ -23,31 +28,8 @@
 
 ## Release 1.1.3
 
+- Introduced Tiger-Proxy into the PS - to - Server communication
 - Adds ZETA Guard MS2 integration for VSDM
-
-## Release 1.0.0
-
-- First release with major version number greater than zero.
-
-## Release 1.0.1
-
-- Improving README of VSDM testsuite to provide further test execution examples.
-
-## Release 1.0.2
-
-- Add more load tests in vsdm-testsuite.
-- Add synthetic test data in vsdm-server.
-- Remove BDE test cases from vsdm-testsuite.
-- Fix issues in build script.
-
-## Release 1.0.3
-
-- Minor corrections
-
-## Release 1.1.0
-
-- Integration of ZETA prototype
-- Introducing Serenity's screen play pattern
 
 ## Release 1.1.2
 
@@ -56,6 +38,28 @@
 - Correcting component ports listed in README
 - Fixed handling of Etag header
 
-## Release 1.1.3
+## Release 1.1.0
 
-- Introduced Tiger-Proxy into the PS - to - Server communication
+- Integration of ZETA prototype
+- Introducing Serenity's screen play pattern
+-
+
+## Release 1.0.3
+
+- Minor corrections
+-
+
+## Release 1.0.2
+
+- Add more load tests in vsdm-testsuite.
+- Add synthetic test data in vsdm-server.
+- Remove BDE test cases from vsdm-testsuite.
+- Fix issues in build script.
+
+## Release 1.0.1
+
+- Improving README of VSDM testsuite to provide further test execution examples.
+
+## Release 1.0.0
+
+- First release with major version number greater than zero.

@@ -1,4 +1,4 @@
-:version: ${project.version}
+:version: {project-version}
 :toc: left
 :toc-title: Contents
 :toclevels: 2
@@ -45,3 +45,5 @@ include::architecture.adoc[]
 include::ps-integration.adoc[]
 
 include::vsdm-integration.adoc[]
+
+include::troubleshooting.adoc[]

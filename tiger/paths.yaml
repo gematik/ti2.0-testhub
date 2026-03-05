@@ -1,0 +1,28 @@
+# Base paths used in ZeTA features
+zeta:
+  paths:
+    guard:
+      tokenEndpointPath: /token
+      actuatorHealthPath: /mocked/actuator/health
+    opa:
+      decisionPath: /v1/data/zeta/authz/decision
+    client:
+      reset: http://localhost:${ports.localTigerProxyProxyPort}/client/config/terminal
+      # VSD-Anfrage an VSDM Fachdienst über ZeTA Client (direkt ohne TigerProxy)
+      vsdRequest: http://localhost:${ports.vsdmClientPort}/vsdm/vsd?terminalId=1&egkSlotId=1&smcBSlotId=1
+      vsdRequestPath: /vsdm/vsd
+      # Status-Anfrage geht direkt zum ZeTA Client (VSDM Client) ohne TigerProxy
+      status: http://localhost:${ports.vsdmClientPort}/service/status
+      statusPath: /service/status
+    tigerProxy:
+      # TigerProxy Admin API (siehe ports.yaml: localTigerProxyAdminPort)
+      baseUrl: http://localhost:${ports.localTigerProxyAdminPort}
+      modificationPath: /api/rbel/manipulations
+      resetJwtManipulationPath: /api/rbel/jwtManipulation/reset
+      modifyJwsTokenPath: /api/rbel/jwtManipulation
+      modifyJwtPath: /api/rbel/jwt
+      keyPath: /api/keys
+    erezept:
+      rest:
+        proxyPath: /achelos_testfachdienst/erezept
+        pepPath: /achelos_testfachdienst/erezept
