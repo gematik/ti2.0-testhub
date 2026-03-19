@@ -43,7 +43,7 @@ public class GeneratePoppTokenSimulation extends BaseSimulation {
   private static final HttpProtocolBuilder httpProtocol = http.acceptHeader("application/json");
 
   private static final Path TOKEN_FILE =
-      Paths.get("src", "test", "resources", "feeder", "popp_tokens.csv");
+      Paths.get("src", "test", "resources", "feeder", "popp_token_contents.csv");
 
   private static final Object FILE_LOCK = new Object();
 
@@ -56,7 +56,7 @@ public class GeneratePoppTokenSimulation extends BaseSimulation {
       Files.deleteIfExists(TOKEN_FILE);
       Files.write(
           TOKEN_FILE,
-          Collections.singletonList("popp_token"), // CSV-Header
+          Collections.singletonList("popp_token_content"), // CSV-Header
           StandardCharsets.UTF_8,
           StandardOpenOption.CREATE,
           StandardOpenOption.TRUNCATE_EXISTING);
@@ -78,11 +78,23 @@ public class GeneratePoppTokenSimulation extends BaseSimulation {
                           session ->
                               getPoppTokenJsonBody(session.get("iknr"), session.get("kvnr"))))
                   .asJson()
-                  .check(jsonPath("$.tokenResults[0]").saveAs("poppToken"))
+                  .check(
+                      jsonPath("$.tokenResults[0]")
+                          .transform(
+                              (String token) -> {
+                                if (token == null) {
+                                  return null;
+                                }
+                                String[] parts = token.split("\\.");
+                                // return the middle part (payload) if present, otherwise return
+                                // original token
+                                return parts.length >= 2 ? parts[1] : token;
+                              })
+                          .saveAs("poppTokenContent"))
                   .check(status().is(200)))
           .exec(
               session -> {
-                String token = session.getString("poppToken");
+                String token = session.getString("poppTokenContent");
                 appendTokenCsvLine(token);
                 return session;
               });

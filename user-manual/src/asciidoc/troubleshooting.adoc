@@ -1,7 +1,51 @@
-== Troubleshooting
+////
+  //
+  // Copyright 2025-2026 gematik GmbH
+  //
+  // Licensed under the Apache License, Version 2.0 (the "License");
+  // you may not use this file except in compliance with the License.
+  // You may obtain a copy of the License at
+  //
+  //     http://www.apache.org/licenses/LICENSE-2.0
+  //
+  // Unless required by applicable law or agreed to in writing, software
+  // distributed under the License is distributed on an "AS IS" BASIS,
+  // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  // See the License for the specific language governing permissions and
+  // limitations under the License.
+  //
+  // *******
+  //
+  // For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
+////
+
+== FAQ / Troubleshooting
+
+=== Testhub
+
+==== Why are there so many files in the SMC-B ZIP file?
+
+The ZIP file structure is used for many other processes connected with the Gematik. It's currently not possible to change this process for Testhub.
+
+=== Docker
+
+[id=docker-name-in-use]
+==== The name "xyz" is already in use by container ...
+
+Occasionally you might encounter an error like:
+
+....
+Error response from daemon: Conflict. The name "vsdm-client" is already in use by container f9e5798a82e0.
+....
+
+1. It's possible that you are running a container with the same name. You have to rename or remove it.
+2. It's possible that a previous Testhub start wasn't cleaned properly. First remove the remaining containers and then restart Testhub:
+
+   docker compose -f ./doc/docker/compose-local.yaml down -v
+   docker compose -f ./doc/docker/compose-local.yaml up -d --remove-orphans
 
 [id=docker-credentials]
-=== Authentication for pulling Docker images
+==== Authentication for pulling Docker images
 
 Testhub components are povided as public Docker images. Authentication with a
 registry is not neccessary. Depending on your Docker configuration you may run

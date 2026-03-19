@@ -1,3 +1,23 @@
+/*
+ *
+ * Copyright 2025-2026 gematik GmbH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
+ */
 /*-
  * #%L
  * ZETA Testsuite
@@ -30,6 +50,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.networknt.schema.*;
 import com.nimbusds.jwt.SignedJWT;
+import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
 import io.cucumber.java.de.Dann;
 import io.cucumber.java.en.Then;
 import java.text.ParseException;
@@ -209,6 +230,22 @@ public class SchemaValidationSteps {
   public void validateEncodedJwtAgainstYamlSchema(String encodedJwt, String schemaName) {
     var schema = loadYamlSchema(schemaName);
     var jsonNode = decodeJwt(encodedJwt);
+    assertValid(schema, jsonNode, schemaName, false);
+  }
+
+  /**
+   * Variant that accepts a raw JWT string (without TigerResolvedString re-serialization) to avoid
+   * re-signing issues when the private key is not available.
+   *
+   * @param encodedJwt the raw JWT string to be validated
+   * @param schemaName relative path of the schema under {@code resources}
+   */
+  @Dann("decodiere und validiere JWT {string} gegen Schema {string}")
+  @Then("decode and validate JWT {string} against schema {string}")
+  public void validateRawJwtAgainstYamlSchema(String encodedJwt, String schemaName) {
+    String resolved = TigerGlobalConfiguration.resolvePlaceholders(encodedJwt);
+    var schema = loadYamlSchema(schemaName);
+    var jsonNode = decodeJwt(resolved);
     assertValid(schema, jsonNode, schemaName, false);
   }
 

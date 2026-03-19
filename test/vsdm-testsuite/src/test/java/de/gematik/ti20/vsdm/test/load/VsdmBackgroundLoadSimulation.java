@@ -38,16 +38,16 @@ public class VsdmBackgroundLoadSimulation extends BaseSimulation {
   private static final HttpProtocolBuilder httpProtocol =
       http.acceptHeader("application/fhir+json");
 
-  private static final FeederBuilder.FileBased<String> POPP_TOKEN_FEEDER =
-      csv("feeder/popp_tokens.csv").circular();
+  private static final FeederBuilder.FileBased<String> POPP_TOKEN_CONTENT_FEEDER =
+      csv("feeder/popp_token_contents.csv").circular();
 
   private static final ScenarioBuilder readVsdScenario =
       scenario("ReadVSD using PoPP-Token-Feeder")
-          .feed(POPP_TOKEN_FEEDER)
+          .feed(POPP_TOKEN_CONTENT_FEEDER)
           .exec(
               http("ReadVSD")
                   .get(URL_SERVER_VSDM + "/vsdservice/v1/vsdmbundle")
-                  .header("zeta-popp-token-content", "#{popp_token}")
+                  .header("zeta-popp-token-content", "#{popp_token_content}")
                   .header("zeta-user-info", "MOCK_USER_INFO")
                   .header("if-none-match", "0")
                   .check(status().is(200)));

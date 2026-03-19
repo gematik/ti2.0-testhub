@@ -14,12 +14,12 @@ popp:
 
 vsdm:
   resourceServerUrl: ${VSDM_RESOURCE_SERVER_URL}
-  use-mock-popp-token: false
+  use-mock-popp-token: true
   popp-token-generator-url: ${POPP_TOKEN_GENERATOR_URL}
 
 zetasdk:
-  smcbAliasPath: ${ZETASDK_SMCB_ALIAS_PATH}
-  smcbPrivateKeyPasswordPath: ${ZETASDK_SMCB_PRIVATE_KEY_PASSWORD_PATH}
+  smcbAlias: ${ZETASDK_SMCB_ALIAS}
+  smcbPrivateKeyPassword: ${ZETASDK_SMCB_PRIVATE_KEY_PASSWORD}
   smcbPrivateKeyPath: ${ZETASDK_SMCB_PRIVATE_KEY_PATH}
 
 spring:

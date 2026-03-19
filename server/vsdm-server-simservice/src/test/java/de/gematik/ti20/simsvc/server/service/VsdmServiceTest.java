@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import de.gematik.ti20.simsvc.server.config.VsdmConfig;
-import de.gematik.ti20.simsvc.server.model.PoppToken;
 import de.gematik.ti20.simsvc.server.repository.TestDataRepository;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
 import de.gematik.ti20.vsdm.fhir.def.VsdmPatient;
@@ -46,11 +45,7 @@ import org.springframework.web.server.ResponseStatusException;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class VsdmServiceTest {
 
-  @Mock private TokenService tokenService;
-
   @Mock private TestDataRepository testDataRepository;
-
-  @Mock private PoppToken poppToken;
 
   private VsdmService vsdmService;
 
@@ -62,55 +57,12 @@ class VsdmServiceTest {
     vsdmConfig.setInvalidKvnrPrefix("X4321");
     vsdmConfig.setUnknownKvnrPrefix("X9");
 
-    vsdmService = new VsdmService(vsdmConfig, tokenService, testDataRepository);
+    vsdmService = new VsdmService(vsdmConfig, testDataRepository);
   }
 
   @Test
-  void testReadKVNR_ValidToken_DataFromTestdata() throws Exception {
-    String expectedKvnr = "X123456789";
-    String iknr = "109500969";
-    String tokenHeader = "valid.token.content";
-
-    when(tokenService.parsePoppToken(tokenHeader)).thenReturn(poppToken);
-    when(poppToken.getClaimValue("patientId")).thenReturn(expectedKvnr);
-    when(poppToken.getClaimValue("insurerId")).thenReturn(iknr);
-
-    String result = vsdmService.readKVNR(tokenHeader);
-
-    assertEquals(expectedKvnr, result);
-    verify(tokenService).parsePoppToken(tokenHeader);
-    verify(poppToken).getClaimValue("patientId");
-  }
-
-  @Test
-  void testReadKVNR_InvalidToken() {
-    String tokenHeader = "invalid.token";
-
-    when(tokenService.parsePoppToken(tokenHeader)).thenThrow(new RuntimeException("Invalid token"));
-
-    ResponseStatusException exception =
-        assertThrows(ResponseStatusException.class, () -> vsdmService.readKVNR(tokenHeader));
-
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
-    assertEquals("Invalid POPP token", exception.getReason());
-  }
-
-  @Test
-  void testReadKVNR_NoTokenHeader() {
-    when(tokenService.parsePoppToken(null)).thenThrow(new RuntimeException("No token"));
-
-    ResponseStatusException exception =
-        assertThrows(ResponseStatusException.class, () -> vsdmService.readKVNR(null));
-
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
-    assertEquals("Invalid POPP token", exception.getReason());
-  }
-
-  @Test
-  void testReadVsd_FromTestdata_Success() throws Exception {
+  void testReadVsd_FromTestdata_Success() {
     final String kvnr = "N430140916";
-    final String iknr = "109500969";
-    final String tokenHeader = "valid.token";
 
     final VsdmPatient mockPatient = mock(VsdmPatient.class);
     when(mockPatient.getResourceType()).thenReturn(ResourceType.Patient);
@@ -123,25 +75,15 @@ class VsdmServiceTest {
     vsdmConfig.setInvalidKvnrPrefix("X4321");
     vsdmConfig.setUnknownKvnrPrefix("X9");
     // AND the VsdmService is configured
-    vsdmService = new VsdmService(vsdmConfig, tokenService, testDataRepository);
+    vsdmService = new VsdmService(vsdmConfig, testDataRepository);
 
-    when(tokenService.parsePoppToken(tokenHeader)).thenReturn(poppToken);
-    when(poppToken.getClaimValue("patientId")).thenReturn(kvnr);
-    when(poppToken.getClaimValue("insurerId")).thenReturn(iknr);
-
-    vsdmService.readVsd(tokenHeader);
+    vsdmService.readVsd(kvnr);
     verify(testDataRepository).patientByKvnr(kvnr);
   }
 
   void testSuccessful(final String kvnr, final String iknr) throws Exception {
 
-    String tokenHeader = "valid.token";
-
-    when(tokenService.parsePoppToken(tokenHeader)).thenReturn(poppToken);
-    when(poppToken.getClaimValue("patientId")).thenReturn(kvnr);
-    when(poppToken.getClaimValue("insurerId")).thenReturn(iknr);
-
-    Resource result = vsdmService.readVsd(tokenHeader);
+    Resource result = vsdmService.readVsd(kvnr);
 
     assertNotNull(result);
     assertInstanceOf(VsdmBundle.class, result);
@@ -173,29 +115,13 @@ class VsdmServiceTest {
     testSuccessful("X12345678X", "109500969");
   }
 
-  private void testErrorCase(final String kvnr, final String iknr, final String expectedReason)
-      throws Exception {
-    final String tokenHeader = "valid.token";
-
-    when(tokenService.parsePoppToken(tokenHeader)).thenReturn(poppToken);
-    when(poppToken.getClaimValue("patientId")).thenReturn(kvnr);
-    when(poppToken.getClaimValue("insurerId")).thenReturn(iknr);
+  private void testErrorCase(final String kvnr, final String iknr, final String expectedReason) {
 
     ResponseStatusException exception =
-        assertThrows(ResponseStatusException.class, () -> vsdmService.readVsd(tokenHeader));
+        assertThrows(ResponseStatusException.class, () -> vsdmService.readVsd(kvnr));
 
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
     assertEquals(expectedReason, exception.getReason());
-  }
-
-  @Test
-  void testReadVsd_Unknown_IKNR() throws Exception {
-    testErrorCase("X123456789", "987654321", "VSDSERVICE_UNKNOWN_IK");
-  }
-
-  @Test
-  void testReadVsd_Invalid_IKNR() throws Exception {
-    testErrorCase("X123456789", "9876543210", "VSDSERVICE_INVALID_IK");
   }
 
   @Test

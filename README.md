@@ -4,15 +4,15 @@
 
 > [!CAUTION]
 > This project is not meant to be run in production and we strongly
-advise against!
+> advise against!
 
-the **ti 2.0 testhub** provides a comprehensive test environment for the
-modernized german telematics infrastructure ( ti) version 2.0. as the healthcare
+The **ti 2.0 testhub** provides a comprehensive test environment for the
+modernized german telematics infrastructure ( ti) version 2.0. As the healthcare
 telematics infrastructure undergoes significant architectural improvements, a
 core aspect is the implementation of **zero trust architecture (zeta)** security
 concepts.
 
-this project enables developers and testers to:
+This project enables developers and testers to:
 
 - **simulate and validate** zero trust architecture (zeta) components
 - **test popp** (proof of possession) workflows for secure authentication
@@ -20,73 +20,55 @@ this project enables developers and testers to:
 - **develop and test** client applications against mock backend services
 - **understand integration patterns** for ti 2.0 ecosystem
 
-# Getting started
+# Getting Started
 
-Install required software:
+## Acquire SMC-B Certificate
+
+ZETA requires an SMC-B certificate to work. Follow these steps:
+
+1. Request a test SMC-B certificate
+   from [gematik Anfrageportal](https://service.gematik.de/servicedesk/customer/portal/37/create/198)
+   You will receive the certificate from Gematik as a ZIP file.
+2. In the ZIP file locate a `.p12` file whose filename includes `AUT_E256_`.
+3. Extract the file and rename it to `smcb_private.p12`
+4. Place the file in the `doc/docker/backend/zeta/smcb-private` folder
+
+## Install Required Software
 
 - Java 21
 - Docker
 - Docker Compose
+- GitBash (Windows)
 
-Then run in a shell from project root:
+## Start Docker Containers
 
-``` bash
-./doc/bin/test-with-compose-local-rebuild.sh
-```
-
-This will:
-
-1. compile the sources
-2. build the required Docker Images
-3. run `docker compose`
-4. execute available test suites against the local Testhub instance
-
-# User manual
-
-The [Testhub user manual](https://gematik.github.io/ti2.0-testhub/) is available
-online. Make sure to check [the Troubleshooting
-section](https://gematik.github.io/ti2.0-testhub/#_troubleshooting) if you run
-into any issues.
+1. Build required Docker images locally: 
+   ```bash
+    ./mvnw clean install -Pdocker -DskipTests
+    ```
+2. Remove Docker containers from previous runs:
+    ```bash
+    docker compose -f ./doc/docker/compose-local.yaml down -v
+    ```
+3. Start Docker containers:
+    ```bash
+    docker compose -f ./doc/docker/compose-local.yaml up -d --remove-orphans
+    ```
 
 # Usage
 
-> [!IMPORTANT]  
-> Running Testhub testsuits requires a valid SMC-B certificate and key pair. Please request a test SMC-B at [gematik Anfrageportal](https://service.gematik.de/servicedesk/customer/portal/37/create/198)
-> Please place them in the `doc/docker/backend/zeta/smcb-private` folder as follows:  `smcb_private.p12` (p12 file with AUT_E256_X509 certificate), `smcb_private.alias.txt` (alias of the smcb certificate in the p12 file, default is `alias`) and `smcb_private.pw.txt` (password of the p12 file).
-
-After making changes to the code you can either run
-
-``` bash
-./doc/bin/docker-compose-local-rebuild.sh
-```
-
-or for more fine-grained control use
-
-``` bash
-./mvnw install -Pdocker
-```
-
-To stop all services:
-
-```bash
-./doc/bin/docker-compose-down.sh
-```
-
-If you don't want to start the PS-Simulation (VSDM Client and Card Terminal Client) you can simply set the environment variable `PSSIM_ACTIVE=true`. This will skip starting those two services through the Tiger TestEnvironment Manager.
-
-```bash
-set PSSIM_ACTIVE=false
-```
-
 ## Running Tests
 
-The Testhub includes a test suite for validating VSDM2 workflows:
+To verify Testhub is working as expected run the VSDM2 integration tests:
 
 ```bash
-./mvnw verify -Dskip.inttests=false -pl test/vsdm-testsuite
+./mvnw -pl test/vsdm-testsuite/ -Dit.test="Vsdm*IT" -Dskip.inttests=false verify
 ```
 
-## Running Tests manually
+Additional E2E tests can be found in `test/`.
+
+
+## Running Tests Manually
 
 Tests are written using Cucumber and Gherkin. The files are located in `test/`.
 
@@ -100,9 +82,26 @@ To execute tests manually using IntelliJ:
 
 See [ReleaseNotes.md](./ReleaseNotes.md) for all information regarding the (latest) releases.
 
-# Changelog
+# User Manual
 
-See [CHANGELOG.md](./CHANGELOG.md) for information about changes.
+The [Testhub user manual](https://gematik.github.io/ti2.0-testhub/) is available
+online. Make sure to check [the Troubleshooting
+section](https://gematik.github.io/ti2.0-testhub/#_troubleshooting) if you run
+into any issues.
+
+# Getting Help
+
+When requesting help or reporting issues please include the following information:
+
+- What operating system are you running? Which CPU architecture? How many CPUs
+  are available? How much memory does your machine have?
+- Which commands are you running so that we can reproduce the issue. What is the
+  outcome?
+- Supply any applicable logs. You can use [docker
+  logs](https://docs.docker.com/reference/cli/docker/container/logs/).
+
+You can request help or report issuse through [gematik
+Anfrageportal](https://service.gematik.de/servicedesk/customer/portal/37).
 
 # Contributing
 

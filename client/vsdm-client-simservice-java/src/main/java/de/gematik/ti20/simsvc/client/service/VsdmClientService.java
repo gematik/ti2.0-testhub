@@ -167,7 +167,7 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
     log.debug("Requesting PoPP token for attached card: {}", attachedCard.getId());
 
     if (vsdmClientConfig.isUseMockPoppToken()) {
-      log.info("Load mocked PoPP tokk");
+      log.info("Load mocked PoPP token");
       final String mockPoppToken = loadMockPoppToken(vsdmClientConfig, attachedCard);
       poppTokenRepository.put(terminalId, egkSlotId, attachedCard.getId(), mockPoppToken);
       return mockPoppToken;

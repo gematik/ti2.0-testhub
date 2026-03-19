@@ -1,4 +1,4 @@
-<img align="right" width="250" height="47" src="./src/test/resources/images/Gematik_Logo.png"/><br/>
+<img align="right" width="250" height="47" src="../../images/Gematik_Logo_Flag_With_Background.png"/><br/>
 
 # ZETA Testsuite
 
@@ -22,24 +22,28 @@ Die Tests der ZETA-Testsuite verwenden die simulierten Dienste des TI 2.0 TestHu
 je nach Testtyp:
 
 **WebSocket-Tests (`@websocket`):**
+
 * ZETA PEP Server Mockservice (Port 9110)
 * PoPP Server Mockservice (Backend hinter PEP)
 
 **Smoke-Tests (`@smoke`):**
+
 * ZETA PDP Server Mockservice (PoPP)
 * ZETA PEP Server Mockservice (PoPP)
 * ZETA PDP Ingress (VSDM)
 
+**REST-Datenübertragungs-Tests (`@rest_pep_transfer`):**
+
+* ZETA PEP Server Mockservice (Port 9110)
+* PoPP Server Mockservice (Backend hinter PEP)
+* Tiger-Proxy
+
 **Client-Registrierungs-Tests (`@client_registrierung`):**
+
 * ZETA PDP Server Mockservice (Port 9112)
 * Tiger-Proxy
 
-Am einfachsten werden alle Backend-Dienste gemeinsam gestartet. Dies kann im Projekt-Root-Verzeichnis mit folgendem
-Befehl erfolgen:
-
-```bash
-./doc/bin/docker-compose-local-rebuild.sh
-```
+Am einfachsten werden alle Backend-Dienste gemeinsam gestartet. Siehe dazu: [Getting Started](../../README.md#getting-started)
 
 Anschließend stehen u. a. folgende relevanten Endpunkte zur Verfügung (Standard-Setup des TestHubs):
 
@@ -82,6 +86,7 @@ Die Smoke-Tests prüfen die grundlegende Erreichbarkeit der ZETA-Komponenten. Di
 Feature-Datei `src/test/resources/features/smoke.feature` definiert.
 
 Geprüfte Komponenten (`@smoke`):
+
 * ZETA-PDP (PoPP)
 * ZETA-PEP (PoPP)
 * ZETA-PDP Ingress
@@ -91,16 +96,42 @@ Geprüfte Komponenten (`@smoke`):
 ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags="@smoke"
 ```
 
+## REST-Datenübertragungs-Tests (via ZETA-PEP)
+
+Die REST-Datenübertragungs-Tests prüfen die HTTP-basierte Kommunikation zwischen Client und Backend über den ZETA-PEP
+Proxy.
+Die Szenarien sind in der Feature-Datei `src/test/resources/features/rest_data_transfer_via_pep.feature` definiert.
+
+Die Tests nutzen den Endpunkt `/openapi.yaml` des PoPP-Servers, da dieser sowohl durch den Auth-geschützten
+`HttpProxyController` des PEP geroutet wird als auch im Backend existiert und mit HTTP 200 antwortet.
+
+**Szenarien (`@rest_pep_transfer`):**
+
+| Szenario           | Beschreibung                          | Erwartung                               |
+|--------------------|---------------------------------------|-----------------------------------------|
+| Gültiger Token     | GET-Anfrage mit gültigem JWT          | PEP leitet an Backend weiter → HTTP 200 |
+| Ohne Authorization | GET-Anfrage ohne Authorization-Header | PEP lehnt ab → HTTP 401                 |
+| Ungültiger Token   | GET-Anfrage mit ungültigem JWT        | PEP lehnt ab → HTTP 401                 |
+
+```bash
+# Vom Root-Verzeichnis (ti2.0-testhub/) aus:
+./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false \
+  -Dcucumber.filter.tags="@rest_pep_transfer"
+```
+
 ## Client-Registrierungs-Tests
 
-Die Client-Registrierungs-Tests prüfen den Token-Exchange-Flow über den ZETA-PDP. Die Szenarien sind in der Feature-Datei
+Die Client-Registrierungs-Tests prüfen den Token-Exchange-Flow über den ZETA-PDP. Die Szenarien sind in der
+Feature-Datei
 `src/test/resources/features/client_registrierung.feature` definiert.
 
 **Gutfall-Szenario (`@client_registrierung`):**
+
 * Sendet einen Token-Exchange-Request an den ZETA-PDP über Tiger-Proxy
 * Prüft, dass ein gültiges Access-Token zurückgegeben wird
 
 **Fehlerfall-Szenarien (`@Ignore`):**
+
 * Testen die Ablehnung von Requests bei ungültigen Policy-Werten (z.B. ungültige professionOID, product_id, scopes)
 * Diese Tests sind aktuell mit `@Ignore` markiert, da der PDP-Mock keine echte OPA-Policy verwendet
 
@@ -112,7 +143,8 @@ Die Client-Registrierungs-Tests prüfen den Token-Exchange-Flow über den ZETA-P
 
 ## Alle Tests ausführen
 
-Alle ZETA-Tests können über den gemeinsamen Tag `@PRODUKT:ZETA` ausgeführt werden, der in jeder Feature-Datei vorhanden ist:
+Alle ZETA-Tests können über den gemeinsamen Tag `@PRODUKT:ZETA` ausgeführt werden, der in jeder Feature-Datei vorhanden
+ist:
 
 ```bash
 # Vom Root-Verzeichnis (ti2.0-testhub/) aus:
@@ -132,8 +164,12 @@ Alternativ kann der Befehl ohne Tag-Filter ausgeführt werden, um alle Tests der
 
 Die wichtigsten Verzeichnisse der ZETA-Testsuite sind:
 
-* `src/test/resources/features` – Gherkin-Feature-Dateien (z. B. `popp_websocket_via_pep.feature`)
-* `src/test/java/de/gematik/zeta/steps` – Cucumber-Step-Definitions (u. a. WebSocket-Schritte)
+* `src/test/resources/features` – Gherkin-Feature-Dateien:
+    * `popp_websocket_via_pep.feature` – WebSocket-Tests über ZETA-PEP
+    * `rest_data_transfer_via_pep.feature` – REST-Datenübertragungs-Tests über ZETA-PEP
+    * `client_registrierung.feature` – Client-Registrierungs-/Token-Exchange-Tests
+    * `smoke.feature` – Smoke-Tests für alle Komponenten
+* `src/test/java/de/gematik/zeta/steps` – Cucumber-Step-Definitions (u. a. WebSocket- und REST-Schritte)
 * `src/test/java/de/gematik/zeta/services` – Hilfs-Services (z. B. `PlainWebSocketSessionManager` für WS-Verbindungen)
 * `src/test/resources` – Konfigurationen, ggf. Testdaten und Bilder für die Dokumentation
 
