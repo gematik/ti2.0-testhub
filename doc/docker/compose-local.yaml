@@ -45,8 +45,6 @@ services:
       - "6100:80"
       - "5006:5006"
     volumes:
-      - ./backend/zeta/smcb-private/smcb_private.alias.txt:/tmp/zeta/smcb_private.alias.txt:ro
-      - ./backend/zeta/smcb-private/smcb_private.pw.txt:/tmp/zeta/smcb_private.pw.txt:ro
       - ./backend/zeta/smcb-private/smcb_private.p12:/tmp/zeta/smcb_private.p12:ro
     environment:
       - POPP_HTTP_URL=http://popp-zeta-pep:80
@@ -56,8 +54,8 @@ services:
       - OTEL_SERVICE_NAME=vsdm-client
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
-      - ZETASDK_SMCB_ALIAS_PATH=/tmp/zeta/smcb_private.alias.txt
-      - ZETASDK_SMCB_PRIVATE_KEY_PASSWORD_PATH=/tmp/zeta/smcb_private.pw.txt
+      - ZETASDK_SMCB_ALIAS=alias
+      - ZETASDK_SMCB_PRIVATE_KEY_PASSWORD=00
       - ZETASDK_SMCB_PRIVATE_KEY_PATH=/tmp/zeta/smcb_private.p12
 
 networks:

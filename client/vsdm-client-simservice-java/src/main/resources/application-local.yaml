@@ -13,10 +13,10 @@ popp:
 
 vsdm:
   resourceServerUrl: http://localhost:9120
-  use-mock-popp-token: false
+  use-mock-popp-token: true
   popp-token-generator-url: http://localhost:9500
 
 zetasdk:
-  smcbAliasPath: "doc/docker/backend/zeta/smcb-private/smcb_private.alias.txt"
-  smcbPrivateKeyPasswordPath: "doc/docker/backend/zeta/smcb-private/smcb_private.pw.txt"
+  smcbAlias: "alias"
+  smcbPrivateKeyPassword: "00"
   smcbPrivateKeyPath: "doc/docker/backend/zeta/smcb-private/smcb_private.p12"

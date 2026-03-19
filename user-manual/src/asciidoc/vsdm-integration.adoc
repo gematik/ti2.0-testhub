@@ -1,3 +1,24 @@
+////
+  //
+  // Copyright 2025-2026 gematik GmbH
+  //
+  // Licensed under the Apache License, Version 2.0 (the "License");
+  // you may not use this file except in compliance with the License.
+  // You may obtain a copy of the License at
+  //
+  //     http://www.apache.org/licenses/LICENSE-2.0
+  //
+  // Unless required by applicable law or agreed to in writing, software
+  // distributed under the License is distributed on an "AS IS" BASIS,
+  // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  // See the License for the specific language governing permissions and
+  // limitations under the License.
+  //
+  // *******
+  //
+  // For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
+////
+
 == How to integrate VSDM services
 
 === Scenario 1: Replace the Resource Server behind ZetaGuard
@@ -87,7 +108,7 @@ resourceServerUrl: "http://URL_TO_VSDM_ZETA_PEP/"
 
 Note: If the external domain service uses TLS, use `https://...` and make sure certificates / CA trust are configured accordingly.
 
-== Examples and useful commands
+=== Examples and useful commands
 
 * Search the compose files for `vsdm-server`, `vsdm-zeta-pep` or `vsdm-zeta-ingress` to quickly find the relevant blocks:
 
@@ -105,13 +126,13 @@ cp vsdm-zeta-pep.conf vsdm-zeta-pep.conf.bak
 sed -i.bak "s|proxy_pass http://vsdm-server:80/;|proxy_pass http://URL_TO_REAL_SERVER/;|g" vsdm-zeta-pep.conf
 ----
 
-== Notes / Troubleshooting
+=== Notes / Troubleshooting
 
 * After changes to compose files always restart the affected containers (e.g. `docker compose down && docker compose up -d` for the changed services).
 * Test reachability of the external service from the Testhub instance (e.g. `curl` from the host/container).
 * Pay attention to CORS, authentication and TLS settings if clients report errors when accessing the external service.
 
-== Summary
+=== Summary
 
 This document shows the minimal changes required to either replace only the Resource Server behind ZetaGuard or to operate the complete domain service (ZetaGuard + Resource Server) externally.
 The main changes are:

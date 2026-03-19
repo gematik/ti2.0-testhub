@@ -1,0 +1,42 @@
+# JSON Schema for PoPP Token validation (based on gemSpec_PoPP)
+$schema: "http://json-schema.org/draft-07/schema#"
+title: PoPP Token Schema (gemSpec_PoPP)
+type: object
+required:
+  - header
+  - payload
+properties:
+  header:
+    type: object
+  payload:
+    type: object
+    required:
+      - iss
+      - iat
+      - patientProofTime
+      - patientId
+      - insurerId
+      - actorId
+      - actorProfessionOid
+    properties:
+      iss:
+        type: string
+        description: Issuer of the PoPP token
+      iat:
+        type: integer
+        description: Issued-at timestamp (Unix epoch seconds)
+      patientProofTime:
+        type: integer
+        description: Timestamp of patient proof (Unix epoch seconds)
+      patientId:
+        type: string
+        description: Patient identifier (KVNR)
+      insurerId:
+        type: string
+        description: Insurer identifier (IK number)
+      actorId:
+        type: string
+        description: Actor identifier (Telematik-ID)
+      actorProfessionOid:
+        type: string
+        description: Actor profession OID

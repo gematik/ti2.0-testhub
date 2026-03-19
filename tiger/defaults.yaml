@@ -20,3 +20,17 @@ smoke:
       url: http://localhost:9122/auth/health/live
       path: /auth/health/live
       name: VSDM ZeTA PDP
+
+zeta:
+  server:
+    popp:
+      url: http://127.0.0.1:9210
+    pdp:
+      tokenUrl: http://127.0.0.1:9112/token
+  timeouts:
+    httpRequestSeconds: 10
+    healthCheckSeconds: 20
+    healthCheckPollIntervalMs: 250
+    wsConnectionSeconds: 10
+    wsMessageSeconds: 10
+

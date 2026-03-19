@@ -2,6 +2,51 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 1.1.10
+
+### Update Notes
+
+#### Obsolete SMCB Files (TESTHUB-54)
+
+The content of the following files has been moved to environment variables and the files can be removed:
+- doc/docker/backend/zeta/smcb-private/smcb_private.alias.txt
+- doc/docker/backend/zeta/smcb-private/smcb_private.pw.txt
+
+#### Removed Bash Script Files (TESTHUB-55)
+
+The Bash script files in `doc/bin/` have been removed. Use regular commands as documented in the `README.md`.
+For example:
+
+- `docker-compose-local-restart.sh` can be replaced with 
+  ```bash
+  docker compose -f ./doc/docker/compose-local.yaml down -v
+  docker compose -f ./doc/docker/compose-local.yaml up -d --remove-orphans
+  ```
+- `test-with-compose-local-rebuild.sh` can be replaced with
+  ```bash
+  ./mvnw clean install -Pdocker -DskipTests
+  docker compose -f ./doc/docker/compose-local.yaml down -v
+  docker compose -f ./doc/docker/compose-local.yaml up -d --remove-orphans
+  ./mvnw -pl test/vsdm-testsuite/ -Dit.test="Vsdm*IT" -Dskip.inttests=false verify
+  ```
+
+### Changes
+
+- TESTHUB-47: Enable feature flag for client attestation for PEP and tone down
+  log levels. Feature flag will be removed in future versions.
+- TESTHUB-50: Introduce JWK endpoint for PoPP server and set `pep_require_popp
+  on;`. Should reduce `during jwk cache refresh (popp): error decoding response
+  body` errors in PEP.
+- TESTHUB-54: Simplify handling of SMCB-B certificate in configuration
+- TESTHUB-55: Replace shell scripts with direct maven and docker commands
+- TESTHUB-59: Additional troubleshooting steps in the user manual, add 'Getting
+  Help' to README.md
+- TESTHUB-72: Adapt Vsdm-Server implementation to accept PoppToken as Base64 encoded claims
+- ZTI-3856: add ZeTA Testsuite with test cases for WebSocket communication via
+  PEP, client registration and smoke tests
+- ZTI-3904: add PEP header management tests for ZeTA Testsuite
+- ZTI-4055: add websocket test from PoPP via ZETA-PEP 
+
 ## Release 1.1.9
 
 - TESTHUB-28: (docs) Update user manual with corrections and simplifications

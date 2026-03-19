@@ -57,3 +57,11 @@ services:
       - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5008"
     depends_on:
       - otel-collector
+
+  popp-token-generator:
+    container_name: popp-token-generator
+    image: gematik1/popp-token-generator:1.0.7
+    ports:
+      - "9500:80"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker

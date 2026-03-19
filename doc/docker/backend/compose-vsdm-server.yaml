@@ -21,7 +21,7 @@ services:
     #     source: /tmp/testhub/test-data
     #     target: /opt/custom-test-data
     environment:
-      - LOGGING_LEVEL_ROOT=DEBUG
+      - LOGGING_LEVEL_ROOT=INFO
       - OTEL_SERVICE_NAME=vsdm-server
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5012"
@@ -66,13 +66,14 @@ services:
       KC_HEALTH_ENABLED: true
       KC_HTTP_RELATIVE_PATH: /auth
       KC_PROXY_HEADERS: xforwarded
-      KC_LOG_LEVEL: DEBUG
+      KC_LOG_LEVEL: INFO
       SMCB_KEYSTORE_LOCATION: /opt/keycloak/conf/smcb/truststore.p12
       SMCB_KEYSTORE_PASSWORD: "changeit"
       KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_OPA_ENABLED: true
       KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_OPA_BASE_URL: http://vsdm-zeta-pdp-opa:8181
       KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_DECISION_PATH: "/v1/data/zeta/authz/decision"
-      DEBUG: "true"
+      CHECK_CLIENT_ATTESTATION_ENABLED: true
+      DEBUG: "false"
       DEBUG_PORT: "*:5022"
     ports:
       - "9122:80"

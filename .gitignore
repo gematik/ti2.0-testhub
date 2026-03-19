@@ -12,7 +12,6 @@ pactconfig-local.properties
 /.idea/
 /.vscode/
 jenkinsfiles
-/doc/k8s
 .owaspignore
 /test/popp-testsuite/src/test/resources/features/e2e/UC_PoPP_1_2a_eGK_OCSP_revoked_Invalid.feature
 /test/popp-testsuite/src/test/resources/popp-token-Server-nist-komp61.p12

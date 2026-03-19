@@ -333,6 +333,12 @@ public class VsdmSteps {
     hccs().should(seeThat(LastOperationOutcome.text(), is(Error.valueOf(errorCode).getValue())));
   }
 
+  @Dann("antwortet der ZETA Guard mit dem Fehlercode {int} und dem Text {string}")
+  public void thenZetaGuardAnswersWithErrorCodeAndText(Integer httpCode, String errorText) {
+    hccs().should(seeThat(LastStatusCode.value(), is(httpCode)));
+    hccs().should(seeThat(LastResponse.text(), containsString(errorText)));
+  }
+
   private void sendReadVsd(int nbrCalls, boolean withUpdateVsd) throws InterruptedException {
     for (int i = 0; i < nbrCalls; i++) {
       whenClientSystemIsRequestingVsdWithAccessAndPoppToken();

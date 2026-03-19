@@ -1,7 +1,27 @@
+////
+  //
+  // Copyright 2025-2026 gematik GmbH
+  //
+  // Licensed under the Apache License, Version 2.0 (the "License");
+  // you may not use this file except in compliance with the License.
+  // You may obtain a copy of the License at
+  //
+  //     http://www.apache.org/licenses/LICENSE-2.0
+  //
+  // Unless required by applicable law or agreed to in writing, software
+  // distributed under the License is distributed on an "AS IS" BASIS,
+  // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  // See the License for the specific language governing permissions and
+  // limitations under the License.
+  //
+  // *******
+  //
+  // For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
+////
+
 == Architecture
 
-The Testhub implements a **Zero Trust Architecture** with multiple layers of services communicating through
-authenticated channels.
+The Testhub implements a **Zero Trust Architecture** with multiple layers of services communicating through authenticated channels.
 
 === Key Components
 
@@ -26,27 +46,31 @@ The Testhub consists of several interconnected services:
 - **VSDM FHIR Library** - FHIR resource handling for VSDM
 - **ZeTA Client Library** - ZeTA integration utilities
 
-All components are designed as mock/simulation services for development and
-testing purposes, **not for production use**.
+All components are designed as mock/simulation services for development and testing purposes, **not for production use**.
 
 === Component Overview (Stufe 2)
 
 image::images/architecture.png[An architecture diagram of Testhub]
 
-
 === Service Descriptions
 
 |===
-| Service                  | Port | Purpose                                                                                           
+| Service                  |  Purpose
 
-| **Card Terminal Client** | 8000 | Simulates electronic health card (eGK, SMC-B, HBA) terminal operations with PACE protocol support
-| **VSDM Client**          | 8220 | Simulates VSDM2 client operations including data retrieval and PoPP token validation
-| **ZeTA PEP PoPP**        | 9110 | Policy Enforcement Point proxy for PoPP validates tokens and forwards requests
-| **ZeTA PDP PoPP**        | 9112 | Policy Decision Point for PoPP performs OAuth 2.0 token exchange (RFC 8693)
-| **PoPP Server**          | 9210 | Backend PoPP service generates and validates Proof of Possession tokens
-| **VSDM Server**          | 9130 | Backend VSDM service provides VSDM2 data from YAML test fixtures
-| **Tiger Proxy UI**       | 6901 | Local Tiger Proxy between PS-Simulation and PoPP and VSDM-Servers
+| **Card Terminal Client** |  Simulates electronic health card (eGK, SMC-B, HBA) terminal operations with PACE protocol support
+| **VSDM Client**          | Simulates VSDM2 client operations including data retrieval and PoPP token validation
+| **ZeTA PEP PoPP**        |  Policy Enforcement Point proxy for PoPP validates tokens and forwards requests
+| **ZeTA PDP PoPP**        |  Policy Decision Point for PoPP performs OAuth 2.0 token exchange (RFC 8693)
+| **PoPP Server**          |  Backend PoPP service generates and validates Proof of Possession tokens
+| **VSDM Server**          |  Backend VSDM service provides VSDM2 data from YAML test fixtures
+| **Tiger Proxy UI**       |  Local Tiger Proxy between PS-Simulation and PoPP and VSDM-Servers
 |===
+
+The services are exposed on different ports to the local environment.
+To access the containers when applicable, use the following script to find the host port mapping:
+
+[listing]
+docker ps --format 'table {{.Names}}\t{{.Ports}}'
 
 === References
 
@@ -57,8 +81,9 @@ image::images/architecture.png[An architecture diagram of Testhub]
 
 **PoPP**
 
-* link:https://gemspec.gematik.de/prereleases/Draft_PoPP_25_1/gemSpec_PoPP_Service_V1.0.0_CC2/[gemSpecPages PoPP Prerelease Documentation]
-* link:https://github.com/gematik/spec-ilf-popp-client[PoPP client GitHub Repository]
+* link:https://gemspec.gematik.de/docs/gemSpec/gemSpec_PoPP_Service/latest/[gemSpecPages PoPP-Service Release Documentation]
+* link:https://github.com/gematik/spec-ilf-popp-client/tree/main[PoPP-Client Implementation Guide GitHub Repository]
+* link:https://github.com/gematik/popp-sample-code[PoPP-Sample Implementation GitHub Repository]
 * link:https://github.com/gematik/popp-token-generator[PoPP token generator GitHub Repository]
 
 **VSDM2**

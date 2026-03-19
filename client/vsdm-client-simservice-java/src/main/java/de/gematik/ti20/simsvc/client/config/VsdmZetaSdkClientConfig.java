@@ -32,14 +32,13 @@ import de.gematik.zeta.sdk.authentication.SubjectTokenProvider;
 import de.gematik.zeta.sdk.authentication.smb.SmbTokenProvider;
 import de.gematik.zeta.sdk.network.http.client.ZetaHttpClientBuilder;
 import io.ktor.client.plugins.logging.LogLevel;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,10 +50,10 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 public class VsdmZetaSdkClientConfig {
 
-  private String smcbAliasPath;
+  private String smcbAlias;
 
-  @SuppressWarnings({"java:S2068"}) // This is not a hardcoded password, but a path to a local file
-  private String smcbPrivateKeyPasswordPath;
+  @SuppressWarnings({"java:S2068"}) // This is not production software
+  private String smcbPrivateKeyPassword;
 
   private String smcbPrivateKeyPath;
 
@@ -76,7 +75,8 @@ public class VsdmZetaSdkClientConfig {
                 true,
                 getTokenProvider(),
                 AttestationConfig.software()),
-            new PlatformProductId.AppleProductId("apple", "macos", List.of("bundleX")),
+            new PlatformProductId.LinuxProductId(
+                PlatformProductId.PLATFORM_LINUX, "jar", "testhub", "latest"),
             new ZetaHttpClientBuilder("")
                 .disableServerValidation(disableServerValidation)
                 .logging(LogLevel.ALL, message -> log.debug("Ktor HttpClient: {}", message)),
@@ -85,18 +85,21 @@ public class VsdmZetaSdkClientConfig {
   }
 
   private SubjectTokenProvider getTokenProvider() {
-    try {
-      String alias =
-          FileUtils.readFileToString(new File(getSmcbAliasPath()), StandardCharsets.UTF_8);
-      String pw =
-          FileUtils.readFileToString(
-              new File(getSmcbPrivateKeyPasswordPath()), StandardCharsets.UTF_8);
-      return new SmbTokenProvider(
-          new SmbTokenProvider.Credentials(getSmcbPrivateKeyPath(), alias, pw));
-    } catch (IOException e) {
-      throw new IllegalStateException(
-          "Could not load SMCB certificate for ZetaSDK. Check the configured file location exists and is readable",
-          e);
+    String keyPath = getSmcbPrivateKeyPath();
+    if (keyPath == null || keyPath.isBlank()) {
+      throw new RuntimeException(
+          "SMCB private key path is not configured (zetasdk.smcbPrivateKeyPath). Please set the path to the private key file.");
     }
+
+    Path p = Paths.get(keyPath);
+    if (!Files.exists(p)) {
+      throw new RuntimeException("SMCB private key file does not exist: " + keyPath);
+    }
+    if (!Files.isRegularFile(p) || !Files.isReadable(p)) {
+      throw new RuntimeException("SMCB private key file is not readable: " + keyPath);
+    }
+
+    return new SmbTokenProvider(
+        new SmbTokenProvider.Credentials(keyPath, smcbAlias, smcbPrivateKeyPassword));
   }
 }

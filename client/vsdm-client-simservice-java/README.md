@@ -144,11 +144,13 @@ All configuration parameters for the project can be set in the `application.yaml
 
 Specific to the application, you can configure the following properties:
 
-| Name          | Description                                                       |
-|:--------------|-------------------------------------------------------------------|
-| popp.http.url | URL of the HTTP endpoint of a PoppServer providing the popp token |
-| popp.ws.url   | URL of the WS endpoint of a PoppServer providing the popp token   |
-| vsdm.resourceServerUrl      | URL of the VSDM server providing the data                         |
+| Name                       | Description                                                       |
+|:---------------------------|-------------------------------------------------------------------|
+| popp.http.url              | URL of the HTTP endpoint of a PoppServer providing the popp token |
+| popp.ws.url                | URL of the WS endpoint of a PoppServer providing the popp token   |
+| vsdm.resourceServerUrl     | URL of the VSDM server providing the data                         |
+| vsdm.useMockPoppToken      | If true, the PoppTokenGenerator is used to create mocked tokens   |
+| vsdm.poppTokenGeneratorURL | URL of the PoppTokenGenerator (only needed for mocked tokens)     |
 
 An example configuration is provided in the `application-local.yaml` file.
 To use this configuration, you can specify the `spring.profiles.active=local` property when starting the server.

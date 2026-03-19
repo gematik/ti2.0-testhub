@@ -34,4 +34,8 @@ public class LastResponse implements Question<Response> {
   public Response answeredBy(Actor actor) {
     return actor.recall("lastResponse");
   }
+
+  public static Question<String> text() {
+    return actor -> LastResponse.value().answeredBy(actor).getBody().asString();
+  }
 }

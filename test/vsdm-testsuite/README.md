@@ -1,4 +1,4 @@
-<img align="right" width="250" height="47" src="./src/test/resources/images/Gematik_Logo.png"/><br/>
+<img align="right" width="250" height="47" src="../../images/Gematik_Logo_Flag_With_Background.png"/><br/>
 
 # VSDM 2.0 Testsuite
 
@@ -31,26 +31,21 @@ Alle Tests der VSDM 2.0 Testsuite verwenden aktuell die simulierten Dienste des 
 den folgenden Komponenten:
 
 * Card Client Simulator
-* ZETA Client Simulator
+* ZETA Client SDK
 * PoPP Client Simulator
 * VSDM Client Simulator
-* ZETA PDP Server Simulator (ZETA Guard)
-* ZETA PEP Server Simulator (ZETA Guard)
+* ZETA Server SDK (PDP, PEP)
 * PoPP Server Mock (PoPP Token Generator)
 * VSDM Server Simulator
 
-Sämtliche Tests der VSDM-Testsuite setzen diese simulierten Dienste voraus. Diese können mit folgendem Skript-Aufruf als
-Docker-Container gestartet werden: (Der Skript-Aufruf sollte im Projekt-Root-Verzeichnis erfolgen.)
-
-```
-./doc/bin/docker-compose-local-rebuild.sh
-```
+Sämtliche Tests der VSDM-Testsuite setzen diese simulierten Dienste voraus. Diese können mit wenigen Kommandos in einem
+geeigneten Unix-Terminal gestartet werden. Siehe dazu: [Getting Started](../../README.md#getting-started)
 
 Die untere Grafik zeigt den TI 2.0 TestHub in seiner aktuellen Ausbaustufe. Die VSDM 2.0 Testsuite sendet Anfragen an
 den Card, den PoPP und den VSDM Client Simulator. Diese kommunizieren mit den jeweiligen Server Simulatoren.
 
 <br/>
-<img width="1108" height="744" src="./src/test/resources/images/TI20_TestHub_Stufe_3.png" alt=""/>
+<img width="1108" height="744" src="./src/test/resources/images/TI20_TestHub_Stufe_4.png" alt=""/>
 <br/>
 
 ## Integrationstests
@@ -61,10 +56,10 @@ und somit deren Funktionsweise demonstrieren. Die Tests verwenden das Jupiter-Fr
 * VsdmClientIT.java
 * VsdmServerIT.java
 
-Die Integrationstests können mit folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
+Die Integrationstests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
 ```
-../../mvnw -Dit.test="Vsdm*IT" -Dskip.inttests=false verify
+./mvnw -pl test/vsdm-testsuite/ -Dit.test="Vsdm*IT" -Dskip.inttests=false verify
 ```
 
 ## E2E-Tests
@@ -83,10 +78,10 @@ antwortet. In diesem Fall liest das PS die wichtigsten VSD von der eGK direkt. T
 
 * UC_VSDM2_RVSD_FROM_EGK_CARD_VALID.feature
 
-Die E2E-Tests können mit folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
+Die E2E-Tests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
 ```
-../../mvnw clean verify -Dcucumber.filter.tags="@TYPE:E2E" -Dskip.inttests=false
+./mvnw -pl test/vsdm-testsuite/ clean verify -Dcucumber.filter.tags="@TYPE:E2E" -Dskip.inttests=false
 ```
 
 ## Lasttests
@@ -101,10 +96,10 @@ Testfälle:
 * UC_VSDM2_RVSD_LOAD_MULTI_WITH_UPDATE.feature
 * UC_VSDM2_RVSD_LOAD_MULTI_WITHOUT_UPDATE.feature
 
-Die Lasttests können mit folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
+Die Lasttests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
 ```
-../../mvnw clean verify -Dcucumber.filter.tags="@TYPE:LOAD" -Dskip.inttests=false
+./mvnw -pl test/vsdm-testsuite/ clean verify -Dcucumber.filter.tags="@TYPE:LOAD" -Dskip.inttests=false
 ```
 
 ## Gatling-Simulationen
@@ -116,33 +111,33 @@ und für unterschiedliche Zwecke einsetzbar sind.
 
 Diese Simulation liest eine Liste von IK- und KVNR ein und generiert dann mithilfe des PoppTokenGenerators eine Liste
 aus Popp-Token. Diese Liste kann dann später als Feeder für die Simulation der Hintergrundlast verwendet werden. Die
-Simulation kann mittels Maven und folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
+Simulation kann mittels Maven und folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
 ```
-../../mvnw gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.GeneratePoppTokenSimulation
+./mvnw -pl test/vsdm-testsuite/ gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.GeneratePoppTokenSimulation
 ```
 
 ### PoppVsdmServerSimulation.java
 
 Diese Simulation ruft zuerst den PoppTokenGenerator mit einer Kombination aus IK- und KVNR auf, welcher einen gültigen
 Popp-Token zurückliefert. Danach wird dieser Popp-Token während der Abfrage der VSD vom VsdmServerSimulator verwendet.
-Die Simulation kann mittels Maven und folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
+Die Simulation kann mittels Maven und folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
 ```
-../../mvnw gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.PoppVsdmServerSimulation
+./mvnw -pl test/vsdm-testsuite/ gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.PoppVsdmServerSimulation
 ```
 
 ### VsdmClientJourneySimulation.java
 
 Diese Simulation simuliert den kompletten Ablauf vom Einstecken der Karten, über die Erlangung des Versorgungskontextes
-bis hin zur Abfrage der VSD vom Fachdienst VSDM 2.0 und kann im Verzeichnis 'vsdm-testsuite' wie folgt gestartet werden:
+bis hin zur Abfrage der VSD vom Fachdienst VSDM 2.0 und kann im Projekt-Root-Verzeichnis wie folgt gestartet werden:
 
 ```
-../../mvnw gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmClientJourneySimulation
+./mvnw -pl test/vsdm-testsuite/ gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmClientJourneySimulation
 ```
 
 > [!NOTE]
-> Durch die aktuelle Integration weiterer Tiger-Komponenten, welche die Client-Simulationen starten und mehrere 
+> Durch die aktuelle Integration weiterer Tiger-Komponenten, welche die Client-Simulationen starten und mehrere
 > Proxies in den Datenverkehr einschleusen, ist die Lauffähigkeit der Lastsimulation "VsdmClientJourneySimulation"
 > beeinträchtigt. Es wird empfohlen, die Last entsprechend zu reduzieren. Siehe "Konfiguration der Simulation".
 
@@ -150,10 +145,10 @@ bis hin zur Abfrage der VSD vom Fachdienst VSDM 2.0 und kann im Verzeichnis 'vsd
 
 Diese Simulation verwendet die, von der GeneratePoppTokenSimulation erzeugte, Liste aus Popp-Token, fragt die VSD vom
 VsdmServerSimulator ab und wird in Verbindung mit den Lasttests zur Generierung der Hintergrundlast eingesetzt.
-Die Simulation kann mittels Maven und folgender Kommandozeile im Verzeichnis 'vsdm-testsuite' gestartet werden:
+Die Simulation kann mittels Maven und folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
 ```
-../../mvnw gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmBackgroundLoadSimulation
+./mvnw -pl test/vsdm-testsuite/ gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmBackgroundLoadSimulation
 ```
 
 ### Konfiguration der Simulationen
