@@ -27,6 +27,10 @@
 
 The ZIP file structure is used for many other processes connected with the Gematik. It's currently not possible to change this process for Testhub.
 
+==== An Ant BuildException has occured...
+
+This is usually caused by a configuration issues when building the Docker images. Look further up for the relevant error message around the task `create-docker-image` and check the Docker section below.
+
 === Docker
 
 [id=docker-name-in-use]
@@ -47,9 +51,7 @@ Error response from daemon: Conflict. The name "vsdm-client" is already in use b
 [id=docker-credentials]
 ==== Authentication for pulling Docker images
 
-Testhub components are povided as public Docker images. Authentication with a
-registry is not neccessary. Depending on your Docker configuration you may run
-into authentication issues such as these:
+Testhub components are povided as public Docker images. Authentication with a registry is not neccessary. Depending on your Docker configuration you may run into authentication issues such as these:
 
 ....
 ERROR: (gcloud.auth.docker-helper) There was a problem refreshing your current auth tokens: Reauthentication failed. cannot prompt during non-interactive execution.
@@ -62,3 +64,9 @@ This issue is NOT related to Testhub. To fix the problem either:
 
 * Authenticate using your credential helper such as the `gcloud` CLI
 * Remove the relevant settings from your https://docs.docker.com/reference/cli/docker/#credential-store-options[docker configuration]
+
+[id=docker-permission-denied]
+==== permission denied while trying to connect to the Docker daemon socket...
+
+Ensure you are following the post-install steps as outlined by dockerdocs, especially on how to use Docker as a non-root user:
+https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user
