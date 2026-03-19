@@ -2,6 +2,13 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 1.1.11
+
+### Changes
+
+- TESTHUB-76: remove empty script files from `doc/bin` and improve documentation
+  with troubleshooting tips.
+
 ## Release 1.1.10
 
 ### Update Notes

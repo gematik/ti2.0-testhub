@@ -21,11 +21,17 @@
 
 == How to integrate custom PS (Primärsystem)
 
+[NOTE]
+====
+ZETA is only configured for the VSDM-Server, not the PoPP-Server.
+====
+
 Integrating a custom Primärsystem (PS) is a primary design goal of the TI 2.0
 Testhub. Currently, however, it requires some manual steps:
 
-* Set `pssim.active=false` in the file
-`tiger/flags.yaml` to disable the existing PS-Simulator. This can also be done via Environment Variables (PSSIM_ACTIVE=false).
+* Set `pssim.active=false` in the file `tiger/flags.yaml` to disable the
+existing PS-Simulator. This can also be done via environment eariables
+(`PSSIM_ACTIVE=false`).
 
 * The custom PS has to be started (e.g. add as a new service in
 doc/docker/backend/compose-local.yaml, but could simply be started outside of
@@ -35,15 +41,15 @@ docker compose as well)
 API as the existing vsdm-client (which can be seen at
 http://localhost:8220/v3/api-docs)
 
-* The server-addresses to use are as follows:
+You can connect to the resource servers as follows:
 
-** VSDM-Server: http://localhost:9119/ (This is the vsdm-zeta-ingress address)
+VSDM-Server:: Use the port that is forwarded to the internal port 443 of
+`vsdm-zeta-ingress`. If the port is 9119 you can connect from the Docker host
+using https://localhost:9119/.
 
-** PoPP-Server: http://localhost:9200/ (This is the popp-server-mockservice
-address)
+PoPP-Server:: Use the port that is forwarded to the internal port 80 of
+   `popp-ingress`.
 
-** Right now ZETA is only configured for the VSDM-Server, not the PoPP-Server.
-
-* The usage of the Zeta-SDK can be seen in the existing
-vsdm-client-simservice-java implementation. The class ZetaSdkClientAdapter.java
-uses the client while VsdmZetaSdkClientConfig.java configures it.
+The usage of the Zeta-SDK can be seen in the existing
+vsdm-client-simservice-java implementation. The class `ZetaSdkClientAdapter.java`
+uses the client while `VsdmZetaSdkClientConfig.java` configures it.
