@@ -5,7 +5,7 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>1.1.13</version>
+    <version>1.1.14</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>
@@ -23,7 +23,6 @@
         <module>server/zeta-pdp-server-mockservice</module>
         <module>test/zeta-testsuite</module>
         <module>test/vsdm-testsuite</module>
-        <module>test/popp-testsuite</module>
         <module>coverage-report</module>
         <module>user-manual</module>
     </modules>
