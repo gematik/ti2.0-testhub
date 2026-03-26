@@ -25,11 +25,58 @@
 
 ==== Why are there so many files in the SMC-B ZIP file?
 
-The ZIP file structure is used for many other processes connected with the Gematik. It's currently not possible to change this process for Testhub.
+The ZIP file structure is used for many other processes connected with the Gematik.
+It's currently not possible to change this process for Testhub.
 
 ==== An Ant BuildException has occured...
 
-This is usually caused by a configuration issues when building the Docker images. Look further up for the relevant error message around the task `create-docker-image` and check the Docker section below.
+This is usually caused by a configuration issues when building the Docker images.
+Look further up for the relevant error message around the task `create-docker-image` and check the Docker section below.
+
+==== E2E tests are not starting with port exception
+
+When running the E2E tests you can run into an error claiming that a port is taken:
+
+....
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 6800 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 6800 or configure this application to listen on another port.
+
+TGR Workflow UI is active, please press quit in browser window...
+TGR Destroying spring boot context after testrun...
+TGR Tiger shut down orderly
+[ERROR] Failed to start bean 'webServerStartStop' 
+....
+
+This happens when you are using the Tiger Workflow UI and you didn't press the power off button in the Workflow UI. To fix the issus:
+
+* Press the red power button in the Workflow UI and try again
+* Kill the process listening on the port mentioned by YOUR error message. Note that port configurations can change and the above error message is for illustration only.
+
+==== The Tiger Workflow UI runs into timeouts on startup
+
+Due to performance constraints it's possible that there is not enough time for the Workflow UI and E2E tests to start in a timely manner:
+
+....
+15:29:57.034 [main ] INFO  d.g.t.t.c.w.TigerBrowserUtil - Starting Workflow UI via 'xdg-open http://localhost:6800'
+15:29:57.052 [main ] INFO  d.g.t.t.c.w.TigerBrowserUtil - Workflow UI http://localhost:6800
+15:29:57.052 [main ] INFO  d.g.t.t.l.TigerDirector - Waiting 10 seconds for workflow Ui to fetch status...
+....
+
+You can try:
+
+* to increase the setting `lib.workflowUiStartTimeoutInSeconds` in the file `tiger.yaml`.
+* to set `lib.activateWorkflowUi: false` in the file `tiger.yaml`.
+
+For more information on how to configure Tiger check the https://gematik.github.io/app-Tiger/Tiger-User-Manual.html[Tiger User Manual^].
 
 === Docker
 
@@ -42,16 +89,20 @@ Occasionally you might encounter an error like:
 Error response from daemon: Conflict. The name "vsdm-client" is already in use by container f9e5798a82e0.
 ....
 
-1. It's possible that you are running a container with the same name. You have to rename or remove it.
-2. It's possible that a previous Testhub start wasn't cleaned properly. First remove the remaining containers and then restart Testhub:
+1. It's possible that you are running a container with the same name.
+You have to rename or remove it.
+2. It's possible that a previous Testhub start wasn't cleaned properly.
+First remove the remaining containers and then restart Testhub:
 
    docker compose -f ./doc/docker/compose-local.yaml down -v
-   docker compose -f ./doc/docker/compose-local.yaml up -d --remove-orphans
+   docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
 
 [id=docker-credentials]
 ==== Authentication for pulling Docker images
 
-Testhub components are povided as public Docker images. Authentication with a registry is not neccessary. Depending on your Docker configuration you may run into authentication issues such as these:
+Testhub components are povided as public Docker images.
+Authentication with a registry is not neccessary.
+Depending on your Docker configuration you may run into authentication issues such as these:
 
 ....
 ERROR: (gcloud.auth.docker-helper) There was a problem refreshing your current auth tokens: Reauthentication failed. cannot prompt during non-interactive execution.
@@ -60,10 +111,23 @@ Please run:
   $ gcloud auth login
 ....
 
-This issue is NOT related to Testhub. To fix the problem either:
+This issue is NOT related to Testhub.
+To fix the problem either:
 
 * Authenticate using your credential helper such as the `gcloud` CLI
 * Remove the relevant settings from your https://docs.docker.com/reference/cli/docker/#credential-store-options[docker configuration]
+
+[id=workflow-startup-timeout]
+==== No feedback from workflow Ui, aborting!
+
+If you see this error, the tiger framework was not able to reach the browser within the expected time.
+This usually happens when the Testhub is started on a machine with limited resources or the browser setup is somewhat slow.
+
+You should have a browser window open with the Testhub UI, but it might stay blank for a while.
+If this happens try to reload that tab.
+If you don't see this tab at all, check if the Testhub is running and try to open http://localhost:6800/ in your browser.
+The timeout is set to 120 seconds, so if you can open the UI within that time frame, you should be able to start the workflow without any issues.
+If you are still running into problems, try to increase the timeout in the file tiger.yaml (search for "workflowUiStartTimeoutInSeconds" and increase the value).
 
 [id=docker-permission-denied]
 ==== permission denied while trying to connect to the Docker daemon socket...

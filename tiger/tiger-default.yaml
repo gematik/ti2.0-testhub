@@ -1,28 +1,6 @@
 tigerProxy:
+  trafficEndpoints:
+    - "http://localhost:${ports.remoteTigerProxyAdminPort}"
   activateRbelParsingFor:
     - websocket
     - x509
-
-servers:
-#  card-terminal-client:
-#    environment:
-#      - "JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
-#
-#  vsdm-client:
-#    dockerOptions:
-#      extraHosts:
-#        - popp-zeta-pep:host-gateway
-#        - popp-zeta-pdp:host-gateway
-#        - vsdm-zeta-ingress:host-gateway
-#    environment:
-#      - "POPP_HTTP_URL=http://popp-zeta-pep:443"
-#      - "POPP_WS_URL=ws://popp-zeta-pep:443"
-#      - "VSDM_RESOURCE_SERVER_URL=https://vsdm-zeta-ingress"
-#      - "OTEL_SERVICE_NAME=vsdm-client"
-#      - "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318"
-#      - "JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006"
-#      - "LOGGING_LEVEL_ROOT=DEBUG"
-#      - "ZETASDK_SMCB_ALIAS_PATH=/tmp/zeta/smcb_private.alias.txt"
-#      - "ZETASDK_SMCB_PRIVATE_KEY_PASSWORD_PATH=/tmp/zeta/smcb_private.pw.txt"
-#      - "ZETASDK_SMCB_PRIVATE_KEY_PATH=/tmp/zeta/smcb_private.p12"
-

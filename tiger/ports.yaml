@@ -8,4 +8,5 @@ ports:
   cardTerminalPort: 6200
   remoteTigerProxyAdminPort: 6300
   remoteTigerProxyProxyPort: 6350
-
+  tiConnectTigerProxyAdminPort: 6400
+  tiConnectTigerProxyProxyPort: 6450

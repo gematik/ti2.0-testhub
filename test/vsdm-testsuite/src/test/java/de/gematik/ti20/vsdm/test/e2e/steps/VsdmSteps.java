@@ -68,7 +68,7 @@ public class VsdmSteps {
     OnStage.theActorCalled("Primärsystem")
         .can(CallCardClient.at(resolvePlaceholders("http://127.0.0.1:${ports.cardTerminalPort}")))
         .can(CallVsdmClient.at(resolvePlaceholders("http://127.0.0.1:${ports.vsdmClientPort}")))
-        .can(CallPoppService.at(resolvePlaceholders("http://127.0.0.1:9210")));
+        .can(CallPoppService.at(resolvePlaceholders("http://127.0.0.1:9500")));
   }
 
   @Angenommen("das Primärsystem in der LEI verwendet ein korrekt konfiguriertes Terminal")
@@ -88,7 +88,7 @@ public class VsdmSteps {
 
   @Angenommen("das Primärsystem hat die VSD bereits einmal im Quartal abgefragt")
   public void givenVsdmClientHasAlreadyRequestVsdBefore() {
-    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken("0", null));
+    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken("0", null, true));
     hccs().remember("etag", LastEtag.value().answeredBy(hccs()));
   }
 
@@ -97,12 +97,13 @@ public class VsdmSteps {
     hccs().attemptsTo(GeneratePoppToken.now());
   }
 
-  @Angenommen("der Fachdienst VSDM 2.0 verarbeitet aktuell {int}% der definierten Maximallast")
-  public void givenTheVsdmServiceIsProcessingLoadLevel(int load) {
+  @Angenommen("der Fachdienst VSDM 2.0 wird mit {int} Aufrufen pro Sekunde unter Last gesetzt")
+  public void givenTheVsdmServiceIsProcessingCallsPerSecond(int callsPerSecond) {
     if (VSDM_LOAD_TESTING_ACTIVE.getValueOrDefault()) {
       TigerDirector.pauseExecution(
           String.format(
-              "Bitte legen Sie jetzt eine Hintergrundlast von %d%% der Maximallast an.", load));
+              "Bitte senden Sie jetzt eine Hintergrundlast von durchschnittlich %d Aufrufen pro Sekunde an den Fachdienst VSDM 2.0.",
+              callsPerSecond));
     }
   }
 
@@ -110,7 +111,7 @@ public class VsdmSteps {
   public void whenClientSystemIsRequestingVsdWithAccessAndPoppToken() {
     String etag = Optional.ofNullable(hccs().recall("etag")).orElse("0").toString();
     hccs().attemptsTo(DeleteVsdmDataFromCache.deleteCache());
-    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken(etag, null));
+    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken(etag, null, false));
   }
 
   @Und("der VSDM Ressource Server beim E-Tag-Vergleich einen Unterschied feststellt")
@@ -235,6 +236,7 @@ public class VsdmSteps {
   @Wenn("das Primärsystem {int} Anfragen ohne VSD Update an den Fachdienst VSDM 2.0 sendet")
   public void whenClientSystemIsRequestingVsdPeriodicallyWithoutUpdate(int nbrCalls)
       throws InterruptedException {
+    answerTimes.clear();
     sendReadVsd(nbrCalls, false);
   }
 
@@ -284,7 +286,9 @@ public class VsdmSteps {
     EgkCardInfo egk = hccs().recall("egkCardInfo");
     egk.setIknr("WRONG_IKNR");
     hccs().attemptsTo(GeneratePoppToken.now());
-    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken("0", hccs().recall("poppToken")));
+    hccs()
+        .attemptsTo(
+            RequestVsdFromServer.withEtagAndPoppToken("0", hccs().recall("poppToken"), false));
   }
 
   @Wenn(
@@ -293,7 +297,9 @@ public class VsdmSteps {
     EgkCardInfo egk = hccs().recall("egkCardInfo");
     egk.setIknr("123456789"); // Well-known IK: 109500969
     hccs().attemptsTo(GeneratePoppToken.now());
-    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken("0", hccs().recall("poppToken")));
+    hccs()
+        .attemptsTo(
+            RequestVsdFromServer.withEtagAndPoppToken("0", hccs().recall("poppToken"), false));
   }
 
   @Wenn("das Primärsystem die VSD mit einer ungültigen KV-Nummer vom VSDM Ressource Server abfragt")
@@ -301,7 +307,9 @@ public class VsdmSteps {
     EgkCardInfo egk = hccs().recall("egkCardInfo");
     egk.setKvnr("WRONG_KVNR");
     hccs().attemptsTo(GeneratePoppToken.now());
-    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken("0", hccs().recall("poppToken")));
+    hccs()
+        .attemptsTo(
+            RequestVsdFromServer.withEtagAndPoppToken("0", hccs().recall("poppToken"), false));
   }
 
   @Wenn(
@@ -310,19 +318,21 @@ public class VsdmSteps {
     EgkCardInfo egk = hccs().recall("egkCardInfo");
     egk.setKvnr("X987654321");
     hccs().attemptsTo(GeneratePoppToken.now());
-    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken("0", hccs().recall("poppToken")));
+    hccs()
+        .attemptsTo(
+            RequestVsdFromServer.withEtagAndPoppToken("0", hccs().recall("poppToken"), false));
   }
 
   @Wenn("das Primärsystem die VSD mit einem fehlenden E-Tag vom VSDM Ressource Server abfragt")
   public void whenClientSystemIsRequestingVsdWithWrongEtag() {
     hccs().attemptsTo(DeleteVsdmDataFromCache.deleteCache());
-    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken(null, null));
+    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken(null, null, true));
   }
 
   @Wenn(
       "das Primärsystem die VSD mit einem ungültigen PoPP-Token vom VSDM Ressource Server abfragt")
   public void whenClientSystemIsRequestingVsdWithInvalidPoppToken() {
-    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken("0", "INVALID_POPP_TOKEN"));
+    hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken("0", "INVALID_POPP_TOKEN", true));
   }
 
   @Dann("antwortet der VSDM Ressource Server mit dem Fehlercode {int} und dem Text {string}")
@@ -340,8 +350,11 @@ public class VsdmSteps {
   }
 
   private void sendReadVsd(int nbrCalls, boolean withUpdateVsd) throws InterruptedException {
+    hccs().attemptsTo(GeneratePoppTokenList.now(nbrCalls));
     for (int i = 0; i < nbrCalls; i++) {
-      whenClientSystemIsRequestingVsdWithAccessAndPoppToken();
+      String etag = Optional.ofNullable(hccs().recall("etag")).orElse("0").toString();
+      String poppToken = (String) ((ArrayList<?>) hccs().recall("poppTokens")).get(i);
+      hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken(etag, poppToken, false));
 
       if (withUpdateVsd) {
         andRessourceServerIsFindingDifferentEtag();

@@ -24,10 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import de.gematik.ti20.simsvc.server.config.VsdmConfig;
-import de.gematik.ti20.simsvc.server.service.ChecksumService;
-import de.gematik.ti20.simsvc.server.service.EtagService;
-import de.gematik.ti20.simsvc.server.service.FhirService;
-import de.gematik.ti20.simsvc.server.service.VsdmService;
+import de.gematik.ti20.simsvc.server.service.*;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Base64;
 import org.hl7.fhir.r4.model.Bundle;
@@ -45,25 +42,48 @@ import org.springframework.web.server.ResponseStatusException;
 @ExtendWith(MockitoExtension.class)
 class VsdmControllerV1Test {
 
+  private String VALID_USER_INFO =
+      Base64.getEncoder()
+          .encodeToString(
+              """
+            {
+              "subject": "subject",
+              "commonName": "commonName",
+              "identifier": "1-20014060625",
+              "professionOID": "1.2.276.0.76.4.50"
+            }
+                """
+                  .getBytes());
+
   @Mock private VsdmService vsdmService;
   @Mock private FhirService fhirService;
   @Mock private ChecksumService checksumService;
   @Mock private EtagService etagService;
+  private UserInfoValidationService userInfoValidationService;
 
   @Mock private HttpServletRequest request;
 
   private VsdmControllerV1 vsdmController;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws Exception {
     VsdmConfig vsdmConfig = new VsdmConfig();
     vsdmConfig.setIknr("109500969");
     vsdmConfig.setValidKvnrPrefix("X1234");
     vsdmConfig.setInvalidKvnrPrefix("X4321");
     vsdmConfig.setUnknownKvnrPrefix("X9");
 
+    userInfoValidationService = new UserInfoValidationService();
+    userInfoValidationService.init();
+
     vsdmController =
-        new VsdmControllerV1(vsdmConfig, vsdmService, fhirService, checksumService, etagService);
+        new VsdmControllerV1(
+            vsdmConfig,
+            vsdmService,
+            fhirService,
+            checksumService,
+            etagService,
+            userInfoValidationService);
 
     request = mock(HttpServletRequest.class);
     when(request.getHeader("zeta-popp-token-content")).thenReturn("mock-popp-token");
@@ -100,7 +120,7 @@ class VsdmControllerV1Test {
 
     String responseBody = "{\"resourceType\":\"Bundle\"}";
     Resource mockResource = new Bundle();
-    String userInfo = "mock-user-info";
+    String userInfo = VALID_USER_INFO;
     String etag = "0";
 
     when(etagService.checkEtag(kvnr, etag)).thenReturn(false);
@@ -129,7 +149,7 @@ class VsdmControllerV1Test {
 
     String responseBody = "{\"resourceType\":\"Bundle\"}";
     Resource mockResource = new Bundle();
-    String userInfo = "mock-user-info";
+    String userInfo = VALID_USER_INFO;
     String etag = "0";
 
     String expectedContentType = "application/fhir+json";
@@ -161,7 +181,7 @@ class VsdmControllerV1Test {
     String responseBodyWithUmlaut =
         "{\"resourceType\":\"Bundle\",\"name\":\"Müller\",\"city\":\"München\"}";
     Resource mockResource = new Bundle();
-    String userInfo = "mock-user-info";
+    String userInfo = VALID_USER_INFO;
     String etag = "0";
 
     when(etagService.checkEtag(kvnr, etag)).thenReturn(false);
@@ -190,7 +210,7 @@ class VsdmControllerV1Test {
     String iknr = "109500969";
     String poppTokenContentCoded = makePoppTokenContentCoded(kvnr, iknr);
 
-    String userInfo = "mock-user-info";
+    String userInfo = VALID_USER_INFO;
     String etag = "123456789";
 
     when(etagService.checkEtag(kvnr, etag)).thenReturn(true);
@@ -275,12 +295,71 @@ class VsdmControllerV1Test {
   }
 
   @Test
+  void testVsdmbundle_InvalidUserInfo_Base64EncodingWrong() {
+    String kvnr = "X123456789";
+    String iknr = "109500969";
+    String poppTokenContentCoded = makePoppTokenContentCoded(kvnr, iknr);
+    String userInfo = "INVALID";
+    String etag = "123456789";
+
+    ResponseStatusException exception =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> vsdmController.vsdmbundle(poppTokenContentCoded, userInfo, etag, request));
+
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    assertEquals("SERVICE_MISSING_OR_INVALID_HEADER", exception.getReason());
+  }
+
+  @Test
+  void testVsdmbundle_InvalidUserInfo_MissingFieldsInClaims() {
+    String kvnr = "X123456789";
+    String iknr = "109500969";
+    String poppTokenContentCoded = makePoppTokenContentCoded(kvnr, iknr);
+
+    String userInfoMissingFields =
+        """
+          {
+              "foo": "bar"
+            }
+          """;
+    String userInfo = Base64.getEncoder().encodeToString(userInfoMissingFields.getBytes());
+
+    String etag = "123456789";
+
+    ResponseStatusException exception =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> vsdmController.vsdmbundle(poppTokenContentCoded, userInfo, etag, request));
+
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    assertEquals("SERVICE_MISSING_OR_INVALID_HEADER", exception.getReason());
+  }
+
+  @Test
+  void testVsdmbundle_MissingUserInfo() {
+    String kvnr = "X123456789";
+    String iknr = "109500969";
+    String poppTokenContentCoded = makePoppTokenContentCoded(kvnr, iknr);
+
+    String etag = "123456789";
+
+    ResponseStatusException exception =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> vsdmController.vsdmbundle(poppTokenContentCoded, null, etag, request));
+
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    assertEquals("SERVICE_MISSING_OR_INVALID_HEADER", exception.getReason());
+  }
+
+  @Test
   void testVsdmbundle_UnknownIK() {
     String kvnr = "X123456789";
     String iknr = "987654321";
     String poppTokenContentCoded = makePoppTokenContentCoded(kvnr, iknr);
 
-    String userInfo = "mock-user-info";
+    String userInfo = VALID_USER_INFO;
     String etag = "123456789";
 
     ResponseStatusException exception =
@@ -298,7 +377,7 @@ class VsdmControllerV1Test {
     String iknr = "9876543210";
     String poppTokenContentCoded = makePoppTokenContentCoded(kvnr, iknr);
 
-    String userInfo = "mock-user-info";
+    String userInfo = VALID_USER_INFO;
     String etag = "123456789";
 
     ResponseStatusException exception =

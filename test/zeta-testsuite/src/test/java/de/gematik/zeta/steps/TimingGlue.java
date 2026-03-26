@@ -52,8 +52,9 @@ import de.gematik.test.tiger.lib.reports.SerenityReportUtils;
 import io.cucumber.java.de.Dann;
 import io.cucumber.java.en.Then;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -91,7 +92,7 @@ public class TimingGlue {
   @Dann("logge alle Nachrichten")
   @Then("log all messages")
   public void logAllMessages() {
-    var messages = RbelMessageRetriever.getInstance().getRbelMessages();
+    var messages = RbelMessageRetriever.getInstance().getMessageHistory().getMessages();
     logAllMessages(messages);
   }
 
@@ -101,22 +102,21 @@ public class TimingGlue {
    *
    * @param messages the list of RBEL messages to log; may be {@code null}
    */
-  public void logAllMessages(List<RbelElement> messages) {
+  public void logAllMessages(Collection<RbelElement> messages) {
     if (messages == null) {
       log.info("RBEL messages recorded: 0");
       return;
     }
     log.info("RBEL messages recorded: {}", messages.size());
-    IntStream.range(0, messages.size())
-        .forEachOrdered(
-            i -> {
-              var m = messages.get(i);
-              var tracingMessagePairFacet =
-                  requireFacet(m, TracingMessagePairFacet.class, "message " + m.getUuid());
-              log.info("[{}] Pair UUID {}", String.format("%03d", i), m.getUuid());
-              this.getDurationBetweenRequestAndResponse(
-                  tracingMessagePairFacet.getRequest(), tracingMessagePairFacet.getResponse());
-            });
+    AtomicInteger i = new AtomicInteger(0);
+    messages.forEach(
+        m -> {
+          var tracingMessagePairFacet =
+              requireFacet(m, TracingMessagePairFacet.class, "message " + m.getUuid());
+          log.info("[{}] Pair UUID {}", String.format("%03d", i.getAndIncrement()), m.getUuid());
+          this.getDurationBetweenRequestAndResponse(
+              tracingMessagePairFacet.getRequest(), tracingMessagePairFacet.getResponse());
+        });
   }
 
   /**
@@ -129,7 +129,7 @@ public class TimingGlue {
   @Dann("gebe die Antwortzeit vom aktuellen Nachrichtenpaar aus")
   @Then("show response time of current message pair")
   public void showResponseTimeOfCurrentMessagePair() {
-    var messages = RbelMessageRetriever.getInstance().getRbelMessages();
+    var messages = RbelMessageRetriever.getInstance().getMessageHistory().getMessages();
     if (messages == null || messages.isEmpty()) {
       throw new AssertionError("No RBEL messages recorded – cannot determine response time.");
     }
@@ -159,7 +159,7 @@ public class TimingGlue {
    * @throws AssertionError if a message lacks the required tracing facet
    */
   public RbelElement findResponseForRequest(
-      @NonNull List<RbelElement> messages, @NonNull RbelElement request) {
+      @NonNull Collection<RbelElement> messages, @NonNull RbelElement request) {
     return messages.isEmpty()
         ? null
         : messages.stream()

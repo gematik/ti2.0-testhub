@@ -7,8 +7,8 @@ services:
       - "8223:8080"
     volumes:
       - ./popp-tiger-ingress.yaml:/app/application.yaml:ro
-    environment:
-      - TIGER_TIGERPROXY_PROXYPORT=80
+    networks:
+      - testhub_backend
 
   testhub-popp-server:
     container_name: testhub-popp-server
@@ -23,6 +23,8 @@ services:
       - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5009"
     depends_on:
       - otel-collector
+    networks:
+      - testhub_backend
 
   popp-zeta-pep:
     container_name: popp-zeta-pep
@@ -43,6 +45,8 @@ services:
       - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5007"
     depends_on:
       - otel-collector
+    networks:
+      - testhub_backend
 
   popp-zeta-pdp:
     container_name: popp-zeta-pdp
@@ -57,11 +61,18 @@ services:
       - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5008"
     depends_on:
       - otel-collector
+    networks:
+      - testhub_backend
 
   popp-token-generator:
     container_name: popp-token-generator
-    image: gematik1/popp-token-generator:1.0.7
+    image: gematik1/popp-token-generator:1.0.8
     ports:
       - "9500:80"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - testhub_backend
+
+networks:
+  testhub_backend:

@@ -9,6 +9,8 @@ services:
       - ./zeta/ingress/certs:/etc/nginx/certs:ro
     depends_on:
       - vsdm-zeta-pep
+    networks:
+      - testhub_backend
 
   vsdm-server:
     container_name: vsdm-server
@@ -26,6 +28,8 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5012"
       # - VSDM_PATH_TO_TEST_DATA=/opt/custom-test-data
+    networks:
+      - testhub_backend
 
   vsdm-zeta-pep:
     image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:0.3.0
@@ -40,6 +44,8 @@ services:
         condition: service_healthy
       vsdm-server:
         condition: service_started # TODO: change to "service_healthy" when healthcheck is available
+    networks:
+      - testhub_backend
 
   vsdm-zeta-pdp:
     image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:0.3.2
@@ -90,6 +96,8 @@ services:
     command: ["start-dev","--import-realm"] # ,"--http-relative-path=/auth","--hostname-strict=false"
     depends_on:
       - vsdm-zeta-pdp-db
+    networks:
+      - testhub_backend
 
   vsdm-zeta-pdp-db:
     container_name: vsdm-zeta-pdp-db
@@ -100,6 +108,8 @@ services:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak_db_user
       POSTGRES_PASSWORD: keycloak_db_user_password
+    networks:
+      - testhub_backend
 
   vsdm-zeta-pdp-opa:
     image: openpolicyagent/opa:1.11.0-static
@@ -113,7 +123,12 @@ services:
       - '/policies/authz.rego'
     volumes:
       - ./zeta/policies/authz.rego:/policies/authz.rego:ro
+    networks:
+      - testhub_backend
 
 volumes:
   postgres_data:
     driver: local
+
+networks:
+  testhub_backend:

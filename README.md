@@ -42,18 +42,41 @@ ZETA requires an SMC-B certificate to work. Follow these steps:
 
 ## Start Docker Containers
 
-1. Build required Docker images locally: 
+1. Build required Docker images locally:
    ```bash
     ./mvnw clean install -Pdocker -DskipTests
     ```
 2. Remove Docker containers from previous runs:
     ```bash
-    docker compose -f ./doc/docker/compose-local.yaml down -v
+    docker compose -f ./doc/docker/compose-local.yaml --profile full down -v
     ```
 3. Start Docker containers:
     ```bash
-    docker compose -f ./doc/docker/compose-local.yaml up -d --remove-orphans
+    docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
     ```
+
+### Docker Compose Profiles
+
+The following profiles are available:
+
+| Profile        | Description                                                                     |
+|----------------|---------------------------------------------------------------------------------|
+| `full`         | Full stack: Backend + Tiger-Proxies + Clients (traffic routed via tiger-proxy)  |
+| `backend-only` | Backend services only (no tiger-proxies, no clients)                            |
+| `perf`         | Performance testing: Backend + Clients (direct backend access, bypassing proxy) |
+
+**Usage examples:**
+
+```bash
+# Full stack
+docker compose -f ./doc/docker/compose-local.yaml --profile full up -d
+
+# Backend only
+docker compose -f ./doc/docker/compose-local.yaml --profile backend-only up -d
+
+# Performance testing (clients bypass tiger-proxy)
+docker compose -f ./doc/docker/compose-local.yaml --profile perf up -d
+```
 
 # Usage
 
@@ -66,7 +89,6 @@ To verify Testhub is working as expected run the VSDM2 integration tests:
 ```
 
 Additional E2E tests can be found in `test/`.
-
 
 ## Running Tests Manually
 

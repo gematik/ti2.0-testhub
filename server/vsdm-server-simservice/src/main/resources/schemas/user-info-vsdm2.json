@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Schema for the extended user-info JSON object (VSDM2). Based on https://raw.githubusercontent.com/gematik/spec-t20r/refs/heads/main/src/schemas/user-info.yaml and extended with VSDM2-specific properties.",
+  "type": "object",
+  "properties": {
+    "subject": {
+      "type": "string",
+      "description": "Subject identifier of the user"
+    },
+    "identifier": {
+      "type": "string",
+      "description": "Identifier of the user"
+    },
+    "professionOID": {
+      "type": "string",
+      "description": "OID of the profession"
+    },
+    "organizationName": {
+      "type": "string",
+      "description": "Name of the organization"
+    },
+    "commonName": {
+      "type": "string",
+      "description": "Common name of the organization"
+    }
+  },
+  "required": [
+    "identifier",
+    "professionOID"
+  ],
+  "additionalProperties": true
+}
+

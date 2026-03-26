@@ -38,8 +38,39 @@ den folgenden Komponenten:
 * PoPP Server Mock (PoPP Token Generator)
 * VSDM Server Simulator
 
-Sämtliche Tests der VSDM-Testsuite setzen diese simulierten Dienste voraus. Diese können mit wenigen Kommandos in einem
-geeigneten Unix-Terminal gestartet werden. Siehe dazu: [Getting Started](../../README.md#getting-started)
+Sämtliche Tests der VSDM-Testsuite setzen diese simulierten Dienste voraus. Diese können mit folgenden Befehlen als
+Docker-Container gestartet werden: (Die Befehle sollten im Projekt-Root-Verzeichnis ausgeführt werden.)
+
+```bash
+# Build Docker images
+./mvnw clean install -Pdocker -DskipTests
+
+# Start containers
+docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
+```
+
+### Profile
+
+Der TestHub unterstützt verschiedene Docker Compose Profile:
+
+| Profil         | Beschreibung                                                           |
+|----------------|------------------------------------------------------------------------|
+| `full`         | Backend + Tiger-Proxies + Clients über Proxy                           |
+| `backend-only` | Nur Backend-Services (keine Tiger-Proxies, keine Clients)              |
+| `perf`         | Backend + Clients mit direktem Backend-Zugriff (für Performance-Tests) |
+
+Beispiele:
+
+```bash
+# Full stack
+docker compose -f ./doc/docker/compose-local.yaml --profile full up -d
+
+# Nur Backend
+docker compose -f ./doc/docker/compose-local.yaml --profile backend-only up -d
+
+# Performance-Profil (Clients umgehen Tiger-Proxy)
+docker compose -f ./doc/docker/compose-local.yaml --profile perf up -d
+```
 
 Die untere Grafik zeigt den TI 2.0 TestHub in seiner aktuellen Ausbaustufe. Die VSDM 2.0 Testsuite sendet Anfragen an
 den Card, den PoPP und den VSDM Client Simulator. Diese kommunizieren mit den jeweiligen Server Simulatoren.
@@ -106,6 +137,13 @@ Die Lasttests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis ge
 
 Die VSDM 2.0 Testsuite enthält mehrere Lasttest-Simulationen basierend auf Gatling, welche sich im Ablauf unterscheiden
 und für unterschiedliche Zwecke einsetzbar sind.
+
+> [!TIP]
+> Für Performance-Tests empfiehlt sich das `perf` Profil, da hierbei die Clients direkt mit dem Backend kommunizieren
+> und der Tiger-Proxy umgangen wird:
+> ```bash
+> docker compose -f doc/docker/compose-local.yaml --profile perf up -d
+> ```
 
 ### GeneratePoppTokenSimulation.java
 

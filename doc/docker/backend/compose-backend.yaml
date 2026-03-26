@@ -48,5 +48,5 @@ volumes:
 
 networks:
   default:
-    name: testhub_network
+    name: testhub_backend
 

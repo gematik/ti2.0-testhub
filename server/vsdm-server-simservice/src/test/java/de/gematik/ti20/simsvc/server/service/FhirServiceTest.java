@@ -101,6 +101,8 @@ class FhirServiceTest {
     String result = fhirService.encodeResponse(resource, request, headers);
 
     assertNotNull(result);
+    assertEquals("{\"resourceType\":\"Patient\"}", result);
+
     assertEquals(MediaType.FHIR_JSON.asString(), headers.getFirst("Content-Type"));
   }
 
@@ -113,6 +115,8 @@ class FhirServiceTest {
     String result = fhirService.encodeResponse(resource, request, headers);
 
     assertNotNull(result);
+    assertEquals("<Patient xmlns=\"http://hl7.org/fhir\"/>", result);
+
     assertEquals(MediaType.FHIR_XML.asString(), headers.getFirst("Content-Type"));
   }
 
