@@ -4,17 +4,10 @@ tigerProxy:
   activateRbelParsingFor:
     - websocket
   proxyRoutes:
-    - from: /
-      hosts: ["popp-zeta-pep"]
-      to: http://popp-zeta-pep
-    - from: /
-      hosts: ["popp-zeta-pdp"]
+    - from: /auth
       to: http://popp-zeta-pdp
-
-    - from: /pep
+    - from: /
       to: http://popp-zeta-pep
-    - from: /pdp
-      to: http://popp-zeta-pdp
   modifications:
     - condition: '$.path =^ "/auth/realms/zeta-guard/"'
       targetElement: "$.header.X-Forwarded-For"

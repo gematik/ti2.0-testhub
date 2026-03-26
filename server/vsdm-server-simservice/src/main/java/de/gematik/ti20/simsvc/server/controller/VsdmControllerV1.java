@@ -28,13 +28,13 @@ import de.gematik.ti20.simsvc.server.model.PoppTokenContent;
 import de.gematik.ti20.simsvc.server.service.ChecksumService;
 import de.gematik.ti20.simsvc.server.service.EtagService;
 import de.gematik.ti20.simsvc.server.service.FhirService;
+import de.gematik.ti20.simsvc.server.service.UserInfoValidationService;
 import de.gematik.ti20.simsvc.server.service.VsdmService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.jena.sparql.function.library.leviathan.root;
 import org.hl7.fhir.r4.model.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -56,6 +56,7 @@ public class VsdmControllerV1 {
   private final FhirService fhirService;
   private final ChecksumService checksumService;
   private final EtagService etagService;
+  private final UserInfoValidationService userInfoValidationService;
 
   private static final Pattern VALID_IKNR_PATTERN = Pattern.compile("^[0-9]{9}$");
   private static final Pattern VALID_KVNR_PATTERN = Pattern.compile("^[A-Z][0-9]{8}[A-Z,0-9]$");
@@ -67,25 +68,29 @@ public class VsdmControllerV1 {
       @Autowired VsdmService vsdmService,
       @Autowired FhirService fhirService,
       @Autowired ChecksumService checksumService,
-      @Autowired EtagService etagService) {
+      @Autowired EtagService etagService,
+      @Autowired UserInfoValidationService userInfoValidationService) {
     this.vsdmConfig = vsdmConfig;
     this.vsdmService = vsdmService;
     this.fhirService = fhirService;
     this.checksumService = checksumService;
     this.etagService = etagService;
+    this.userInfoValidationService = userInfoValidationService;
   }
 
-  @GetMapping(value = "/vsdmbundle", produces = "application/fhir+json")
+  @GetMapping(
+      value = "/vsdmbundle",
+      produces = {"application/fhir+json", "application/fhir+xml"})
   public ResponseEntity<?> vsdmbundle(
       @RequestHeader(value = "zeta-popp-token-content", required = false)
           final String poppTokenContentCoded,
-      @RequestHeader(value = "zeta-user-info", required = false, defaultValue = "mock-user-info")
-          final String _userInfo,
+      @RequestHeader(value = "zeta-user-info", required = false) final String userInfo,
       @RequestHeader(value = "if-none-match", required = false, defaultValue = "0")
           final String ifNoneMatch,
       final HttpServletRequest request) {
     log.info("Received request for readVsd");
     validateHeaders(request);
+    userInfoValidationService.validateUserInfo(userInfo);
 
     final HttpHeaders responseHeaders = new HttpHeaders();
 
@@ -107,7 +112,6 @@ public class VsdmControllerV1 {
     checksumService.addChecksumHeader(kvnr, responseHeaders);
     etagService.addEtagHeader(kvnr, responseBody, responseHeaders);
 
-    responseHeaders.add("Content-Type", "application/fhir+json");
     return new ResponseEntity<>(responseBody, responseHeaders, HttpStatus.OK);
   }
 

@@ -48,20 +48,43 @@ Each service can be configured via environment variables. Key configuration opti
 
 === Docker Compose Profiles
 
-The project uses different Docker Compose profiles for various scenarios:
+The Testhub supports different startup profiles for various use cases:
 
-*VSDM Test Setup* (default):
+[cols="1,3", options="header"]
+|===
+| Profile
+| Description
+
+| _(default)_
+| Backend + Tiger-Proxies + Clients via proxy. Use this for normal development and testing.
+
+| `perf`
+| Backend + Tiger-Proxies + Clients with direct backend access. Use this for performance testing as it bypasses the Tiger-Proxy.
+
+| `backend-only`
+| Backend services only (no Tiger-Proxies, no clients). Use this when you want to run your own client implementation against the backend.
+|===
+
+==== Starting with Profiles
+
+Use Docker Compose with the appropriate profile:
 
 [source,bash]
 ----
-./doc/bin/vsdm/docker-compose-local-restart.sh
-----
+# Build Docker images first
+./mvnw clean install -Pdocker -DskipTests
 
-*PoPP Test Setup*:
+# Start full stack (default)
+docker compose -f doc/docker/compose-local.yaml up -d
 
-[source,bash]
-----
-docker compose -f doc/docker/compose-local.yaml --profile popp up
+# Start with performance profile (clients bypass Tiger-Proxy)
+docker compose -f doc/docker/compose-local.yaml --profile perf up -d
+
+# Start backend only (no clients)
+docker compose -f doc/docker/compose-local.yaml --profile backend-only up -d
+
+# Stop all containers (all profiles)
+docker compose -f doc/docker/compose-local.yaml --profile perf --profile backend-only down -v
 ----
 
 === Custom Configuration
@@ -70,3 +93,4 @@ To customize service configuration:
 
 1.  Edit `doc/docker/compose-local.yaml` for Docker Compose setup
 2. Or create custom `application-<profile>.yaml` files in each service's `src/main/resources` directory
+

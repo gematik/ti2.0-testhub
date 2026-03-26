@@ -3,10 +3,75 @@ name: "testhub-local"
 include:
   - ./backend/compose-backend.yaml
 
+networks:
+  testhub_client:
+  testhub_backend:
+
+# Profiles:
+#   (no profile)  - Backend + Tiger-Proxies + Clients (via tiger-proxy) [default]
+#   backend-only  - Backend only (no tiger-proxies, no clients)
+#   perf          - Backend + Tiger-Proxies + Clients (direct backend access, bypassing proxy)
+#
+# Usage:
+#   docker compose up                          # full stack (default)
+#   docker compose --profile backend-only up   # backend only
+#   docker compose --profile perf up           # with clients direct (performance testing)
+
+# ==================== YAML Anchors ====================
+x-card-terminal-client-base: &card-terminal-client-base
+  build: ../../client/card-terminal-client-simservice
+  image: de.gematik.ti20.simsvc.client/card-terminal-client-simservice:local
+  container_name: card-terminal-client
+  healthcheck:
+    test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:80/service/status" ]
+    interval: 10s
+    timeout: 10s
+    retries: 3
+  ports:
+    - "6200:80"
+    - "5005:5005"
+
+x-vsdm-client-base: &vsdm-client-base
+  build: ../../client/vsdm-client-simservice-java
+  image: de.gematik.ti20.simsvc.client/vsdm-client-simservice:local
+  container_name: vsdm-client
+  healthcheck:
+    test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:80/service/status" ]
+    interval: 10s
+    timeout: 10s
+    retries: 3
+  ports:
+    - "6100:80"
+    - "5006:5006"
+  volumes:
+    - ./backend/zeta/smcb-private/smcb_private.p12:/tmp/zeta/smcb_private.p12:ro
+  environment:
+    - POPP_HTTP_URL=http://popp-zeta-pep:80
+    - POPP_WS_URL=ws://popp-zeta-pep:80
+    - POPP_TOKEN_GENERATOR_URL=http://popp-token-generator:80
+    - VSDM_RESOURCE_SERVER_URL=https://vsdm-zeta-ingress
+    - OTEL_SERVICE_NAME=vsdm-client
+    - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
+    - ZETASDK_SMCB_ALIAS=alias
+    - ZETASDK_SMCB_PRIVATE_KEY_PASSWORD=00
+    - ZETASDK_SMCB_PRIVATE_KEY_PATH=/tmp/zeta/smcb_private.p12
+
+# ==================== Services ====================
 services:
   docker-tiger-proxy:
-    image: gematik1/tiger-proxy-image:4.1.16
+    image: gematik1/tiger-proxy-image:4.2.1
     container_name: docker-tiger-proxy
+    networks:
+      testhub_client:
+        aliases:
+          - popp-ru-dev-interim.int.epa.rise-link.de
+          - popp-ingress
+          - popp-zeta-pep
+          - popp-zeta-pdp
+          - popp-token-generator
+          - vsdm-zeta-ingress
+      testhub_backend:
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:8080/actuator/health" ]
       interval: 10s
@@ -19,45 +84,46 @@ services:
       - ./remoteTigerProxy/application.yaml:/app/application.yaml:ro
       - ./remoteTigerProxy/tigerProxy.p12:/app/tigerProxy.p12:ro
 
-  card-terminal-client:
-    build: ../../client/card-terminal-client-simservice
-    image: de.gematik.ti20.simsvc.client/card-terminal-client-simservice:local
-    container_name: card-terminal-client
+  ti-connect-tiger-proxy:
+    image: gematik1/tiger-proxy-image:4.2.1
+    container_name: ti-connect-tiger-proxy
+    networks:
+      - testhub_backend
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:80/service/status" ]
+      test: [ "CMD", "curl", "-f", "http://127.0.0.1:8080/actuator/health" ]
       interval: 10s
       timeout: 10s
       retries: 3
     ports:
-      - "6200:80"
-      - "5005:5005"
+      - "6400:8080"
+      - "6450:9090"
+    volumes:
+      - ./tiConnectTigerProxy/application.yaml:/app/application.yaml:ro
+      - ./tiConnectTigerProxy/tigerProxy.p12:/app/tigerProxy.p12:ro
+
+  # ==================== Default (via tiger-proxy) ====================
+  card-terminal-client:
+    <<: *card-terminal-client-base
+    profiles: [ "full" ]
+    networks:
+      - testhub_client
 
   vsdm-client:
-    build: ../../client/vsdm-client-simservice-java
-    image: de.gematik.ti20.simsvc.client/vsdm-client-simservice:local
-    container_name: vsdm-client
-    healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:80/service/status" ]
-      interval: 10s
-      timeout: 10s
-      retries: 3
-    ports:
-      - "6100:80"
-      - "5006:5006"
-    volumes:
-      - ./backend/zeta/smcb-private/smcb_private.p12:/tmp/zeta/smcb_private.p12:ro
-    environment:
-      - POPP_HTTP_URL=http://popp-zeta-pep:80
-      - POPP_WS_URL=ws://popp-zeta-pep:80
-      - POPP_TOKEN_GENERATOR_URL=http://popp-token-generator:80
-      - VSDM_RESOURCE_SERVER_URL=https://vsdm-zeta-ingress
-      - OTEL_SERVICE_NAME=vsdm-client
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
-      - ZETASDK_SMCB_ALIAS=alias
-      - ZETASDK_SMCB_PRIVATE_KEY_PASSWORD=00
-      - ZETASDK_SMCB_PRIVATE_KEY_PATH=/tmp/zeta/smcb_private.p12
+    <<: *vsdm-client-base
+    profiles: [ "full" ]
+    networks:
+      - testhub_client
 
-networks:
-  default:
-    name: testhub_network
+  # ==================== Perf Profile (direct backend access) ====================
+  card-terminal-client-perf:
+    <<: *card-terminal-client-base
+    profiles: [ "perf" ]
+    networks:
+      - testhub_backend
+
+  vsdm-client-perf:
+    <<: *vsdm-client-base
+    profiles: [ "perf" ]
+    networks:
+      - testhub_backend
+

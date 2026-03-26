@@ -5,7 +5,7 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>
@@ -39,7 +39,7 @@
         <version.maven.surefire>3.5.4</version.maven.surefire>
         <version.maven.failsafe>3.3.1</version.maven.failsafe>
         <version.maven.jacoco>0.8.14</version.maven.jacoco>
-        <version.tiger>4.1.16</version.tiger>
+        <version.tiger>4.2.4</version.tiger>
         <version.tiger-cloud-extension>4.1.17</version.tiger-cloud-extension>
         <version.serenity>4.2.30</version.serenity>
         <version.gem.testdata>1.0.10</version.gem.testdata>
@@ -48,6 +48,7 @@
         <version.gem.bbriccs>0.9.0</version.gem.bbriccs>
         <version.pact.consumer>4.6.17</version.pact.consumer>
         <version.gatling.highcharts>3.13.5</version.gatling.highcharts>
+        <version.json-schema-validator>2.0.0</version.json-schema-validator>
         <mycila.license-maven-plugin.version>5.0.0</mycila.license-maven-plugin.version>
         <version.maven.format>2.29</version.maven.format>
         <version.maven.surefire>3.5.2</version.maven.surefire>
@@ -194,6 +195,11 @@
                 <version>5.2.0</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.networknt</groupId>
+                <artifactId>json-schema-validator</artifactId>
+                <version>${version.json-schema-validator}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

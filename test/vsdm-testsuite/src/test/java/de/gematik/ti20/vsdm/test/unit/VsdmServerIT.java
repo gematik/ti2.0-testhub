@@ -55,7 +55,10 @@ class VsdmServerIT {
   private static final String MOCK_POPP_TOKEN_INVALID_IKNR =
       makePoppTokenContentCoded("X110639491", "10950097123");
 
-  private static final String MOCK_USER_INFO = "MOCK_USER_INFO";
+  private static final String MOCK_USER_INFO = makeUserInfoCoded();
+
+  private static final String ACCEPT_JSON = "application/fhir+json";
+  private static final String ACCEPT_XML = "application/fhir+xml";
 
   private static OkHttpClient httpClient;
   private static FhirCodec fhirCodec;
@@ -87,14 +90,66 @@ class VsdmServerIT {
     return poppTokenContentCoded;
   }
 
+  private static String makeUserInfoCoded() {
+    String userInfo =
+        String.format(
+            """
+                {
+                  "subject": "subject",
+                  "commonName": "commonName",
+                  "identifier": "1-20014060625",
+                  "professionOID": "1.2.276.0.76.4.50"
+                }
+                    """);
+    String userInfoCoded = Base64.getEncoder().encodeToString(userInfo.getBytes());
+    return userInfoCoded;
+  }
+
   @Test
   @Order(1)
-  void testCallSuccessful() throws Exception {
-    final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "0");
+  void testCallSuccessfulFhirJson() throws Exception {
+    final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
     assertEquals(200, result.response.code());
-    assertNotNull(result.response.body());
-    assertNotEquals("", result.response.body());
+    assertNotNull(result.responseBody);
+    assertNotEquals("", result.responseBody);
+
+    assertTrue(result.responseBody.startsWith("{\"resourceType\":\"Bundle\","));
+    assertEquals("application/fhir+json", result.response.header("Content-Type"));
+
+    final VsdmBundle vsdmBundle = (VsdmBundle) result.resource;
+    assertNotNull(vsdmBundle);
+
+    final Patient patient = (Patient) vsdmBundle.getEntry().get(0).getResource();
+    assertNotNull(patient);
+    assertEquals("Kriemhild", patient.getName().get(0).getGiven().get(0).getValue());
+
+    final Organization organization = (Organization) vsdmBundle.getEntry().get(1).getResource();
+    assertNotNull(organization);
+    assertEquals("Test GKV Krankenkasse", organization.getName());
+
+    final Coverage coverage = (Coverage) vsdmBundle.getEntry().get(2).getResource();
+    assertNotNull(coverage);
+    System.out.println("Coverage Payor Display: " + coverage.getPayor().get(0).getDisplay());
+    assertTrue(
+        coverage
+            .getPayor()
+            .get(0)
+            .getReference()
+            .startsWith("https://gematik.de/fhir/Organization/"));
+  }
+
+  @Test
+  @Order(1)
+  void testCallSuccessfulFhirXml() throws Exception {
+    final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "0", ACCEPT_XML);
+
+    assertEquals(200, result.response.code());
+    assertNotNull(result.responseBody);
+    assertNotEquals("", result.responseBody);
+
+    assertTrue(result.responseBody.startsWith("<Bundle xmlns=\"http://hl7.org/fhir\">"));
+    assertEquals("application/fhir+xml", result.response.header("Content-Type"));
 
     final VsdmBundle vsdmBundle = (VsdmBundle) result.resource;
     assertNotNull(vsdmBundle);
@@ -121,7 +176,8 @@ class VsdmServerIT {
   @Test
   @Order(1)
   void testCallSuccessfulWithSyntheticData() throws Exception {
-    final Result result = callOnce(MOCK_POPP_TOKEN_SYNTHETIC_DATA, MOCK_USER_INFO, "0");
+    final Result result =
+        callOnce(MOCK_POPP_TOKEN_SYNTHETIC_DATA, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
     assertEquals(200, result.response.code());
     assertNotNull(result.response.body());
@@ -152,13 +208,13 @@ class VsdmServerIT {
   @Test
   @Order(1)
   public void testCallNotModified() throws Exception {
-    final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "1");
+    final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "1", ACCEPT_JSON);
     assertEquals(200, result.response.code());
 
     final String etag = result.response.header("etag");
     assertNotNull(etag);
 
-    final Result result2 = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, etag);
+    final Result result2 = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, etag, ACCEPT_JSON);
     assertEquals(304, result2.response.code());
 
     assertNotNull(result2.response.header("etag"));
@@ -170,7 +226,7 @@ class VsdmServerIT {
   @Test
   @Order(2)
   public void testUnknownKVNR() throws Exception {
-    final Result result = callOnce(MOCK_POPP_TOKEN_UNKNOWN_KVNR, MOCK_USER_INFO, "0");
+    final Result result = callOnce(MOCK_POPP_TOKEN_UNKNOWN_KVNR, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
     assertEquals(400, result.response.code());
     assertNotNull(result.response.body());
@@ -189,7 +245,7 @@ class VsdmServerIT {
   @Test
   @Order(3)
   public void testUnknownIKNR() throws Exception {
-    final Result result = callOnce(MOCK_POPP_TOKEN_UNKNOWN_IKNR, MOCK_USER_INFO, "0");
+    final Result result = callOnce(MOCK_POPP_TOKEN_UNKNOWN_IKNR, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
     assertEquals(400, result.response.code());
     assertNotNull(result.response.body());
@@ -207,7 +263,7 @@ class VsdmServerIT {
   @Test
   @Order(3)
   public void testInvalidIKNR() throws Exception {
-    final Result result = callOnce(MOCK_POPP_TOKEN_INVALID_IKNR, MOCK_USER_INFO, "0");
+    final Result result = callOnce(MOCK_POPP_TOKEN_INVALID_IKNR, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
     assertEquals(400, result.response.code());
     assertNotNull(result.response.body());
@@ -225,7 +281,7 @@ class VsdmServerIT {
   @Test
   @Order(4)
   public void testMissingPoppToken() throws Exception {
-    final Result result = callOnce(null, MOCK_USER_INFO, "0");
+    final Result result = callOnce(null, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
     assertEquals(400, result.response.code());
     assertNotNull(result.response.body());
@@ -243,7 +299,25 @@ class VsdmServerIT {
   @Test
   @Order(5)
   public void testMissingUserInfo() throws Exception {
-    final Result result = callOnce(MOCK_POPP_TOKEN, null, "0");
+    final Result result = callOnce(MOCK_POPP_TOKEN, null, "0", ACCEPT_JSON);
+
+    assertEquals(400, result.response.code());
+    assertNotNull(result.response.body());
+
+    assertNotNull(result.resource);
+
+    final VsdmOperationOutcome vsdmOperationOutcome = (VsdmOperationOutcome) result.resource;
+    assertNotNull(vsdmOperationOutcome);
+
+    final CodeableConcept cc = vsdmOperationOutcome.getIssue().get(0).getDetails();
+    assertNotNull(cc);
+    assertEquals("Der erforderliche HTTP-Header [header] ist ungültig.", cc.getText());
+  }
+
+  @Test
+  @Order(5)
+  public void testInvalidUserInfo() throws Exception {
+    final Result result = callOnce(MOCK_POPP_TOKEN, "invalid", "0", ACCEPT_JSON);
 
     assertEquals(400, result.response.code());
     assertNotNull(result.response.body());
@@ -261,7 +335,7 @@ class VsdmServerIT {
   @Test
   @Order(6)
   public void testMissingIfNoneMatch() throws Exception {
-    final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, null);
+    final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, null, ACCEPT_JSON);
 
     assertEquals(428, result.response.code());
   }
@@ -269,7 +343,7 @@ class VsdmServerIT {
   @Test
   @Order(7)
   public void testResponseContainsEtag() throws Exception {
-    final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "0");
+    final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
     assertNotNull(result.response.header("etag"));
   }
@@ -277,7 +351,7 @@ class VsdmServerIT {
   @Test
   @Order(7)
   public void testResponseContainsPz() throws Exception {
-    final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "0");
+    final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
     assertNotNull(result.response.header("VSDM-Pz"));
   }
@@ -285,7 +359,7 @@ class VsdmServerIT {
   @Test
   @Order(8)
   public void testProtocolHttp1_1() throws Exception {
-    final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "0");
+    final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
     assertEquals("http/1.1", result.response.protocol().toString());
   }
@@ -293,14 +367,17 @@ class VsdmServerIT {
   private static class Result {
     public Resource resource;
     public Response response;
+    public String responseBody;
 
-    public Result(final Resource resource, final Response response) {
+    public Result(final Resource resource, final Response response, final String responseBody) {
       this.resource = resource;
       this.response = response;
+      this.responseBody = responseBody;
     }
   }
 
-  private Result callOnce(final String poppToken, final String userInfo, final String ifNoneMatch)
+  private Result callOnce(
+      final String poppToken, final String userInfo, final String ifNoneMatch, final String accepts)
       throws Exception {
     final Request.Builder readVsdBuilder = new Request.Builder().url(VSDM_ENDPOINT).get();
 
@@ -312,6 +389,10 @@ class VsdmServerIT {
     }
     if (ifNoneMatch != null) {
       readVsdBuilder.header("If-None-Match", ifNoneMatch);
+    }
+
+    if (accepts != null) {
+      readVsdBuilder.header("Accept", accepts);
     }
 
     final Request readVsd = readVsdBuilder.build();
@@ -340,6 +421,6 @@ class VsdmServerIT {
       }
     }
 
-    return new Result(resource, readVsdResponse);
+    return new Result(resource, readVsdResponse, readVsdBody);
   }
 }

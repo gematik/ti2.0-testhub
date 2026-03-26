@@ -2,6 +2,33 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 2.0.0
+
+### Update Notes
+
+#### Docker Compose Profiles (TESTHUB-64)
+
+Docker Compose now supports profiles for different startup configurations:
+
+- `full`: Full stack with Tiger-Proxies and clients
+- `perf`: Performance mode - clients connect directly to backend, bypassing Tiger-Proxy
+- `backend-only`: Backend services only, no Tiger-Proxies or clients
+
+Example usage:
+
+```bash
+docker compose -f doc/docker/compose-local.yaml --profile full up -d          # full stack 
+docker compose -f doc/docker/compose-local.yaml --profile perf up -d          # performance testing
+docker compose -f doc/docker/compose-local.yaml --profile backend-only up -d  # backend only
+```
+
+### Changes
+
+- TESTHUB-64: Add Docker Compose profiles for performance testing (`full`, `perf`, `backend-only`)
+- TESTHUB-64: Reintroduce Tiger-Proxy into the communication between client and server
+- TESTHUB-62: Add additional troubleshooting tips to the user manual.
+- TESTHUB-81: Allow application/fhir+xml content type
+
 ## Release 1.1.11
 
 ### Changes
@@ -16,6 +43,7 @@
 #### Obsolete SMCB Files (TESTHUB-54)
 
 The content of the following files has been moved to environment variables and the files can be removed:
+
 - doc/docker/backend/zeta/smcb-private/smcb_private.alias.txt
 - doc/docker/backend/zeta/smcb-private/smcb_private.pw.txt
 
@@ -24,16 +52,16 @@ The content of the following files has been moved to environment variables and t
 The Bash script files in `doc/bin/` have been removed. Use regular commands as documented in the `README.md`.
 For example:
 
-- `docker-compose-local-restart.sh` can be replaced with 
+- `docker-compose-local-restart.sh` can be replaced with
   ```bash
   docker compose -f ./doc/docker/compose-local.yaml down -v
-  docker compose -f ./doc/docker/compose-local.yaml up -d --remove-orphans
+  docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
   ```
 - `test-with-compose-local-rebuild.sh` can be replaced with
   ```bash
   ./mvnw clean install -Pdocker -DskipTests
   docker compose -f ./doc/docker/compose-local.yaml down -v
-  docker compose -f ./doc/docker/compose-local.yaml up -d --remove-orphans
+  docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
   ./mvnw -pl test/vsdm-testsuite/ -Dit.test="Vsdm*IT" -Dskip.inttests=false verify
   ```
 
@@ -52,7 +80,7 @@ For example:
 - ZTI-3856: add ZeTA Testsuite with test cases for WebSocket communication via
   PEP, client registration and smoke tests
 - ZTI-3904: add PEP header management tests for ZeTA Testsuite
-- ZTI-4055: add websocket test from PoPP via ZETA-PEP 
+- ZTI-4055: add websocket test from PoPP via ZETA-PEP
 
 ## Release 1.1.9
 

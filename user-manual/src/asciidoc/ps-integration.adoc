@@ -29,9 +29,11 @@ ZETA is only configured for the VSDM-Server, not the PoPP-Server.
 Integrating a custom Primärsystem (PS) is a primary design goal of the TI 2.0
 Testhub. Currently, however, it requires some manual steps:
 
-* Set `pssim.active=false` in the file `tiger/flags.yaml` to disable the
-existing PS-Simulator. This can also be done via environment eariables
-(`PSSIM_ACTIVE=false`).
+* Start the Testhub with the `backend-only` profile to disable the built-in PS-Simulators (VSDM Client and Card Terminal Client):
+[source,bash]
+----
+docker compose -f doc/docker/compose-local.yaml --profile backend-only up -d
+----
 
 * The custom PS has to be started (e.g. add as a new service in
 doc/docker/backend/compose-local.yaml, but could simply be started outside of

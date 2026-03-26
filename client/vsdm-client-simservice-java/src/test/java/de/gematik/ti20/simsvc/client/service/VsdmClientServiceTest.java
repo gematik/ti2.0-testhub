@@ -301,7 +301,7 @@ class VsdmClientServiceTest {
       VsdmBundle mockBundle = mock(VsdmBundle.class);
       when(mockFhirService.parseString(anyString(), eq("xml"), eq(VsdmBundle.class)))
           .thenReturn(mockBundle);
-      when(mockFhirService.encodeResponse(mockBundle, EncodingType.JSON))
+      when(mockFhirService.encodeResponse(mockBundle, EncodingType.XML))
           .thenReturn("encoded xml response");
 
       ResponseEntity<String> response =

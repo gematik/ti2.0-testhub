@@ -1,0 +1,43 @@
+tigerProxy:
+  proxyPort: 9090
+  adminPort: 8080
+  additionalProxyPorts:
+    - 8443
+    - 443
+    - 80
+  forwardToProxy:
+    hostname: ti-connect-tiger-proxy
+    port: 9090
+  tls:
+    serverRootCa: "tigerProxy.p12"
+    alternativeNames:
+        - "popp-ingress"
+        - "vsdm-zeta-ingress"
+  activateRbelParsingFor:
+    - websocket
+  proxyRoutes:
+    - from: /
+      to: http://popp-ingress/
+      matchForProxyType: false
+      hosts:
+        - "popp-ingress"
+        - "popp-zeta-pep"
+        - "popp-zeta-pdp"
+    - from: /
+      to: http://popp-token-generator/
+      matchForProxyType: false
+      hosts:
+        - "popp-token-generator"
+    - from: /
+      to: https://vsdm-zeta-ingress
+      matchForProxyType: false
+      hosts:
+        - "vsdm-zeta-ingress"
+    - from: /
+      to: https://popp-ru-dev-interim.int.epa.rise-link.de:8443
+      matchForProxyType: false
+      hosts:
+        - "popp-ru-dev-interim.int.epa.rise-link.de"
+        - "popp-ru-dev-interim.int.epa.rise-link.de:8443"
+        - "popp-ru-dev-interim.int.epa.rise-link.de:443"
+  rewriteHostHeader: false

@@ -1,0 +1,23 @@
+tigerProxy:
+  proxyPort: 9090
+  adminPort: 8080
+  additionalProxyPorts:
+    - 8443
+    - 443
+    - 80
+  # if you want to forward the traffic to another proxy (e.g. for chaining multiple proxies),
+  # you can configure the forwarding proxy here. If you do not want to forward the traffic,
+  # simply remove the "forwardToProxy" section.
+  #  forwardToProxy:
+  #    hostname: 192.168.110.10
+  #    port: 3128
+  tls:
+    serverRootCa: "tigerProxy.p12"
+  activateRbelParsingFor:
+    - websocket
+#  proxyRoutes:
+#    - from: https://vsdm
+#      to: https://vsdm-zeta-ingress:443/
+#      matchForProxyType: false
+#      preserveHostHeader: true
+  rewriteHostHeader: false

@@ -7,20 +7,20 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.1.11</version>
+        <version>1.1.12</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20</groupId>
     <artifactId>user-manual</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
     <packaging>pom</packaging>
     <name>Documentation Report</name>
     <description>Module to generate project documentation using Asciidoctor</description>
 
     <properties>
-      <!-- ensure that the project version is available as property to asciidoctor -->
-      <project.version>${project.version}</project.version>
+        <!-- ensure that the project version is available as property to asciidoctor -->
+        <project.version>${project.version}</project.version>
     </properties>
 
     <profiles>

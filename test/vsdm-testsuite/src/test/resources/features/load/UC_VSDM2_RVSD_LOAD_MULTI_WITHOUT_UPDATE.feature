@@ -30,10 +30,10 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0 unte
     Angenommen der Versicherte in der LEI verwendet eine eGK <Egk-Card> im Slot <Egk-Slot>
     Angenommen das Primärsystem hat den Versorgungskontext als PoPP-Token gespeichert
     Angenommen das Primärsystem hat die VSD bereits einmal im Quartal abgefragt
-    Angenommen der Fachdienst VSDM 2.0 verarbeitet aktuell <Load-Level>% der definierten Maximallast
+    Angenommen der Fachdienst VSDM 2.0 wird mit <Calls-Per-Sec> Aufrufen pro Sekunde unter Last gesetzt
     Wenn das Primärsystem <Number-Calls> Anfragen ohne VSD Update an den Fachdienst VSDM 2.0 sendet
     Dann überschreiten die Antworten des Fachdienstes VSDM 2.0 nicht den Maximalwert von <Max-Answer-Time> ms
 
     Beispiele:
-      | Smcb-Card           | Smcb-Slot | Egk-Card           | Egk-Slot | Load-Level | Number-Calls | Max-Answer-Time |
-      | "smcbCardImage.xml" | 2007      | "egkCardImage.xml" | 2008     | 30         | 100          | 1000            |
+      | Smcb-Card           | Smcb-Slot | Egk-Card           | Egk-Slot | Calls-Per-Sec | Number-Calls | Max-Answer-Time |
+      | "smcbCardImage.xml" | 2007      | "egkCardImage.xml" | 2008     | 100           | 100          | 1000            |

@@ -340,7 +340,7 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
 
     final VsdmBundle vsdmBundle =
         fhirService.parseString(body, isFhirXml ? "xml" : "json", VsdmBundle.class);
-    return fhirService.encodeResponse(vsdmBundle, EncodingType.JSON);
+    return fhirService.encodeResponse(vsdmBundle, isFhirXml ? EncodingType.XML : EncodingType.JSON);
   }
 
   public String loadTruncatedDataFromCard(final AttachedCard attachedCard)

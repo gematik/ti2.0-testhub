@@ -31,10 +31,12 @@ public class RequestVsdFromServer implements Task {
 
   private final String etag;
   private final String poppToken;
+  private final boolean isFhirXml;
 
-  public RequestVsdFromServer(String etag, String poppToken) {
+  public RequestVsdFromServer(String etag, String poppToken, boolean isFhirXml) {
     this.etag = etag;
     this.poppToken = poppToken;
+    this.isFhirXml = isFhirXml;
   }
 
   /*
@@ -58,8 +60,9 @@ public class RequestVsdFromServer implements Task {
     - VsdmClientSimulator is reading PoPP-Token from its own cache if available.
     - Or, VsdmClientSimulator is requesting new PoPP-Token from PoppServerMockService.
   */
-  public static RequestVsdFromServer withEtagAndPoppToken(String etag, String poppToken) {
-    return instrumented(RequestVsdFromServer.class, etag, poppToken);
+  public static RequestVsdFromServer withEtagAndPoppToken(
+      String etag, String poppToken, boolean isFhirXml) {
+    return instrumented(RequestVsdFromServer.class, etag, poppToken, isFhirXml);
   }
 
   @Override
@@ -73,7 +76,7 @@ public class RequestVsdFromServer implements Task {
     var request =
         api.request()
             .queryParam("terminalId", "0")
-            .queryParam("isFhirXml", false)
+            .queryParam("isFhirXml", isFhirXml)
             .queryParam("smcBSlotId", smcbSlot)
             .queryParam("egkSlotId", egkSlot);
 
