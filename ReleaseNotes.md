@@ -2,7 +2,7 @@
 
 # Release Notes TI 2.0 TestHub
 
-## Release 2.0.0
+## Release 1.1.13
 
 ### Update Notes
 
