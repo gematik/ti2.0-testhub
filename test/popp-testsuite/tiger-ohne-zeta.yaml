@@ -1,0 +1,61 @@
+lib:
+  rbelPathDebugging: false
+  activateWorkflowUi: true
+  httpClientConfig:
+    activateRbelWriter: true
+  additionalKeyStorePasswords:
+    [ "testpassword", "popp-store" ]
+
+tigerProxy:
+  activateRbelParsing: true
+  adminPort: 1300
+  activateRbelParsingFor:
+    - websocket
+    - asn1
+  proxyPort: 1200
+  proxyRoutes:
+    # route to Popp-server
+    - from: /ws
+      to: https://localhost:8443/ws
+    # route to Popp-client
+    - from: /token
+      to: http://localhost:8081/token
+  tls:
+    serverIdentity: src/test/resources/certificates/mykeystore.p12;popp-store
+    masterSecretsFile: wireshark.txt
+  keyFolders:
+    - .
+
+#servers:
+#  konnektorClient:
+#    hostname: konnektorClient
+#    type: externalJar
+#    startupTimeoutSec: 60
+#    source:
+#      - local:konnektor-service-client-ws.jar
+#    healthcheckUrl: http://127.0.0.1:8090
+#    externalJarOptions:
+#      workingDir: target
+#  gemCryptWebService:
+#    hostname: gemCryptWebService
+#    type: externalJar
+#    startupTimeoutSec: 60
+#    source:
+#      - local:gematik-cryptography-webservice-uber-jar.jar
+#    endpoint: http://127.0.0.1:8080/api
+#    healthcheckUrl: http://127.0.0.1:8080
+#    externalJarOptions:
+#      workingDir: target
+#
+#  proxyWebService:
+#    type: tigerProxy
+#    active: true
+#    tigerProxyConfiguration:
+#      adminPort: 11501
+#      proxyPort: 11111
+#      tls:
+#        forwardMutualTlsIdentity: "src/test/resources/certificates/c1.p12;123456;P12"
+#      proxyRoutes:
+#        - from: /tigerProxy
+#          to: https://kon41.ksp.ltuzd.telematik-test
+#

@@ -13,7 +13,6 @@
     <li><a href="#examples">Examples</a></li>
     <li><a href="#folder-structure">Folder Structure</a></li>
     <li><a href="#release-notes">Release Notes</a></li>
-    <li><a href="#changelog">Changelog</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
   </ol>
@@ -399,10 +398,6 @@ This project has the following folders:
 
 See [ReleaseNotes.md](./ReleaseNotes.md) for all information regarding the
 (latest) releases.
-
-## Changelog
-
-See [CHANGELOG.md](./CHANGELOG.md) for information about changes.
 
 ## Contributing
 

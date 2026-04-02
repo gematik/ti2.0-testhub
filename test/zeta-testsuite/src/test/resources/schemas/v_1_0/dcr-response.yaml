@@ -1,0 +1,59 @@
+# Schema for the Dynamic Client Registration (DCR) response (RFC 7591)
+$schema: "http://json-schema.org/draft-07/schema#"
+title: Dynamic Client Registration Response
+description: >-
+  Schema for the response of a successful Dynamic Client Registration (DCR)
+  as specified in RFC 7591. The server returns 201 Created with client metadata.
+type: object
+properties:
+  client_id:
+    type: string
+    description: The unique client identifier issued by the authorization server.
+  client_id_issued_at:
+    type: integer
+    description: >-
+      The time at which the client_id was issued, represented as the number of
+      seconds from 1970-01-01T00:00:00Z (Unix epoch).
+  client_name:
+    type: string
+    description: A human-readable name for the client.
+  grant_types:
+    type: array
+    description: The grant types the client is allowed to use.
+    items:
+      type: string
+  token_endpoint_auth_method:
+    type: string
+    description: The authentication method used at the token endpoint.
+  jwks:
+    type: object
+    description: The client's JSON Web Key Set containing public keys.
+    properties:
+      keys:
+        type: array
+        items:
+          type: object
+  redirect_uris:
+    type: array
+    description: The registered redirect URIs for the client.
+    items:
+      type: string
+  registration_client_uri:
+    type: string
+    description: >-
+      The URI at which the client can manage its registration
+      (read, update, delete).
+  registration_access_token:
+    type: string
+    description: >-
+      The access token used to authenticate requests to the
+      registration_client_uri.
+required:
+  - client_id
+  - client_id_issued_at
+  - token_endpoint_auth_method
+  - grant_types
+  - jwks
+  - registration_client_uri
+  - registration_access_token
+

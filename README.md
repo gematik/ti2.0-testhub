@@ -38,7 +38,8 @@ ZETA requires an SMC-B certificate to work. Follow these steps:
 - Java 21
 - Docker
 - Docker Compose
-- GitBash (Windows)
+- Optional: A GUI for Docker (e.g. Docker Desktop) can be helpful for monitoring containers and viewing logs. 
+We had good results with [Rancher Desktop](https://rancherdesktop.io/), which is a free and open source alternative to Docker Desktop.
 
 ## Start Docker Containers
 

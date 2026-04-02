@@ -134,3 +134,23 @@ If you are still running into problems, try to increase the timeout in the file 
 
 Ensure you are following the post-install steps as outlined by dockerdocs, especially on how to use Docker as a non-root user:
 https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user
+
+=== Windows PowerShell
+
+==== Issues with running commands with parameters in PowerShell
+
+If you are running into issues with running commands with parameters in PowerShell, try to use PowerShell's passthrough mechanism for arguments with the "stop parsing" symbol `--%` to prevent PowerShell from interpreting the parameters as its own.
+
+For example, instead of running
+
+   ./mvnw -pl test/vsdm-testsuite/ -Dit.test="Vsdm*IT" -Dskip.inttests=false verify
+
+which may lead to
+
+    [ERROR] Unknown lifecycle phase "Vsdm*IT". You must specify a valid lifecycle phase [...]
+
+try to run it with the passthrough `--%` symbol
+
+    ./mvnw --% -pl test/vsdm-testsuite/ -Dit.test="Vsdm*IT" -Dskip.inttests=false verify
+
+which should prevent PowerShell from interpreting the `-Dit.test` parameter as its own and instead pass it correctly to the `mvnw` command.

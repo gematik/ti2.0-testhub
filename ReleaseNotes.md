@@ -2,6 +2,38 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 1.1.15
+
+### Update Notes
+
+#### Upgrade to ZETA 0.4.x
+
+When upgrading your installation you will encounter issues with a database
+migration. To fix the issue, delete the ZETA PDP database volume:
+
+1. Ensure the relevant containers are stopped
+2. Delete the volume `testhub-local_postgres_data`, e.g.:
+    ```
+    docker volume rm testhub-local_postgres_data 
+    ```
+
+Refer to the projects release notes to find out what changed:
+
+- https://github.com/gematik/zeta-guard-keycloak/blob/main/ReleaseNotes.md
+- https://github.com/gematik/zeta-guard-ngx-pep/blob/main/ReleaseNotes.md
+- https://github.com/gematik/zeta-sdk/blob/main/ReleaseNotes.md
+
+
+### Changes
+
+- PTVSDM-1549: update BDE constants for missing patient record version
+- PTVSDM-1573: relax validation of VSDM response, order is not relevant
+- PTVSDM-1574: ensure that Vsdm-PZ has the specified length
+- TESTHUB-77: Update ZETA components from 0.3.x to 0.4.x
+- TESTHUB-87: add Windows related troubleshooting to the user manual.
+- TESTHUB-88: remove `CHANGELOG.md`s. Relevant information can be found in the
+  `ReleaseNotes.md`.
+
 ## Release 1.1.14
 
 ### Update Notes
@@ -35,6 +67,8 @@ docker compose -f doc/docker/compose-local.yaml --profile backend-only up -d  # 
 
 - TESTHUB-76: remove empty script files from `doc/bin` and improve documentation
   with troubleshooting tips.
+- ZTI-4057: Initial client registration in zeta-testsuite: Service Discovery (well-known) and Dynamic Client Registration (POST /register)
+- ZTI-4057: New `/register` mock endpoint in zeta-pdp-server-mockservice with RFC 7591 input validation and error response
 
 ## Release 1.1.10
 

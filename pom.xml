@@ -5,7 +5,7 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>1.1.14</version>
+    <version>1.1.15</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>
@@ -23,6 +23,7 @@
         <module>server/zeta-pdp-server-mockservice</module>
         <module>test/zeta-testsuite</module>
         <module>test/vsdm-testsuite</module>
+        <module>test/popp-testsuite</module>
         <module>coverage-report</module>
         <module>user-manual</module>
     </modules>
@@ -32,7 +33,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.release>21</maven.compiler.release>
 
-        <zeta-sdk-jvm.version>0.3.1</zeta-sdk-jvm.version>
+        <zeta-sdk-jvm.version>0.4.2</zeta-sdk-jvm.version>
 
         <version.maven-antrun-plugin>3.1.0</version.maven-antrun-plugin>
         <version.maven.surefire>3.5.4</version.maven.surefire>

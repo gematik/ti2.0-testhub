@@ -38,11 +38,11 @@ public enum ErrorCase {
       404,
       "VSDSERVICE_UNKNOWN_KVNR",
       "[kvnr] aus dem PoPP-Token ist dem Fachdienst nicht bekannt."),
-  VSDSERVICE_INVALID_PATIENT_RECORD_VERSION(
+  VSDSERVICE_MISSING_PATIENT_RECORD_VERSION(
       "79014",
       428,
-      "VSDSERVICE_INVALID_PATIENT_RECORD_VERSION",
-      "Der Änderungsindikator [etag_value] kann nicht verarbeitet werden."),
+      "VSDSERVICE_MISSING_PATIENT_RECORD_VERSION",
+      "Der erforderliche Änderungsindikator [etag_value] fehlt in der Anfrage."),
   SERVICE_MISSING_OR_INVALID_HEADER(
       "79030",
       400,

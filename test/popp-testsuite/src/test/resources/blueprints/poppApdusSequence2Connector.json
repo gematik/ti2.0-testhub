@@ -1,0 +1,45 @@
+{
+    "type": "StandardScenario",
+    "version": "1.0.0",
+    "clientSessionId": ".*",
+    "sequenceCounter": 2,
+    "timeSpan": 10000,
+    "steps": [
+      {
+        "commandApdu": "002241A406840109800154",
+        "expectedStatusWords": [
+          "9000"
+        ]
+      },
+      {
+        "commandApdu": "002281b60a83084445475858870222",
+        "expectedStatusWords": [
+          "9000"
+        ]
+      },
+      {
+        "commandApdu": "002a00bed87f4e81915f290170420844454758588702227f494d06082a8648ce3d040302864104962f87dfaca7bf6047df6008abe318fe8324fa1509fa5f97edbf309831c3615f772fff60bdd7e8c65c969f306743130c624766867875800208882db7db3c835f5f200844454758581202237f4c1306082a8214004c0481185307800000000000035f25060203000800015f24060301000703015f3740492a399fd015ece67b9ad696509f66a11b899bafb296f3a93eec61c0c8c195047c23b3ff3a8b8636e27bf0ef5078aa24b64c47e4a165d32037d5b43b61884486",
+        "expectedStatusWords": [
+          "9000"
+        ]
+      },
+      {
+        "commandApdu": "002281b60a83084445475858120223",
+        "expectedStatusWords": [
+          "9000"
+        ]
+      },
+      {
+        "commandApdu": "002a00beda7f4e81935f290170420844454758581202237f494b06062b24030503018641048f3eed7a9475ccc776cdc2d748d4b1a217fed1335132572202fbfa5d1f12351b443b32408b22461f369620102be4f922d1ac6b4d174ac12b0fb30276cbf0e24e5f200c000a802760010116999021017f4c1306082a8214004c0481185307000000000000005f25060204000202085f24060209000202075f374066011bfecef9439194bd04438f61334ba2db58dc5e5a470a2f6cab58fcb0f8dc21eae8b5e8daa30d82c88b85eb2c236dcc6db4812521be5bf0e61ca4aa056778",
+        "expectedStatusWords": [
+          "9000"
+        ]
+      },
+      {
+        "commandApdu": "10860000107c0ec30c000a8027600101169990210100",
+        "expectedStatusWords": [
+          "9000"
+        ]
+      }
+    ]
+  }

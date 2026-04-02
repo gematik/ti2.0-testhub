@@ -133,7 +133,7 @@ public class VsdmControllerV1 {
     if (request.getHeader("if-none-match") == null) {
       throw new ResponseStatusException(
           HttpStatus.PRECONDITION_REQUIRED,
-          ErrorCase.VSDSERVICE_INVALID_PATIENT_RECORD_VERSION.getBdeReference());
+          ErrorCase.VSDSERVICE_MISSING_PATIENT_RECORD_VERSION.getBdeReference());
     }
   }
 

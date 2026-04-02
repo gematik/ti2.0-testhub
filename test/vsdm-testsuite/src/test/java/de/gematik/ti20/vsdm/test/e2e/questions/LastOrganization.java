@@ -23,10 +23,14 @@ package de.gematik.ti20.vsdm.test.e2e.questions;
 import de.gematik.bbriccs.fhir.codec.FhirCodec;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
 import io.restassured.response.Response;
+import java.util.List;
 import java.util.Objects;
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Question;
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Organization;
+import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.ResourceType;
 
 public class LastOrganization implements Question<Organization> {
 
@@ -42,8 +46,17 @@ public class LastOrganization implements Question<Organization> {
     try {
       FhirCodec codec = FhirCodec.forR4().andDummyValidator();
       VsdmBundle vsdmBundle = codec.decode(VsdmBundle.class, body);
-      actor.remember("lastOrganization", vsdmBundle.getEntry().get(1).getResource());
-      return (Organization) vsdmBundle.getEntry().get(1).getResource();
+      List<Resource> resources =
+          vsdmBundle.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+      Organization organization =
+          resources.stream()
+              .filter(resource -> resource.getResourceType() == ResourceType.Organization)
+              .map(Organization.class::cast)
+              .findFirst()
+              .orElse(null);
+
+      actor.remember("lastOrganization", organization);
+      return organization;
     } catch (Exception e) {
       return null;
     }

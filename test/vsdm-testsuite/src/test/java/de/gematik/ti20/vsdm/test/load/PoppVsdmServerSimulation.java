@@ -46,25 +46,13 @@ public class PoppVsdmServerSimulation extends BaseSimulation {
                   .header("Accept", "application/json")
                   .body(StringBody(session -> getPoppTokenJsonBody("109500969", "X110639491")))
                   .asJson()
-                  .check(
-                      jsonPath("$.tokenResults[0]")
-                          .transform(
-                              (String token) -> {
-                                if (token == null) {
-                                  return null;
-                                }
-                                String[] parts = token.split("\\.");
-                                // return the middle part (payload) if present, otherwise return
-                                // original token
-                                return parts.length >= 2 ? parts[1] : token;
-                              })
-                          .saveAs("poppTokenContent"))
+                  .check(findAndSavePoppTokenContent())
                   .check(status().is(200)))
           .exec(
               http("ReadVSD")
                   .get(URL_SERVER_VSDM + "/vsdservice/v1/vsdmbundle")
                   .header("zeta-popp-token-content", "#{poppTokenContent}")
-                  .header("zeta-user-info", "MOCK_USER_INFO")
+                  .header("zeta-user-info", session -> getZetaUserInfo())
                   .header("if-none-match", "0")
                   .check(status().is(200)));
 

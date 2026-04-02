@@ -1,0 +1,21 @@
+{
+    "type": "StandardScenario",
+    "version": "1.0.0",
+    "clientSessionId": ".*",
+    "sequenceCounter": 3,
+    "timeSpan": 0,
+    "steps": [
+      {
+        "commandApdu": "00860000457c43854104987fce93bfc191e4db006b56f8fd5f749d256fc5842f0f3f31becf613ce146f66318f77ff7ee51c10b6b6a0f349896400c7601bfc07608ff08fe0ce1d921ca42",
+        "expectedStatusWords": ["9000"]
+      },
+      {
+        "commandApdu": "00a4040c0aa000000167455349474e",
+        "expectedStatusWords": ["9000"]
+      },
+      {
+        "commandApdu": "00b08400000000",
+        "expectedStatusWords": ["9000", "6281"]
+      }
+    ]
+  }
