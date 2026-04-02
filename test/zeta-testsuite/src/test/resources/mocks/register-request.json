@@ -1,0 +1,18 @@
+{
+  "client_name": "sdk-client",
+  "grant_types": ["urn:ietf:params:oauth:grant-type:token-exchange", "refresh_token"],
+  "token_endpoint_auth_method": "private_key_jwt",
+  "jwks": {
+    "keys": [
+      {
+        "kty": "RSA",
+        "kid": "G9odTh0jb5v-AxfkvWxfRUazvNLYQVa--4XMsIfQf88",
+        "use": "sig",
+        "alg": "RS256",
+        "n": "ygaisCA5syfGgqzvaw5pwDXWPIEoLl4UfIKyxpeKhgvyK2G3bOMR_7X68H5zkmncelx6M0_yWTCckdx1Hpgv_0xA5SD6x48JbC-yP_yQ7zC7dpPSL0RRavJpVVmyAVNOFuSxNC7zm7ii3hHZYxS4nMvvBvdguNPpd9zGFUmYcwwHpdbJtdSlgU3qYZFERsoszsvXuOecwqRQE8mXhVbzhCRTbGlwLEvCQYOfSqiN6kHLaznE9c7Ys7e8_bNh_pAPYaB32xYv1li8LDnAI2GzY2IpydFyStdN4xJNTB2uxkgTmd6yX_ZiyRDJCJZf2TgmqkPk6zpw7ugql04s6y8ioQ",
+        "e": "AQAB"
+      }
+    ]
+  }
+}
+

@@ -27,7 +27,9 @@ import de.gematik.ti20.simsvc.server.config.VsdmConfig;
 import de.gematik.ti20.simsvc.server.repository.TestDataRepository;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
 import de.gematik.ti20.vsdm.fhir.def.VsdmPatient;
+import java.util.List;
 import java.util.Optional;
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ResourceType;
@@ -91,11 +93,17 @@ class VsdmServiceTest {
     VsdmBundle vsdmBundle = (VsdmBundle) result;
     assertEquals(3, vsdmBundle.getEntry().size());
 
-    Resource resource = vsdmBundle.getEntryFirstRep().getResource();
-    assertNotNull(resource);
-    assertInstanceOf(VsdmPatient.class, resource);
+    List<Resource> resources =
+        vsdmBundle.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
-    VsdmPatient patient = (VsdmPatient) resource;
+    Optional<VsdmPatient> maybePatient =
+        resources.stream()
+            .filter(r -> r.getResourceType() == ResourceType.Patient)
+            .map(r -> (VsdmPatient) r)
+            .findFirst();
+    assertTrue(maybePatient.isPresent());
+
+    VsdmPatient patient = maybePatient.get();
     assertEquals(kvnr, patient.getIdentifierFirstRep().getValue());
 
     HumanName name = patient.getNameFirstRep();
@@ -103,6 +111,9 @@ class VsdmServiceTest {
     assertEquals("given-name-" + kvnr, name.getGiven().getFirst().getValue());
 
     verify(testDataRepository).patientByKvnr(kvnr);
+
+    assertTrue(resources.stream().anyMatch(r -> r.getResourceType() == ResourceType.Organization));
+    assertTrue(resources.stream().anyMatch(r -> r.getResourceType() == ResourceType.Coverage));
   }
 
   @Test

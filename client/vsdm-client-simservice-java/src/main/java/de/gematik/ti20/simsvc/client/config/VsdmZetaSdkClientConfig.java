@@ -100,6 +100,6 @@ public class VsdmZetaSdkClientConfig {
     }
 
     return new SmbTokenProvider(
-        new SmbTokenProvider.Credentials(keyPath, smcbAlias, smcbPrivateKeyPassword));
+        new SmbTokenProvider.Credentials(keyPath, smcbAlias, smcbPrivateKeyPassword, ""));
   }
 }

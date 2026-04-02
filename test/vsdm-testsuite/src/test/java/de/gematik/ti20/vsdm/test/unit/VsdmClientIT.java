@@ -28,6 +28,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import de.gematik.bbriccs.fhir.codec.FhirCodec;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
 import java.util.Base64;
+import java.util.List;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okhttp3.MediaType;
@@ -91,32 +93,42 @@ class VsdmClientIT {
 
     final VsdmBundle vsdmBundle = (VsdmBundle) result.resource;
     assertNotNull(vsdmBundle);
+    final List<Resource> resources =
+        vsdmBundle.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
-    final Resource patientResource = vsdmBundle.getEntry().get(0).getResource();
-    assertNotNull(patientResource);
-    assertTrue(patientResource instanceof Patient);
-
-    final Patient patient = (Patient) patientResource;
-    final HumanName name = patient.getName().get(0);
+    final Patient patient =
+        resources.stream()
+            .filter(r -> r.getResourceType() == ResourceType.Patient)
+            .map(r -> (Patient) r)
+            .findFirst()
+            .orElse(null);
+    assertNotNull(patient);
+    final HumanName name = patient.getName().getFirst();
     assertEquals("Amelie Abigail H. Freifrau Bruser", name.getFamily());
-    assertEquals("Kriemhild", name.getGiven().get(0).getValue());
+    assertEquals("Kriemhild", name.getGiven().getFirst().getValue());
 
     assertEquals("X110639491", patient.getIdentifierFirstRep().getValue());
 
-    final Resource payorOrganization = vsdmBundle.getEntry().get(1).getResource();
+    final Organization payorOrganization =
+        resources.stream()
+            .filter(r -> r.getResourceType() == ResourceType.Organization)
+            .map(r -> (Organization) r)
+            .findFirst()
+            .orElse(null);
     assertNotNull(payorOrganization);
-    assertTrue(payorOrganization instanceof Organization);
     assertEquals("Test GKV Krankenkasse", ((Organization) payorOrganization).getName());
 
-    final Resource coverageResource = vsdmBundle.getEntry().get(2).getResource();
-    assertNotNull(coverageResource);
-    assertTrue(coverageResource instanceof Coverage);
-
-    final Coverage coverage = (Coverage) coverageResource;
+    final Coverage coverage =
+        resources.stream()
+            .filter(r -> r.getResourceType() == ResourceType.Coverage)
+            .map(r -> (Coverage) r)
+            .findFirst()
+            .orElse(null);
+    assertNotNull(coverage);
     assertTrue(
         coverage
             .getPayor()
-            .get(0)
+            .getFirst()
             .getDisplay()
             .startsWith("https://gematik.de/fhir/Organization/"));
   }
@@ -132,32 +144,42 @@ class VsdmClientIT {
 
     final VsdmBundle vsdmBundle = (VsdmBundle) result.resource;
     assertNotNull(vsdmBundle);
+    final List<Resource> resources =
+        vsdmBundle.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
-    final Resource patientResource = vsdmBundle.getEntry().get(0).getResource();
-    assertNotNull(patientResource);
-    assertTrue(patientResource instanceof Patient);
-
-    final Patient patient = (Patient) patientResource;
-    final HumanName name = patient.getName().get(0);
+    final Patient patient =
+        resources.stream()
+            .filter(r -> r.getResourceType() == ResourceType.Patient)
+            .map(r -> (Patient) r)
+            .findFirst()
+            .orElse(null);
+    assertNotNull(patient);
+    final HumanName name = patient.getName().getFirst();
     assertEquals("Amelie Abigail H. Freifrau Bruser", name.getFamily());
-    assertEquals("Kriemhild", name.getGiven().get(0).getValue());
+    assertEquals("Kriemhild", name.getGiven().getFirst().getValue());
 
     assertEquals("X110639491", patient.getIdentifierFirstRep().getValue());
 
-    final Resource payorOrganization = vsdmBundle.getEntry().get(1).getResource();
+    final Organization payorOrganization =
+        resources.stream()
+            .filter(r -> r.getResourceType() == ResourceType.Organization)
+            .map(r -> (Organization) r)
+            .findFirst()
+            .orElse(null);
     assertNotNull(payorOrganization);
-    assertTrue(payorOrganization instanceof Organization);
     assertEquals("Test GKV Krankenkasse", ((Organization) payorOrganization).getName());
 
-    final Resource coverageResource = vsdmBundle.getEntry().get(2).getResource();
-    assertNotNull(coverageResource);
-    assertTrue(coverageResource instanceof Coverage);
-
-    final Coverage coverage = (Coverage) coverageResource;
+    final Coverage coverage =
+        resources.stream()
+            .filter(r -> r.getResourceType() == ResourceType.Coverage)
+            .map(r -> (Coverage) r)
+            .findFirst()
+            .orElse(null);
+    assertNotNull(coverage);
     assertTrue(
         coverage
             .getPayor()
-            .get(0)
+            .getFirst()
             .getDisplay()
             .startsWith("https://gematik.de/fhir/Organization/"));
   }
@@ -165,17 +187,20 @@ class VsdmClientIT {
   @Test
   @Order(2)
   // Caution! The test fails with Timeout during the first run. Further analysis is required.
-  public void testPruefzifferHasCorrectLength() throws Exception {
+  void testPruefzifferHasCorrectLength() throws Exception {
     final Result result = readVsdOnce("0", false);
     assertEquals(200, result.response.code());
 
     final String pruefzifferEncoded = result.response.header("VSDM-Pz");
     assertNotNull(pruefzifferEncoded);
+    assertEquals(64, pruefzifferEncoded.length());
+
+    log.info(" VSDM-Pz: " + pruefzifferEncoded);
+    log.info(" VSDM-Pz Länge: " + pruefzifferEncoded.length());
 
     byte[] pruefziffer = Base64.getUrlDecoder().decode(pruefzifferEncoded);
-    log.info(" VSDM-Pz: " + pruefzifferEncoded);
-    log.info(" VSDM-Pz Länge: " + pruefziffer.length);
-    assertEquals(64, pruefziffer.length);
+    // ensure can be decoded
+    assertNotNull(pruefziffer);
   }
 
   @Test
@@ -201,11 +226,13 @@ class VsdmClientIT {
 
   @Test
   @Order(4)
-  public void testResponseContentType() throws Exception {
+  void testResponseContentType() throws Exception {
     final Result result1 = readVsdOnce("0", false);
     assertTrue(result1.response.isSuccessful());
 
-    assertTrue(result1.response.header("Content-Type").contains("application/fhir+json"));
+    assertTrue(
+        Objects.requireNonNull(result1.response.header("Content-Type"))
+            .contains("application/fhir+json"));
   }
 
   @Test
@@ -215,15 +242,6 @@ class VsdmClientIT {
     assertTrue(result1.response.isSuccessful());
 
     assertEquals("http/1.1", result1.response.protocol().toString());
-  }
-
-  @Test
-  @Order(6)
-  void testSmcBMissing() throws Exception {
-    removeCardFromSlot(SMCB_SLOT);
-    final Result result1 = readVsdOnce("0", false);
-    // SMCB is not mandatory for mocked popp token
-    // assertThat(result1.response.code()).isEqualTo(403);
   }
 
   private static void removeCardFromSlot(final int slot) throws Exception {
@@ -242,7 +260,7 @@ class VsdmClientIT {
   }
 
   @Test
-  @Order(7)
+  @Order(6)
   void testPoppTokenIsCached() throws Exception {
     final Result result1 = readVsdOnce("0", false);
     assertTrue(result1.response.isSuccessful());
@@ -276,7 +294,7 @@ class VsdmClientIT {
   }
 
   @Test
-  @Order(8)
+  @Order(7)
   void testVsdmDataIsCached() throws Exception {
     final Result result1 = readVsdOnce("0", false);
     assertTrue(result1.response.isSuccessful());
@@ -311,12 +329,12 @@ class VsdmClientIT {
     final String readCachedVsdmDataBody = readCachedVsdmDataResponse.body().string();
 
     assertNotNull(readCachedVsdmDataBody);
-    assertTrue(!readCachedVsdmDataBody.isEmpty());
+    assertFalse(readCachedVsdmDataBody.isEmpty());
   }
 
   @Test
-  @Order(9)
-  public void testLoadTruncatedData() throws Exception {
+  @Order(8)
+  void testLoadTruncatedData() throws Exception {
     final String VSDM_TEST_LOAD_TRUNCATED_DATA_URL =
         VSDM_CLIENT_URL
             + "/client/test/readEgk?terminalId="
@@ -337,7 +355,7 @@ class VsdmClientIT {
 
     assertNotNull(readTruncatedDataBody);
     System.out.println(readTruncatedDataBody);
-    assertTrue(!readTruncatedDataBody.isEmpty());
+    assertFalse(readTruncatedDataBody.isEmpty());
   }
 
   private static void insertCard(final String filename, final int slot) throws Exception {

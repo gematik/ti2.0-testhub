@@ -48,7 +48,7 @@ public class VsdmBackgroundLoadSimulation extends BaseSimulation {
               http("ReadVSD")
                   .get(URL_SERVER_VSDM + "/vsdservice/v1/vsdmbundle")
                   .header("zeta-popp-token-content", "#{popp_token_content}")
-                  .header("zeta-user-info", "MOCK_USER_INFO")
+                  .header("zeta-user-info", session -> getZetaUserInfo())
                   .header("if-none-match", "0")
                   .check(status().is(200)));
 

@@ -3,6 +3,8 @@ zeta:
   paths:
     guard:
       tokenEndpointPath: /token
+      registerEndpointPath: /register
+      wellKnownOAuthProtectedResourcePath: /.well-known/oauth-protected-resource
       actuatorHealthPath: /mocked/actuator/health
     opa:
       decisionPath: /v1/data/zeta/authz/decision

@@ -25,4 +25,6 @@ authz:
       alias: ${AUTHZ_SEC_KEY_ALIAS:NOT_SET_BUT_REQUIRED}
       pass: ${AUTHZ_SEC_KEY_PASS:NOT_SET_BUT_REQUIRED}
 
-
+zeta:
+  pdp:
+    registration-base-url: ${ZETA_PDP_REGISTRATION_BASE_URL:}

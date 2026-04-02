@@ -23,10 +23,14 @@ package de.gematik.ti20.vsdm.test.e2e.questions;
 import de.gematik.bbriccs.fhir.codec.FhirCodec;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
 import io.restassured.response.Response;
+import java.util.List;
 import java.util.Objects;
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Question;
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Coverage;
+import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.ResourceType;
 
 public class LastCoverage implements Question<Coverage> {
 
@@ -42,8 +46,17 @@ public class LastCoverage implements Question<Coverage> {
     try {
       FhirCodec codec = FhirCodec.forR4().andDummyValidator();
       VsdmBundle vsdmBundle = codec.decode(VsdmBundle.class, body);
-      actor.remember("lastCoverage", vsdmBundle.getEntry().get(2).getResource());
-      return (Coverage) vsdmBundle.getEntry().get(2).getResource();
+      List<Resource> resources =
+          vsdmBundle.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+      Coverage coverage =
+          resources.stream()
+              .filter(resource -> resource.getResourceType() == ResourceType.Coverage)
+              .map(Coverage.class::cast)
+              .findFirst()
+              .orElse(null);
+
+      actor.remember("lastCoverage", coverage);
+      return coverage;
     } catch (Exception e) {
       return null;
     }

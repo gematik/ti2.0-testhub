@@ -23,10 +23,14 @@ package de.gematik.ti20.vsdm.test.e2e.questions;
 import de.gematik.bbriccs.fhir.codec.FhirCodec;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
 import io.restassured.response.Response;
+import java.util.List;
 import java.util.Objects;
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Question;
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.ResourceType;
 
 public class LastPatient implements Question<Patient> {
 
@@ -42,8 +46,17 @@ public class LastPatient implements Question<Patient> {
     try {
       FhirCodec codec = FhirCodec.forR4().andDummyValidator();
       VsdmBundle vsdmBundle = codec.decode(VsdmBundle.class, body);
-      actor.remember("lastPatient", vsdmBundle.getEntry().getFirst().getResource());
-      return (Patient) vsdmBundle.getEntry().getFirst().getResource();
+      List<Resource> resources =
+          vsdmBundle.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+      Patient patient =
+          resources.stream()
+              .filter(resource -> resource.getResourceType() == ResourceType.Patient)
+              .map(Patient.class::cast)
+              .findFirst()
+              .orElse(null);
+
+      actor.remember("lastPatient", patient);
+      return patient;
     } catch (Exception e) {
       return null;
     }

@@ -26,10 +26,12 @@ import static java.time.Instant.now;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.gematik.ti20.vsdm.test.e2e.enums.ProofMethod;
+import io.gatling.javaapi.core.CheckBuilder;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.Simulation;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -40,6 +42,7 @@ import org.jetbrains.annotations.NotNull;
 @Slf4j
 public class BaseSimulation extends Simulation {
 
+  private static final String OID_PRAXIS_ARZT = "1.2.276.0.76.4.50";
   protected static final SimulationConfigBean CFG = SimulationConfigProvider.getInstance();
   protected static final boolean RANDOM_READ_VSD = CFG.isRandomReadVsd();
 
@@ -103,12 +106,40 @@ public class BaseSimulation extends Simulation {
                     "actorId",
                     "883110000168650",
                     "actorProfessionOid",
-                    "1.2.276.0.76.4.32")));
+                    OID_PRAXIS_ARZT)));
 
     try {
       return new ObjectMapper().writeValueAsString(tokenArgs);
     } catch (JsonProcessingException e) {
       return null;
     }
+  }
+
+  protected static String extractJwtPayload(String token) {
+    if (token == null) {
+      return null;
+    }
+    String[] parts = token.split("\\.");
+    return parts.length >= 2 ? parts[1] : token;
+  }
+
+  protected static CheckBuilder findAndSavePoppTokenContent() {
+    return jsonPath("$.tokenResults[0]")
+        .transform(BaseSimulation::extractJwtPayload)
+        .saveAs("poppTokenContent");
+  }
+
+  protected static String getZetaUserInfo() {
+    String userInfo =
+        """
+            {
+              "subject": "subject",
+              "commonName": "commonName",
+              "identifier": "1-20014060625",
+              "professionOID": "%s"
+            }
+               \s"""
+            .formatted(OID_PRAXIS_ARZT);
+    return Base64.getEncoder().encodeToString(userInfo.getBytes());
   }
 }

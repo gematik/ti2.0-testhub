@@ -127,7 +127,6 @@ class ChecksumServiceTest {
 
     String checksum = headers.getFirst(ChecksumService.HEADER_NAME);
     assertNotNull(checksum);
-    // SHA-256 hash should be 64 characters long when represented as hex
-    assertTrue(checksum.length() >= 32); // At least MD5 length
+    assertTrue(checksum.length() == 64);
   }
 }

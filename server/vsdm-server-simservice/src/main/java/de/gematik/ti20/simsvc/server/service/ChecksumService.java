@@ -21,6 +21,7 @@
 package de.gematik.ti20.simsvc.server.service;
 
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.Base64;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -46,7 +47,10 @@ public class ChecksumService {
       final MessageDigest md = MessageDigest.getInstance("SHA-512");
       md.update(kvnr.getBytes());
       final byte[] digest = md.digest();
-      return Base64.getUrlEncoder().encodeToString(digest);
+      // we have to take the 48-byte prefix, bc the base64 presentation must be exactly 64 bytes
+      // long (512 bits = 64 bytes) and base64 encoding increases the size by 4/3
+      final byte[] prefix = Arrays.copyOf(digest, 48);
+      return Base64.getUrlEncoder().encodeToString(prefix);
     } catch (final Exception e) {
       log.error("Cannot generate checksum", e);
       return null;

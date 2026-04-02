@@ -78,19 +78,7 @@ public class GeneratePoppTokenSimulation extends BaseSimulation {
                           session ->
                               getPoppTokenJsonBody(session.get("iknr"), session.get("kvnr"))))
                   .asJson()
-                  .check(
-                      jsonPath("$.tokenResults[0]")
-                          .transform(
-                              (String token) -> {
-                                if (token == null) {
-                                  return null;
-                                }
-                                String[] parts = token.split("\\.");
-                                // return the middle part (payload) if present, otherwise return
-                                // original token
-                                return parts.length >= 2 ? parts[1] : token;
-                              })
-                          .saveAs("poppTokenContent"))
+                  .check(findAndSavePoppTokenContent())
                   .check(status().is(200)))
           .exec(
               session -> {

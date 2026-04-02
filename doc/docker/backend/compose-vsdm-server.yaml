@@ -1,7 +1,7 @@
 services:
   vsdm-zeta-ingress:
     container_name: vsdm-zeta-ingress
-    image: "nginx:1.29.4"
+    image: "nginx:1.29.7"
     ports:
       - "9119:443"
     volumes:
@@ -32,7 +32,7 @@ services:
       - testhub_backend
 
   vsdm-zeta-pep:
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:0.3.0
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:0.4.0
     container_name: vsdm-zeta-pep
     ports:
       - "9120:80"
@@ -48,7 +48,7 @@ services:
       - testhub_backend
 
   vsdm-zeta-pdp:
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:0.3.2
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:0.4.1
     container_name: vsdm-zeta-pdp
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
@@ -75,6 +75,9 @@ services:
       KC_LOG_LEVEL: INFO
       SMCB_KEYSTORE_LOCATION: /opt/keycloak/conf/smcb/truststore.p12
       SMCB_KEYSTORE_PASSWORD: "changeit"
+      SMCB_HASHING_PEPPER: "-085c1245-dc0d-4d39-95b4-97496bec6182"
+      TPM_KEYSTORE_LOCATION: /opt/keycloak/conf/tpm/tpm-certificates.p12
+      TPM_KEYSTORE_PASSWORD: "O3Bdel9P5+cOgzIGANkOPEzBQM3V"
       KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_OPA_ENABLED: true
       KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_OPA_BASE_URL: http://vsdm-zeta-pdp-opa:8181
       KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_DECISION_PATH: "/v1/data/zeta/authz/decision"
@@ -88,6 +91,7 @@ services:
     volumes:
       - ./zeta/realm:/opt/keycloak/data/import
       - ./zeta/smcb:/opt/keycloak/conf/smcb
+      - ./zeta/tpm/:/opt/keycloak/conf/tpm
     healthcheck:
       test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;echo -e \"GET /auth/health/live HTTP/1.1\r\nhost: localhost:9000\r\nConnection: close\r\n\r\n\" >&3;grep \"status.*UP\" <&3" ]
       interval: 5s

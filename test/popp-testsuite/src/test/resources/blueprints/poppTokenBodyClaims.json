@@ -1,0 +1,12 @@
+{
+  "version": '1.0.0',
+  "iss": 'https.*',
+  "iat": "${json-unit.ignore}",
+  "proofMethod": '(healthid)|(ehc-practitioner-trustedchannel)|(ehc-practitioner-cvc-authenticated)|(ehc-practitioner-user-x509)|(ehc-practitioner-owner-x509)|(ehc-provider-trustedchannel)|(ehc-provider-cvc-authenticated)|(ehc-provider-user-x509)|(ehc-provider-owner-x509)',
+  "patientProofTime": "${json-unit.ignore}",
+  "patientId": ".*",
+  "insurerId": ".*",
+  "actorId": '.*',
+  "actorProfessionOid": '1.2.276.0.76.4.50',
+  "____authorization_details": '.*'
+}

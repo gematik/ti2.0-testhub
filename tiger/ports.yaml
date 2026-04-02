@@ -10,3 +10,7 @@ ports:
   remoteTigerProxyProxyPort: 6350
   tiConnectTigerProxyAdminPort: 6400
   tiConnectTigerProxyProxyPort: 6450
+
+  poppPepPort: 9110
+  poppPdpPort: 9112
+

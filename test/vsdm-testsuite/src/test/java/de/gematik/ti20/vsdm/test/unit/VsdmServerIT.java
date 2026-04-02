@@ -26,6 +26,8 @@ import de.gematik.bbriccs.fhir.codec.FhirCodec;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
 import de.gematik.ti20.vsdm.fhir.def.VsdmOperationOutcome;
 import java.util.Base64;
+import java.util.List;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -86,23 +88,20 @@ class VsdmServerIT {
                       }
                   """,
             iknr, kvnr);
-    String poppTokenContentCoded = Base64.getEncoder().encodeToString(poppTokenContent.getBytes());
-    return poppTokenContentCoded;
+    return Base64.getEncoder().encodeToString(poppTokenContent.getBytes());
   }
 
   private static String makeUserInfoCoded() {
     String userInfo =
-        String.format(
-            """
-                {
-                  "subject": "subject",
-                  "commonName": "commonName",
-                  "identifier": "1-20014060625",
-                  "professionOID": "1.2.276.0.76.4.50"
-                }
-                    """);
-    String userInfoCoded = Base64.getEncoder().encodeToString(userInfo.getBytes());
-    return userInfoCoded;
+        """
+            {
+              "subject": "subject",
+              "commonName": "commonName",
+              "identifier": "1-20014060625",
+              "professionOID": "1.2.276.0.76.4.50"
+            }
+               \s""";
+    return Base64.getEncoder().encodeToString(userInfo.getBytes());
   }
 
   @Test
@@ -119,22 +118,39 @@ class VsdmServerIT {
 
     final VsdmBundle vsdmBundle = (VsdmBundle) result.resource;
     assertNotNull(vsdmBundle);
+    final List<Resource> resources =
+        vsdmBundle.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
-    final Patient patient = (Patient) vsdmBundle.getEntry().get(0).getResource();
+    final Patient patient =
+        resources.stream()
+            .filter(r -> r.getResourceType() == ResourceType.Patient)
+            .map(r -> (Patient) r)
+            .findFirst()
+            .orElse(null);
     assertNotNull(patient);
-    assertEquals("Kriemhild", patient.getName().get(0).getGiven().get(0).getValue());
+    assertEquals("Kriemhild", patient.getName().getFirst().getGiven().getFirst().getValue());
 
-    final Organization organization = (Organization) vsdmBundle.getEntry().get(1).getResource();
+    final Organization organization =
+        resources.stream()
+            .filter(r -> r.getResourceType() == ResourceType.Organization)
+            .map(r -> (Organization) r)
+            .findFirst()
+            .orElse(null);
     assertNotNull(organization);
     assertEquals("Test GKV Krankenkasse", organization.getName());
 
-    final Coverage coverage = (Coverage) vsdmBundle.getEntry().get(2).getResource();
+    final Coverage coverage =
+        resources.stream()
+            .filter(r -> r.getResourceType() == ResourceType.Coverage)
+            .map(r -> (Coverage) r)
+            .findFirst()
+            .orElse(null);
     assertNotNull(coverage);
-    System.out.println("Coverage Payor Display: " + coverage.getPayor().get(0).getDisplay());
+    System.out.println("Coverage Payor Display: " + coverage.getPayor().getFirst().getDisplay());
     assertTrue(
         coverage
             .getPayor()
-            .get(0)
+            .getFirst()
             .getReference()
             .startsWith("https://gematik.de/fhir/Organization/"));
   }
@@ -153,22 +169,39 @@ class VsdmServerIT {
 
     final VsdmBundle vsdmBundle = (VsdmBundle) result.resource;
     assertNotNull(vsdmBundle);
+    final List<Resource> resources =
+        vsdmBundle.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
-    final Patient patient = (Patient) vsdmBundle.getEntry().get(0).getResource();
+    final Patient patient =
+        resources.stream()
+            .filter(r -> r.getResourceType() == ResourceType.Patient)
+            .map(r -> (Patient) r)
+            .findFirst()
+            .orElse(null);
     assertNotNull(patient);
-    assertEquals("Kriemhild", patient.getName().get(0).getGiven().get(0).getValue());
+    assertEquals("Kriemhild", patient.getName().getFirst().getGiven().getFirst().getValue());
 
-    final Organization organization = (Organization) vsdmBundle.getEntry().get(1).getResource();
+    final Organization organization =
+        resources.stream()
+            .filter(r -> r.getResourceType() == ResourceType.Organization)
+            .map(r -> (Organization) r)
+            .findFirst()
+            .orElse(null);
     assertNotNull(organization);
     assertEquals("Test GKV Krankenkasse", organization.getName());
 
-    final Coverage coverage = (Coverage) vsdmBundle.getEntry().get(2).getResource();
+    final Coverage coverage =
+        resources.stream()
+            .filter(r -> r.getResourceType() == ResourceType.Coverage)
+            .map(r -> (Coverage) r)
+            .findFirst()
+            .orElse(null);
     assertNotNull(coverage);
-    System.out.println("Coverage Payor Display: " + coverage.getPayor().get(0).getDisplay());
+    System.out.println("Coverage Payor Display: " + coverage.getPayor().getFirst().getDisplay());
     assertTrue(
         coverage
             .getPayor()
-            .get(0)
+            .getFirst()
             .getReference()
             .startsWith("https://gematik.de/fhir/Organization/"));
   }
@@ -185,29 +218,47 @@ class VsdmServerIT {
 
     final VsdmBundle vsdmBundle = (VsdmBundle) result.resource;
     assertNotNull(vsdmBundle);
-
-    final Patient patient = (Patient) vsdmBundle.getEntry().get(0).getResource();
+    final List<Resource> resources =
+        vsdmBundle.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    final Patient patient =
+        resources.stream()
+            .filter(r -> r.getResourceType() == ResourceType.Patient)
+            .map(r -> (Patient) r)
+            .findFirst()
+            .orElse(null);
     assertNotNull(patient);
-    assertEquals("given-name-X123450264", patient.getName().get(0).getGiven().get(0).getValue());
+    assertEquals(
+        "given-name-X123450264", patient.getName().getFirst().getGiven().getFirst().getValue());
 
-    final Organization organization = (Organization) vsdmBundle.getEntry().get(1).getResource();
+    final Organization organization =
+        resources.stream()
+            .filter(r -> r.getResourceType() == ResourceType.Organization)
+            .map(r -> (Organization) r)
+            .findFirst()
+            .orElse(null);
     assertNotNull(organization);
     assertEquals("Test GKV Krankenkasse", organization.getName());
 
-    final Coverage coverage = (Coverage) vsdmBundle.getEntry().get(2).getResource();
+    final Coverage coverage =
+        resources.stream()
+            .filter(r -> r.getResourceType() == ResourceType.Coverage)
+            .map(r -> (Coverage) r)
+            .findFirst()
+            .orElse(null);
+
     assertNotNull(coverage);
-    System.out.println("Coverage Payor Display: " + coverage.getPayor().get(0).getDisplay());
+    System.out.println("Coverage Payor Display: " + coverage.getPayor().getFirst().getDisplay());
     assertTrue(
         coverage
             .getPayor()
-            .get(0)
+            .getFirst()
             .getReference()
             .startsWith("https://gematik.de/fhir/Organization/"));
   }
 
   @Test
   @Order(1)
-  public void testCallNotModified() throws Exception {
+  void testCallNotModified() throws Exception {
     final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "1", ACCEPT_JSON);
     assertEquals(200, result.response.code());
 
@@ -221,11 +272,12 @@ class VsdmServerIT {
     assertEquals(etag, result2.response.header("etag"));
 
     assertNotNull(result2.response.header("VSDM-Pz"));
+    assertEquals(64, Objects.requireNonNull(result2.response.header("VSDM-Pz")).length());
   }
 
   @Test
   @Order(2)
-  public void testUnknownKVNR() throws Exception {
+  void testUnknownKVNR() throws Exception {
     final Result result = callOnce(MOCK_POPP_TOKEN_UNKNOWN_KVNR, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
     assertEquals(400, result.response.code());
@@ -235,16 +287,16 @@ class VsdmServerIT {
     final VsdmOperationOutcome vsdmOperationOutcome = (VsdmOperationOutcome) result.resource;
     assertNotNull(vsdmOperationOutcome);
 
-    final CodeableConcept cc = vsdmOperationOutcome.getIssue().get(0).getDetails();
+    final CodeableConcept cc = vsdmOperationOutcome.getIssue().getFirst().getDetails();
     assertNotNull(cc);
 
-    assertEquals("VSDSERVICE_INVALID_KVNR", cc.getCoding().get(0).getCode());
+    assertEquals("VSDSERVICE_INVALID_KVNR", cc.getCoding().getFirst().getCode());
     assertEquals("[kvnr] aus dem PoPP-Token weist Formatfehler auf.", cc.getText());
   }
 
   @Test
   @Order(3)
-  public void testUnknownIKNR() throws Exception {
+  void testUnknownIKNR() throws Exception {
     final Result result = callOnce(MOCK_POPP_TOKEN_UNKNOWN_IKNR, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
     assertEquals(400, result.response.code());
@@ -254,15 +306,15 @@ class VsdmServerIT {
     final VsdmOperationOutcome vsdmOperationOutcome = (VsdmOperationOutcome) result.resource;
     assertNotNull(vsdmOperationOutcome);
 
-    final CodeableConcept cc = vsdmOperationOutcome.getIssue().get(0).getDetails();
+    final CodeableConcept cc = vsdmOperationOutcome.getIssue().getFirst().getDetails();
     assertNotNull(cc);
-    assertEquals("VSDSERVICE_UNKNOWN_IK", cc.getCoding().get(0).getCode());
+    assertEquals("VSDSERVICE_UNKNOWN_IK", cc.getCoding().getFirst().getCode());
     assertEquals("[ik] aus dem PoPP-Token ist dem Fachdienst nicht bekannt.", cc.getText());
   }
 
   @Test
   @Order(3)
-  public void testInvalidIKNR() throws Exception {
+  void testInvalidIKNR() throws Exception {
     final Result result = callOnce(MOCK_POPP_TOKEN_INVALID_IKNR, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
     assertEquals(400, result.response.code());
@@ -272,15 +324,15 @@ class VsdmServerIT {
     final VsdmOperationOutcome vsdmOperationOutcome = (VsdmOperationOutcome) result.resource;
     assertNotNull(vsdmOperationOutcome);
 
-    final CodeableConcept cc = vsdmOperationOutcome.getIssue().get(0).getDetails();
+    final CodeableConcept cc = vsdmOperationOutcome.getIssue().getFirst().getDetails();
     assertNotNull(cc);
-    assertEquals("VSDSERVICE_INVALID_IK", cc.getCoding().get(0).getCode());
+    assertEquals("VSDSERVICE_INVALID_IK", cc.getCoding().getFirst().getCode());
     assertEquals("[ik] aus dem PoPP-Token weist Formatfehler auf.", cc.getText());
   }
 
   @Test
   @Order(4)
-  public void testMissingPoppToken() throws Exception {
+  void testMissingPoppToken() throws Exception {
     final Result result = callOnce(null, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
     assertEquals(400, result.response.code());
@@ -291,14 +343,14 @@ class VsdmServerIT {
     final VsdmOperationOutcome operationOutcome = (VsdmOperationOutcome) result.resource;
     assertNotNull(operationOutcome);
 
-    final CodeableConcept cc = operationOutcome.getIssue().get(0).getDetails();
+    final CodeableConcept cc = operationOutcome.getIssue().getFirst().getDetails();
     assertNotNull(cc);
     assertEquals("Der erforderliche HTTP-Header [header] ist ungültig.", cc.getText());
   }
 
   @Test
   @Order(5)
-  public void testMissingUserInfo() throws Exception {
+  void testMissingUserInfo() throws Exception {
     final Result result = callOnce(MOCK_POPP_TOKEN, null, "0", ACCEPT_JSON);
 
     assertEquals(400, result.response.code());
@@ -309,14 +361,14 @@ class VsdmServerIT {
     final VsdmOperationOutcome vsdmOperationOutcome = (VsdmOperationOutcome) result.resource;
     assertNotNull(vsdmOperationOutcome);
 
-    final CodeableConcept cc = vsdmOperationOutcome.getIssue().get(0).getDetails();
+    final CodeableConcept cc = vsdmOperationOutcome.getIssue().getFirst().getDetails();
     assertNotNull(cc);
     assertEquals("Der erforderliche HTTP-Header [header] ist ungültig.", cc.getText());
   }
 
   @Test
   @Order(5)
-  public void testInvalidUserInfo() throws Exception {
+  void testInvalidUserInfo() throws Exception {
     final Result result = callOnce(MOCK_POPP_TOKEN, "invalid", "0", ACCEPT_JSON);
 
     assertEquals(400, result.response.code());
@@ -327,14 +379,14 @@ class VsdmServerIT {
     final VsdmOperationOutcome vsdmOperationOutcome = (VsdmOperationOutcome) result.resource;
     assertNotNull(vsdmOperationOutcome);
 
-    final CodeableConcept cc = vsdmOperationOutcome.getIssue().get(0).getDetails();
+    final CodeableConcept cc = vsdmOperationOutcome.getIssue().getFirst().getDetails();
     assertNotNull(cc);
     assertEquals("Der erforderliche HTTP-Header [header] ist ungültig.", cc.getText());
   }
 
   @Test
   @Order(6)
-  public void testMissingIfNoneMatch() throws Exception {
+  void testMissingIfNoneMatch() throws Exception {
     final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, null, ACCEPT_JSON);
 
     assertEquals(428, result.response.code());
@@ -342,7 +394,7 @@ class VsdmServerIT {
 
   @Test
   @Order(7)
-  public void testResponseContainsEtag() throws Exception {
+  void testResponseContainsEtag() throws Exception {
     final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
     assertNotNull(result.response.header("etag"));
@@ -350,15 +402,16 @@ class VsdmServerIT {
 
   @Test
   @Order(7)
-  public void testResponseContainsPz() throws Exception {
+  void testResponseContainsPz() throws Exception {
     final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
     assertNotNull(result.response.header("VSDM-Pz"));
+    assertEquals(64, Objects.requireNonNull(result.response.header("VSDM-Pz")).length());
   }
 
   @Test
   @Order(8)
-  public void testProtocolHttp1_1() throws Exception {
+  void testProtocolHttp1_1() throws Exception {
     final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
     assertEquals("http/1.1", result.response.protocol().toString());
@@ -400,24 +453,21 @@ class VsdmServerIT {
 
     final String readVsdBody = readVsdResponse.body().string();
 
-    log.debug("readVsd: " + readVsdResponse.code());
+    log.debug("readVsd: {}", readVsdResponse.code());
     log.debug(readVsdBody);
 
     Resource resource = null;
     try {
-      VsdmBundle vsdmBundle = fhirCodec.decode(VsdmBundle.class, readVsdBody);
-      resource = vsdmBundle;
-    } catch (final Exception ignored) {
-      log.error("readVsd: " + readVsdBody, ignored);
+      resource = fhirCodec.decode(VsdmBundle.class, readVsdBody);
+    } catch (final Exception exception) {
+      log.error("readVsd: {}", readVsdBody, exception);
     }
 
     if (resource == null) {
       try {
-        VsdmOperationOutcome vsdmOperationOutcome =
-            fhirCodec.decode(VsdmOperationOutcome.class, readVsdBody);
-        resource = vsdmOperationOutcome;
-      } catch (final Exception ignored) {
-        log.error("readVsd: " + readVsdBody, ignored);
+        resource = fhirCodec.decode(VsdmOperationOutcome.class, readVsdBody);
+      } catch (final Exception exception) {
+        log.error("readVsd: {}", readVsdBody, exception);
       }
     }
 

@@ -28,8 +28,8 @@ public enum Error {
   VSDSERVICE_INVALID_KVNR("[kvnr] aus dem PoPP-Token weist Formatfehler auf."),
   VSDSERVICE_UNKNOWN_IK("[ik] aus dem PoPP-Token ist dem Fachdienst nicht bekannt."),
   VSDSERVICE_UNKNOWN_KVNR("[kvnr] aus dem PoPP-Token ist dem Fachdienst nicht bekannt."),
-  VSDSERVICE_INVALID_PATIENT_RECORD_VERSION(
-      "Der Änderungsindikator [etag_value] kann nicht verarbeitet werden."),
+  VSDSERVICE_MISSING_PATIENT_RECORD_VERSION(
+      "Der erforderliche Änderungsindikator [etag_value] fehlt in der Anfrage."),
   SERVICE_INTERNAL_SERVER_ERROR("Ein unerwarteter interner Fehler ist aufgetreten.");
 
   private final String value;
