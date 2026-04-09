@@ -1,16 +1,17 @@
 #language: de
 #noinspection NonAsciiCharacters,SpellCheckingInspection
 
-@PRODUKT:VSDM2
+@PRODUKT:VSDM_2_FD
+@AF-ID:AF_10412
 @TYPE:E2E
 Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0
 
   @TCID:UC_VSDM2_RVSD_FROM_SERVER_WITHOUT_UPDATE
-  @STATUS:InBearbeitung
+  @STATUS:Implementiert
   @MODUS:Automatisch
   @TESTFALL:Positiv
   @TESTSTUFE:3
-  @PRIO:2
+  @PRIO:1
   @DESCRIPTION
   Szenariogrundriss: Abfrage der VSD ohne VSD Update
 

@@ -1,0 +1,2 @@
+The truststore.p12 file is used by ZETA Guard to validate [issuers of SMCB RU certificates](https://download-ref.tsl.ti-dienste.de/ECC/SUB-CA/), which are used to sign access token requests.
+PW: changeit.

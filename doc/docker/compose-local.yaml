@@ -46,8 +46,8 @@ x-vsdm-client-base: &vsdm-client-base
   volumes:
     - ./backend/zeta/smcb-private/smcb_private.p12:/tmp/zeta/smcb_private.p12:ro
   environment:
-    - POPP_HTTP_URL=http://popp-zeta-pep:80
-    - POPP_WS_URL=ws://popp-zeta-pep:80
+    - VSDM_USE_MOCK_POPP_TOKEN=false
+    - POPP_HTTP_URL=http://popp-client:8081/token
     - POPP_TOKEN_GENERATOR_URL=http://popp-token-generator:80
     - VSDM_RESOURCE_SERVER_URL=https://vsdm-zeta-ingress
     - OTEL_SERVICE_NAME=vsdm-client
@@ -66,11 +66,12 @@ services:
       testhub_client:
         aliases:
           - popp-ru-dev-interim.int.epa.rise-link.de
-          - popp-ingress
+          - popp-zeta-ingress
           - popp-zeta-pep
           - popp-zeta-pdp
           - popp-token-generator
           - vsdm-zeta-ingress
+          - popp-client
       testhub_backend:
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:8080/actuator/health" ]

@@ -5,7 +5,7 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>1.1.15</version>
+    <version>2.0.0</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>
@@ -13,14 +13,10 @@
     <modules>
         <module>lib/card-client-lib-java</module>
         <module>lib/zeta-client-lib-java</module>
-        <module>lib/popp-client-lib-java</module>
         <module>lib/vsdm-fhir-lib-java</module>
         <module>client/card-terminal-client-simservice</module>
         <module>client/vsdm-client-simservice-java</module>
-        <module>server/popp-server-mockservice</module>
         <module>server/vsdm-server-simservice</module>
-        <module>server/zeta-pep-server-mockservice</module>
-        <module>server/zeta-pdp-server-mockservice</module>
         <module>test/zeta-testsuite</module>
         <module>test/vsdm-testsuite</module>
         <module>test/popp-testsuite</module>
@@ -48,8 +44,8 @@
         <version.gem.bbriccs>0.9.0</version.gem.bbriccs>
         <version.pact.consumer>4.6.17</version.pact.consumer>
         <version.gatling.highcharts>3.13.5</version.gatling.highcharts>
+        <version.license-maven-plugin>2.5.0</version.license-maven-plugin>
         <version.json-schema-validator>2.0.0</version.json-schema-validator>
-        <mycila.license-maven-plugin.version>5.0.0</mycila.license-maven-plugin.version>
         <version.maven.format>2.29</version.maven.format>
         <version.maven.surefire>3.5.2</version.maven.surefire>
 
@@ -96,11 +92,6 @@
             <dependency>
                 <groupId>de.gematik.ti20.client</groupId>
                 <artifactId>zeta-client-lib</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>de.gematik.ti20.client</groupId>
-                <artifactId>popp-client-lib</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -302,85 +293,51 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>com.mycila</groupId>
+                <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>${mycila.license-maven-plugin.version}</version>
+                <version>${version.license-maven-plugin}</version>
                 <configuration>
-                    <licenseSets>
-                        <licenseSet>
-                            <header>${maven.multiModuleProjectDirectory}/license.header.txt</header>
-                            <includes>
-                                <include>**/target/**</include>
-                                <include>**/src/**</include>
-                                <include>**/target/generated-*/**</include>
-                            </includes>
-                            <excludes>
-                                <exclude>**/*.properties</exclude>
-                                <exclude>**/*.yaml</exclude>
-                                <exclude>**/*.yml</exclude>
-                                <exclude>**/*.xml</exclude>
-                                <exclude>**/*.txt</exclude>
-                                <exclude>**/*.cert</exclude>
-                                <exclude>**/*.tgr</exclude>
-                                <exclude>**/*.tgz</exclude>
-                                <exclude>**/*.mjs</exclude>
-                                <exclude>**/*.bks</exclude>
-                                <exclude>**/*.crt</exclude>
-                                <exclude>**/*.browserslistrc</exclude>
-                                <exclude>**/*.factories</exclude>
-                                <exclude>**/*.feature</exclude>
-                                <exclude>**/*.jtmpl</exclude>
-                                <exclude>**/*.ansi</exclude>
-                                <exclude>**/*.curl</exclude>
-                                <exclude>**/*.map</exclude>
-                                <exclude>**/*.env</exclude>
-                                <exclude>**/*.pem</exclude>
-                                <exclude>**/*.eml</exclude>
-                                <exclude>**/*.bin</exclude>
-                                <exclude>**/*.b64</exclude>
-                                <exclude>**/*.p8</exclude>
-                                <exclude>**/*.csv</exclude>
-                                <exclude>**/*.encrypted</exclude>
-                                <exclude>**/*.template</exclude>
-                                <exclude>**/*.drawio</exclude>
-                                <exclude>**/*.base64</exclude>
-                                <exclude>**/*.pkcs8</exclude>
-                                <exclude>**/*.conf</exclude>
-                                <exclude>**/*.key</exclude>
-                                <exclude>**/dist/assets/*</exclude>
-                                <exclude>**/bootstrap.min.css</exclude>
-                                <exclude>**/bootstrap.bundle.min.js</exclude>
-                            </excludes>
-                            <useDefaultExcludes>true</useDefaultExcludes>
-                        </licenseSet>
-                    </licenseSets>
-                    <skipExistingHeaders>true</skipExistingHeaders>
-                    <mapping>
-                        <vue>XML_STYLE</vue>
-                    </mapping>
+                    <licenseName>apache_v2_0</licenseName>
+                    <licenseResolver>classpath://copyright-header/apache-license</licenseResolver>
+                    <inceptionYear>2025</inceptionYear>
+                    <organizationName>gematik GmbH</organizationName>
+                    <forceDownload>false</forceDownload>
+
+                    <failOnMissingHeader>true</failOnMissingHeader>
+                    <failOnNotUptodateHeader>true</failOnNotUptodateHeader>
+                    <canUpdateCopyright>true</canUpdateCopyright>
+                    <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
+
+                    <includes>
+                        <include>**/*.java</include>
+                        <include>**/*.xml</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/generated/**</exclude>
+                    </excludes>
                 </configuration>
+
                 <dependencies>
                     <dependency>
-                        <groupId>com.mycila</groupId>
-                        <artifactId>license-maven-plugin-git</artifactId>
-                        <!-- make sure you use the same version as license-maven-plugin -->
-                        <version>${mycila.license-maven-plugin.version}</version>
+                        <groupId>de.gematik</groupId>
+                        <artifactId>ospo-resources</artifactId>
+                        <version>1.3.2</version>
                     </dependency>
                 </dependencies>
+
                 <executions>
                     <execution>
-                        <id>license headers for sources</id>
+                        <id>update-file-header</id>
                         <goals>
-                            <goal>format</goal>
+                            <goal>update-file-header</goal>
                         </goals>
-                        <phase>process-sources</phase>
                     </execution>
+
                     <execution>
-                        <id>license headers for test sources</id>
+                        <id>check-file-header</id>
                         <goals>
-                            <goal>format</goal>
+                            <goal>check-file-header</goal>
                         </goals>
-                        <phase>process-test-sources</phase>
                     </execution>
                 </executions>
             </plugin>

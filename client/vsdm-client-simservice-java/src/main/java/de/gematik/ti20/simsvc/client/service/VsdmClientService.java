@@ -1,7 +1,9 @@
-/*
- *
- * Copyright 2025 gematik GmbH
- *
+/*-
+ * #%L
+ * VSDM Client Simulator Service
+ * %%
+ * Copyright (C) 2025 - 2026 gematik GmbH
+ * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +18,9 @@
  *
  * *******
  *
- * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
+ * For additional notes and disclaimer from gematik and in case of changes
+ * by gematik, find details in the "Readme" file.
+ * #L%
  */
 package de.gematik.ti20.simsvc.client.service;
 
@@ -30,7 +34,6 @@ import de.gematik.ti20.client.card.terminal.simsvc.EgkInfo;
 import de.gematik.ti20.client.card.terminal.simsvc.SimulatorAttachedCard;
 import de.gematik.ti20.client.popp.exception.PoppClientException;
 import de.gematik.ti20.client.popp.message.TokenMessage;
-import de.gematik.ti20.client.popp.service.PoppClientService;
 import de.gematik.ti20.client.popp.service.PoppTokenSession;
 import de.gematik.ti20.client.popp.service.PoppTokenSessionEventHandler;
 import de.gematik.ti20.client.zeta.service.ZetaClientService;
@@ -51,10 +54,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
@@ -70,9 +70,9 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
   public static final String HEADER_VSDM_PZ = "VSDM-Pz";
   public static final String HEADER_ETAG = "etag";
 
+  private final PoppClientAdapter poppClientAdapter;
   private final VsdmClientConfig vsdmClientConfig;
 
-  private final PoppClientService poppClientService;
   private final ZetaClientService poppZetaClient;
   private final MockPoppTokenService mockPoppTokenService;
 
@@ -89,8 +89,8 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
 
   public VsdmClientService(
       final VsdmClientConfig vsdmClientConfig,
-      final PoppClientService poppClientService,
       final MockPoppTokenService mockPoppTokenService,
+      final PoppClientAdapter poppClientAdapter,
       final FhirService fhirService,
       final PoppTokenRepository poppTokenRepository,
       final VsdmDataRepository vsdmDataRepository,
@@ -98,10 +98,10 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
 
     this.vsdmClientConfig = vsdmClientConfig;
 
-    this.poppClientService = poppClientService;
-    this.poppZetaClient = poppClientService.getZetaClientService();
+    this.poppZetaClient = poppClientAdapter.getZetaClientService();
     this.mockPoppTokenService = mockPoppTokenService;
 
+    this.poppClientAdapter = poppClientAdapter;
     this.fhirService = fhirService;
 
     this.poppTokenRepository = poppTokenRepository;
@@ -118,7 +118,13 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
       final boolean isFhirXml,
       final String poppTokenInjected,
       final String ifNoneMatch) {
-
+    log.info(
+        "read initiated with terminalId = {}, egkSlotId={}, smcBSlotId = {}, if-none-match={}, poppTokenInjected={}",
+        terminalId,
+        egkSlotId,
+        smcbSlotId,
+        ifNoneMatch,
+        poppTokenInjected != null);
     final AttachedCard attachedCard = getAttachedCard(terminalId, egkSlotId);
 
     final String poppToken =
@@ -139,7 +145,7 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
     List<? extends AttachedCard> cards = null;
 
     try {
-      cards = poppClientService.getAttachedCards();
+      cards = poppClientAdapter.getAttachedCards();
     } catch (final Exception e) {
       log.error("Error getting attached EGK cards from terminal", e);
       throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
@@ -164,7 +170,7 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
       final int egkSlotId,
       final int smcbSlotId,
       final AttachedCard attachedCard) {
-    log.debug("Requesting PoPP token for attached card: {}", attachedCard.getId());
+    log.info("Requesting PoPP token for attached card: {}", attachedCard.getId());
 
     if (vsdmClientConfig.isUseMockPoppToken()) {
       log.info("Load mocked PoPP token");
@@ -181,34 +187,15 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
       return poppTokenFromRepository;
     }
 
-    final CompletableFuture<TokenMessage> poppTokenFuture = new CompletableFuture<>();
-    tokenFutures.put(attachedCard.getId(), poppTokenFuture);
-
     try {
-      poppClientService.startPoppTokenSession(attachedCard, smcbSlotId, this);
-    } catch (final PoppClientException e) {
-      log.error("Error starting PoppTokenSession with card {}", attachedCard.getId(), e);
-      throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
-    }
-    log.debug("PoppTokenSession started for card {}", attachedCard.getId());
-
-    try {
-      final TokenMessage result = poppTokenFuture.get(20, TimeUnit.SECONDS);
-      final String poppTokenFromService = result.getToken();
-
-      log.debug("Received PoPP token from service: {}", poppTokenFromService);
+      final String poppTokenFromService =
+          poppClientAdapter.getPoppToken(attachedCard, smcbSlotId, this);
+      log.debug("Received PoPP token from popp service: {}", poppTokenFromService);
       poppTokenRepository.put(terminalId, egkSlotId, attachedCard.getId(), poppTokenFromService);
 
       return poppTokenFromService;
-    } catch (final TimeoutException e) {
-      val errorMsg =
-          "Timeout error on waiting for completing of PoppTokenSession with card %s"
-              .formatted(attachedCard.getId());
-      log.error(errorMsg, attachedCard.getId());
-      throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, errorMsg, e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      log.error("Thread interrupted while waiting for completing of PoppTokenSession with card", e);
+    } catch (final PoppClientException e) {
+      log.error("Error starting PoppTokenSession with card {}", attachedCard.getId(), e);
       throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
     } catch (final Exception e) {
       log.error(
@@ -345,7 +332,7 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
 
   public String loadTruncatedDataFromCard(final AttachedCard attachedCard)
       throws CardTerminalException {
-    final EgkInfo egkInfo = poppClientService.getEgkInfo(attachedCard);
+    final EgkInfo egkInfo = poppClientAdapter.getEgkInfo(attachedCard);
 
     if (!egkInfo.getValid()) {
       return null;
@@ -366,7 +353,7 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
 
   private String loadMockPoppToken(final VsdmClientConfig config, final AttachedCard attachedCard) {
     try {
-      final EgkInfo egkInfo = poppClientService.getEgkInfo(attachedCard);
+      final EgkInfo egkInfo = poppClientAdapter.getEgkInfo(attachedCard);
       return mockPoppTokenService.requestPoppToken(config, egkInfo.getIknr(), egkInfo.getKvnr());
     } catch (final CardTerminalException cardEx) {
       return null;
@@ -401,7 +388,7 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
     terminalConnectionConfigs = configs;
 
     poppZetaClient.getZetaClientConfig().setTerminalConnectionConfigs(configs);
-    poppClientService.getPoppClientConfig().setTerminalConnectionConfigs(configs);
+    poppClientAdapter.getPoppClientConfig().setTerminalConnectionConfigs(configs);
   }
 
   @Override

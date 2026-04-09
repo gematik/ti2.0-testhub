@@ -2,6 +2,7 @@ tigerProxy:
   proxyPort: 9090
   adminPort: 8080
   additionalProxyPorts:
+    - 8081
     - 8443
     - 443
     - 80
@@ -17,17 +18,20 @@ tigerProxy:
     - websocket
   proxyRoutes:
     - from: /
-      to: http://popp-ingress/
+      to: http://popp-client:8081/
       matchForProxyType: false
       hosts:
-        - "popp-ingress"
-        - "popp-zeta-pep"
-        - "popp-zeta-pdp"
+        - "popp-client"
     - from: /
       to: http://popp-token-generator/
       matchForProxyType: false
       hosts:
         - "popp-token-generator"
+    - from: /
+      to: https://popp-zeta-ingress/
+      matchForProxyType: false
+      hosts:
+        - "popp-zeta-ingress"
     - from: /
       to: https://vsdm-zeta-ingress
       matchForProxyType: false

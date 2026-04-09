@@ -1,23 +1,3 @@
-////
-  //
-  // Copyright 2025-2026 gematik GmbH
-  //
-  // Licensed under the Apache License, Version 2.0 (the "License");
-  // you may not use this file except in compliance with the License.
-  // You may obtain a copy of the License at
-  //
-  //     http://www.apache.org/licenses/LICENSE-2.0
-  //
-  // Unless required by applicable law or agreed to in writing, software
-  // distributed under the License is distributed on an "AS IS" BASIS,
-  // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  // See the License for the specific language governing permissions and
-  // limitations under the License.
-  //
-  // *******
-  //
-  // For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
-////
 
 == FAQ / Troubleshooting
 
@@ -78,6 +58,26 @@ You can try:
 
 For more information on how to configure Tiger check the https://gematik.github.io/app-Tiger/Tiger-User-Manual.html[Tiger User Manual^].
 
+==== PoPP error: pep: alias not found (popp)
+
+An error like this:
+
+....
+{
+  "error": "PoPP",
+  "error_description": "PoPP error: pep: alias not found (popp)",
+  "error_uri": "https://vsdm-zeta-ingress/doc/errors/PoPP.html"
+}
+....
+
+usually indicates that the PEP could not fetch the public key for PoPP token validation. Ensure:
+
+- the PEP is configured to use the correct PoPP server
+- the PoPP server exposes a JWKS endpoint `/jwks.json` and returns a key matching the key id in the token
+
+If you switch between PoPP example implementation and PoPP token generator double check that the PEP is using the correct endpoint.
+
+
 === Docker
 
 [id=docker-name-in-use]
@@ -134,6 +134,10 @@ If you are still running into problems, try to increase the timeout in the file 
 
 Ensure you are following the post-install steps as outlined by dockerdocs, especially on how to use Docker as a non-root user:
 https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user
+
+==== PDP is unhealthy after 120 seconds
+
+Due to load on your machine the service can run into a timeout, especially when running ZETA for PoPP and VSDM. Simply execute `docker compose up ...` again and the services should be marked as healthy.
 
 === Windows PowerShell
 

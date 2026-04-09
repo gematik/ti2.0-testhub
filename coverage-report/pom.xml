@@ -8,13 +8,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.1.15</version>
+        <version>2.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20</groupId>
     <artifactId>coverage-report</artifactId>
-    <version>1.1.15</version>
+    <version>2.0.0</version>
 
     <name>Coverage Report</name>
     <description>Helper module to aggregate Jacoco Reports</description>
@@ -23,11 +23,6 @@
         <dependency>
             <groupId>de.gematik.ti20.vsdm</groupId>
             <artifactId>vsdm-fhir-lib</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>de.gematik.ti20.client</groupId>
-            <artifactId>popp-client-lib</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -46,22 +41,6 @@
             <artifactId>vsdm-server-simservice</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>de.gematik.ti20.simsvc.server</groupId>
-            <artifactId>zeta-pdp-server-mockservice</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>de.gematik.ti20.simsvc.server</groupId>
-            <artifactId>zeta-pep-server-mockservice</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>de.gematik.ti20.simsvc.server</groupId>
-            <artifactId>popp-server-mockservice</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>de.gematik.ti20.simsvc.client</groupId>
             <artifactId>card-terminal-client-simservice</artifactId>

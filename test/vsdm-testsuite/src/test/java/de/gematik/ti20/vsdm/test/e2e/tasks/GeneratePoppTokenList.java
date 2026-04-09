@@ -1,7 +1,9 @@
-/*
- *
- * Copyright 2025 gematik GmbH
- *
+/*-
+ * #%L
+ * VSDM 2.0 Testsuite
+ * %%
+ * Copyright (C) 2025 - 2026 gematik GmbH
+ * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,14 +18,16 @@
  *
  * *******
  *
- * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
+ * For additional notes and disclaimer from gematik and in case of changes
+ * by gematik, find details in the "Readme" file.
+ * #L%
  */
 package de.gematik.ti20.vsdm.test.e2e.tasks;
 
 import static net.serenitybdd.screenplay.Tasks.instrumented;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.gematik.ti20.vsdm.test.e2e.abilities.CallPoppService;
+import de.gematik.ti20.vsdm.test.e2e.abilities.CallPoppTokenGenerator;
 import de.gematik.ti20.vsdm.test.e2e.enums.ProofMethod;
 import de.gematik.ti20.vsdm.test.e2e.models.SmcbCardInfo;
 import de.gematik.ti20.vsdm.test.e2e.models.TokenResults;
@@ -110,7 +114,7 @@ public class GeneratePoppTokenList implements Task {
             "tokenParamsList",
             iknrKvnrRows.stream().map(row -> makeTokenArgument(row, now, smcbCardInfo)).toList());
 
-    var api = CallPoppService.as(actor);
+    var api = CallPoppTokenGenerator.as(actor);
 
     Response response =
         api.request()

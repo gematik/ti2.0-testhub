@@ -1,7 +1,9 @@
-/*
- *
- * Copyright 2025 gematik GmbH
- *
+/*-
+ * #%L
+ * VSDM 2.0 Testsuite
+ * %%
+ * Copyright (C) 2025 - 2026 gematik GmbH
+ * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +18,9 @@
  *
  * *******
  *
- * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
+ * For additional notes and disclaimer from gematik and in case of changes
+ * by gematik, find details in the "Readme" file.
+ * #L%
  */
 package de.gematik.ti20.vsdm.test.load;
 
@@ -38,6 +42,8 @@ public class VsdmClientJourneySimulation extends BaseSimulation {
 
   private static final HttpProtocolBuilder httpProtocol = http.acceptHeader("application/json");
 
+  private static final FeederBuilder.FileBased<String> POPP_TOKEN_FEEDER =
+      csv("feeder/popp_tokens.csv").circular();
   private static final FeederBuilder.FileBased<String> SMCB_FEEDER =
       csv("feeder/smcb_slots.csv").circular();
   private static final FeederBuilder.FileBased<String> EGK_FEEDER =
@@ -45,6 +51,7 @@ public class VsdmClientJourneySimulation extends BaseSimulation {
 
   private static final ScenarioBuilder readVsdScenario =
       scenario("Complete Read VSD Journey")
+          .feed(POPP_TOKEN_FEEDER)
           .feed(SMCB_FEEDER)
           .feed(EGK_FEEDER)
           .exec(
@@ -78,6 +85,7 @@ public class VsdmClientJourneySimulation extends BaseSimulation {
           .exec(
               http("Reading VSD")
                   .get(URL_CLIENT_VSDM + "/client/vsdm/vsd")
+                  .header("poppToken", "#{popp_token}")
                   .header("If-None-Match", "0")
                   .queryParam("terminalId", "#{egk_slot}")
                   .queryParam("egkSlotId", "#{egk_slot}")

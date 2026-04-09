@@ -1,16 +1,17 @@
 #language: de
 #noinspection NonAsciiCharacters,SpellCheckingInspection
 
-@PRODUKT:VSDM2
+@PRODUKT:VSDM_2_FD
+@AF-ID:AF_10413
 @TYPE:E2E
 Funktionalität: Abfrage der Versichertenstammdaten von der eGK
 
   @TCID:UC_VSDM2_RVSD_FROM_EGK_CARD_VALID
-  @STATUS:InBearbeitung
+  @STATUS:Implementiert
   @MODUS:Automatisch
-  @TESTFALL:Positiv
+  @TESTFALL:Negativ
   @TESTSTUFE:3
-  @PRIO:2
+  @PRIO:1
   @DESCRIPTION
   Szenariogrundriss: Abfrage der VSD von einer gültigen eGK
 

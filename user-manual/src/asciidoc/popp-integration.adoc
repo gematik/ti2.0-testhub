@@ -1,0 +1,127 @@
+== POPP Implementation Overview
+
+We ship two main implementations of PoPP (Proof of Patient Presence) with Testhub:
+
+Mock PoPP Token Generator :: A fast implementation that ignores the specified interfaces and generates tokens quickly. Useful for load tests and rapid prototyping.
+Gematik Sampl Implementation :: Aligns to the specified POPP interfaces. Suitable for production-like scenarios and interface compliance testing.
+
+PoPP Tokens have to be generated and validated. Validation is commonly done by the PEP component. The token is signed using a private key and validated using the public key complement. The PEP must be configured to read the public key from the service that generated the token.
+
+The VSDM client can be configured to use the Mock PoPP Token Generator or an arbitrary endpoint that implements the PoPP specification.
+
+=== How To Enable The Mock PoPP Token Generator
+
+1. Instruct the VSDM client to use the mock implementation by setting `VSDM_USE_MOCK_POPP_TOKEN=true`:
+
+    # doc/docker/compose-local.yml
+    x-vsdm-client-base:
+    # ...
+    environment:
+        - VSDM_USE_MOCK_POPP_TOKEN=true
+
+2. Ensure the PEP components use the PoPP Token Generator:
+
+  # doc/docker/backend/zeta/vsdm-zeta-pep.conf
+  pep_popp_issuer http://popp-token-generator/;
+
+Rebuild and restart services to ensure all configuration values are applied correctly.
+
+=== How to enable the Gematik Sample POPP Implementation
+
+This is the default scenario where the Testhub uses the Gematik sample implementation of POPP Client and POPP Server.
+
+1. Disable using the PoPP mock implementation in VSDM client by setting `VSDM_USE_MOCK_POPP_TOKEN=false`:
+
+    # doc/docker/compose-local.yml
+    x-vsdm-client-base:
+    # ...
+    environment:
+        - VSDM_USE_MOCK_POPP_TOKEN=false
+
+2. Set `POPP_HTTP_URL` to the `http://popp-client:{PORT}/token`. Find the value of `{PORT}` by looking at the port configuration of the popp-client container.
+
+    # doc/docker/compose-local.yml
+    x-vsdm-client-base:
+    # ...
+    environment:
+        - VSDM_USE_MOCK_POPP_TOKEN=false
+        # verify the port is correct
+        - POPP_HTTP_URL=http://popp-client:8081/token
+
+3. Ensure the PEP components use the PoPP server:
+
+  # doc/docker/backend/zeta/vsdm-zeta-pep.conf
+  # verify the port is correct
+  pep_popp_issuer http://popp-server:8443/;
+
+Rebuild and restart services to ensure all configuration values are applied correctly.
+
+// === How To Replace the POPP Server with External Implementation
+
+// If you want to operate the entire POPP infrastructure (POPP Client and Server) externally using the Gematik sample implementation or another external POPP implementation, follow these steps.
+
+// 1. Ensure the external infrastructure is up, running and reachable.
+// 2. Disable using the PoPP mock implementation in VSDM client by setting `VSDM_USE_MOCK_POPP_TOKEN=false`:
+
+//     # doc/docker/compose-local.yml
+//     x-vsdm-client-base:
+//     # ...
+//     environment:
+//         - VSDM_USE_MOCK_POPP_TOKEN=false
+
+// 3. Set `SPRING_PROFILES_ACTIVE` to an empty string:
+
+//     # doc/docker/backend/compose-popp-services.yml
+//     popp-client:
+//         # ...
+//         environment:
+//         - SPRING_PROFILES_ACTIVE=
+
+// 4. Set `POPP_SERVER_URL` to the external server endpoint:
+
+//     # doc/docker/backend/compose-popp-services.yml
+//     popp-client:
+//         # ...
+//         environment:
+//         - SPRING_PROFILES_ACTIVE=
+//         - POPP_SERVER_URL=wss://example.com/popp/token
+
+
+// 5. Ensure the PEP components use the external PoPP server:
+
+//   # doc/docker/backend/zeta/vsdm-zeta-pep.conf
+//   pep_popp_issuer http://example.com/
+
+// Rebuild and restart services to ensure all configuration values are applied correctly.
+
+== Notes / Troubleshooting
+
+* After changes to compose files always restart the affected containers (e.g. `docker compose down && docker compose up -d` for the changed services).
+* Test reachability of the external service from the Testhub instance (e.g. `curl` from the host/container).
+* Verify that the external PoPP infrastructure is healthy and accessible before starting the vsdm-client and other dependent services.
+* Pay attention to WebSocket connections if using external PoPP servers (ensure `wss://` is properly configured for secure connections).
+* Check logs for authentication errors or token generation issues if the vsdm-client reports connectivity problems:
+
+[source,bash]
+----
+docker logs vsdm-client
+docker logs popp-client
+----
+
+* Ensure the PoPP control REST endpoint is accessible and returns valid responses in the expected format.
+
+== Summary
+
+This document shows the minimal changes required to either use the mock PoPP token generator for fast testing, replace only the Token Server, or replace the entire PoPP Client and Server externally.
+
+The main configuration points are:
+
+* **Mock PoPP Token Generator**: Set `vsdm.use-mock-popp-token: true` to bypass PoPP services entirely for quick testing and load tests
+
+* **External PoPP Implementation**: Set `vsdm.use-mock-popp-token: false`, configure `popp.http.url` to the external PoPP Client control REST endpoint or set `POPP_HTTP_URL` to the same endpoint
+
+* **Compose Configuration**: Comment out/remove the internal PoPP simulations in the compose files when using external services
+
+* **TLS and Connectivity**: Ensure proper TLS (https://...) and certificate configuration for external services
+
+* **Testing**: Always verify reachability and proper responses from external PoPP infrastructure before starting dependent services
