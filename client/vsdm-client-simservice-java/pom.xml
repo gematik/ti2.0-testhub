@@ -7,13 +7,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>1.1.15</version>
+        <version>2.0.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.simsvc.client</groupId>
     <artifactId>vsdm-client-simservice</artifactId>
-    <version>1.1.15</version>
+    <version>2.0.0</version>
 
     <name>VSDM Client Simulator Service</name>
     <description>Simulator-Service for VSDM2 related activities in client</description>
@@ -71,16 +71,15 @@
             <artifactId>zeta-sdk-jvm</artifactId>
             <version>${zeta-sdk-jvm.version}</version>
         </dependency>
-        <dependency>
-            <groupId>de.gematik.ti20.client</groupId>
-            <artifactId>popp-client-lib</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
         <dependency>
             <groupId>de.gematik.test</groupId>
             <artifactId>gem-testdata</artifactId>
@@ -146,6 +145,10 @@
             <artifactId>swagger-parser-v3</artifactId>
             <version>2.1.33</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.gematik.ti20.client</groupId>
+            <artifactId>zeta-client-lib</artifactId>
         </dependency>
     </dependencies>
 

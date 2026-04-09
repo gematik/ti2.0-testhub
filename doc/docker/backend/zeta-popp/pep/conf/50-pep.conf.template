@@ -1,0 +1,42 @@
+server {
+    listen 80;
+    server_name popp-zeta-pep;
+    location /ws {
+    # root /usr/share/nginx/html;
+
+    proxy_pass http://${POPP_SERVER_HOST}/ws;
+
+    pep                  on;
+
+    # proxy_set_header ZETA-User-Info "Example user info";
+    # proxy_set_header ZETA-PoPP-Token-Content $http_popp;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    }
+
+    location / {
+    # root /usr/share/nginx/html;
+
+    proxy_pass http://${POPP_SERVER_HOST}/;
+
+    pep                  on;
+
+    proxy_set_header ZETA-User-Info "Example user info";
+    proxy_set_header ZETA-PoPP-Token-Content $http_popp;
+    }
+
+    # Proxy OAuth Authorization Server metadata to Keycloak
+    # Served as: http(s)://<host>/.well-known/oauth-authorization-server
+    # Target:   http://authserver/auth/realms/zeta-guard/.well-known/zeta-guard-well-known
+    location = /.well-known/oauth-authorization-server {
+    proxy_pass         http://popp-zeta-pdp/auth/realms/zeta-guard/.well-known/zeta-guard-well-known;
+    proxy_http_version 1.1;
+    }
+    location /.well-known/ {
+    default_type  application/json;
+    alias         /srv/.well-known/;
+    autoindex     off;
+    }
+}
+

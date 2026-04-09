@@ -1,7 +1,9 @@
-/*
- *
- * Copyright 2025 gematik GmbH
- *
+/*-
+ * #%L
+ * VSDM Client Simulator Service
+ * %%
+ * Copyright (C) 2025 - 2026 gematik GmbH
+ * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +18,9 @@
  *
  * *******
  *
- * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
+ * For additional notes and disclaimer from gematik and in case of changes
+ * by gematik, find details in the "Readme" file.
+ * #L%
  */
 package de.gematik.ti20.simsvc.client.config;
 
@@ -25,12 +29,14 @@ import de.gematik.ti20.client.popp.service.PoppClientService;
 import de.gematik.ti20.client.zeta.config.ZetaClientConfig;
 import de.gematik.ti20.client.zeta.config.ZetaClientConfig.UserAgentConfig;
 import de.gematik.ti20.client.zeta.service.ZetaClientService;
+import de.gematik.ti20.simsvc.client.service.PoppClientAdapter;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Slf4j
 @Component
@@ -41,6 +47,7 @@ public class PoppConfig {
 
   private Http http;
   private Ws ws;
+  private PoppClientConfig.TokenType tokenType;
 
   @Getter
   @Setter
@@ -62,8 +69,17 @@ public class PoppConfig {
   }
 
   @Bean
-  public PoppClientService poppClientService(final ZetaClientService zetaClientService) {
-    return new PoppClientService(
-        new PoppClientConfig(this.getWs().getUrl(), this.getHttp().getUrl()), zetaClientService);
+  public PoppClientAdapter poppClientAdapter(
+      final ZetaClientService zetaClientService, WebClient webClient) {
+    return new PoppClientAdapter(
+        new PoppClientService(
+            new PoppClientConfig(this.tokenType, this.getWs().getUrl(), this.getHttp().getUrl()),
+            zetaClientService),
+        webClient);
+  }
+
+  @Bean
+  WebClient webClient(WebClient.Builder builder) {
+    return builder.build();
   }
 }

@@ -1,7 +1,9 @@
-/*
- *
- * Copyright 2025 gematik GmbH
- *
+/*-
+ * #%L
+ * VSDM 2.0 Testsuite
+ * %%
+ * Copyright (C) 2025 - 2026 gematik GmbH
+ * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +18,9 @@
  *
  * *******
  *
- * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
+ * For additional notes and disclaimer from gematik and in case of changes
+ * by gematik, find details in the "Readme" file.
+ * #L%
  */
 package de.gematik.ti20.vsdm.test.e2e.steps;
 
@@ -28,7 +32,7 @@ import static org.hamcrest.Matchers.*;
 import de.gematik.test.tiger.common.config.TigerTypedConfigurationKey;
 import de.gematik.test.tiger.lib.TigerDirector;
 import de.gematik.ti20.vsdm.test.e2e.abilities.CallCardClient;
-import de.gematik.ti20.vsdm.test.e2e.abilities.CallPoppService;
+import de.gematik.ti20.vsdm.test.e2e.abilities.CallPoppTokenGenerator;
 import de.gematik.ti20.vsdm.test.e2e.abilities.CallVsdmClient;
 import de.gematik.ti20.vsdm.test.e2e.enums.Error;
 import de.gematik.ti20.vsdm.test.e2e.models.EgkCardInfo;
@@ -68,7 +72,7 @@ public class VsdmSteps {
     OnStage.theActorCalled("Primärsystem")
         .can(CallCardClient.at(resolvePlaceholders("http://127.0.0.1:${ports.cardTerminalPort}")))
         .can(CallVsdmClient.at(resolvePlaceholders("http://127.0.0.1:${ports.vsdmClientPort}")))
-        .can(CallPoppService.at(resolvePlaceholders("http://127.0.0.1:9500")));
+        .can(CallPoppTokenGenerator.at(resolvePlaceholders("http://127.0.0.1:9500")));
   }
 
   @Angenommen("das Primärsystem in der LEI verwendet ein korrekt konfiguriertes Terminal")

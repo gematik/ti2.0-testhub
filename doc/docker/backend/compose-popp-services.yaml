@@ -1,0 +1,202 @@
+services:
+  popp-token-generator:
+    container_name: popp-token-generator
+    image: gematik1/popp-token-generator:1.0.8
+    ports:
+      - "9500:80"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - testhub_backend
+
+  popp-client:
+    image: gematik1/popp-client:2.1.4
+    container_name: popp-client
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev-local
+      - ZETA_AUTHENTICATION_SMB_KEYFILE=/app/smcb_private.p12
+      - POPP_SERVER_URL=wss://popp-zeta-ingress:443/ws
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      #      - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5013"
+      - VIRTUAL_CARD_IMAGE_FILE=/data/cards/egkCardImage.xml
+    networks:
+      - testhub_backend
+    ports:
+      - "8081:8081"
+      - "5013:9001"
+    volumes:
+      - ./zeta/smcb-private/smcb_private.p12:/app/smcb_private.p12:ro
+      - ../../../test/vsdm-testsuite/src/test/resources/data/cards:/data/cards
+
+    depends_on:
+      - popp-server
+      - otel-collector
+
+  popp-server:
+    image: gematik1/popp-server:2.1.4
+    container_name: popp-server
+    ports:
+      - "8443:8443"
+    environment:
+      - IDENTITIES_LOCATION=classpath:identities
+      - CERT_HASH_IMPORT_LOCATION=file:/app/import
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://popp-server-db:5432/egk_hash_db
+    networks:
+      - testhub_backend
+    depends_on:
+      - popp-server-db
+      - otel-collector
+
+  popp-server-db:
+    image: postgres:18-alpine
+    container_name: popp-server-db
+    environment:
+      POSTGRES_USER: poppserver
+      POSTGRES_PASSWORD: verysafe
+      POSTGRES_DB: egk_hash_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - popp-server-db-data:/var/lib/postgresql
+    restart: on-failure
+    networks:
+      - testhub_backend
+
+  popp-zeta-ingress:
+    container_name: popp-zeta-ingress
+    image: "nginx:1.29.4"
+    ports:
+      - "443:443"
+    volumes:
+      - ./zeta-popp/ingress/conf:/etc/nginx/conf.d:ro
+      - ./zeta-popp/ingress/certs:/etc/nginx/certs:ro
+    networks:
+      - testhub_backend
+    depends_on:
+      - popp-zeta-pep
+
+  popp-zeta-pep:
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:0.3.0
+    environment:
+      - POPP_SERVER_HOST=popp-server:8443
+      - HTTP_PROXY=
+      - HTTPS_PROXY=
+      - ALL_PROXY=
+      - http_proxy=
+      - https_proxy=
+      - all_proxy=
+      - NO_PROXY=localhost,127.0.0.1,popp-zeta-ingress,popp-zeta-pep,popp-zeta-pdp,popp-zeta-pdp-opa,popp-server
+      - no_proxy=localhost,127.0.0.1,popp-zeta-ingress,popp-zeta-pep,popp-zeta-pdp,popp-zeta-pdp-opa,popp-server
+    ports:
+      - "2101:80"
+    volumes:
+      - ./zeta-popp/pep/conf/:/etc/nginx/templates/:ro
+      - ./zeta-popp/pep/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./zeta-popp/well-known/oauth-protected-resource:/srv/.well-known/oauth-protected-resource:ro
+    networks:
+      - testhub_backend
+    depends_on:
+      popp-zeta-pdp:
+        condition: service_healthy
+      popp-server:
+        condition: service_started # TODO: change to "service_healthy" when healthcheck is available
+  popp-zeta-pdp:
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:0.3.2
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_ENABLED: true
+      GENESIS_HASH: "4841c2142fef441daa6ee6c57db65c011935964b14e94a6c8f5ec0447b83526c"
+      KC_DB: "postgres"
+      KC_DB_URL: "jdbc:postgresql://popp-zeta-pdp-db:5432/keycloak?sslmode=disable"
+      KC_DB_USERNAME: "keycloak_db_user"
+      KC_DB_PASSWORD: "keycloak_db_user_password"
+      KC_DB_SCHEMA: "public"
+      KC_HTTP_PORT: 80
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME: https://popp-zeta-ingress/auth/
+      PROXY_ADDRESS_FORWARDING: true
+      KC_HEALTH_ENABLED: true
+      KC_HTTP_RELATIVE_PATH: /auth
+      KC_PROXY_HEADERS: xforwarded
+      KC_LOG_LEVEL: INFO
+      SMCB_KEYSTORE_LOCATION: /opt/keycloak/conf/smcb/truststore.p12
+      SMCB_KEYSTORE_PASSWORD: "changeit"
+      KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_OPA_ENABLED: true
+      KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_OPA_BASE_URL: http://popp-zeta-pdp-opa:8181
+      KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_DECISION_PATH: "/v1/data/zeta/authz/decision"
+      HTTP_PROXY: ""
+      HTTPS_PROXY: ""
+      ALL_PROXY: ""
+      http_proxy: ""
+      https_proxy: ""
+      all_proxy: ""
+      NO_PROXY: "localhost,127.0.0.1,popp-zeta-ingress,popp-zeta-pep,popp-zeta-pdp,popp-zeta-pdp-opa,popp-server"
+      no_proxy: "localhost,127.0.0.1,popp-zeta-ingress,popp-zeta-pep,popp-zeta-pdp,popp-zeta-pdp-opa,popp-server"
+      DEBUG: "true"
+      DEBUG_PORT: "*:5022"
+    ports:
+      - "2201:80"
+      - "2202:9000"
+      - "2203:5022"
+    volumes:
+      - ./zeta-popp/realm:/opt/keycloak/data/import
+      - ./zeta-popp/smcb:/opt/keycloak/conf/smcb
+    networks:
+      - testhub_backend
+    healthcheck:
+      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;echo -e \"GET /auth/health/live HTTP/1.1\r\nhost: localhost:9000\r\nConnection: close\r\n\r\n\" >&3;grep \"status.*UP\" <&3" ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    command: ["start-dev","--import-realm"]
+    depends_on:
+      - popp-zeta-pdp-db
+
+  popp-zeta-pdp-db:
+    container_name: popp-zeta-pdp-db
+    image: postgres:16.2
+    ports:
+      - "2301:5432"
+    volumes:
+      - popp-zeta-postgres-db-data:/var/lib/postgresql/data
+    networks:
+      - testhub_backend
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak_db_user
+      POSTGRES_PASSWORD: keycloak_db_user_password
+      # POSTGRES_DB: test1
+      # POSTGRES_USER: testuser1
+      # POSTGRES_PASSWORD: parr
+
+  popp-zeta-pdp-opa:
+    container_name: popp-zeta-pdp-opa
+    image: openpolicyagent/opa:1.11.0-static
+    environment:
+      HTTP_PROXY: ""
+      HTTPS_PROXY: ""
+      ALL_PROXY: ""
+      http_proxy: ""
+      https_proxy: ""
+      all_proxy: ""
+      NO_PROXY: "localhost,127.0.0.1,popp-zeta-pdp-opa,popp-zeta-pdp"
+      no_proxy: "localhost,127.0.0.1,popp-zeta-pdp-opa,popp-zeta-pdp"
+    ports:
+      - "2401:8181"
+    command:
+      - 'run'
+      - '--server'
+      - '--log-level=debug'
+      - '--addr=0.0.0.0:8181'
+      - '/policies/authz.rego'
+    volumes:
+      - ./zeta-popp/policies/authz.rego:/policies/authz.rego:ro
+    networks:
+      - testhub_backend
+
+volumes:
+  popp-server-db-data:
+  popp-zeta-postgres-db-data:

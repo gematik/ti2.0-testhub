@@ -1,7 +1,9 @@
-/*
- *
- * Copyright 2025 gematik GmbH
- *
+/*-
+ * #%L
+ * VSDM Client Simulator Service
+ * %%
+ * Copyright (C) 2025 - 2026 gematik GmbH
+ * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +18,9 @@
  *
  * *******
  *
- * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
+ * For additional notes and disclaimer from gematik and in case of changes
+ * by gematik, find details in the "Readme" file.
+ * #L%
  */
 package de.gematik.ti20.simsvc.client.service;
 
@@ -35,9 +39,7 @@ import de.gematik.ti20.client.card.terminal.simsvc.SimulatorAttachedCard;
 import de.gematik.ti20.client.popp.config.PoppClientConfig;
 import de.gematik.ti20.client.popp.exception.PoppClientException;
 import de.gematik.ti20.client.popp.message.TokenMessage;
-import de.gematik.ti20.client.popp.service.PoppClientService;
 import de.gematik.ti20.client.popp.service.PoppTokenSession;
-import de.gematik.ti20.client.popp.service.PoppTokenSessionEventHandler;
 import de.gematik.ti20.client.zeta.config.ZetaClientConfig;
 import de.gematik.ti20.client.zeta.service.ZetaClientService;
 import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
@@ -67,7 +69,7 @@ class VsdmClientServiceTest {
   private ZetaClientService mockZetaClientService;
   private ZetaClientConfig mockZetaClientConfig;
   private ZetaSdkClientAdapter mockZetaSdkAdapter;
-  private PoppClientService mockPoppClientService;
+  private PoppClientAdapter mockPoppClientAdapter;
   private PoppClientConfig mockPoppClientConfig;
   private MockPoppTokenService mockPoppTokenService;
   private FhirService mockFhirService;
@@ -95,10 +97,10 @@ class VsdmClientServiceTest {
     when(mockZetaClientService.getZetaClientConfig()).thenReturn(mockZetaClientConfig);
 
     mockPoppClientConfig = mock(PoppClientConfig.class);
-    mockPoppClientService = mock(PoppClientService.class);
-    when(mockPoppClientService.getPoppClientConfig()).thenReturn(mockPoppClientConfig);
+    mockPoppClientAdapter = mock(PoppClientAdapter.class);
+    when(mockPoppClientAdapter.getPoppClientConfig()).thenReturn(mockPoppClientConfig);
     mockEgkInfo = mock(EgkInfo.class);
-    when(mockPoppClientService.getEgkInfo(any())).thenReturn(mockEgkInfo);
+    when(mockPoppClientAdapter.getEgkInfo(any())).thenReturn(mockEgkInfo);
 
     mockPoppTokenService = mock(MockPoppTokenService.class);
     when(mockPoppTokenService.requestPoppToken(vsdmClientConfig, "iknr", "kvnr"))
@@ -117,16 +119,16 @@ class VsdmClientServiceTest {
     when(mockEgkCard.getSlotId()).thenReturn(1);
     when(mockEgkCard.getId()).thenReturn("card1");
 
-    when(mockPoppClientService.getZetaClientService()).thenReturn(mockZetaClientService);
-    when(mockPoppClientService.getAttachedCards()).thenReturn((List) Arrays.asList(mockEgkCard));
+    when(mockPoppClientAdapter.getZetaClientService()).thenReturn(mockZetaClientService);
+    when(mockPoppClientAdapter.getAttachedCards()).thenReturn((List) Arrays.asList(mockEgkCard));
 
     mockZetaSdkAdapter = mock(ZetaSdkClientAdapter.class);
 
     vsdmClientService =
         new VsdmClientService(
             vsdmClientConfig,
-            mockPoppClientService,
             mockPoppTokenService,
+            mockPoppClientAdapter,
             mockFhirService,
             mockPoppTokenRepository,
             mockVsdmDataRepository,
@@ -146,7 +148,7 @@ class VsdmClientServiceTest {
 
       assertEquals(expectedToken, result);
       verify(mockPoppTokenRepository).get(terminalId, egkSlotId, "card1");
-      verify(mockPoppClientService, never()).startPoppTokenSession(any(), any(), any());
+      verify(mockPoppClientAdapter, never()).getPoppToken(any(), any(), any());
     }
 
     @Test
@@ -155,26 +157,13 @@ class VsdmClientServiceTest {
 
       when(mockPoppTokenRepository.get(terminalId, egkSlotId, "card1")).thenReturn(null);
 
-      TokenMessage mockTokenMessage = mock(TokenMessage.class);
-      when(mockTokenMessage.getToken()).thenReturn(expectedToken);
-
-      // Simuliere erfolgreiche Token-Antwort
-      doAnswer(
-              invocation -> {
-                PoppTokenSessionEventHandler handler = invocation.getArgument(2);
-                PoppTokenSession mockSession = mock(PoppTokenSession.class);
-                when(mockSession.getAttachedCard()).thenReturn(mockEgkCard);
-                handler.onReceivedPoppToken(mockSession, mockTokenMessage);
-                return null;
-              })
-          .when(mockPoppClientService)
-          .startPoppTokenSession(eq(mockEgkCard), any(), any());
+      when(mockPoppClientAdapter.getPoppToken(any(), any(), any())).thenReturn(expectedToken);
 
       String result =
           vsdmClientService.requestPoppToken(terminalId, egkSlotId, smcBSlotId, mockEgkCard);
 
       assertEquals(expectedToken, result);
-      verify(mockPoppClientService).startPoppTokenSession(eq(mockEgkCard), any(), any());
+      verify(mockPoppClientAdapter).getPoppToken(eq(mockEgkCard), any(), any());
       verify(mockPoppTokenRepository).put(terminalId, egkSlotId, "card1", expectedToken);
     }
 
@@ -184,8 +173,8 @@ class VsdmClientServiceTest {
 
       PoppClientException expectedException = new PoppClientException("Test error");
       doThrow(expectedException)
-          .when(mockPoppClientService)
-          .startPoppTokenSession(eq(mockEgkCard), any(), any());
+          .when(mockPoppClientAdapter)
+          .getPoppToken(eq(mockEgkCard), any(), any());
 
       ResponseStatusException exception =
           assertThrows(
@@ -214,14 +203,14 @@ class VsdmClientServiceTest {
       vsdmClientService =
           new VsdmClientService(
               vsdmClientConfig,
-              mockPoppClientService,
               mockPoppTokenService,
+              mockPoppClientAdapter,
               mockFhirService,
               mockPoppTokenRepository,
               mockVsdmDataRepository,
               mockZetaSdkAdapter);
 
-      when(mockPoppClientService.getEgkInfo(any()))
+      when(mockPoppClientAdapter.getEgkInfo(any()))
           .thenReturn(
               new EgkInfo(
                   "kvnr",
@@ -244,7 +233,7 @@ class VsdmClientServiceTest {
       assertEquals(expectedToken, result);
 
       verify(mockPoppTokenRepository, never()).get(any(), any(), any());
-      verify(mockPoppClientService, never()).startPoppTokenSession(any(), any(), any());
+      verify(mockPoppClientAdapter, never()).getPoppToken(any(), any(), any());
     }
   }
 
@@ -322,8 +311,8 @@ class VsdmClientServiceTest {
       vsdmClientService =
           new VsdmClientService(
               vsdmClientConfig,
-              mockPoppClientService,
               mockPoppTokenService,
+              mockPoppClientAdapter,
               new FhirService(),
               mockPoppTokenRepository,
               mockVsdmDataRepository,
@@ -529,7 +518,7 @@ class VsdmClientServiceTest {
 
     @Test
     void thatPoppClientExceptionsAreHandled() throws CardTerminalException {
-      when(mockPoppClientService.getAttachedCards()).thenThrow(new RuntimeException());
+      when(mockPoppClientAdapter.getAttachedCards()).thenThrow(new RuntimeException());
       assertThatExceptionOfType(ResponseStatusException.class)
           .isThrownBy(() -> vsdmClientService.getAttachedCard("any", 1));
     }
@@ -537,7 +526,7 @@ class VsdmClientServiceTest {
 
   @Test
   void thatLoadTruncatedDataWorks() throws CardTerminalException {
-    when(mockPoppClientService.getEgkInfo(any()))
+    when(mockPoppClientAdapter.getEgkInfo(any()))
         .thenReturn(
             new EgkInfo(
                 "actual-kvnr",

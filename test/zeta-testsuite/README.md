@@ -19,36 +19,23 @@ Ein Schwerpunkt der ZETA-Testsuite liegt auf:
 ## Vorbedingungen
 
 Die Tests der ZETA-Testsuite verwenden die simulierten Dienste des TI 2.0 TestHubs. Die benötigten Komponenten variieren
-je nach Testtyp:
-
-**WebSocket-Tests (`@websocket`):**
-
-* ZETA PEP Server Mockservice (Port 9110)
-* PoPP Server Mockservice (Backend hinter PEP)
-
-**Smoke-Tests (`@smoke`):**
-
-* ZETA PDP Server Mockservice (PoPP)
-* ZETA PEP Server Mockservice (PoPP)
-* ZETA PDP Ingress (VSDM)
-
-**REST-Datenübertragungs-Tests (`@rest_pep_transfer`):**
-
-* ZETA PEP Server Mockservice (Port 9110)
-* PoPP Server Mockservice (Backend hinter PEP)
-* Tiger-Proxy
-
-**Client-Registrierungs-Tests (`@client_registrierung`):**
-
-* ZETA PDP Server Mockservice (Port 9112)
-* Tiger-Proxy
-
-Am einfachsten werden alle Backend-Dienste gemeinsam gestartet. Siehe dazu: [Getting Started](../../README.md#getting-started)
+je nach Testtyp. Unser Vorschlag ist, alle Backend-Dienste gemeinsam zu staren.
 
 Anschließend stehen u. a. folgende relevanten Endpunkte zur Verfügung (Standard-Setup des TestHubs):
 
 * ZETA-PEP (PoPP): `http://localhost:9110` (für HTTP) bzw. `ws://localhost:9110` (für WebSocket)
 * ZETA-PDP (PoPP): `http://localhost:9112`
+
+## Features
+
+| Feature                 | Beschreibung                        | Tag                     | Details                                                 |
+|-------------------------|-------------------------------------|-------------------------|---------------------------------------------------------|
+| Client Registrierung    | Registrierung zur PDP               | @client_registrierung   | src/test/resources/features/zeta-client-registrierung   |
+| Datenübertragung (REST) | REST-Anfrage Tests                  | @rest_pep_transfer      | src/test/resources/features/zeta-datatransfer-rest      |
+| Datenübertragung (WS)   | WebSocket-basierte Tests            | @websocket              | src/test/resources/features/zeta-datatransfer-websocket |
+| Header Management       | Headers weiterleitung und ergänzung | @pep_header_management  | src/test/resources/features/zeta-header-management      |
+| Smoketest               | Überprüfung Service-Stabilität      | @smoke                  | src/test/resources/features/smoketest                   |
+
 
 ## WebSocket-Tests (PoPP über ZETA-PEP)
 
@@ -197,3 +184,9 @@ Die WebSocket-spezifischen Schritte sind in den Klassen unter `de.gematik.zeta.s
 * TI 2.0 TestHub – Gesamtprojekt und Dokumentation (Root-README im Repository)
 * VSDM 2.0 Testsuite (`test/vsdm-testsuite/README.md`) als Referenz für Aufbau, Ausführung und Lasttests
 * Tiger-Framework: Traffic-Mitschnitt, RBel-UI und Proxy-Konfiguration
+
+Jedes Feature-Verzeichnis enthält:
+- `.feature`-Datei mit Gherkin-Szenarien
+- `README.md` mit detaillierter Feature-spezifischer Dokumentation
+
+Die Step-Implementierungen befinden sich in `src/test/java/de/gematik/zeta/steps/`.

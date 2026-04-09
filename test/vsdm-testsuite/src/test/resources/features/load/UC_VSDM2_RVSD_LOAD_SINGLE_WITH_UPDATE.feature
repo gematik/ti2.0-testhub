@@ -1,12 +1,13 @@
 #language: de
 #noinspection NonAsciiCharacters,SpellCheckingInspection
 
-@PRODUKT:VSDM2
+@PRODUKT:VSDM_2_FD
+@AFO-ID:A_26991-01
 @TYPE:LOAD
 Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0 unter Last
 
   @TCID:UC_VSDM2_RVSD_LOAD_SINGLE_WITH_UPDATE
-  @STATUS:InBearbeitung
+  @STATUS:Implementiert
   @MODUS:Halbautomatisch
   @TESTFALL:Positiv
   @TESTSTUFE:3

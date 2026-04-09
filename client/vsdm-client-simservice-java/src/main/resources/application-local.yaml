@@ -7,7 +7,7 @@ otel:
 
 popp:
   http:
-    url: http://localhost:9110
+    url: http://popp-client:8081/token
   ws:
     url: ws://localhost:9110
 
