@@ -125,7 +125,17 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
         smcbSlotId,
         ifNoneMatch,
         poppTokenInjected != null);
-    final AttachedCard attachedCard = getAttachedCard(terminalId, egkSlotId);
+
+    final AttachedCard attachedCard;
+
+    if (poppTokenInjected != null && !poppTokenInjected.isEmpty()) {
+      log.debug("Using provided PoPP token, skipping Popp-Service call");
+      attachedCard = null;
+      // poppToken = poppTokenInjected;
+    } else {
+      attachedCard = getAttachedCard(terminalId, egkSlotId);
+      // poppToken = requestPoppToken(terminalId, egkSlotId, smcbSlotId, attachedCard);
+    }
 
     final String poppToken =
         Optional.ofNullable(poppTokenInjected)
@@ -214,14 +224,17 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
       final String ifNoneMatch,
       final boolean isFhirXml) {
 
-    final VsdmCachedValue vsdmCachedValue =
-        vsdmDataRepository.get(terminal, egkSlotId, attachedCard.getId());
+    // Skip cache if attachedCard is null (when poppToken is provided externally)
+    if (attachedCard != null) {
+      final VsdmCachedValue vsdmCachedValue =
+          vsdmDataRepository.get(terminal, egkSlotId, attachedCard.getId());
 
-    if (vsdmCachedValue != null) {
-      return ResponseEntity.status(HttpStatus.OK)
-          .header(HEADER_VSDM_PZ, vsdmCachedValue.pruefziffer())
-          .header(HEADER_ETAG, vsdmCachedValue.etag())
-          .body(vsdmCachedValue.vsdmData());
+      if (vsdmCachedValue != null) {
+        return ResponseEntity.status(HttpStatus.OK)
+            .header(HEADER_VSDM_PZ, vsdmCachedValue.pruefziffer())
+            .header(HEADER_ETAG, vsdmCachedValue.etag())
+            .body(vsdmCachedValue.vsdmData());
+      }
     }
 
     try {
@@ -252,14 +265,17 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
       }
       responseHeaders.put("Content-Type", List.of(MediaType.FHIR_JSON.asString()));
 
-      vsdmDataRepository.put(
-          terminal,
-          egkSlotId,
-          attachedCard.getId(),
-          new VsdmCachedValue(
-              responseHeaders.getETag(),
-              responseHeaders.getFirst(HEADER_VSDM_PZ),
-              responseToCaller));
+      // Only cache if attachedCard is available
+      if (attachedCard != null) {
+        vsdmDataRepository.put(
+            terminal,
+            egkSlotId,
+            attachedCard.getId(),
+            new VsdmCachedValue(
+                responseHeaders.getETag(),
+                responseHeaders.getFirst(HEADER_VSDM_PZ),
+                responseToCaller));
+      }
 
       return ResponseEntity.status(HttpStatus.OK).headers(responseHeaders).body(responseToCaller);
 
@@ -269,14 +285,22 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
     } catch (final ServerResponseException e) {
       log.error("Error while connecting to VSDM server: {}", e.getMessage(), e);
 
-      try {
-        final String responseToCaller = loadTruncatedDataFromCard(attachedCard);
-        if (responseToCaller == null) {
-          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      // Fallback to card data only if attachedCard is available
+      if (attachedCard != null) {
+        try {
+          final String responseToCaller = loadTruncatedDataFromCard(attachedCard);
+          if (responseToCaller == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+          }
+          return ResponseEntity.status(HttpStatus.OK).body(responseToCaller);
+        } catch (final CardTerminalException cardEx) {
+          log.error(
+              "Error while loading truncated data from card: {}", cardEx.getMessage(), cardEx);
+          throw new ResponseStatusException(
+              HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
         }
-        return ResponseEntity.status(HttpStatus.OK).body(responseToCaller);
-      } catch (final CardTerminalException cardEx) {
-        log.error("Error while loading truncated data from card: {}", cardEx.getMessage(), cardEx);
+      } else {
+        // No fallback available when using provided token
         throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
       }
     } catch (InterruptedException e) {
@@ -308,15 +332,18 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
         checkDigitHeader,
         "'%s' header must be set by VSDM backend on 304".formatted(HEADER_VSDM_PZ));
 
-    final VsdmCachedValue cachedValue =
-        vsdmDataRepository.get(terminal, egkSlotId, attachedCard.getId());
-    final VsdmCachedValue updatedCacheValue;
-    if (cachedValue == null) {
-      updatedCacheValue = new VsdmCachedValue(etagHeader, checkDigitHeader, "");
-    } else {
-      updatedCacheValue = cachedValue.copyWith(etagHeader, checkDigitHeader);
+    // Only update cache if attachedCard is available
+    if (attachedCard != null) {
+      final VsdmCachedValue cachedValue =
+          vsdmDataRepository.get(terminal, egkSlotId, attachedCard.getId());
+      final VsdmCachedValue updatedCacheValue;
+      if (cachedValue == null) {
+        updatedCacheValue = new VsdmCachedValue(etagHeader, checkDigitHeader, "");
+      } else {
+        updatedCacheValue = cachedValue.copyWith(etagHeader, checkDigitHeader);
+      }
+      vsdmDataRepository.put(terminal, egkSlotId, attachedCard.getId(), updatedCacheValue);
     }
-    vsdmDataRepository.put(terminal, egkSlotId, attachedCard.getId(), updatedCacheValue);
     return ResponseEntity.status(HttpStatus.NOT_MODIFIED).headers(responseHeaders).build();
   }
 
