@@ -26,8 +26,9 @@ package de.gematik.ti20.popp;
 
 import static de.gematik.test.tiger.lib.TigerHttpClient.executeCommandWithContingentWait;
 import static de.gematik.test.tiger.lib.TigerHttpClient.givenDefaultSpec;
-import static de.gematik.ti20.popp.data.TestConstants.ARBITRARY_VALUE_NOT_AFTER_FOR_HASHDB_ENTRIES;
-import static de.gematik.ti20.popp.data.TestConstants.PATH_TO_TSP_EGK_OSIG_P12;
+import static de.gematik.ti20.popp.data.TestConstants.FOLDER_FOR_SIGNED_HASHDB_PAYLOADS;
+import static de.gematik.ti20.popp.data.TestConstants.HASH_DB_SUCCESS_RESULT_RESPONSE_FILE;
+import static de.gematik.ti20.popp.data.TestConstants.JOBID_FOR_FINISHED_SUCCESSFULL_IMPORT;
 import static de.gematik.ti20.popp.data.TestConstants.URL_HASH_DB_IMPORT_RU;
 import static de.gematik.ti20.popp.data.TestConstants.VALID_HASH_DB_IMPORT_RESPONSE_FILE;
 import static de.gematik.ti20.popp.data.TestConstants.VALID_HASH_DB_JOB_STATUS_RESPONSE_FILE;
@@ -43,30 +44,11 @@ import io.cucumber.java.de.Dann;
 import io.cucumber.java.de.Und;
 import io.cucumber.java.de.Wenn;
 import io.restassured.http.Method;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Security;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.Collections;
-import java.util.List;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.cert.jcajce.JcaCertStore;
-import org.bouncycastle.cms.CMSProcessableByteArray;
-import org.bouncycastle.cms.CMSSignedData;
-import org.bouncycastle.cms.CMSSignedDataGenerator;
-import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.operator.ContentSigner;
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
-import org.bouncycastle.util.encoders.Hex;
 import org.htmlunit.http.HttpStatus;
 
 @Slf4j
@@ -87,31 +69,21 @@ public class StepsHashdb {
     this(RbelMessageRetriever.getInstance());
   }
 
-  static {
-    Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
-    Security.insertProviderAt(new BouncyCastleProvider(), 1);
-    final byte[] p12AsBytes;
+  @Angenommen("der TSP sendet den signierten eContent {string} an den PoPP Service")
+  public void sendSignedEContent(final String econtentFileName) {
     try {
-      p12AsBytes = Files.readAllBytes(Path.of(PATH_TO_TSP_EGK_OSIG_P12));
-      tspEntrySigner = KeyStore.getInstance("pkcs12", new BouncyCastleProvider());
-      tspEntrySigner.load(new ByteArrayInputStream(p12AsBytes), "00".toCharArray());
-    } catch (final IOException
-        | NoSuchAlgorithmException
-        | CertificateException
-        | KeyStoreException e) {
-      throw new RuntimeException("Error loading keystore at " + PATH_TO_TSP_EGK_OSIG_P12, e);
+      final byte[] eContentPayload =
+          Files.readAllBytes(Path.of(FOLDER_FOR_SIGNED_HASHDB_PAYLOADS + econtentFileName));
+      executeCommandWithContingentWait(
+          () ->
+              givenDefaultSpec().body(eContentPayload).request(Method.POST, URL_HASH_DB_IMPORT_RU));
+    } catch (final IOException e) {
+      throw new RuntimeException(
+          "Error loading signed eContetn at "
+              + FOLDER_FOR_SIGNED_HASHDB_PAYLOADS
+              + econtentFileName,
+          e);
     }
-  }
-
-  @Angenommen("der TSP sendet den signierten eContent an den PoPP Service")
-  public void sendSignedEContent() {
-    final byte[] eContentPayload =
-        signEntryForHashDb(
-            "4D516D65BA306BC9AF747E03BE24D57E905A70D0CF5BBD97783E6CA77AF201EE",
-            "19AAF229FDDA443B6B39AA349E621E007A851FDBE92F8235DC4C6A80F68237C8",
-            "import");
-    executeCommandWithContingentWait(
-        () -> givenDefaultSpec().body(eContentPayload).request(Method.POST, URL_HASH_DB_IMPORT_RU));
   }
 
   @Wenn("der TSP fragt den Status seines Imports ab")
@@ -127,6 +99,19 @@ public class StepsHashdb {
         () ->
             givenDefaultSpec()
                 .request(Method.GET, URL_HASH_DB_IMPORT_RU + "/" + jobId + "/status"));
+  }
+
+  @Wenn("der TSP fragt das Ergebnis seines erfolgreichen Imports ab")
+  public void sendResultRequest() {
+    executeCommandWithContingentWait(
+        () ->
+            givenDefaultSpec()
+                .request(
+                    Method.GET,
+                    URL_HASH_DB_IMPORT_RU
+                        + "/"
+                        + JOBID_FOR_FINISHED_SUCCESSFULL_IMPORT
+                        + "/result"));
   }
 
   @Und("der TSP verwendet die Client Identität {string} für die mTLS-Verbindung zum PoPP-Service")
@@ -181,37 +166,20 @@ public class StepsHashdb {
         this.rbelMessageRetriever);
   }
 
-  @SneakyThrows
-  public static byte[] signEntryForHashDb(
-      final String autHashAsHexString, final String cvcHashAsHexString, final String operation) {
-
-    final CMSSignedDataGenerator generator = new CMSSignedDataGenerator();
-    final ContentSigner contentSigner =
-        new JcaContentSignerBuilder("SHA256withECDSA")
-            .setProvider("BC")
-            .build(
-                (java.security.PrivateKey)
-                    tspEntrySigner.getKey(ALIAS_FOR_TRUSTSTORE, "00".toCharArray()));
-    generator.addSignerInfoGenerator(
-        new JcaSignerInfoGeneratorBuilder(
-                new JcaDigestCalculatorProviderBuilder().setProvider("BC").build())
-            .build(
-                contentSigner,
-                (X509Certificate) tspEntrySigner.getCertificate(ALIAS_FOR_TRUSTSTORE)));
-    generator.addCertificates(
-        new JcaCertStore(
-            Collections.singletonList(tspEntrySigner.getCertificate(ALIAS_FOR_TRUSTSTORE))));
-    final EgkInfo egkInfo =
-        new EgkInfo(
-            operation,
-            Hex.decode(autHashAsHexString),
-            Hex.decode(cvcHashAsHexString),
-            ARBITRARY_VALUE_NOT_AFTER_FOR_HASHDB_ENTRIES);
-
-    final EContent eContent = new EContent(List.of(egkInfo));
-    final byte[] dataEncoded = eContent.getEncoded("DER");
-    final CMSProcessableByteArray cmsData = new CMSProcessableByteArray(dataEncoded);
-    final CMSSignedData signedData = generator.generate(cmsData, true);
-    return signedData.getEncoded();
+  @Dann("der TSP erhält Informationen über das Ergebnis seines Imports")
+  public void checkLastResponseForResult() {
+    this.rbelMessageRetriever.filterRequestsAndStoreInContext(
+        RequestParameter.builder()
+            .path(".*/api/v1/hash-db/import/.*/result")
+            .build()
+            .resolvePlaceholders());
+    this.rbelValidator.assertAttributeOfCurrentResponseMatches(
+        "$.responseCode", String.valueOf(HttpStatus.OK_200), true, this.rbelMessageRetriever);
+    this.rbelValidator.assertAttributeOfCurrentResponseMatches(
+        "$.body",
+        TigerGlobalConfiguration.resolvePlaceholders(
+            "!{file('" + HASH_DB_SUCCESS_RESULT_RESPONSE_FILE + "')}"),
+        true,
+        this.rbelMessageRetriever);
   }
 }

@@ -11,90 +11,71 @@ The VSDM client can be configured to use the Mock PoPP Token Generator or an arb
 
 === How To Enable The Mock PoPP Token Generator
 
-1. Instruct the VSDM client to use the mock implementation by setting `VSDM_USE_MOCK_POPP_TOKEN=true`:
-
-    # doc/docker/compose-local.yml
-    x-vsdm-client-base:
-    # ...
-    environment:
-        - VSDM_USE_MOCK_POPP_TOKEN=true
-
-2. Ensure the PEP components use the PoPP Token Generator:
-
-  # doc/docker/backend/zeta/vsdm-zeta-pep.conf
-  pep_popp_issuer http://popp-token-generator/;
+Start the application using docker compose with the mock-popp Profile. This will automatically set the required environment variable and start the mock PoPP Token Generator service only.
 
 Rebuild and restart services to ensure all configuration values are applied correctly.
 
 === How to enable the Gematik Sample POPP Implementation
 
-This is the default scenario where the Testhub uses the Gematik sample implementation of POPP Client and POPP Server.
+This is the default scenario where the Testhub uses the Gematik sample implementation of PoPP Client and PoPP Server.
 
-1. Disable using the PoPP mock implementation in VSDM client by setting `VSDM_USE_MOCK_POPP_TOKEN=false`:
-
-    # doc/docker/compose-local.yml
-    x-vsdm-client-base:
-    # ...
-    environment:
-        - VSDM_USE_MOCK_POPP_TOKEN=false
-
-2. Set `POPP_HTTP_URL` to the `http://popp-client:{PORT}/token`. Find the value of `{PORT}` by looking at the port configuration of the popp-client container.
+1. Set `POPP_HTTP_URL` to the `http://popp-client:{PORT}/token`. Find the value of `{PORT}` by looking at the port configuration of the popp-client container.
 
     # doc/docker/compose-local.yml
-    x-vsdm-client-base:
+    vsdm-client-base:
     # ...
     environment:
-        - VSDM_USE_MOCK_POPP_TOKEN=false
         # verify the port is correct
         - POPP_HTTP_URL=http://popp-client:8081/token
 
-3. Ensure the PEP components use the PoPP server:
-
-  # doc/docker/backend/zeta/vsdm-zeta-pep.conf
-  # verify the port is correct
-  pep_popp_issuer http://popp-server:8443/;
+2. Start the application using docker compose with the full Profile. This will automatically set the required environment variable and start the PoPP Client and Server components of the Gematik sample implementation.
 
 Rebuild and restart services to ensure all configuration values are applied correctly.
 
-// === How To Replace the POPP Server with External Implementation
+=== How To Replace the PoPP Server with External Implementation
 
-// If you want to operate the entire POPP infrastructure (POPP Client and Server) externally using the Gematik sample implementation or another external POPP implementation, follow these steps.
+If you want to operate the entire PoPP infrastructure (PoPP Client and Server) externally using the Gematik sample implementation or another external PoPP implementation, follow these steps.
 
-// 1. Ensure the external infrastructure is up, running and reachable.
-// 2. Disable using the PoPP mock implementation in VSDM client by setting `VSDM_USE_MOCK_POPP_TOKEN=false`:
+1. Ensure the external infrastructure is up, running and reachable.
+2. Disable using the PoPP mock implementation in VSDM client by setting `VSDM_USE_MOCK_POPP_TOKEN=false`:
 
-//     # doc/docker/compose-local.yml
-//     x-vsdm-client-base:
-//     # ...
-//     environment:
-//         - VSDM_USE_MOCK_POPP_TOKEN=false
+    # doc/docker/compose-local.yml
+    vsdm-client:
+    # ...
+    environment:
+        - VSDM_USE_MOCK_POPP_TOKEN=false
 
-// 3. Set `SPRING_PROFILES_ACTIVE` to an empty string:
+3. Set `SPRING_PROFILES_ACTIVE` to an empty string:
 
-//     # doc/docker/backend/compose-popp-services.yml
-//     popp-client:
-//         # ...
-//         environment:
-//         - SPRING_PROFILES_ACTIVE=
+    # doc/docker/backend/compose-popp-services.yml
+    popp-client:
+        # ...
+        environment:
+        - SPRING_PROFILES_ACTIVE=
 
-// 4. Set `POPP_SERVER_URL` to the external server endpoint:
+4. Set `POPP_SERVER_URL` to the external server endpoint to request a new PoPP token:
 
-//     # doc/docker/backend/compose-popp-services.yml
-//     popp-client:
-//         # ...
-//         environment:
-//         - SPRING_PROFILES_ACTIVE=
-//         - POPP_SERVER_URL=wss://example.com/popp/token
+    # doc/docker/backend/compose-popp-services.yml
+    popp-client:
+        # ...
+        environment:
+        - SPRING_PROFILES_ACTIVE=
+        - POPP_SERVER_URL=wss://example.com/popp/token
 
+5. Ensure the PEP components use the external PoPP server to resolve the public keys for PoPP token validation:
 
-// 5. Ensure the PEP components use the external PoPP server:
+  # doc/docker/backend/zeta/vsdm-zeta-pep.conf
+  pep_popp_issuer https://example.com/
 
-//   # doc/docker/backend/zeta/vsdm-zeta-pep.conf
-//   pep_popp_issuer http://example.com/
+Rebuild and restart services to ensure all configuration values are applied correctly.
 
-// Rebuild and restart services to ensure all configuration values are applied correctly.
+==== Common Issues When Using An External Implementation
 
-== Notes / Troubleshooting
+Ensure that the `kid` in your PoPP token can be found in the JWKS endpoint offered by the PoPP issuer.
+
+Make sure that the external implementation returns the expected responses from the respective endpoints. To learn refer to the https://github.com/gematik/zeta-guard-ngx-pep[PEP source code] dealing with the JWKS data.
+
+=== Notes / Troubleshooting
 
 * After changes to compose files always restart the affected containers (e.g. `docker compose down && docker compose up -d` for the changed services).
 * Test reachability of the external service from the Testhub instance (e.g. `curl` from the host/container).
@@ -110,7 +91,7 @@ docker logs popp-client
 
 * Ensure the PoPP control REST endpoint is accessible and returns valid responses in the expected format.
 
-== Summary
+=== Summary
 
 This document shows the minimal changes required to either use the mock PoPP token generator for fast testing, replace only the Token Server, or replace the entire PoPP Client and Server externally.
 

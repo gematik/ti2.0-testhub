@@ -60,7 +60,7 @@ class UserInfoValidationServiceTest {
   void validateUserInfo_validWithRequiredFields_doesNotThrow() {
     final String json =
         """
-        {"identifier": "12345", "professionOID": "1.2.276.0.76.4.49"}
+        {"identifier": "12345", "professionOID": "1.2.276.0.76.4.49", "commonName": "cn"}
         """;
 
     assertThatCode(() -> userInfoValidationService.validateUserInfo(toBase64(json)))
@@ -91,6 +91,7 @@ class UserInfoValidationServiceTest {
         {
           "identifier": "12345",
           "professionOID": "1.2.276.0.76.4.49",
+          "commonName": "cn",
           "extraField": "extraValue"
         }
         """;

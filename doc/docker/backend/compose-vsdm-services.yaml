@@ -32,7 +32,7 @@ services:
       - testhub_backend
 
   vsdm-zeta-pep:
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:0.4.0
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:0.5.1
     container_name: vsdm-zeta-pep
     ports:
       - "9120:80"
@@ -48,7 +48,7 @@ services:
       - testhub_backend
 
   vsdm-zeta-pdp:
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:0.4.1
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:0.5.1
     container_name: vsdm-zeta-pdp
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
@@ -116,7 +116,7 @@ services:
       - testhub_backend
 
   vsdm-zeta-pdp-opa:
-    image: openpolicyagent/opa:1.11.0-static
+    image: openpolicyagent/opa:1.15.2-static
     ports:
       - "8181:8181"
     command:

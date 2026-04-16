@@ -11,6 +11,7 @@ Funktionalität: PEP Header Management – Weiterleitung und Transformation von 
 
   Grundlage:
     Gegeben sei TGR lösche aufgezeichnete Nachrichten
+    Und TGR lösche alle default headers
 
   @pep_header_management
   Szenario: PEP transformiert Authorization- und PoPP-Header korrekt ans Backend
@@ -50,7 +51,7 @@ Funktionalität: PEP Header Management – Weiterleitung und Transformation von 
     # Gemäß PoPP Token Validierung: Wenn der PEP PoPP-Header verlangt und keiner da ist → 400
     Gegeben sei ein gültiger ZETA-PEP AccessToken wird erzeugt
 
-    Wenn REST sende GET Anfrage an "http://127.0.0.1:9110/openapi.yaml" mit Authorization "${ZETA_PEP_AUTHZ}"
+    Wenn TGR sende eine leere GET Anfrage an "http://127.0.0.1:9110/openapi.yaml"
 
     # PEP leitet trotzdem weiter (PoPP ist im Mockservice optional) → 200
     # Im echten Guard wäre hier 400, wenn PoPP required ist
@@ -59,7 +60,7 @@ Funktionalität: PEP Header Management – Weiterleitung und Transformation von 
 
   @pep_header_management
   Szenario: PEP lehnt Request ohne Authorization ab
-    Wenn REST sende GET Anfrage an "http://127.0.0.1:9110/openapi.yaml" ohne Authorization
+    Wenn TGR sende eine leere GET Anfrage an "http://127.0.0.1:9110/openapi.yaml"
 
     Dann TGR finde die letzte Anfrage mit dem Pfad "/openapi.yaml"
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "401"

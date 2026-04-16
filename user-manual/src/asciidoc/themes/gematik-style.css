@@ -55,6 +55,13 @@ table.stretch td, table.stretch th {
     max-width: 100%;
 }
 
+
+@media (min-width: 1280px) {
+    div#toc.toc2 {
+        width: 25em;
+    }
+}
+
 @media (min-width: 768px) {
     #header {
         padding: 20rem 0;
@@ -70,10 +77,6 @@ table.stretch td, table.stretch th {
 
     /* TODO Anne to be kept locally */
     #header h1 {
-        background-image: url("media/tiger-mono-picto-plain.svg");
-        background-size: 80px;
-        background-repeat: no-repeat;
-        background-position: 80px;
         padding-left: 10rem;
         line-height: 350%;
         font-size: 327%;
@@ -92,10 +95,6 @@ table.stretch td, table.stretch th {
 Without the big background image and the tiger logo above the title*/
 @media (max-width: 768px) {
     #header h1 {
-        background-image: url("media/tiger-mono-picto-plain.svg");
-        background-position: center top;
-        background-repeat: no-repeat;
-        background-size: 75px;
         padding-left: 0;
         padding-top: 75px; /* Adjust padding to ensure the image appears above the title */
         line-height: normal;
@@ -180,4 +179,3 @@ video {
         font-size: 80%;
     }
 }
-

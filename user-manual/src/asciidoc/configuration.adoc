@@ -5,15 +5,6 @@
 
 Each service can be configured via environment variables. Key configuration options:
 
-==== ZeTA PEP Services
-
-- `PROXY_HTTP_URL` - Backend HTTP URL to proxy requests to
-- `PROXY_WS_URL` - Backend WebSocket URL to proxy requests to
-- `PROXY_POPP_REQUIRED` - Whether PoPP token validation is required (true/false)
-- `WK_ISSUER` - OAuth 2.0 issuer URL
-- `WK_AUTH_EP` - Authorization endpoint
-- `WK_TOKEN_EP` - Token endpoint
-
 ==== ZeTA PDP Services
 
 - `AUTHZ_SEC_STORE_PATH` - Path to PKCS12 keystore file
@@ -35,8 +26,11 @@ The Testhub supports different startup profiles for various use cases:
 | Profile
 | Description
 
-| _(default)_
+| `full`
 | Backend + Tiger-Proxies + Clients via proxy. Use this for normal development and testing.
+
+| `mock-popp`
+| Backend + Tiger-Proxies + Clients via proxy. Use this for normal development and testing using mocked PoPP tokens instead of the Gematik sample implementation.
 
 | `perf`
 | Backend + Tiger-Proxies + Clients with direct backend access. Use this for performance testing as it bypasses the Tiger-Proxy.
@@ -54,8 +48,11 @@ Use Docker Compose with the appropriate profile:
 # Build Docker images first
 ./mvnw clean install -Pdocker -DskipTests
 
-# Start full stack (default)
-docker compose -f doc/docker/compose-local.yaml up -d
+# Start full stack
+docker compose -f doc/docker/compose-local.yaml --profile perf up -d
+
+# Start with mocked popp components
+docker compose -f doc/docker/compose-local.yaml --profile mock-popp up -d
 
 # Start with performance profile (clients bypass Tiger-Proxy)
 docker compose -f doc/docker/compose-local.yaml --profile perf up -d

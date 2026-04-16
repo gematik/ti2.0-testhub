@@ -3,10 +3,6 @@
   "description": "Schema for the extended user-info JSON object (VSDM2). Based on https://raw.githubusercontent.com/gematik/spec-t20r/refs/heads/main/src/schemas/user-info.yaml and extended with VSDM2-specific properties.",
   "type": "object",
   "properties": {
-    "subject": {
-      "type": "string",
-      "description": "Subject identifier of the user"
-    },
     "identifier": {
       "type": "string",
       "description": "Identifier of the user"
@@ -26,7 +22,8 @@
   },
   "required": [
     "identifier",
-    "professionOID"
+    "professionOID",
+    "commonName"
   ],
   "additionalProperties": true
 }

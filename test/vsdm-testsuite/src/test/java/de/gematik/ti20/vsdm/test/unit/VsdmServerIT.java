@@ -275,8 +275,8 @@ class VsdmServerIT {
     assertNotNull(result2.response.header("etag"));
     assertEquals(etag, result2.response.header("etag"));
 
-    assertNotNull(result2.response.header("VSDM-Pz"));
-    assertEquals(64, Objects.requireNonNull(result2.response.header("VSDM-Pz")).length());
+    assertNotNull(result2.response.header("vsdm-pz"));
+    assertEquals(64, Objects.requireNonNull(result2.response.header("vsdm-pz")).length());
   }
 
   @Test
@@ -409,8 +409,8 @@ class VsdmServerIT {
   void testResponseContainsPz() throws Exception {
     final Result result = callOnce(MOCK_POPP_TOKEN, MOCK_USER_INFO, "0", ACCEPT_JSON);
 
-    assertNotNull(result.response.header("VSDM-Pz"));
-    assertEquals(64, Objects.requireNonNull(result.response.header("VSDM-Pz")).length());
+    assertNotNull(result.response.header("vsdm-pz"));
+    assertEquals(64, Objects.requireNonNull(result.response.header("vsdm-pz")).length());
   }
 
   @Test

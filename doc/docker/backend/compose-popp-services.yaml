@@ -1,15 +1,16 @@
 services:
   popp-token-generator:
     container_name: popp-token-generator
-    image: gematik1/popp-token-generator:1.0.8
+    image: gematik1/popp-token-generator:1.0.10
     ports:
       - "9500:80"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_PROFILES_ACTIVE=beispielimpl
     networks:
       - testhub_backend
 
   popp-client:
+    profiles: [ "full" ]
     image: gematik1/popp-client:2.1.4
     container_name: popp-client
     environment:
@@ -33,6 +34,7 @@ services:
       - otel-collector
 
   popp-server:
+    profiles: [ "full" ]
     image: gematik1/popp-server:2.1.4
     container_name: popp-server
     ports:
@@ -48,6 +50,7 @@ services:
       - otel-collector
 
   popp-server-db:
+    profiles: [ "full" ]
     image: postgres:18-alpine
     container_name: popp-server-db
     environment:
@@ -63,6 +66,7 @@ services:
       - testhub_backend
 
   popp-zeta-ingress:
+    profiles: [ "full" ]
     container_name: popp-zeta-ingress
     image: "nginx:1.29.4"
     ports:
@@ -76,6 +80,7 @@ services:
       - popp-zeta-pep
 
   popp-zeta-pep:
+    profiles: [ "full" ]
     image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:0.3.0
     environment:
       - POPP_SERVER_HOST=popp-server:8443
@@ -100,7 +105,9 @@ services:
         condition: service_healthy
       popp-server:
         condition: service_started # TODO: change to "service_healthy" when healthcheck is available
+
   popp-zeta-pdp:
+    profiles: [ "full" ]
     image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:0.3.2
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
@@ -151,11 +158,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 30
-    command: ["start-dev","--import-realm"]
+    command: [ "start-dev","--import-realm" ]
     depends_on:
       - popp-zeta-pdp-db
 
   popp-zeta-pdp-db:
+    profiles: [ "full" ]
     container_name: popp-zeta-pdp-db
     image: postgres:16.2
     ports:
@@ -173,6 +181,7 @@ services:
       # POSTGRES_PASSWORD: parr
 
   popp-zeta-pdp-opa:
+    profiles: [ "full" ]
     container_name: popp-zeta-pdp-opa
     image: openpolicyagent/opa:1.11.0-static
     environment:

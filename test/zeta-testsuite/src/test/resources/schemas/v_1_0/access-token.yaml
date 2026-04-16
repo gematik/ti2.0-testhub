@@ -1,0 +1,86 @@
+# Schema for the AccessToken JSON object. Issuer is a PDP authorization server.
+# See also https://www.rfc-editor.org/rfc/rfc9068.html
+$schema: "http://json-schema.org/draft-07/schema#"
+title: Access Token
+description: Schema for the Access Token issued by the PDP authorization server, as defined in RFC 9068.
+type: object
+properties:
+  header:
+    type: object
+    description: The JOSE Header of the Access Token.
+    properties:
+      typ:
+        type: string
+        description: Type of the JWT. Must be "at+jwt" or "vnd.telematik.access+jwt".
+        enum:
+          - at+jwt
+          - vnd.telematik.access+jwt
+      alg:
+        type: string
+        description: Asymmetric algorithm used to sign the JWT.
+        enum:
+          - ES256
+      kid:
+        type: string
+        description: Key ID of the signing key.
+      x5c:
+        type: array
+        description: Contains the certificate chain. The first certificate must be the leaf certificate containing the public key for verifying the signature. It must be base64-der-encoded.
+        items:
+          type: string
+          format: byte
+        minItems: 1
+    required:
+      - typ
+      - alg
+  payload:
+    type: object
+    description: The JWT Claims Set of the Access Token.
+    properties:
+      iss:
+        type: string
+        description: The issuer of the token.
+      exp:
+        type: integer
+        description: Expiration time of the token as a Unix timestamp.
+      aud:
+        oneOf:
+          - type: array
+            items:
+              type: string
+          - type: string
+        description: The intended recipients (audiences) of the token.
+      sub:
+        type: string
+        description: The subject of the token.
+      client_id:
+        type: string
+        description: The client identifier of the OAuth 2.0 client that requested the token.
+      iat:
+        type: integer
+        description: Issued at time of the token as a Unix timestamp.
+      jti:
+        type: string
+        description: The JWT ID.
+      scope:
+        type: string
+        description: The permissions that this token grants.
+      cnf:
+        type: object
+        description: The confirmation claim binding the token to the public key.
+        properties:
+          jkt:
+            type: string
+            description: SHA-256 hash of the public key used in the DPoP proof.
+        required:
+          - jkt
+    required:
+      - iss
+      - exp
+      - aud
+      - sub
+      - client_id
+      - iat
+      - jti
+      - cnf
+
