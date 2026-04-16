@@ -51,32 +51,16 @@ docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-
 
 ### Profile
 
-Der TestHub unterstützt verschiedene Docker Compose Profile:
+Der TestHub unterstützt verschiedene Docker Compose Profile. Diese Profile ermöglichen es, je nach Anwendungsfall
+unterschiedliche Kombinationen von Diensten zu starten.
 
-| Profil         | Beschreibung                                                           |
-|----------------|------------------------------------------------------------------------|
-| `full`         | Backend + Tiger-Proxies + Clients über Proxy                           |
-| `backend-only` | Nur Backend-Services (keine Tiger-Proxies, keine Clients)              |
-| `perf`         | Backend + Clients mit direktem Backend-Zugriff (für Performance-Tests) |
-
-Beispiele:
-
-```bash
-# Full stack
-docker compose -f ./doc/docker/compose-local.yaml --profile full up -d
-
-# Nur Backend
-docker compose -f ./doc/docker/compose-local.yaml --profile backend-only up -d
-
-# Performance-Profil (Clients umgehen Tiger-Proxy)
-docker compose -f ./doc/docker/compose-local.yaml --profile perf up -d
-```
+Weitere Informationen zu den verschiedenen Profilen und deren Anwendungsfällen sind im [Benutzerhandbuch](https://gematik.github.io/ti20-testhub/#_docker_compose_profiles) zu finden.
 
 Die untere Grafik zeigt den TI 2.0 TestHub in seiner aktuellen Ausbaustufe. Die VSDM 2.0 Testsuite sendet Anfragen an
 den Card, den PoPP und den VSDM Client Simulator. Diese kommunizieren mit den jeweiligen Server Simulatoren.
 
 <br/>
-<img width="1108" height="744" src="./src/test/resources/images/TI20_TestHub_Stufe_4.png" alt=""/>
+<img width="1108" height="744" src="./src/test/resources/images/TI20_TestHub_Stufe_5.png" alt=""/>
 <br/>
 
 ## Integrationstests
@@ -127,10 +111,16 @@ Testfälle:
 * UC_VSDM2_RVSD_LOAD_MULTI_WITH_UPDATE.feature
 * UC_VSDM2_RVSD_LOAD_MULTI_WITHOUT_UPDATE.feature
 
+> [!TIP]
+> Die Lasttests erwarten eine geeignete Hintergrundlast, welche mit der Gatling-Simulation 'VsdmBackgroundLoadSimulation'
+> erzeugt werden kann. Wenn die Umgebungsvariable 'vsdm.loadtesting.active=true' gesetzt ist, wird die Ausführung der
+> Lasttests pausiert und der Anwender zum Starten der Hintergrundlast aufgefordert. D.h. die automatische wird zu einer
+> halbautomatischen Testausführung.
+
 Die Lasttests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
 ```
-./mvnw -pl test/vsdm-testsuite/ clean verify -Dcucumber.filter.tags="@TYPE:LOAD" -Dskip.inttests=false
+./mvnw -pl test/vsdm-testsuite/ clean verify -Dcucumber.filter.tags="@TYPE:LOAD" -Dvsdm.loadtesting.active=true -Dskip.inttests=false
 ```
 
 ## Gatling-Simulationen

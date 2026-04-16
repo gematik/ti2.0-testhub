@@ -250,7 +250,7 @@ class VsdmClientServiceTest {
               HttpStatus.OK,
               Map.of(
                   "etag", "new-etag",
-                  "VSDM-Pz", "new-pz",
+                  "vsdm-pz", "new-pz",
                   "Content-Type", "application/fhir+json"),
               """
             {"resourceType":"Bundle"}\

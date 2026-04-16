@@ -1,0 +1,81 @@
+# Schema for SM(C)-B ID Token JWT Payload
+# The SM(C)-B ID Token JWT is used in the OAuth Token Exchange flow with the ZETA Guard AuthServer
+# It is signed by a SM(C)-B signing Key and contains the Telematik-ID of the SM(C)-B.
+# JWT Header:
+# {
+#   "alg": "ES256",
+#   "typ": "JWT",
+#   "x5c": [ "Base64-encoded X.509 certificate" ]
+# }
+# Hint: The algorithm used by the SM(C)-B signing key is the
+# Brainpool P-256 R1 curve.
+
+# JWT Payload:
+$schema: "http://json-schema.org/draft-07/schema#"
+title: SM(C)-B ID Token JWT Payload
+description: Schema for the SM(C)-B ID Token JWT
+type: object
+properties:
+  header:
+    type: object
+    properties:
+      alg:
+        type: string
+        description: The algorithm used to sign the JWT.
+                     Hint --> The algorithm used by the SM(C)-B
+                     signing key is the Brainpool P-256 R1 curve.
+        enum:
+          - ES256
+      typ:
+        type: string
+        description: The type of the JWT.
+        enum:
+          - JWT
+      x5c:
+        type: array
+        description: Contains the certificate. The certificate must be the leaf certificate containing the public key for verifying the signature. It must be base64-der-encoded.
+        items:
+          type: string
+          format: byte # Represents base64 encoded data
+        minItems: 1
+    required:
+      - alg
+      - typ
+      - x5c
+  payload:
+    type: object
+    properties:
+      jti:
+        type: string
+        description: The JWT ID.
+      nonce:
+        type: string
+        description: A **unique value** from the AS to prevent replay attacks.
+      iss:
+        type: string
+        description: The issuer of the JWT (client_id).
+      sub:
+        type: string
+        description: The Telematik-ID of the SM(C)-B.
+      aud:
+        oneOf:
+          - type: array
+            items:
+              type: string
+          - type: string
+        description: The audience of the JWT (the Authorization Server).
+      exp:
+        type: integer
+        description: The expiration time of the JWT (Short-lived).
+      iat:
+        type: integer
+        description: The issued at time of the JWT.
+    required:
+      - jti
+      - nonce
+      - iss
+      - sub
+      - aud
+      - exp
+      - iat
+

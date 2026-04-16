@@ -1,13 +1,7 @@
 
-== How to integrate custom PS (Primärsystem)
+== Integrate a custom PS (Primärsystem)
 
-[NOTE]
-====
-ZETA is only configured for the VSDM-Server, not the PoPP-Server.
-====
-
-Integrating a custom Primärsystem (PS) is a primary design goal of the TI 2.0
-Testhub. Currently, however, it requires some manual steps:
+Integrating a custom Primärsystem (PS) is a primary design goal of the TI 2.0 Testhub. Currently, however, it requires some manual steps:
 
 * Start the Testhub with the `backend-only` profile to disable the built-in PS-Simulators (VSDM Client and Card Terminal Client):
 [source,bash]
@@ -15,23 +9,14 @@ Testhub. Currently, however, it requires some manual steps:
 docker compose -f doc/docker/compose-local.yaml --profile backend-only up -d
 ----
 
-* The custom PS has to be started (e.g. add as a new service in
-doc/docker/backend/compose-local.yaml, but could simply be started outside of
-docker compose as well)
+* The custom PS has to be started (e.g. add as a new service in `doc/docker/backend/compose-local.yaml`, but could simply be started outside of docker compose as well)
 
-* Optional: To use the PS with the VSDM-Testsuite it has to implement the same
-API as the existing vsdm-client (which can be seen at
-http://localhost:8220/v3/api-docs)
+* Optional: To use the PS with the VSDM-Testsuite it has to implement the same API as the existing vsdm-client(which can be seen at http://localhost:{PORT}/v3/api-docs)
 
 You can connect to the resource servers as follows:
 
-VSDM-Server:: Use the port that is forwarded to the internal port 443 of
-`vsdm-zeta-ingress`. If the port is 9119 you can connect from the Docker host
-using https://localhost:9119/.
+VSDM-Server:: Use the port that is forwarded to the internal port 443 of `vsdm-zeta-ingress`. If the port is 9119 you can connect from the Docker host using https://localhost:9119/.
 
-PoPP-Server:: Use the port that is forwarded to the internal port 80 of
-   `popp-ingress`.
+PoPP-Server:: Use the port that is forwarded to the internal port 80 of `popp-ingress`.
 
-The usage of the Zeta-SDK can be seen in the existing
-vsdm-client-simservice-java implementation. The class `ZetaSdkClientAdapter.java`
-uses the client while `VsdmZetaSdkClientConfig.java` configures it.
+The usage of the Zeta-SDK can be seen in the existing vsdm-client-simservice-java implementation. The class `ZetaSdkClientAdapter.java` uses the client while `VsdmZetaSdkClientConfig.java` configures it.

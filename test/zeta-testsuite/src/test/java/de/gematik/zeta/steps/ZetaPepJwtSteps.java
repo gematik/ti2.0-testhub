@@ -32,11 +32,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
 import de.gematik.zeta.services.ZetaPdpSubjectTokenFactory;
 import de.gematik.zeta.services.ZetaPepJwtTestFactory;
-import io.cucumber.java.de.Dann;
 import io.cucumber.java.de.Gegebensei;
 import io.cucumber.java.de.Wenn;
 import io.cucumber.java.en.Given;
-import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import java.net.URI;
 import lombok.extern.slf4j.Slf4j;
@@ -70,13 +68,18 @@ public class ZetaPepJwtSteps {
   public void createValidPepAccessToken() {
     var bearer = ZetaPepJwtTestFactory.createBearerToken();
     TigerGlobalConfiguration.putValue("ZETA_PEP_AUTHZ", bearer);
+    // Set directly as default header to bypass RBel serialization in Tiger steps
+    TigerGlobalConfiguration.putValue("tiger.httpClient.defaultHeader.Authorization", bearer);
   }
 
   @Gegebensei("ein ungültiger ZETA-PEP AccessToken wird erzeugt")
   @Given("an invalid ZETA-PEP access token is created")
   public void createInvalidPepAccessToken() {
     // simplest invalid token: valid-ish JWT structure but broken signature
-    TigerGlobalConfiguration.putValue("ZETA_PEP_AUTHZ", "Bearer invalid.invalid.invalid");
+    var bearer = "Bearer invalid.invalid.invalid";
+    TigerGlobalConfiguration.putValue("ZETA_PEP_AUTHZ", bearer);
+    // Set directly as default header to bypass RBel serialization in Tiger steps
+    TigerGlobalConfiguration.putValue("tiger.httpClient.defaultHeader.Authorization", bearer);
   }
 
   @Wenn("sende Token-Exchange-Request für Client {string} an {string} über Tiger-Proxy {string}")
@@ -140,13 +143,6 @@ public class ZetaPepJwtSteps {
     TigerGlobalConfiguration.putValue(varName + "_status", response.getStatusCode().value());
   }
 
-  @Dann("prüfe dass {string} ein access_token enthält")
-  @Then("verify that {string} contains an access_token")
-  public void verifyResponseContainsAccessToken(String responseBody) {
-    String resolved = TigerGlobalConfiguration.resolvePlaceholders(responseBody);
-    assertThat(resolved).as("Response sollte ein access_token enthalten").contains("access_token");
-  }
-
   @Wenn("erzeuge PoPP-Token über den PoPP-Server {string}")
   @When("generate PoPP-Token via PoPP-Server {string}")
   public void generatePoppToken(String poppServerBaseUrl) {
@@ -184,28 +180,6 @@ public class ZetaPepJwtSteps {
     log.info("PoPP-Token erzeugt: {}...", token.substring(0, Math.min(50, token.length())));
 
     TigerGlobalConfiguration.putValue("POPP_TOKEN", token);
-  }
-
-  @Wenn(
-      "sende GET an PEP {string} mit AccessToken {tigerResolvedString} und PoPP-Token"
-          + " {tigerResolvedString}")
-  @When(
-      "send GET to PEP {string} with AccessToken {tigerResolvedString} and PoPP-Token"
-          + " {tigerResolvedString}")
-  public void sendGetToPepWithAccessTokenAndPoppToken(
-      String pepUrl, String tokenResponseJson, String poppToken) {
-    String resolved = TigerGlobalConfiguration.resolvePlaceholders(pepUrl);
-    URI uri = URI.create(resolved);
-
-    String accessToken = extractAccessToken(tokenResponseJson);
-
-    RestTemplate rt = new RestTemplate();
-    HttpHeaders headers = new HttpHeaders();
-    headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
-    headers.set("PoPP", poppToken);
-
-    HttpEntity<Void> request = new HttpEntity<>(headers);
-    rt.exchange(uri, HttpMethod.GET, request, String.class);
   }
 
   /**

@@ -156,8 +156,6 @@ class VsdmControllerV1Test {
     String userInfo = VALID_USER_INFO;
     String etag = "0";
 
-    String expectedContentType = "application/fhir+json";
-
     // Mock request headers to contain specific content-type
     when(etagService.checkEtag(kvnr, etag)).thenReturn(false);
     when(vsdmService.readVsd(kvnr)).thenReturn(mockResource);

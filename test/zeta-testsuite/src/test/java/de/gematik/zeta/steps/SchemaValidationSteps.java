@@ -18,29 +18,6 @@
  *
  * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  */
-/*-
- * #%L
- * ZETA Testsuite
- * %%
- * (C) achelos GmbH, 2025, licensed for gematik GmbH
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * *******
- *
- * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
- * #L%
- */
 
 package de.gematik.zeta.steps;
 
@@ -51,6 +28,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.networknt.schema.*;
 import com.nimbusds.jwt.SignedJWT;
 import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
+import de.gematik.test.tiger.lib.rbel.RbelMessageRetriever;
 import io.cucumber.java.de.Dann;
 import io.cucumber.java.en.Then;
 import java.text.ParseException;
@@ -201,8 +179,8 @@ public class SchemaValidationSteps {
    * @param encodedJwt the Base64 coded JWT to be validated
    * @param schemaName relative path of the schema under {@code resources}
    */
-  @Dann("decodiere und validiere {tigerResolvedString} gegen Schema {string} (soft assert)")
-  @Then("decode and validate {tigerResolvedString} against schema {string} (soft assert)")
+  @Dann("decodiere und validiere {tigerResolvedString} gegen Schema {string} soft assert")
+  @Then("decode and validate {tigerResolvedString} against schema {string} soft assert")
   public void softlyValidateEncodedJwtAgainstYamlSchema(String encodedJwt, String schemaName) {
 
     var schema = loadYamlSchema(schemaName);
@@ -250,8 +228,70 @@ public class SchemaValidationSteps {
   }
 
   /**
-   * Decodes a Base64URL encoded JWT.
+   * Validates a JWT from the current request's RBel path against a schema. This avoids the
+   * RbelSerializationException that occurs when Tiger tries to re-serialize JWTs via
+   * tigerResolvedString without a verifiedUsing-node.
    *
+   * @param rbelPath the RBel path to the JWT in the current request
+   * @param schemaName relative path of the schema under {@code resources}
+   */
+  @Dann(
+      "decodiere und validiere JWT aus dem aktuellen Request Knoten {string} gegen Schema {string}")
+  @Then("decode and validate JWT from current request node {string} against schema {string}")
+  public void validateJwtFromCurrentRequestAgainstSchema(String rbelPath, String schemaName) {
+    var retriever = RbelMessageRetriever.getInstance();
+    var elements = retriever.findElementsInCurrentRequest(rbelPath);
+    if (elements.isEmpty()) {
+      throw new AssertionError("No element found at RBel path: " + rbelPath);
+    }
+    String jwt = elements.getFirst().getRawStringContent();
+    if (jwt == null || jwt.isBlank()) {
+      throw new AssertionError("JWT at path " + rbelPath + " is null or blank");
+    }
+    var schema = loadYamlSchema(schemaName);
+    var jsonNode = decodeJwt(jwt);
+    assertValid(schema, jsonNode, schemaName, false);
+  }
+
+  /**
+   * Validates a JWT from the current response's RBel path against a schema with soft assertions.
+   * This avoids the RbelSerializationException that occurs when Tiger tries to re-serialize JWTs
+   * via tigerResolvedString without a verifiedUsing-node.
+   *
+   * @param rbelPath the RBel path to the JWT in the current response
+   * @param schemaName relative path of the schema under {@code resources}
+   */
+  @Dann(
+      "decodiere und validiere JWT aus der aktuellen Antwort Knoten {string} gegen Schema {string} soft assert")
+  @Then(
+      "decode and validate JWT from current response node {string} against schema {string} soft assert")
+  public void validateJwtFromCurrentResponseAgainstSchemaSoftAssert(
+      String rbelPath, String schemaName) {
+    var retriever = RbelMessageRetriever.getInstance();
+    var request = retriever.getCurrentRequest();
+    if (request == null) {
+      throw new AssertionError("No current request/response message found!");
+    }
+    // The response is the paired message of the request
+    var response =
+        request
+            .getFacet(de.gematik.rbellogger.data.core.TracingMessagePairFacet.class)
+            .map(de.gematik.rbellogger.data.core.TracingMessagePairFacet::getResponse)
+            .orElseThrow(() -> new AssertionError("No response found for the current request!"));
+    var elements = response.findRbelPathMembers(rbelPath);
+    if (elements.isEmpty()) {
+      throw new AssertionError("No element found at RBel path: " + rbelPath + " in response");
+    }
+    String jwt = elements.getFirst().getRawStringContent();
+    if (jwt == null || jwt.isBlank()) {
+      throw new AssertionError("JWT at path " + rbelPath + " is null or blank in response");
+    }
+    var schema = loadYamlSchema(schemaName);
+    var jsonNode = decodeJwt(jwt);
+    assertValid(schema, jsonNode, schemaName, true);
+  }
+
+  /**
    * @param encodedToken the Base64URL coded JWT to be validated
    * @return the decoded json string
    */

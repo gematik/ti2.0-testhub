@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ChecksumService {
 
-  public static final String HEADER_NAME = "VSDM-Pz";
+  public static final String HEADER_NAME = "vsdm-pz";
 
   public void addChecksumHeader(final String kvnr, final HttpHeaders responseHeaders) {
     if (kvnr != null && !kvnr.isEmpty()) {

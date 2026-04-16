@@ -38,8 +38,9 @@ ZETA requires an SMC-B certificate to work. Follow these steps:
 - Java 21
 - Docker
 - Docker Compose
-- Optional: A GUI for Docker (e.g. Docker Desktop) can be helpful for monitoring containers and viewing logs. 
-We had good results with [Rancher Desktop](https://rancherdesktop.io/), which is a free and open source alternative to Docker Desktop.
+- Optional: A GUI for Docker (e.g. Docker Desktop) can be helpful for monitoring containers and viewing logs.
+  We had good results with [Rancher Desktop](https://rancherdesktop.io/), which is a free and open source alternative to
+  Docker Desktop.
 
 ## Start Docker Containers
 
@@ -54,30 +55,8 @@ We had good results with [Rancher Desktop](https://rancherdesktop.io/), which is
 3. Start Docker containers:
     ```bash
     docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
-    ```
 
-### Docker Compose Profiles
-
-The following profiles are available:
-
-| Profile        | Description                                                                     |
-|----------------|---------------------------------------------------------------------------------|
-| `full`         | Full stack: Backend + Tiger-Proxies + Clients (traffic routed via tiger-proxy)  |
-| `backend-only` | Backend services only (no tiger-proxies, no clients)                            |
-| `perf`         | Performance testing: Backend + Clients (direct backend access, bypassing proxy) |
-
-**Usage examples:**
-
-```bash
-# Full stack
-docker compose -f ./doc/docker/compose-local.yaml --profile full up -d
-
-# Backend only
-docker compose -f ./doc/docker/compose-local.yaml --profile backend-only up -d
-
-# Performance testing (clients bypass tiger-proxy)
-docker compose -f ./doc/docker/compose-local.yaml --profile perf up -d
-```
+To learn about additional scenarios and available `docker compose` profiles refer to the [Docker Compose Profiles section in the user manual](https://gematik.github.io/ti20-testhub/#_docker_compose_profiles).
 
 # Usage
 

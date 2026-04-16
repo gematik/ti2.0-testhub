@@ -403,22 +403,22 @@
               }
             },
             "headers": {
-              "ETag": {
-                "$ref": "#/components/headers/ETag"
+              "etag": {
+                "$ref": "#/components/headers/etag"
               },
-              "VSDM-Pz": {
-                "$ref": "#/components/headers/VSDM-Pz"
+              "vsdm-pz": {
+                "$ref": "#/components/headers/vsdm-pz"
               }
             }
           },
           "304": {
             "description": "Bundle was found but not modified",
             "headers": {
-              "ETag": {
-                "$ref": "#/components/headers/ETag"
+              "etag": {
+                "$ref": "#/components/headers/etag"
               },
-              "VSDM-Pz": {
-                "$ref": "#/components/headers/VSDM-Pz"
+              "vsdm-pz": {
+                "$ref": "#/components/headers/vsdm-pz"
               }
             }
           },
@@ -508,14 +508,14 @@
   },
   "components": {
     "headers": {
-      "ETag": {
+      "etag": {
         "description": "Value according rfc7232 to represent the version of the VSDMBundle.",
         "schema": {
           "type": "string"
         },
         "example": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       },
-      "VSDM-Pz": {
+      "vsdm-pz": {
         "description": "Base64URL encoded \"Pruefziffer\"",
         "schema": {
           "type": "string"

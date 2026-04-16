@@ -195,12 +195,12 @@ class VsdmClientIT {
     final Result result = readVsdOnce("0", false);
     assertEquals(200, result.response.code());
 
-    final String pruefzifferEncoded = result.response.header("VSDM-Pz");
+    final String pruefzifferEncoded = result.response.header("vsdm-pz");
     assertNotNull(pruefzifferEncoded);
     assertEquals(64, pruefzifferEncoded.length());
 
-    log.info(" VSDM-Pz: " + pruefzifferEncoded);
-    log.info(" VSDM-Pz Länge: " + pruefzifferEncoded.length());
+    log.info(" vsdm-pz: {}", pruefzifferEncoded);
+    log.info(" vsdm-pz Länge: {}", pruefzifferEncoded.length());
 
     byte[] pruefziffer = Base64.getUrlDecoder().decode(pruefzifferEncoded);
     // ensure can be decoded
@@ -214,7 +214,7 @@ class VsdmClientIT {
     assertEquals(200, result1.response.code());
     assertNotNull(result1.resource);
 
-    final String etag1 = result1.response.header("ETag");
+    final String etag1 = result1.response.header("etag");
     log.info("ETag1: " + etag1);
     assertNotNull(etag1);
 
@@ -222,7 +222,7 @@ class VsdmClientIT {
     assertEquals(304, result2.response.code());
     assertNull(result2.resource);
 
-    final String etag2 = result2.response.header("ETag");
+    final String etag2 = result2.response.header("etag");
     log.info("ETag2: " + etag2);
     assertNotNull(etag2);
     assertEquals(etag1, etag2);

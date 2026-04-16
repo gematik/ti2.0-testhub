@@ -1,0 +1,90 @@
+# Schema for the Client Assertion JWT (SMC-B Testsuite variant)
+# Validates the basic structure of client_assertion JWTs sent in SMC-B token exchange requests.
+# Based on the tiger-testsuite schema but without strict client_statement sub-schema validation,
+# as the SMC-B test builds the client_assertion manually.
+$schema: "http://json-schema.org/draft-07/schema#"
+title: Client Assertion JWT
+description: Schema for the payload of a Client Assertion JWT used in ZETA, as defined in RFC 7523.
+type: object
+properties:
+  header:
+    type: object
+    properties:
+      typ:
+        type: string
+        description: Type of the JWT, which MUST be 'jwt' (case-insensitive).
+        enum:
+          - jwt
+          - JWT
+      alg:
+        type: string
+        description: Algorithm used to sign the JWT, which MUST be 'ES256'.
+        enum:
+          - ES256
+      jwk:
+        type: object
+        description: >
+          Public key of the client in JWK format.
+          Used instead of x5c because no X.509 certificate is present.
+        properties:
+          kty:
+            type: string
+            enum: ["EC"]
+            description: Key type (elliptic curve).
+          crv:
+            type: string
+            enum: ["P-256"]
+            description: Elliptic curve used for ES256.
+          x:
+            type: string
+            format: byte
+            description: X coordinate of the EC public key (Base64URL).
+          y:
+            type: string
+            format: byte
+            description: Y coordinate of the EC public key (Base64URL).
+        required:
+          - kty
+          - crv
+          - x
+          - y
+    required:
+      - typ
+      - alg
+      - jwk
+  payload:
+    type: object
+    properties:
+      iss:
+        type: string
+        description: Issuer of the JWT, which MUST be the client_id of the client.
+      sub:
+        type: string
+        description: Subject of the JWT, which MUST be the OAuth 2.0 client_id of the client.
+      aud:
+        oneOf:
+          - type: array
+            items:
+              type: string
+            minItems: 1
+          - type: string
+        description: Audience for the JWT. It MUST contain the
+                     Authorization Server's token endpoint URL.
+      exp:
+        type: integer
+        description: Expiration time of the JWT in seconds since epoch.
+      jti:
+        type: string
+        description: JWT ID, a unique identifier for the token.
+
+      client_statement:
+        description: A client statement object containing client attestation data. Optional.
+        type: object
+
+    required:
+      - iss
+      - sub
+      - aud
+      - exp
+      - jti
+

@@ -67,7 +67,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class VsdmClientService implements PoppTokenSessionEventHandler {
 
-  public static final String HEADER_VSDM_PZ = "VSDM-Pz";
+  public static final String HEADER_VSDM_PZ = "vsdm-pz";
   public static final String HEADER_ETAG = "etag";
 
   private final PoppClientAdapter poppClientAdapter;

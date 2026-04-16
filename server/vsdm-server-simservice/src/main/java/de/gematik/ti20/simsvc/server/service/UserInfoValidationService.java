@@ -51,9 +51,6 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class UserInfoValidationService {
 
-  // TODO pep does not yet forward data from the vsdm-client. it only sets identifier and
-  // professionOID. subject and commonName are still missing. once the pep forwards all data, we
-  // need to add this back to the list of required fields.
   private static final String SCHEMA_PATH = "/schemas/user-info-vsdm2.json";
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 

@@ -6,6 +6,9 @@ tigerProxy:
     - x509
   keyFolders:
     - ${tiger.rootFolder|.}/test/vsdm-testsuite
+    - ${tiger.rootFolder|.}/test/zeta-testsuite/src/test/resources
+    - ${tiger.rootFolder|.}/doc/docker/backend/zeta/smcb-private
+    - ${tiger.rootFolder|.}/doc/docker/backend/zeta/smcb
 
 lib:
   workflowUiPort: ${ports.tigerWorkflowUiPort}
@@ -18,7 +21,7 @@ lib:
   logging.level:
     de.gematik.test.tiger: INFO
   additionalKeyStorePasswords:
-    ["testpassword"]
+    ["testpassword", "changeit", "00"]
 
 fhir:
   encoded: json

@@ -2,6 +2,40 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 2.1.0
+
+### Update Notes
+
+#### Upgrade to ZETA 0.5.x (VSDM)
+
+The ZETA Guard PEP validates PoPP tokens. In order to validate the token's
+signature a public keys is required. The public key is published by the PoPP
+issuer. With 0.5.1 changes have been made to how the public key is retrieved. If
+you are using a custom PoPP implementation you will have to ensure that you
+support the new flow. Refer to the [relevant code in the PEP for more
+information](https://github.com/gematik/zeta-guard-ngx-pep/blob/22888ebecf9019d2102503a8e0761e32f37e12d2/src/jwk_cache.rs#L205).
+
+If you are changing the keys in the PoPP sample implementation you will have to
+update the key for the PoPP Token Generator. In order for the new public key to
+work with Testhub components we are using the PoPP Token Generator as PoPP
+issuer until the sample implementation can catch up.
+
+Refer to the projects release notes to find out what changed:
+
+- https://github.com/gematik/zeta-guard-keycloak/blob/main/ReleaseNotes.md
+- https://github.com/gematik/zeta-guard-ngx-pep/blob/main/ReleaseNotes.md
+- https://github.com/gematik/zeta-sdk/blob/main/ReleaseNotes.md
+
+### Changes
+
+- TESTHUB-85: validate all required fields of the UserInfo header. The required fields are defined
+  in https://raw.githubusercontent.com/gematik/zeta/refs/heads/main/src/schemas/zeta-user-info.yaml
+- TESTHUB-98: add mock-popp profile which starts only the components required for the PoPP token generator.
+- TESTHUB-101: simplify switching between PoppTokenGenerator and PoppExampleImplementation components.
+- TESTHUB-103: Update VSDM ZETA components to 0.5.x
+- TESTHUB-105: refer to user manual for information about profiles
+- ZTI-4056: add SMC-B token exchange tests for ZETA client
+
 ## Release 2.0.0
 
 This release includes the integration of the Popp Sample Implementation into the
