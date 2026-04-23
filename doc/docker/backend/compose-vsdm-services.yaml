@@ -1,7 +1,18 @@
+x-vsdm-no-proxy-env: &vsdm-no-proxy-env
+  HTTP_PROXY: ""
+  HTTPS_PROXY: ""
+  ALL_PROXY: ""
+  http_proxy: ""
+  https_proxy: ""
+  all_proxy: ""
+  NO_PROXY: "localhost,127.0.0.1,vsdm-zeta-ingress,vsdm-zeta-pep,vsdm-zeta-pdp,vsdm-zeta-pdp-opa,vsdm-server"
+  no_proxy: "localhost,127.0.0.1,vsdm-zeta-ingress,vsdm-zeta-pep,vsdm-zeta-pdp,vsdm-zeta-pdp-opa,vsdm-server"
+
 services:
   vsdm-zeta-ingress:
     container_name: vsdm-zeta-ingress
     image: "nginx:1.29.7"
+    platform: linux/amd64
     ports:
       - "9119:443"
     volumes:
@@ -33,12 +44,15 @@ services:
 
   vsdm-zeta-pep:
     image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:0.5.1
+    platform: linux/amd64
     container_name: vsdm-zeta-pep
+    environment: *vsdm-no-proxy-env
     ports:
       - "9120:80"
     volumes:
       - ./zeta/vsdm-zeta-pep.conf:/etc/nginx/nginx.conf:ro
       - ./zeta/well-known/oauth-protected-resource:/srv/.well-known/oauth-protected-resource:ro
+      - ./zeta/asl/:/etc/nginx/asl/
     depends_on:
       vsdm-zeta-pdp:
         condition: service_healthy
@@ -49,8 +63,10 @@ services:
 
   vsdm-zeta-pdp:
     image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:0.5.1
+    platform: linux/amd64
     container_name: vsdm-zeta-pdp
     environment:
+      <<: *vsdm-no-proxy-env
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
       KEYCLOAK_ADMIN: admin
@@ -106,6 +122,7 @@ services:
   vsdm-zeta-pdp-db:
     container_name: vsdm-zeta-pdp-db
     image: postgres:16.2
+    platform: linux/amd64
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
@@ -117,6 +134,8 @@ services:
 
   vsdm-zeta-pdp-opa:
     image: openpolicyagent/opa:1.15.2-static
+    platform: linux/amd64
+    environment: *vsdm-no-proxy-env
     ports:
       - "8181:8181"
     command:

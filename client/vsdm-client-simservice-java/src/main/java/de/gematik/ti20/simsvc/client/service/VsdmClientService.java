@@ -30,13 +30,9 @@ import de.gematik.bbriccs.rest.fd.MediaType;
 import de.gematik.ti20.client.card.card.AttachedCard;
 import de.gematik.ti20.client.card.config.CardTerminalConnectionConfig;
 import de.gematik.ti20.client.card.terminal.CardTerminalException;
+import de.gematik.ti20.client.card.terminal.CardTerminalService;
 import de.gematik.ti20.client.card.terminal.simsvc.EgkInfo;
 import de.gematik.ti20.client.card.terminal.simsvc.SimulatorAttachedCard;
-import de.gematik.ti20.client.popp.exception.PoppClientException;
-import de.gematik.ti20.client.popp.message.TokenMessage;
-import de.gematik.ti20.client.popp.service.PoppTokenSession;
-import de.gematik.ti20.client.popp.service.PoppTokenSessionEventHandler;
-import de.gematik.ti20.client.zeta.service.ZetaClientService;
 import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
@@ -49,12 +45,11 @@ import io.ktor.client.plugins.ServerResponseException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.jena.sparql.function.library.leviathan.log;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
@@ -65,31 +60,28 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
 @Service
-public class VsdmClientService implements PoppTokenSessionEventHandler {
+public class VsdmClientService {
 
   public static final String HEADER_VSDM_PZ = "vsdm-pz";
   public static final String HEADER_ETAG = "etag";
 
   private final PoppClientAdapter poppClientAdapter;
   private final VsdmClientConfig vsdmClientConfig;
-
-  private final ZetaClientService poppZetaClient;
+  private final CardTerminalService cardTerminalService;
   private final MockPoppTokenService mockPoppTokenService;
 
   private final PoppTokenRepository poppTokenRepository;
   private final VsdmDataRepository vsdmDataRepository;
   private final ZetaSdkClientAdapter vsdmZetaClient;
 
-  private List<CardTerminalConnectionConfig> terminalConnectionConfigs;
+  @Getter private List<CardTerminalConnectionConfig> terminalConnectionConfigs;
 
   private final FhirService fhirService;
-
-  private final Map<String, CompletableFuture<TokenMessage>> tokenFutures =
-      new ConcurrentHashMap<>();
 
   public VsdmClientService(
       final VsdmClientConfig vsdmClientConfig,
       final MockPoppTokenService mockPoppTokenService,
+      final CardTerminalService cardTerminalService,
       final PoppClientAdapter poppClientAdapter,
       final FhirService fhirService,
       final PoppTokenRepository poppTokenRepository,
@@ -98,8 +90,8 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
 
     this.vsdmClientConfig = vsdmClientConfig;
 
-    this.poppZetaClient = poppClientAdapter.getZetaClientService();
     this.mockPoppTokenService = mockPoppTokenService;
+    this.cardTerminalService = cardTerminalService;
 
     this.poppClientAdapter = poppClientAdapter;
     this.fhirService = fhirService;
@@ -125,7 +117,15 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
         smcbSlotId,
         ifNoneMatch,
         poppTokenInjected != null);
-    final AttachedCard attachedCard = getAttachedCard(terminalId, egkSlotId);
+
+    final AttachedCard attachedCard;
+
+    if (!Strings.isNullOrEmpty(poppTokenInjected)) {
+      log.debug("Using provided PoPP token, skipping Popp-Service call");
+      attachedCard = null;
+    } else {
+      attachedCard = getAttachedCard(terminalId, egkSlotId);
+    }
 
     final String poppToken =
         Optional.ofNullable(poppTokenInjected)
@@ -145,7 +145,7 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
     List<? extends AttachedCard> cards = null;
 
     try {
-      cards = poppClientAdapter.getAttachedCards();
+      cards = cardTerminalService.getAttachedCards();
     } catch (final Exception e) {
       log.error("Error getting attached EGK cards from terminal", e);
       throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
@@ -194,9 +194,6 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
       poppTokenRepository.put(terminalId, egkSlotId, attachedCard.getId(), poppTokenFromService);
 
       return poppTokenFromService;
-    } catch (final PoppClientException e) {
-      log.error("Error starting PoppTokenSession with card {}", attachedCard.getId(), e);
-      throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
     } catch (final Exception e) {
       log.error(
           "Error on waiting for completing of PoppTokenSession with card {} ",
@@ -214,14 +211,16 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
       final String ifNoneMatch,
       final boolean isFhirXml) {
 
-    final VsdmCachedValue vsdmCachedValue =
-        vsdmDataRepository.get(terminal, egkSlotId, attachedCard.getId());
+    if (attachedCard != null) {
+      final VsdmCachedValue vsdmCachedValue =
+          vsdmDataRepository.get(terminal, egkSlotId, attachedCard.getId());
 
-    if (vsdmCachedValue != null) {
-      return ResponseEntity.status(HttpStatus.OK)
-          .header(HEADER_VSDM_PZ, vsdmCachedValue.pruefziffer())
-          .header(HEADER_ETAG, vsdmCachedValue.etag())
-          .body(vsdmCachedValue.vsdmData());
+      if (vsdmCachedValue != null) {
+        return ResponseEntity.status(HttpStatus.OK)
+            .header(HEADER_VSDM_PZ, vsdmCachedValue.pruefziffer())
+            .header(HEADER_ETAG, vsdmCachedValue.etag())
+            .body(vsdmCachedValue.vsdmData());
+      }
     }
 
     try {
@@ -252,14 +251,17 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
       }
       responseHeaders.put("Content-Type", List.of(MediaType.FHIR_JSON.asString()));
 
-      vsdmDataRepository.put(
-          terminal,
-          egkSlotId,
-          attachedCard.getId(),
-          new VsdmCachedValue(
-              responseHeaders.getETag(),
-              responseHeaders.getFirst(HEADER_VSDM_PZ),
-              responseToCaller));
+      // Only cache if attachedCard is available
+      if (attachedCard != null) {
+        vsdmDataRepository.put(
+            terminal,
+            egkSlotId,
+            attachedCard.getId(),
+            new VsdmCachedValue(
+                responseHeaders.getETag(),
+                responseHeaders.getFirst(HEADER_VSDM_PZ),
+                responseToCaller));
+      }
 
       return ResponseEntity.status(HttpStatus.OK).headers(responseHeaders).body(responseToCaller);
 
@@ -269,6 +271,11 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
     } catch (final ServerResponseException e) {
       log.error("Error while connecting to VSDM server: {}", e.getMessage(), e);
 
+      if (attachedCard == null) {
+        // No fallback available when using provided token
+        throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
+      }
+      // Fallback to card data only if attachedCard is available
       try {
         final String responseToCaller = loadTruncatedDataFromCard(attachedCard);
         if (responseToCaller == null) {
@@ -308,15 +315,18 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
         checkDigitHeader,
         "'%s' header must be set by VSDM backend on 304".formatted(HEADER_VSDM_PZ));
 
-    final VsdmCachedValue cachedValue =
-        vsdmDataRepository.get(terminal, egkSlotId, attachedCard.getId());
-    final VsdmCachedValue updatedCacheValue;
-    if (cachedValue == null) {
-      updatedCacheValue = new VsdmCachedValue(etagHeader, checkDigitHeader, "");
-    } else {
-      updatedCacheValue = cachedValue.copyWith(etagHeader, checkDigitHeader);
+    if (attachedCard != null) {
+      final VsdmCachedValue cachedValue =
+          vsdmDataRepository.get(terminal, egkSlotId, attachedCard.getId());
+      final VsdmCachedValue updatedCacheValue;
+      if (cachedValue == null) {
+        updatedCacheValue = new VsdmCachedValue(etagHeader, checkDigitHeader, "");
+      } else {
+        updatedCacheValue = cachedValue.copyWith(etagHeader, checkDigitHeader);
+      }
+      vsdmDataRepository.put(terminal, egkSlotId, attachedCard.getId(), updatedCacheValue);
     }
-    vsdmDataRepository.put(terminal, egkSlotId, attachedCard.getId(), updatedCacheValue);
+
     return ResponseEntity.status(HttpStatus.NOT_MODIFIED).headers(responseHeaders).build();
   }
 
@@ -332,7 +342,7 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
 
   public String loadTruncatedDataFromCard(final AttachedCard attachedCard)
       throws CardTerminalException {
-    final EgkInfo egkInfo = poppClientAdapter.getEgkInfo(attachedCard);
+    final EgkInfo egkInfo = cardTerminalService.getEgkInfo(attachedCard);
 
     if (!egkInfo.getValid()) {
       return null;
@@ -353,7 +363,7 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
 
   private String loadMockPoppToken(final VsdmClientConfig config, final AttachedCard attachedCard) {
     try {
-      final EgkInfo egkInfo = poppClientAdapter.getEgkInfo(attachedCard);
+      final EgkInfo egkInfo = cardTerminalService.getEgkInfo(attachedCard);
       return mockPoppTokenService.requestPoppToken(config, egkInfo.getIknr(), egkInfo.getKvnr());
     } catch (final CardTerminalException cardEx) {
       return null;
@@ -378,84 +388,10 @@ public class VsdmClientService implements PoppTokenSessionEventHandler {
     return responseHeaders;
   }
 
-  public List<CardTerminalConnectionConfig> getTerminalConnectionConfigs() {
-    return terminalConnectionConfigs;
-  }
-
   public void setTerminalConnectionConfigs(final List<CardTerminalConnectionConfig> configs) {
     log.debug("Setting terminal connection configs: ", terminalConnectionConfigs);
 
     terminalConnectionConfigs = configs;
-
-    poppZetaClient.getZetaClientConfig().setTerminalConnectionConfigs(configs);
-    poppClientAdapter.getPoppClientConfig().setTerminalConnectionConfigs(configs);
-  }
-
-  @Override
-  public void onConnectedToTerminalSlot(final PoppTokenSession pts) {
-    log.debug("onConnectedToTerminalSlot: {}", pts.getAttachedCard().getId());
-  }
-
-  @Override
-  public void onDisconnectedFromTerminalSlot(final PoppTokenSession pts) {
-    log.debug("onDisconnectedFromTerminalSlot: {}", pts.getAttachedCard().getId());
-  }
-
-  @Override
-  public void onCardInserted(final PoppTokenSession pts) {
-    log.debug("onCardInserted: {}", pts.getAttachedCard().getId());
-  }
-
-  @Override
-  public void onCardRemoved(final PoppTokenSession pts) {
-    log.debug("onCardRemoved: {}", pts.getAttachedCard().getId());
-  }
-
-  @Override
-  public void onCardPairedToServer(final PoppTokenSession pts) {
-    log.debug("onCardPairedToServer: {}", pts.getAttachedCard().getId());
-  }
-
-  @Override
-  public void onConnectedToServer(final PoppTokenSession pts) {
-    log.debug("onConnectedToServer: {}", pts.getAttachedCard().getId());
-  }
-
-  @Override
-  public void onDisconnectedFromServer(final PoppTokenSession pts) {
-    log.debug("onDisconnectedFromServer: {}", pts.getAttachedCard().getId());
-  }
-
-  @Override
-  public void onError(PoppTokenSession poppTokenSession, PoppClientException e) {
-    log.error(
-        "Error in PoppTokenSession for card {}: {}",
-        poppTokenSession.getAttachedCard().getId(),
-        e.getMessage(),
-        e);
-
-    final String cardId = poppTokenSession.getAttachedCard().getId();
-    final CompletableFuture<TokenMessage> poppTokenFuture = tokenFutures.remove(cardId);
-
-    if (poppTokenFuture != null) {
-      poppTokenFuture.completeExceptionally(e);
-    }
-  }
-
-  @Override
-  public void onReceivedPoppToken(PoppTokenSession poppTokenSession, TokenMessage tokenMessage) {
-    log.debug("onReceivedPoppToken: {}", poppTokenSession.getAttachedCard().getId());
-
-    final String cardId = poppTokenSession.getAttachedCard().getId();
-    final CompletableFuture<TokenMessage> poppTokenFuture = tokenFutures.remove(cardId);
-
-    if (poppTokenFuture != null) {
-      poppTokenFuture.complete(tokenMessage);
-    }
-  }
-
-  @Override
-  public void onFinished(PoppTokenSession poppTokenSession) {
-    log.debug("onFinished: {}", poppTokenSession.getAttachedCard().getId());
+    cardTerminalService.setTerminalConnectionConfigs(terminalConnectionConfigs);
   }
 }

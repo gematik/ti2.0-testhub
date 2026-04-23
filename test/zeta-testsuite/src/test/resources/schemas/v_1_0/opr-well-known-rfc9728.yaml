@@ -1,0 +1,42 @@
+# Schema for RFC 9728 – OAuth 2.0 Protected Resource Metadata
+# Validates the real PEP response at /.well-known/oauth-protected-resource
+$schema: "http://json-schema.org/draft-07/schema#"
+title: Protected Resource Metadata (RFC 9728)
+description: >-
+  Schema for the well-known JSON document returned by the real ZeTA PEP (ngx_pep)
+  at /.well-known/oauth-protected-resource.  Conforms to RFC 9728.
+type: object
+properties:
+  resource:
+    type: string
+    description: >-
+      The protected resource's resource indicator value (RFC 8707).
+  authorization_servers:
+    type: array
+    description: >-
+      JSON array of issuer identifiers of authorization servers that can authorize
+      access to this protected resource.
+    items:
+      type: string
+  zeta_asl_use:
+    type: string
+    description: >-
+      ZeTA-specific field indicating whether Application-Level Security (ASL) is supported.
+    enum:
+      - required
+      - optional
+      - not_supported
+  bearer_methods_supported:
+    type: array
+    description: Methods by which the resource server accepts bearer tokens.
+    items:
+      type: string
+  scopes_supported:
+    type: array
+    description: Scopes supported by this protected resource.
+    items:
+      type: string
+required:
+  - resource
+  - authorization_servers
+

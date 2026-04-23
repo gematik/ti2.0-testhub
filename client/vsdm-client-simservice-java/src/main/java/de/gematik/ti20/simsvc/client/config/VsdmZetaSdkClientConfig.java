@@ -76,7 +76,7 @@ public class VsdmZetaSdkClientConfig {
             new AuthConfig(
                 List.of("zero:audience"),
                 30,
-                true,
+                false,
                 getTokenProvider(),
                 AttestationConfig.software()),
             new PlatformProductId.LinuxProductId(

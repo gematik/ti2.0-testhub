@@ -49,6 +49,7 @@ import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import java.io.InputStream;
+import java.net.URI;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.PrivateKey;
@@ -56,6 +57,7 @@ import java.security.interfaces.ECPrivateKey;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Test-only factory to create a valid Authorization Bearer token for the ZETA-PEP mockservice.
@@ -132,6 +134,53 @@ public class ZetaPepJwtTestFactory {
 
     } catch (Exception e) {
       throw new AssertionError("Failed to create JWT for ZETA-PEP flow test: " + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Creates a DPoP proof JWT (RFC 9449) for the given HTTP method and target URI.
+   *
+   * @param httpMethod the HTTP method (e.g. "PUT", "POST")
+   * @param targetUri the target URI of the request
+   * @return compact-serialized signed DPoP proof JWT
+   */
+  public static String createDpopProofForRequest(String httpMethod, String targetUri) {
+    try {
+      var keyStore = loadKeyStoreFromResources();
+
+      Key key = keyStore.getKey(DEFAULT_KEY_ALIAS, DEFAULT_KEY_PASSWORD.toCharArray());
+      if (!(key instanceof ECPrivateKey ecPrivateKey)) {
+        throw new IllegalStateException(
+            "Keystore entry '" + DEFAULT_KEY_ALIAS + "' is not an EC private key");
+      }
+
+      // Extract scheme://host[:port] as htu (strip path for DPoP)
+      URI uri = URI.create(targetUri);
+      String htu = uri.getScheme() + "://" + uri.getAuthority() + uri.getPath();
+
+      var now = Instant.now();
+      var claims =
+          new JWTClaimsSet.Builder()
+              .jwtID(UUID.randomUUID().toString())
+              .claim("htm", httpMethod)
+              .claim("htu", htu)
+              .issueTime(Date.from(now))
+              .build();
+
+      var header =
+          new JWSHeader.Builder(JWSAlgorithm.ES256)
+              .type(new JOSEObjectType("dpop+jwt"))
+              .keyID(DEFAULT_KEY_ALIAS)
+              .build();
+
+      var jwt = new SignedJWT(header, claims);
+      jwt.sign(new ECDSASigner(ecPrivateKey));
+      return jwt.serialize();
+
+    } catch (Exception e) {
+      throw new AssertionError(
+          "Failed to create DPoP proof for " + httpMethod + " " + targetUri + ": " + e.getMessage(),
+          e);
     }
   }
 

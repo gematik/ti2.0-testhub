@@ -3,5 +3,5 @@
   "authorization_servers": [
     "https://vsdm-zeta-ingress/auth/realms/zeta-guard/"
   ],
-  "zeta_asl_use": "not_supported"
+  "zeta_asl_use": "required"
 }

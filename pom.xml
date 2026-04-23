@@ -5,14 +5,13 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>
 
     <modules>
         <module>lib/card-client-lib-java</module>
-        <module>lib/zeta-client-lib-java</module>
         <module>lib/vsdm-fhir-lib-java</module>
         <module>client/card-terminal-client-simservice</module>
         <module>client/vsdm-client-simservice-java</module>
@@ -35,7 +34,7 @@
         <version.maven.surefire>3.5.4</version.maven.surefire>
         <version.maven.failsafe>3.3.1</version.maven.failsafe>
         <version.maven.jacoco>0.8.14</version.maven.jacoco>
-        <version.tiger>4.2.4</version.tiger>
+        <version.tiger>4.2.6</version.tiger>
         <version.tiger-cloud-extension>4.1.17</version.tiger-cloud-extension>
         <version.serenity>4.2.30</version.serenity>
         <version.gem.testdata>1.0.10</version.gem.testdata>
@@ -81,6 +80,12 @@
                 <groupId>de.gematik</groupId>
                 <artifactId>tiger-cloud-extension</artifactId>
                 <version>${version.tiger-cloud-extension}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jetbrains.kotlinx</groupId>
+                <artifactId>kotlinx-serialization-cbor-jvm</artifactId>
+                <version>1.9.0</version>
             </dependency>
 
             <!-- TI 2.0 Testhub -->

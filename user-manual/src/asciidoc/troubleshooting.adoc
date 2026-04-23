@@ -73,7 +73,7 @@ An error like this:
 usually indicates that the PEP could not fetch the public key for PoPP token validation. Ensure:
 
 - the PEP is configured to use the correct PoPP server
-- the PoPP server exposes a JWKS endpoint `/jwks.json` and returns a key matching the key id in the token
+- the PoPP server provides a JWKS endpoint that exposes the public key corresponding to the Key ID (KID) specified in the token. While this endpoint typically defaults to `.well-known/signed-jwks`, it is fully configurable. The authoritative URI for the JWKS endpoint should be retrieved dynamically via the PoPP server's OpenID Connect discovery document located at `.well-known/openid-federation`
 
 If you switch between PoPP example implementation and PoPP token generator double check that the PEP is using the correct endpoint.
 

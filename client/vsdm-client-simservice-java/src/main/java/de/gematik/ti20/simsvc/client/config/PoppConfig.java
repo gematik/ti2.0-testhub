@@ -24,11 +24,7 @@
  */
 package de.gematik.ti20.simsvc.client.config;
 
-import de.gematik.ti20.client.popp.config.PoppClientConfig;
-import de.gematik.ti20.client.popp.service.PoppClientService;
-import de.gematik.ti20.client.zeta.config.ZetaClientConfig;
-import de.gematik.ti20.client.zeta.config.ZetaClientConfig.UserAgentConfig;
-import de.gematik.ti20.client.zeta.service.ZetaClientService;
+import de.gematik.ti20.client.card.terminal.CardTerminalService;
 import de.gematik.ti20.simsvc.client.service.PoppClientAdapter;
 import lombok.Getter;
 import lombok.Setter;
@@ -64,17 +60,14 @@ public class PoppConfig {
   }
 
   @Bean
-  public ZetaClientService getZetaClientService() {
-    return new ZetaClientService(new ZetaClientConfig(new UserAgentConfig("VsdmClient", "1.0.0")));
+  public CardTerminalService getCardTerminalService() {
+    return new CardTerminalService(null);
   }
 
   @Bean
-  public PoppClientAdapter poppClientAdapter(
-      final ZetaClientService zetaClientService, WebClient webClient) {
+  public PoppClientAdapter poppClientAdapter(WebClient webClient) {
     return new PoppClientAdapter(
-        new PoppClientService(
-            new PoppClientConfig(this.tokenType, this.getWs().getUrl(), this.getHttp().getUrl()),
-            zetaClientService),
+        new PoppClientConfig(this.tokenType, this.getWs().getUrl(), this.getHttp().getUrl()),
         webClient);
   }
 

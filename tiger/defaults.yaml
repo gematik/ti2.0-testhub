@@ -25,8 +25,12 @@ zeta:
   server:
     popp:
       url: http://127.0.0.1:9210
+    poppTokenGenerator:
+      url: http://127.0.0.1:9500
     pdp:
       tokenUrl: http://127.0.0.1:9112/token
+      # Keycloak issuer – used as 'aud' in client_assertion JWTs (must match KC_HOSTNAME + realm)
+      issuer: https://vsdm-zeta-ingress/auth/realms/zeta-guard
   timeouts:
     httpRequestSeconds: 10
     healthCheckSeconds: 20

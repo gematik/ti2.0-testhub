@@ -26,8 +26,6 @@ package de.gematik.ti20.simsvc.client.exception;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import de.gematik.ti20.client.zeta.exception.ZetaHttpException;
-import de.gematik.ti20.client.zeta.exception.ZetaHttpResponseException;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -36,26 +34,6 @@ import org.springframework.http.ResponseEntity;
 class GlobalExceptionHandlerTest {
 
   private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
-
-  @Test
-  void testHandleZetaHttpResponseException() {
-    ZetaHttpResponseException ex = new ZetaHttpResponseException(418, "Fehler", null);
-    ResponseEntity<Map<String, String>> response = handler.handleZetaHttpResponseException(ex);
-
-    assertEquals(418, response.getStatusCodeValue());
-    assertEquals("Zeta HTTP Response error", response.getBody().get("error"));
-    assertEquals("Fehler", response.getBody().get("message"));
-  }
-
-  @Test
-  void testHandleZetaHttpException() {
-    ZetaHttpException ex = new ZetaHttpException("Gateway down", null);
-    ResponseEntity<Map<String, String>> response = handler.handleZetaHttpException(ex);
-
-    assertEquals(HttpStatus.BAD_GATEWAY, response.getStatusCode());
-    assertEquals("Zeta HTTP error", response.getBody().get("error"));
-    assertEquals("Gateway down", response.getBody().get("message"));
-  }
 
   @Test
   void testHandleGenericException() {

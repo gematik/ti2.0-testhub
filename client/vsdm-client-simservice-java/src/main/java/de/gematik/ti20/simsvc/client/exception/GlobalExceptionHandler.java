@@ -24,8 +24,6 @@
  */
 package de.gematik.ti20.simsvc.client.exception;
 
-import de.gematik.ti20.client.zeta.exception.ZetaHttpException;
-import de.gematik.ti20.client.zeta.exception.ZetaHttpResponseException;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -39,26 +37,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class GlobalExceptionHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
-  @ExceptionHandler(ZetaHttpResponseException.class)
-  public ResponseEntity<Map<String, String>> handleZetaHttpResponseException(
-      final ZetaHttpResponseException e) {
-    LOGGER.warn("ZetaHttpResponseException handler: {}", e.getMessage());
-
-    Map<String, String> errorResponse =
-        Map.of("error", "Zeta HTTP Response error", "message", e.getMessage());
-
-    return ResponseEntity.status(e.getCode()).body(errorResponse);
-  }
-
-  @ExceptionHandler(ZetaHttpException.class)
-  public ResponseEntity<Map<String, String>> handleZetaHttpException(final ZetaHttpException e) {
-    LOGGER.warn("ZetaHttpException handler: {}", e.getMessage(), e);
-
-    Map<String, String> errorResponse =
-        Map.of("error", "Zeta HTTP error", "message", e.getMessage());
-    return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(errorResponse);
-  }
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<Map<String, String>> handleGenericException(Exception e) {

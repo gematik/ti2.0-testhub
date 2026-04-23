@@ -158,6 +158,23 @@ public class SchemaValidationSteps {
   }
 
   /**
+   * Variant that accepts a raw JSON string (without TigerResolvedString re-serialization) to avoid
+   * re-signing issues when the response body contains a JWT field (e.g. registration_access_token)
+   * and the private key is not available.
+   *
+   * @param jsonString the raw JSON string or variable placeholder to validate
+   * @param schemaPath relative path of the schema under {@code resources}
+   */
+  @Dann("validiere JSON {string} gegen Schema {string}")
+  @Then("validate JSON {string} against schema {string}")
+  public void validateRawJsonAgainstYamlSchema(String jsonString, String schemaPath) {
+    String resolved = TigerGlobalConfiguration.resolvePlaceholders(jsonString);
+    var schema = loadYamlSchema(schemaPath);
+    JsonNode jsonNode = parseJsonString(resolved);
+    assertValid(schema, jsonNode, schemaPath, false);
+  }
+
+  /**
    * Soft-asserting variant of the schema validation that collects failures until the end of the
    * scenario instead of aborting immediately.
    *
@@ -166,6 +183,7 @@ public class SchemaValidationSteps {
    */
   @Dann("validiere {tigerResolvedString} soft gegen Schema {string}")
   @Then("soft-validate {tigerResolvedString} against schema {string}")
+  @SuppressWarnings("unused") // Cucumber step – not yet referenced in any active feature
   public void softlyValidateJsonAgainstYamlSchema(String jsonString, String schemaPath) {
 
     var schema = loadYamlSchema(schemaPath);
@@ -181,6 +199,7 @@ public class SchemaValidationSteps {
    */
   @Dann("decodiere und validiere {tigerResolvedString} gegen Schema {string} soft assert")
   @Then("decode and validate {tigerResolvedString} against schema {string} soft assert")
+  @SuppressWarnings("unused") // Cucumber step – not yet referenced in any active feature
   public void softlyValidateEncodedJwtAgainstYamlSchema(String encodedJwt, String schemaName) {
 
     var schema = loadYamlSchema(schemaName);
@@ -205,6 +224,7 @@ public class SchemaValidationSteps {
    */
   @Dann("decodiere und validiere {tigerResolvedString} gegen Schema {string}")
   @Then("decode and validate {tigerResolvedString} against schema {string}")
+  @SuppressWarnings("unused") // Cucumber step – not yet referenced in any active feature
   public void validateEncodedJwtAgainstYamlSchema(String encodedJwt, String schemaName) {
     var schema = loadYamlSchema(schemaName);
     var jsonNode = decodeJwt(encodedJwt);

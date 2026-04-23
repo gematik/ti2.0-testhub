@@ -354,15 +354,18 @@ public class VsdmSteps {
   }
 
   private void sendReadVsd(int nbrCalls, boolean withUpdateVsd) throws InterruptedException {
-    hccs().attemptsTo(GeneratePoppTokenList.now(nbrCalls));
+    hccs().attemptsTo(GeneratePoppTokenList.now(nbrCalls)); // Used for return code 200 only.
+
     for (int i = 0; i < nbrCalls; i++) {
       String etag = Optional.ofNullable(hccs().recall("etag")).orElse("0").toString();
       String poppToken = (String) ((ArrayList<?>) hccs().recall("poppTokens")).get(i);
-      hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken(etag, poppToken, false));
+      hccs().attemptsTo(DeleteVsdmDataFromCache.deleteCache());
 
-      if (withUpdateVsd) {
+      if (withUpdateVsd) { // Return code 200.
+        hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken(etag, poppToken, false));
         andRessourceServerIsFindingDifferentEtag();
-      } else {
+      } else { // Return code 304.
+        hccs().attemptsTo(RequestVsdFromServer.withEtagAndPoppToken(etag, null, false));
         andRessourceServerIsFindingEqualEtag();
       }
       answerTimes.add(LastResponseTime.value().answeredBy(hccs()));

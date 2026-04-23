@@ -1,7 +1,8 @@
 services:
   popp-token-generator:
     container_name: popp-token-generator
-    image: gematik1/popp-token-generator:1.0.10
+    platform: linux/amd64
+    image: gematik1/popp-token-generator:1.0.11
     ports:
       - "9500:80"
     environment:
@@ -11,7 +12,8 @@ services:
 
   popp-client:
     profiles: [ "full" ]
-    image: gematik1/popp-client:2.1.4
+    image: gematik1/popp-client:2.2.0
+    platform: linux/amd64
     container_name: popp-client
     environment:
       - SPRING_PROFILES_ACTIVE=dev-local
@@ -35,7 +37,8 @@ services:
 
   popp-server:
     profiles: [ "full" ]
-    image: gematik1/popp-server:2.1.4
+    image: gematik1/popp-server:2.2.0
+    platform: linux/amd64
     container_name: popp-server
     ports:
       - "8443:8443"
@@ -52,6 +55,7 @@ services:
   popp-server-db:
     profiles: [ "full" ]
     image: postgres:18-alpine
+    platform: linux/amd64
     container_name: popp-server-db
     environment:
       POSTGRES_USER: poppserver
@@ -68,7 +72,8 @@ services:
   popp-zeta-ingress:
     profiles: [ "full" ]
     container_name: popp-zeta-ingress
-    image: "nginx:1.29.4"
+    platform: linux/amd64
+    image: "nginx:1.29.7"
     ports:
       - "443:443"
     volumes:
@@ -81,7 +86,8 @@ services:
 
   popp-zeta-pep:
     profiles: [ "full" ]
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:0.3.0
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:0.5.1
+    platform: linux/amd64
     environment:
       - POPP_SERVER_HOST=popp-server:8443
       - HTTP_PROXY=
@@ -108,7 +114,8 @@ services:
 
   popp-zeta-pdp:
     profiles: [ "full" ]
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:0.3.2
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:0.5.1
+    platform: linux/amd64
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
@@ -121,6 +128,9 @@ services:
       KC_DB_USERNAME: "keycloak_db_user"
       KC_DB_PASSWORD: "keycloak_db_user_password"
       KC_DB_SCHEMA: "public"
+      SMCB_HASHING_PEPPER: "-085c1245-dc0d-4d39-95b4-97496bec6182"
+      TPM_KEYSTORE_LOCATION: /opt/keycloak/conf/tpm/tpm-certificates.p12
+      TPM_KEYSTORE_PASSWORD: "O3Bdel9P5+cOgzIGANkOPEzBQM3V"
       KC_HTTP_PORT: 80
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME: https://popp-zeta-ingress/auth/
@@ -151,6 +161,7 @@ services:
     volumes:
       - ./zeta-popp/realm:/opt/keycloak/data/import
       - ./zeta-popp/smcb:/opt/keycloak/conf/smcb
+      - ./zeta/tpm/:/opt/keycloak/conf/tpm
     networks:
       - testhub_backend
     healthcheck:
@@ -165,6 +176,7 @@ services:
   popp-zeta-pdp-db:
     profiles: [ "full" ]
     container_name: popp-zeta-pdp-db
+    platform: linux/amd64
     image: postgres:16.2
     ports:
       - "2301:5432"
@@ -183,7 +195,8 @@ services:
   popp-zeta-pdp-opa:
     profiles: [ "full" ]
     container_name: popp-zeta-pdp-opa
-    image: openpolicyagent/opa:1.11.0-static
+    image: openpolicyagent/opa:1.15.2-static
+    platform: linux/amd64
     environment:
       HTTP_PROXY: ""
       HTTPS_PROXY: ""

@@ -1,0 +1,120 @@
+# Schema for the Authorization Server .well-known JSON object
+$schema: "http://json-schema.org/draft-07/schema#"
+title: Authorization Server .well-known JSON Object
+description: Schema for the .well-known JSON object used by Authorization Servers.
+type: object
+properties:
+  issuer:
+    type: string
+    format: uri
+    description: "The URL of the issuer."
+  authorization_endpoint:
+    type: string
+    format: uri
+    description: "The URL of the authorization endpoint."
+  token_endpoint:
+    type: string
+    format: uri
+    description: "The URL of the token endpoint."
+  nonce_endpoint:
+    type: string
+    format: uri
+    description: "The URL of the nonce endpoint."
+  openid_providers_endpoint:
+    type: string
+    format: uri
+    description: "The URL of the openid providers endpoint."
+  jwks_uri:
+    type: string
+    format: uri
+    description: "The URL of the JSON Web Key Set."
+  scopes_supported:
+    type: array
+    description: "The scopes supported by the authorization server."
+    items:
+      type: string
+  response_types_supported:
+    type: array
+    description: "The response types supported by the authorization server."
+    items:
+      type: string
+      enum:
+        - code
+        - token
+  response_modes_supported:
+    type: array
+    description: "The response modes supported by the authorization server."
+    items:
+      type: string
+  grant_types_supported:
+    type: array
+    description: "The grant types supported by the authorization server."
+    items:
+      type: string
+  token_endpoint_auth_methods_supported:
+    type: array
+    description: "The token endpoint authentication methods supported."
+    items:
+      type: string
+  token_endpoint_auth_signing_alg_values_supported:
+    type: array
+    description: "The signing algorithms supported at the token endpoint."
+    items:
+      type: string
+  service_documentation:
+    type: string
+    format: uri
+    description: "A URL to the service documentation."
+  ui_locales_supported:
+    type: array
+    description: "The UI locales supported by the authorization server."
+    items:
+      type: string
+  code_challenge_methods_supported:
+    type: array
+    description: "The code challenge methods supported for PKCE."
+    items:
+      type: string
+
+  # --- API Versioning ---
+  api_versions_supported:
+    type: array
+    description: >-
+      A JSON array listing the supported API versions for this protected resource.
+    items:
+      type: object
+      properties:
+        major_version:
+          type: integer
+          description: The major version number of the API.
+        version:
+          type: string
+          description: The full, stable Semantic Versioning (SemVer) compliant string for this API version.
+        status:
+          type: string
+          description: The release status of this API version.
+          enum: [stable, beta, alpha, deprecated, retired]
+        documentation_uri:
+          type: string
+          format: uri
+          description: >-
+            URL of the documentation specific to this API version.
+      required:
+        - major_version
+        - version
+        - status
+
+required:
+  - issuer
+  - authorization_endpoint
+  - nonce_endpoint
+  - openid_providers_endpoint
+  - token_endpoint
+  - jwks_uri
+  - scopes_supported
+  - response_types_supported
+  - grant_types_supported
+  - token_endpoint_auth_methods_supported
+  - token_endpoint_auth_signing_alg_values_supported
+  - ui_locales_supported
+  - code_challenge_methods_supported

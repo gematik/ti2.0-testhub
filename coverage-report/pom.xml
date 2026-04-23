@@ -8,13 +8,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>2.1.0</version>
+        <version>2.2.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20</groupId>
     <artifactId>coverage-report</artifactId>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
 
     <name>Coverage Report</name>
     <description>Helper module to aggregate Jacoco Reports</description>
@@ -23,11 +23,6 @@
         <dependency>
             <groupId>de.gematik.ti20.vsdm</groupId>
             <artifactId>vsdm-fhir-lib</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>de.gematik.ti20.client</groupId>
-            <artifactId>zeta-client-lib</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

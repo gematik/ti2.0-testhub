@@ -25,75 +25,55 @@
 package de.gematik.ti20.simsvc.client.service;
 
 import de.gematik.ti20.client.card.card.AttachedCard;
-import de.gematik.ti20.client.card.terminal.CardTerminalException;
-import de.gematik.ti20.client.card.terminal.simsvc.EgkInfo;
-import de.gematik.ti20.client.popp.config.PoppClientConfig;
-import de.gematik.ti20.client.popp.exception.PoppClientException;
-import de.gematik.ti20.client.popp.service.PoppClientService;
-import de.gematik.ti20.client.zeta.service.ZetaClientService;
+import de.gematik.ti20.simsvc.client.config.PoppClientConfig;
 import de.gematik.ti20.simsvc.client.service.dto.PoppClientRequest;
 import de.gematik.ti20.simsvc.client.service.dto.PoppClientResponse;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Slf4j
 public class PoppClientAdapter {
-  private final PoppClientService poppClientService;
+
+  private final PoppClientConfig poppClientConfig;
+
   private final WebClient webClient;
 
-  public PoppClientAdapter(PoppClientService poppClientService, WebClient webClient) {
-    this.poppClientService = poppClientService;
+  public PoppClientAdapter(final PoppClientConfig poppClientConfig, final WebClient webClient) {
+    this.poppClientConfig = poppClientConfig;
     this.webClient = webClient;
   }
 
-  public List<? extends AttachedCard> getAttachedCards() throws CardTerminalException {
-    return poppClientService.getAttachedCards();
-  }
-
   public String getPoppToken(
-      AttachedCard attachedCard, Integer smcbSlotId, VsdmClientService vsdmClientService)
-      throws PoppClientException {
+      AttachedCard attachedCard, Integer smcbSlotId, VsdmClientService vsdmClientService) {
     log.info(
         "============ Starting PoPP token session for card with tokentype={} and URL={}",
-        getPoppClientConfig().getTokenType(),
-        getPoppClientConfig().getUrlPoppServerHttp(attachedCard));
+        poppClientConfig.getTokenType(),
+        poppClientConfig.getUrlPoppServerHttp(attachedCard));
     PoppClientRequest poppRequestPayload =
-        new PoppClientRequest(getPoppClientConfig().getTokenType().getType(), null);
+        new PoppClientRequest(poppClientConfig.getTokenType().getType(), null);
 
     PoppClientResponse response =
         webClient
             .post()
-            .uri(getPoppClientConfig().getUrlPoppServerHttp(attachedCard))
+            .uri(poppClientConfig.getUrlPoppServerHttp(attachedCard))
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(poppRequestPayload)
             .retrieve()
             .bodyToMono(PoppClientResponse.class)
             .block();
 
-    if (response == null
-        || response.status()
-            != de.gematik.ti20.client.popp.controller.PoppClientResponseStatus.OK) {
-      log.error(
-          "Failed to retrieve PoPP token. Response: {}",
-          response != null ? response.toString() : "null");
-      throw new PoppClientException("POPP_TOKEN_SESSION_ERROR");
-    }
     log.info("Successfully retrieved PoPP token: {}", response.token());
 
     return response.token();
   }
 
-  public EgkInfo getEgkInfo(AttachedCard attachedCard) throws CardTerminalException {
-    return poppClientService.getEgkInfo(attachedCard);
-  }
-
-  public ZetaClientService getZetaClientService() {
-    return this.poppClientService.getZetaClientService();
-  }
-
-  public PoppClientConfig getPoppClientConfig() {
-    return poppClientService.getPoppClientConfig();
-  }
+  // FIXME raku umziehen
+  //  public EgkInfo getEgkInfo(AttachedCard attachedCard) throws CardTerminalException {
+  //    return poppClientService.getEgkInfo(attachedCard);
+  //  }
+  //
+  //  public PoppClientConfig getPoppClientConfig() {
+  //    return poppClientService.getPoppClientConfig();
+  //  }
 }

@@ -1,0 +1,25 @@
+== ZETA Guard and ZETA Client
+
+=== ASL (additional security layer)
+
+==== Disabling ASL
+
+The quickest and easiest way to disable ASL is by setting `zeta_asl_use` to `not_supported` in the `.well-known/oauth-protected-resource` file.
+
+Example for `doc/docker/backend/zeta/well-known/oauth-protected-resource`:
+
+    {
+        "resource": "https://vsdm-zeta-ingress/",
+        "authorization_servers": [
+            "https://vsdm-zeta-ingress/auth/realms/zeta-guard/"
+        ],
+        "zeta_asl_use": "not_supported"
+    }
+
+The ZETA Client SDK configuration does not need to be modified.
+
+For additional information about ASL refer to the specifications and relevant repositories.
+
+==== Enabling ASL
+
+ASL is enabled by default for the VSDM components. You can reference their configuration on how to enable ASL. More information on how to configure ASL can be found in the ZETA documentation.

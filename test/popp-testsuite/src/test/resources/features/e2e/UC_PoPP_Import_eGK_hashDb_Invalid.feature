@@ -21,7 +21,7 @@ Funktionalität: Fehlerfälle beim TLS-Aufbau der Verbindung
 
     Angenommen TGR lösche aufgezeichnete Nachrichten
     Und der TSP verwendet die Client Identität "tspEgkTlsRevoked" für die mTLS-Verbindung zum PoPP-Service
-    Wenn der TSP sendet den signierten eContent "80276883110000144098.eContent-signed" an den PoPP Service
+    Wenn der TSP sendet den signierten eContent "80276883110000144098.eContent-signed" zum importieren an den PoPP Service
     Dann wird die Verbindung vom PoPP-Service abgelehnt
 
   @TCID:UC_PoPP_TLS_Fehler_ZertifikatAbgelaufen
@@ -35,7 +35,7 @@ Funktionalität: Fehlerfälle beim TLS-Aufbau der Verbindung
 
     Angenommen TGR lösche aufgezeichnete Nachrichten
     Und der TSP verwendet die Client Identität "tspEgkTlsExpired" für die mTLS-Verbindung zum PoPP-Service
-    Wenn der TSP sendet den signierten eContent "80276883110000144098.eContent-signed" an den PoPP Service
+    Wenn der TSP sendet den signierten eContent "80276883110000144098.eContent-signed" zum importieren an den PoPP Service
     Dann wird die Verbindung vom PoPP-Service abgelehnt
 
   @TCID:UC_PoPP_TLS_Fehler_ZertifikatFalscheRolle
@@ -49,5 +49,5 @@ Funktionalität: Fehlerfälle beim TLS-Aufbau der Verbindung
 
     Angenommen TGR lösche aufgezeichnete Nachrichten
     Und der TSP verwendet die Client Identität "tspEgkTlsInvalidCertType" für die mTLS-Verbindung zum PoPP-Service
-    Wenn der TSP sendet den signierten eContent "80276883110000144098.eContent-signed" an den PoPP Service
+    Wenn der TSP sendet den signierten eContent "80276883110000144098.eContent-signed" zum importieren an den PoPP Service
     Dann wird die Verbindung vom PoPP-Service abgelehnt

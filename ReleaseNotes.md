@@ -2,6 +2,52 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 2.2.0
+
+### Update Notes
+
+#### Upgrade to ZETA 0.5.x (PoPP)
+
+When upgrading your installation you might encounter issues with a database
+migration in the PoPP stack. To fix the issue, delete the ZETA *PoPP* PDP
+database volume:
+
+1. Ensure the relevant containers are stopped
+2. Delete the volume `testhub-local_popp-zeta-postgres-db-data`, e.g.:
+    ```
+    docker volume rm testhub-local_popp-zeta-postgres-db-data
+    ```
+
+#### JWKS Endpoint compatibility
+
+The popp-sample-implementation currently only supports the legacy `/jwks.json`
+endpoint. If you haven't changed the default PoPP stack configuration, then
+popp-sample-implementation and popp-token-generator use the same key material
+and popp-token-generator can be used for the `pep_popp_issuer` setting.
+
+See *Known Issues* in the user manual.
+
+#### ASL for VSDM
+
+This release enables ASL for the communication of the VSDM components. The
+behavior is activated by default to follow the VSDM specification. Tiger does
+automatically decrypt the traffic when running E2E tests for VSDM. Visit [the
+Testhub user manual](https://gematik.github.io/ti2.0-testhub/) to learn how to
+disable ASL.
+
+### Changes
+
+- TESTHUB-26: Enable ASL by default for VSDM ZETA.
+- TESTHUB-96: Update popp-client/popp-server dependencies to use latest version of Zeta (0.5.x).
+- TESTHUB-107: add traffic protocol for E2E tests
+- TESTHUB-111: remove zeta-client-lib. The library is no longer needed as all
+  mocked Zeta components have been removed.
+- TESTHUB-115: Update Tiger to version 4.2.6. See [Tiger Release
+  Notes](https://github.com/gematik/app-Tiger/blob/e3aef5b012a9f65894b19b3b1448837bb98b3a21/ReleaseNotes.md#release-426)
+  for more information.
+- TESTHUB-116: refactor handling of attached card and PoPP token (contributed by
+  [@prat023](https://github.com/prat023))
+
 ## Release 2.1.0
 
 ### Update Notes
@@ -92,7 +138,7 @@ Refer to the projects release notes to find out what changed:
 - PTVSDM-1549: update BDE constants for missing patient record version
 - PTVSDM-1573: relax validation of VSDM response, order is not relevant
 - PTVSDM-1574: ensure that Vsdm-PZ has the specified length
-- TESTHUB-77: Update ZETA components from 0.3.x to 0.4.x
+- TESTHUB-77: Update ZETA components from 0.3.x to 0.4.x for VSDM.
 - TESTHUB-87: add Windows related troubleshooting to the user manual.
 - TESTHUB-88: remove `CHANGELOG.md`s. Relevant information can be found in the
   `ReleaseNotes.md`
