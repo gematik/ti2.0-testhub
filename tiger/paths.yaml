@@ -9,7 +9,7 @@ zeta:
     opa:
       decisionPath: /v1/data/zeta/authz/decision
     client:
-      reset: http://localhost:${ports.localTigerProxyProxyPort}/client/config/terminal
+      reset: http://localhost:${ports.vsdmClientPort}/client/config/terminal
       # VSD-Anfrage an VSDM Fachdienst über ZeTA Client (direkt ohne TigerProxy)
       vsdRequest: http://localhost:${ports.vsdmClientPort}/client/vsdm/vsd?terminalId=1&egkSlotId=1&smcBSlotId=1
       vsdRequestPath: /client/vsdm/vsd
@@ -19,8 +19,24 @@ zeta:
     tigerProxy:
       # TigerProxy Admin API (siehe ports.yaml: localTigerProxyAdminPort)
       baseUrl: http://localhost:${ports.localTigerProxyAdminPort}
-      modificationPath: /api/rbel/manipulations
+      modificationPath: /modification
       resetJwtManipulationPath: /api/rbel/jwtManipulation/reset
       modifyJwsTokenPath: /api/rbel/jwtManipulation
       modifyJwtPath: /api/rbel/jwt
       keyPath: /api/keys
+    erezept:
+      rest:
+        proxyPath: /achelos_testfachdienst/erezept
+        pepPath: /achelos_testfachdienst/erezept
+    vsdm:
+      ingress:
+        baseUrl: https://localhost:9119
+      pep:
+        baseUrl: http://localhost:9120
+      pdp:
+        baseUrl: http://localhost:9122
+      wellKnownOAuthProtectedResourcePath: /.well-known/oauth-protected-resource
+      wellKnownOAuthServerPath: /.well-known/oauth-authorization-server
+      registerEndpointPath: /auth/realms/zeta-guard/clients-registrations/openid-connect
+      tokenEndpointPath: /auth/realms/zeta-guard/protocol/openid-connect/token
+      nonceEndpointPath: /auth/realms/zeta-guard/zeta-guard-nonce

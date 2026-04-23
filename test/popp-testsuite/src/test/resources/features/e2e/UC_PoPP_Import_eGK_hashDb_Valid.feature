@@ -23,9 +23,9 @@ Funktionalität: Import von Daten in eGK-Hash-Datenbank
 
     Angenommen TGR lösche aufgezeichnete Nachrichten
     Und der TSP verwendet die Client Identität "tspEgkTlsValid" für die mTLS-Verbindung zum PoPP-Service
-    Wenn der TSP sendet den signierten eContent "80276883110000144098.eContent-signed" an den PoPP Service
+    Und der TSP sendet den signierten eContent "80276883110000144098.eContent-signed" zum importieren an den PoPP Service
     Dann der TSP erhält eine positive Rückmeldung mit einer jobID
-    Wenn der TSP fragt den Status seines Imports ab
+    Wenn der TSP fragt den Status seines Imports oder seiner Löschung ab
     Dann der TSP erhält Informationen über den Status seines Imports
 
 
@@ -67,6 +67,16 @@ Funktionalität: Import von Daten in eGK-Hash-Datenbank
   Der TSP etabliert einen TLS Kanal mit dem PoPP-Service. Der TSP ruft die Schnittstelle I_PoPP_EHC_CertHash_Import
   auf um die Daten zu löschen.
 
-    Angenommen der TSP verwendet die Client Identität "tspEgkTlsValid" für die mTLS-Verbindung zum PoPP-Service
-    Wenn der TSP sendet einen Löschauftrag
-    Dann der TSP erhält eine positive Rückmeldung zu seiner Löschung
+    Angenommen TGR lösche aufgezeichnete Nachrichten
+    Und der TSP verwendet die Client Identität "tspEgkTlsValid" für die mTLS-Verbindung zum PoPP-Service
+    Und der TSP sendet den signierten eContent "80276883110000144099.eContent-signed" zum importieren an den PoPP Service
+    Und TGR find first request to path "/api/v1/hash-db/import"
+    Und TGR set local variable "job_id_import" to "!{rbel:currentResponseAsString('$.body.jobId')}"
+    Und warte für "30" Sekunden
+    Wenn der TSP fragt das Ergebnis des Jobs mit der jobID "${job_id_import}" ab
+    Und TGR lösche aufgezeichnete Nachrichten
+    Wenn der TSP sendet den signierten eContent "80276883110000144099.eContent-signed" zum löschen an den PoPP Service
+    Und TGR find first request to path "/api/v1/hash-db/import"
+    Und TGR set local variable "job_id_delete" to "!{rbel:currentResponseAsString('$.body.jobId')}"
+    Und warte für "30" Sekunden
+    Wenn der TSP fragt das Ergebnis des Jobs mit der jobID "${job_id_delete}" ab

@@ -1,120 +1,170 @@
-# Client Registrierung - Test Flow Dokumentation
+# Client Registrierung – Test Flow Dokumentation
 
 Diese Dokumentation beschreibt die Testszenarien aus `client_registrierung.feature`.
 
 ## Übersicht
 
-Das Feature testet die **initiale Client-Registrierung** und den **Token-Exchange** am ZETA-PDP:
-- Service Discovery über den well-known Endpunkt des PEP-Mocks
-- Prüfung eines **Mock-well-known-Dokuments im Authorization-Server-Metadata-Stil**
-  (ähnlich RFC 8414, nicht strikt RFC 9728)
-- Dynamic Client Registration (DCR) am PDP (RFC 7591)
-- Token-Exchange-Request an den ZETA-PDP (RFC 8693)
-- Vollständiger Registrierungsflow (Service Discovery + DCR + Token Exchange)
-- Prüfung der Policy-Entscheidung (OPA)
-- Gutfall: Access-Token wird ausgestellt
-- Fehlerfall: Zugriff wird mit 403 abgelehnt (noch nicht implementiert)
+Das Feature testet den vollständigen ZETA-Protokollablauf gegen die **echte VSDM-ZeTA-Infrastruktur**:
+- **PEP**: ngx_pep (Port 9120)
+- **PDP**: Keycloak mit ZeTA Extension (Port 9122) + PostgreSQL
+- **Ingress**: nginx SSL-Termination (Port 9119)
 
-## Vorbedienungen
-
-* ZETA PDP Server Mockservice
-* Tiger-Proxy
+| # | Szenario | Tag | Status |
+|---|----------|-----|--------|
+| 1 | Service Discovery – Protected Resource Metadata (RFC 9728) | `@service_discovery` | ✅ Aktiv |
+| 2 | Service Discovery – OAuth AS Metadata (Keycloak) | `@service_discovery` | ✅ Aktiv |
+| 3 | Dynamic Client Registration (Keycloak + PostgreSQL) | `@dcr` | ✅ Aktiv |
+| 4 | Token Exchange – SMC-B / brainpoolP256r1 | `@token_exchange` | ❌ `@Ignore` – keycloak-zeta unterstützt BP256R1 nicht |
+| 5 | Policy-Ablehnung (403 Fehlerfall) | `@policy_ablehnungen` | ❌ `@Ignore` – OPA-Routing + Policy fehlen |
 
 ---
 
-## Szenario 1: Service Discovery - mock well-known AS-Metadata
+## Szenario 1: Service Discovery – Protected Resource Metadata (RFC 9728)
 
-**Tag:** `@staging @client_registrierung @service_discovery`
+**Tag:** `@client_registrierung @service_discovery`
 
 Testet den ersten Schritt der initialen Client-Registrierung:
-Der ZETA Client ruft den well-known Endpunkt des Resource Servers (PEP-Mock, Port 9110)
-auf und erhält aktuell ein **Authorization-Server-Metadata-ähnliches Dokument**.
-Der Mock verwendet zwar den Pfad `/.well-known/oauth-protected-resource`, liefert aber
-kein striktes RFC-9728 Protected Resource Metadata Dokument.
+Der Test ruft den well-known Endpunkt des **echten PEP** (ngx_pep) auf und erhält ein
+RFC-9728 Protected Resource Metadata Dokument.
 
 ### Flow
 
 ```
-┌──────────┐                    ┌──────────────┐
-│  Test    │                    │  ZETA-PEP    │
-│  Client  │                    │  (Mock:9110) │
-└────┬─────┘                    └──────┬───────┘
-     │                                 │
-     │  GET /.well-known/              │
-     │    oauth-protected-resource     │
-     │────────────────────────────────>│
-     │                                 │
-     │  200 OK                         │
-     │  { issuer, token_endpoint, ...} │
-     │<────────────────────────────────│
-     │                                 │
-     │  Schema-Validierung             │
-     │  (opr-well-known.yaml)          │
+┌──────────┐                    ┌──────────────────────────┐
+│  Test    │                    │  VSDM ZeTA PEP           │
+│  Client  │                    │  ngx_pep (Port 9120)     │
+└────┬─────┘                    └──────────────┬───────────┘
+     │                                         │
+     │  GET /.well-known/                      │
+     │    oauth-protected-resource             │
+     │────────────────────────────────────────>│
+     │                                         │
+     │  200 OK                                 │
+     │  { resource, authorization_servers, ... }│
+     │<────────────────────────────────────────│
 ```
 
 ### Validierung
 - HTTP 200 OK
-- Body enthält `issuer` und `token_endpoint`
-- Schema-Validierung gegen `schemas/v_1_0/opr-well-known.yaml`
-- Das Schema validiert die **tatsächliche Mock-Response**, nicht ein striktes RFC-9728 Dokument
+- Body enthält Pflichtfelder: `resource`, `authorization_servers`
+- Schema-Validierung gegen `schemas/v_1_0/opr-well-known-rfc9728.yaml`
 
 ---
 
-## Szenario 2: Dynamic Client Registration (DCR)
+## Szenario 2: Service Discovery – OAuth AS Metadata (Keycloak)
 
-**Tag:** `@staging @client_registrierung @dcr`
+**Tag:** `@client_registrierung @service_discovery`
 
-Testet die Dynamic Client Registration (RFC 7591):
-Der ZETA Client sendet einen DCR-Request (`POST /register`) an den PDP Authorization Server (Mock, Port 9112).
+Testet den OAuth Authorization Server Metadata Endpunkt.
+Der Request geht über Ingress (nginx) → PEP → Keycloak.
 
 ### Flow
 
 ```
-┌──────────┐                    ┌──────────────┐
-│  Test    │                    │  ZETA-PDP    │
-│  Client  │                    │  (Mock:9112) │
-└────┬─────┘                    └──────┬───────┘
-     │                                 │
-     │  POST /register                 │
-     │  Content-Type: application/json │
-     │  {                              │
-     │    "client_name": "sdk-client", │
-     │    "grant_types": [...],        │
-     │    "jwks": { "keys": [...] },   │
-     │    "token_endpoint_auth_method":│
-     │      "private_key_jwt"          │
-     │  }                              │
-     │────────────────────────────────>│
-     │                                 │
-     │  201 Created                    │
-     │  {                              │
-     │    "client_id": "...",          │
-     │    "client_id_issued_at": ...,  │
-     │    "registration_client_uri",   │
-     │    "registration_access_token"  │
-     │  }                              │
-     │<────────────────────────────────│
+┌──────────┐     ┌──────────────────┐     ┌────────────────┐     ┌──────────┐
+│  Test    │────>│ VSDM ZeTA Ingress│────>│ VSDM ZeTA PEP  │────>│ Keycloak │
+│  Client  │     │ nginx (9119)     │     │ ngx_pep (9120) │     │  (9122)  │
+└──────────┘     └──────────────────┘     └────────────────┘     └──────────┘
 ```
 
 ### Validierung
-- HTTP 201 Created
-- Response enthält: `client_id`, `client_id_issued_at`, `token_endpoint_auth_method`,
-  `grant_types`, `jwks`, `redirect_uris`, `registration_client_uri`, `registration_access_token`
-- Schema-Validierung gegen `schemas/v_1_0/dcr-response.yaml`
-- Request-Validierung: POST-Methode, Content-Type `application/json`, Body-Felder
+- HTTP 200 OK
+- Schema-Validierung gegen `schemas/v_1_0/as-well-known.yaml`
+- `jwks_uri` ist ein gültiger HTTP(S)-URI
 
 ---
 
-| Szenario | Tag | Status | Prüfung |
-|----------|-----|--------|---------|
-| Service Discovery (well-known) | `@service_discovery` | ✅ Aktiv | PEP Mock-well-known, Schema-Validierung der AS-Metadata-artigen Response |
-| Dynamic Client Registration | `@dcr` | ✅ Aktiv | POST /register → 201, Response-Felder, Schema-Validierung |
-| Gutfall (Token-Exchange) | `@token_exchange` | ✅ Aktiv | PDP erreichbar, Token wird ausgestellt, TGR-Validierung |
-| Fehlerfall (Policy-Ablehnung) | `@no_proxy` | ❌ Ignoriert | Benötigt echte OPA-Policy |
+## Szenario 3: Dynamic Client Registration (201 Created)
 
-**Hinweis:** Für echte Policy-Tests muss die `authz.rego` im PDP-Mock durch eine Policy ersetzt werden, die die Input-Werte validiert.
+**Tag:** `@client_registrierung @dcr`
 
-**Hinweis (RFC 9728):** Der PEP-Mock gibt am Endpunkt `/.well-known/oauth-protected-resource`
-aktuell ein Authorization-Server-Metadata-Dokument (Stil RFC 8414) zurück, nicht ein echtes
-RFC 9728 Protected Resource Metadata Dokument. Das Schema `opr-well-known.yaml` validiert
-gegen die tatsächliche Mock-Response.
+**Kern-Test der DB-Integration.** Direkter POST an den Keycloak-Registrierungsendpunkt (RFC 7591).
+Keycloak schreibt die Clientdaten in PostgreSQL → impliziter DB-Integrationstest.
+
+### Flow
+
+```
+┌──────────┐     ┌──────────────────────┐     ┌────────────┐
+│  Test    │────>│ Keycloak             │────>│ PostgreSQL │
+│  Client  │     │ POST /register       │     │            │
+└──────────┘     │ (pdpBaseUrl, 9122)   │     │            │
+                 └──────────────────────┘     └────────────┘
+                       └── schreibt client_id → DB
+```
+
+### Validierung
+
+| Prüfung | Erwarteter Wert |
+|---------|-----------------|
+| HTTP Response Code | 201 Created |
+| `$.body.client_id` | vorhanden |
+| `$.body.client_id_issued_at` | vorhanden |
+| `$.body.token_endpoint_auth_method` | `private_key_jwt` |
+| `$.body.grant_types` | vorhanden |
+| `$.body.jwks` | vorhanden |
+| `$.body.redirect_uris` | vorhanden |
+| `$.body.registration_client_uri` | vorhanden |
+| `$.body.registration_access_token` | vorhanden |
+| Schema-Validierung | `schemas/v_1_0/dcr-response.yaml` |
+| Request Method | POST |
+| Request Content-Type | `application/json` |
+| Request `client_name` | `sdk-client` |
+
+---
+
+## Szenario 4: Token Exchange `@Ignore`
+
+**Tag:** `@Ignore @client_registrierung @token_exchange`
+
+Testet den Token Exchange (RFC 8693) gegen den echten Keycloak mit PoPP-Token.
+
+> **Status: `@Ignore`** – keycloak-zeta (0.4.1) unterstützt brainpoolP256r1 in JWKS/x5c nicht.
+> DCR mit SMC-B-Zertifikat liefert HTTP 500.
+>
+> **Lösung:** Warten auf keycloak-zeta Update mit brainpoolP256r1-Support.
+
+---
+
+## Szenario 5: Policy-Ablehnung (403 Fehlerfall) `@Ignore`
+
+**Tag:** `@Ignore @client_registrierung @policy_ablehnungen`
+
+Testet, dass der ZETA Guard Anfragen mit ungültigen Policy-Werten mit HTTP 403 ablehnt.
+
+> **Status: `@Ignore`** – zwei Voraussetzungen fehlen:
+> 1. **Netzwerk-Topologie** – OPA-Requests laufen Docker-intern und durchlaufen nicht den TigerProxy.
+> 2. **OPA-Policy** – `authz.rego` gibt aktuell immer `allow=true` zurück.
+
+---
+
+## Tests ausführen
+
+```bash
+# Vom Root-Verzeichnis (ti2.0-testhub/) aus:
+
+# Alle aktiven client_registrierung Tests
+./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false \
+  -Dcucumber.filter.tags='@client_registrierung and not @Ignore'
+
+# Nur Service Discovery
+./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false \
+  -Dcucumber.filter.tags='@client_registrierung and @service_discovery'
+
+# Nur DCR
+./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false \
+  -Dcucumber.filter.tags='@client_registrierung and @dcr'
+```
+
+---
+
+## Voraussetzungen
+
+Alle Tests benötigen den Docker-Stack. Die verfügbaren Docker-Compose-Profile und Startbefehle
+sind in der [Testhub-Dokumentation](https://gematik.github.io/ti2.0-testhub/#_docker_compose_profiles) beschrieben.
+
+Insbesondere müssen laufen:
+- `vsdm-zeta-ingress` – nginx SSL (Port 9119)
+- `vsdm-zeta-pep` – ngx_pep (Port 9120)
+- `vsdm-zeta-pdp` – Keycloak (Port 9122)
+- `vsdm-zeta-pdp-db` – PostgreSQL
+- `popp-token-generator` – PoPP Token Generator (Port 9500, für Token Exchange Tests)

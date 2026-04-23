@@ -43,10 +43,16 @@ include::configuration.adoc[]
 
 include::architecture.adoc[]
 
+include::traffic.adoc[]
+
 include::ps-integration.adoc[]
 
 include::popp-integration.adoc[]
 
 include::vsdm-integration.adoc[]
 
+include::zeta.adoc[]
+
 include::troubleshooting.adoc[]
+
+include::knownissues.adoc[]

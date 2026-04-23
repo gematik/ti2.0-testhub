@@ -4,6 +4,7 @@ tigerProxy:
   activateRbelParsingFor:
     - websocket
     - x509
+    - asl
   keyFolders:
     - ${tiger.rootFolder|.}/test/vsdm-testsuite
     - ${tiger.rootFolder|.}/test/zeta-testsuite/src/test/resources

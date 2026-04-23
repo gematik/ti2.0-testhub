@@ -7,13 +7,13 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>2.1.0</version>
+        <version>2.2.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>de.gematik.ti20.simsvc.server</groupId>
     <artifactId>vsdm-server-simservice</artifactId>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
 
     <name>VSDM Server Simservice</name>
     <description>Simulator-Service for VSDM2 Service</description>
@@ -51,10 +51,6 @@
         <dependency>
             <groupId>de.gematik.ti20.client</groupId>
             <artifactId>card-client-lib</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>de.gematik.ti20.client</groupId>
-            <artifactId>zeta-client-lib</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>

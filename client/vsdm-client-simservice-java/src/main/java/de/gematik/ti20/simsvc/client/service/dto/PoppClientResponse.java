@@ -25,7 +25,6 @@
 package de.gematik.ti20.simsvc.client.service.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import de.gematik.ti20.client.popp.controller.PoppClientResponseStatus;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public record PoppClientResponse(

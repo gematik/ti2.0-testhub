@@ -1,0 +1,14 @@
+== Tiger Logs
+
+Traffic logs captured during the vsdm-testsuite feature test runs are available in the `doc/traffic/`
+folder.
+
+Two perspectives are recorded for each test run:
+
+- **Frontend: `doc/traffic/frontend.html`** – traffic as seen by the client (e.g. the VSDM client simulator), i.e.
+  outgoing requests and the responses received from the backend services.
+- **Backend: `doc/traffic/backend.html`** – traffic as seen by the server side, i.e. the requests arriving at the
+  Zeta components and the responses they return.
+
+The logs are provided in both a human-readable HTML format (`.html`) and the Tiger traffic format (`.tgr`), which can be
+opened with the Tiger Proxy (cf. https://gematik.github.io/app-Tiger/Tiger-User-Manual.html).

@@ -1,0 +1,5 @@
+== Known issues
+
+=== popp-sample-implementation only supports legacy /jwks.json endpoint
+
+The popp-sample-implementation currently only supports the legacy `/jwks.json` endpoint. If you haven't changed the default PoPP stack configuration, then popp-sample-implementation and popp-token-generator use the same key material and popp-token-generator can be used for the `pep_popp_issuer` setting.

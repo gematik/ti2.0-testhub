@@ -6,6 +6,7 @@ tigerProxy:
   activateRbelParsingFor:
     - websocket
     - x509
+    - asl
   proxyRoutes:
     - from: http://vsdm-zeta-ingress:443
       to: https://vsdm-zeta-ingress:443/

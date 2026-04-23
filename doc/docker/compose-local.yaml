@@ -7,6 +7,16 @@ networks:
   testhub_client:
   testhub_backend:
 
+x-no-proxy-env: &no-proxy-env
+  HTTP_PROXY: ""
+  HTTPS_PROXY: ""
+  ALL_PROXY: ""
+  http_proxy: ""
+  https_proxy: ""
+  all_proxy: ""
+  NO_PROXY: "localhost,127.0.0.1,card-terminal-client,docker-tiger-proxy,ti-connect-tiger-proxy,popp-client,popp-token-generator,popp-zeta-ingress,popp-zeta-pep,popp-zeta-pdp,popp-zeta-pdp-opa,vsdm-zeta-ingress,vsdm-zeta-pep,vsdm-zeta-pdp,vsdm-zeta-pdp-opa,vsdm-server"
+  no_proxy: "localhost,127.0.0.1,card-terminal-client,docker-tiger-proxy,ti-connect-tiger-proxy,popp-client,popp-token-generator,popp-zeta-ingress,popp-zeta-pep,popp-zeta-pdp,popp-zeta-pdp-opa,vsdm-zeta-ingress,vsdm-zeta-pep,vsdm-zeta-pdp,vsdm-zeta-pdp-opa,vsdm-server"
+
 # Profiles:
 #   (no profile)  - Backend + Tiger-Proxies + Clients (via tiger-proxy) [default]
 #   backend-only  - Backend only (no tiger-proxies, no clients)
@@ -25,6 +35,7 @@ services:
     build: ../../client/card-terminal-client-simservice
     image: de.gematik.ti20.simsvc.client/card-terminal-client-simservice:local
     container_name: card-terminal-client
+    environment: *no-proxy-env
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:80/service/status" ]
       interval: 10s
@@ -50,20 +61,23 @@ services:
     volumes:
       - ./backend/zeta/smcb-private/smcb_private.p12:/tmp/zeta/smcb_private.p12:ro
     environment:
-      - VSDM_USE_MOCK_POPP_TOKEN=true
-      - POPP_HTTP_URL=http://popp-client:8081/token
-      - POPP_TOKEN_GENERATOR_URL=http://popp-token-generator:80
-      - VSDM_RESOURCE_SERVER_URL=https://vsdm-zeta-ingress
-      - OTEL_SERVICE_NAME=vsdm-client
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
-      - ZETASDK_SMCB_ALIAS=alias
-      - ZETASDK_SMCB_PRIVATE_KEY_PASSWORD=00
-      - ZETASDK_SMCB_PRIVATE_KEY_PATH=/tmp/zeta/smcb_private.p12
+      <<: *no-proxy-env
+      VSDM_USE_MOCK_POPP_TOKEN: "true"
+      POPP_HTTP_URL: http://popp-client:8081/token
+      POPP_TOKEN_GENERATOR_URL: http://popp-token-generator:80
+      VSDM_RESOURCE_SERVER_URL: https://vsdm-zeta-ingress
+      OTEL_SERVICE_NAME: vsdm-client
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
+      ZETASDK_SMCB_ALIAS: alias
+      ZETASDK_SMCB_PRIVATE_KEY_PASSWORD: "00"
+      ZETASDK_SMCB_PRIVATE_KEY_PATH: /tmp/zeta/smcb_private.p12
 
   docker-tiger-proxy:
     image: gematik1/tiger-proxy-image:4.2.1
+    platform: linux/amd64
     container_name: docker-tiger-proxy
+    environment: *no-proxy-env
     networks:
       testhub_client:
         aliases:
@@ -88,7 +102,9 @@ services:
 
   ti-connect-tiger-proxy:
     image: gematik1/tiger-proxy-image:4.2.1
+    platform: linux/amd64
     container_name: ti-connect-tiger-proxy
+    environment: *no-proxy-env
     networks:
       - testhub_backend
     healthcheck:

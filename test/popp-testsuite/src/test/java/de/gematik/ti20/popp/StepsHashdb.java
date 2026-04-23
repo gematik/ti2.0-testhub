@@ -27,7 +27,8 @@ package de.gematik.ti20.popp;
 import static de.gematik.test.tiger.lib.TigerHttpClient.executeCommandWithContingentWait;
 import static de.gematik.test.tiger.lib.TigerHttpClient.givenDefaultSpec;
 import static de.gematik.ti20.popp.data.TestConstants.FOLDER_FOR_SIGNED_HASHDB_PAYLOADS;
-import static de.gematik.ti20.popp.data.TestConstants.HASH_DB_SUCCESS_RESULT_RESPONSE_FILE;
+import static de.gematik.ti20.popp.data.TestConstants.HASH_DB_SUCCESSFUL_IMPORT_RESULT_RESPONSE_FILE;
+import static de.gematik.ti20.popp.data.TestConstants.JOBID_FOR_FINISHED_SUCCESSFULL_DELETE;
 import static de.gematik.ti20.popp.data.TestConstants.JOBID_FOR_FINISHED_SUCCESSFULL_IMPORT;
 import static de.gematik.ti20.popp.data.TestConstants.URL_HASH_DB_IMPORT_RU;
 import static de.gematik.ti20.popp.data.TestConstants.VALID_HASH_DB_IMPORT_RESPONSE_FILE;
@@ -43,12 +44,16 @@ import io.cucumber.java.de.Angenommen;
 import io.cucumber.java.de.Dann;
 import io.cucumber.java.de.Und;
 import io.cucumber.java.de.Wenn;
+import io.cucumber.java.en.When;
 import io.restassured.http.Method;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyStore;
+import java.util.concurrent.TimeUnit;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.htmlunit.http.HttpStatus;
 
 @Slf4j
@@ -69,24 +74,18 @@ public class StepsHashdb {
     this(RbelMessageRetriever.getInstance());
   }
 
-  @Angenommen("der TSP sendet den signierten eContent {string} an den PoPP Service")
-  public void sendSignedEContent(final String econtentFileName) {
-    try {
-      final byte[] eContentPayload =
-          Files.readAllBytes(Path.of(FOLDER_FOR_SIGNED_HASHDB_PAYLOADS + econtentFileName));
-      executeCommandWithContingentWait(
-          () ->
-              givenDefaultSpec().body(eContentPayload).request(Method.POST, URL_HASH_DB_IMPORT_RU));
-    } catch (final IOException e) {
-      throw new RuntimeException(
-          "Error loading signed eContetn at "
-              + FOLDER_FOR_SIGNED_HASHDB_PAYLOADS
-              + econtentFileName,
-          e);
-    }
+  @Angenommen(
+      "der TSP sendet den signierten eContent {tigerResolvedString} zum importieren an den PoPP Service")
+  public void importDataToHashDb(final String econtentFileName) {
+    sendSignedEContent(econtentFileName, true);
   }
 
-  @Wenn("der TSP fragt den Status seines Imports ab")
+  @Angenommen("der TSP sendet den signierten eContent {string} zum löschen an den PoPP Service")
+  public void deleteDataFromHashDb(final String econtentFileName) {
+    sendSignedEContent(econtentFileName, false);
+  }
+
+  @Wenn("der TSP fragt den Status seines Imports oder seiner Löschung ab")
   public void sendStatusRequest() {
     this.rbelMessageRetriever.filterRequestsAndStoreInContext(
         RequestParameter.builder().path(".*/api/v1/hash-db/import").build().resolvePlaceholders());
@@ -102,16 +101,25 @@ public class StepsHashdb {
   }
 
   @Wenn("der TSP fragt das Ergebnis seines erfolgreichen Imports ab")
-  public void sendResultRequest() {
+  public void sendStatusRequestForSuccessfulImport() {
+    sendResultRequest(JOBID_FOR_FINISHED_SUCCESSFULL_IMPORT);
+  }
+
+  @Wenn("der TSP fragt das Ergebnis seiner erfolgreichen Löschung ab")
+  public void sendStatusRequestForSuccessfulDelete() {
+    sendResultRequest(JOBID_FOR_FINISHED_SUCCESSFULL_DELETE);
+  }
+
+  @Wenn("der TSP fragt das Ergebnis des Jobs mit der jobID {tigerResolvedString} ab")
+  public void sendStatusRequestForSuccessfulDelete(final String jobId) {
+    sendResultRequest(jobId);
+  }
+
+  public void sendResultRequest(final String jobId) {
     executeCommandWithContingentWait(
         () ->
             givenDefaultSpec()
-                .request(
-                    Method.GET,
-                    URL_HASH_DB_IMPORT_RU
-                        + "/"
-                        + JOBID_FOR_FINISHED_SUCCESSFULL_IMPORT
-                        + "/result"));
+                .request(Method.GET, URL_HASH_DB_IMPORT_RU + "/" + jobId + "/result"));
   }
 
   @Und("der TSP verwendet die Client Identität {string} für die mTLS-Verbindung zum PoPP-Service")
@@ -178,8 +186,42 @@ public class StepsHashdb {
     this.rbelValidator.assertAttributeOfCurrentResponseMatches(
         "$.body",
         TigerGlobalConfiguration.resolvePlaceholders(
-            "!{file('" + HASH_DB_SUCCESS_RESULT_RESPONSE_FILE + "')}"),
+            "!{file('" + HASH_DB_SUCCESSFUL_IMPORT_RESULT_RESPONSE_FILE + "')}"),
         true,
         this.rbelMessageRetriever);
+  }
+
+  @SneakyThrows
+  @When("warte für {tigerResolvedString} Sekunden")
+  public void waitForSeconds(final String seconds) {
+    final int sec = Integer.parseInt(seconds);
+    Awaitility.await()
+        .atMost(sec + 1, TimeUnit.SECONDS)
+        .pollDelay(sec, TimeUnit.SECONDS)
+        .until(() -> true);
+  }
+
+  @Wenn("der TSP löscht den abgeschlossenen Importauftrag mit der JobId {string}")
+  public void sendDeleteRequestWithJobId(final String jobId) {
+    executeCommandWithContingentWait(
+        () -> givenDefaultSpec().request(Method.DELETE, URL_HASH_DB_IMPORT_RU + "/" + jobId));
+  }
+
+  public void sendSignedEContent(final String econtentFileName, final boolean importData) {
+    final String importOrDelete = importData ? "import/" : "delete/";
+    try {
+      final byte[] eContentPayload =
+          Files.readAllBytes(
+              Path.of(FOLDER_FOR_SIGNED_HASHDB_PAYLOADS + importOrDelete + econtentFileName));
+      executeCommandWithContingentWait(
+          () ->
+              givenDefaultSpec().body(eContentPayload).request(Method.POST, URL_HASH_DB_IMPORT_RU));
+    } catch (final IOException e) {
+      throw new RuntimeException(
+          "Error loading signed eContetn at "
+              + FOLDER_FOR_SIGNED_HASHDB_PAYLOADS
+              + econtentFileName,
+          e);
+    }
   }
 }

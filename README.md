@@ -56,7 +56,8 @@ ZETA requires an SMC-B certificate to work. Follow these steps:
     ```bash
     docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
 
-To learn about additional scenarios and available `docker compose` profiles refer to the [Docker Compose Profiles section in the user manual](https://gematik.github.io/ti20-testhub/#_docker_compose_profiles).
+To learn about additional scenarios and available `docker compose` profiles refer to
+the [Docker Compose Profiles section in the user manual](https://gematik.github.io/ti20-testhub/#_docker_compose_profiles).
 
 # Usage
 
