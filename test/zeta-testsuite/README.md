@@ -35,6 +35,7 @@ Anschließend stehen u. a. folgende relevanten Endpunkte zur Verfügung (Standar
 | Datenübertragung (WS)   | WebSocket-basierte Tests            | @websocket              | src/test/resources/features/zeta-datatransfer-websocket |
 | Header Management       | Headers weiterleitung und ergänzung | @pep_header_management  | src/test/resources/features/zeta-header-management      |
 | Smoketest               | Überprüfung Service-Stabilität      | @smoke                  | src/test/resources/features/smoketest                   |
+| TLS Guard               | TLS-Konformität ZETA Guard          | @TLS_Guard              | src/test/resources/features/zeta-tls                    |
 
 
 ## WebSocket-Tests (PoPP über ZETA-PEP)
@@ -156,6 +157,7 @@ Die wichtigsten Verzeichnisse der ZETA-Testsuite sind:
     * `rest_data_transfer_via_pep.feature` – REST-Datenübertragungs-Tests über ZETA-PEP
     * `client_registrierung.feature` – Client-Registrierungs-/Token-Exchange-Tests
     * `smoke.feature` – Smoke-Tests für alle Komponenten
+    * `zeta-tls/tls_guard.feature` – TLS-Konformitätstests für den ZETA Guard
 * `src/test/java/de/gematik/zeta/steps` – Cucumber-Step-Definitions (u. a. WebSocket- und REST-Schritte)
 * `src/test/java/de/gematik/zeta/services` – Hilfs-Services (z. B. `PlainWebSocketSessionManager` für WS-Verbindungen)
 * `src/test/resources` – Konfigurationen, ggf. Testdaten und Bilder für die Dokumentation

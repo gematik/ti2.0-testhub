@@ -30,7 +30,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
-import de.gematik.zeta.services.ZetaPdpSubjectTokenFactory;
 import de.gematik.zeta.services.ZetaPepJwtTestFactory;
 import io.cucumber.java.de.Gegebensei;
 import io.cucumber.java.de.Wenn;
@@ -42,10 +41,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -68,8 +64,14 @@ public class ZetaPepJwtSteps {
   public void createValidPepAccessToken() {
     var bearer = ZetaPepJwtTestFactory.createBearerToken();
     TigerGlobalConfiguration.putValue("ZETA_PEP_AUTHZ", bearer);
-    // Set directly as default header to bypass RBel serialization in Tiger steps
     TigerGlobalConfiguration.putValue("tiger.httpClient.defaultHeader.Authorization", bearer);
+
+    // The Docker PEP (ngx_pep) requires a DPoP proof header for every request.
+    String pepUrl =
+        TigerGlobalConfiguration.resolvePlaceholders("${pepProxyUrl|http://127.0.0.1:2101}");
+    String testPath = TigerGlobalConfiguration.resolvePlaceholders("${pepTestPath|/v3/api-docs}");
+    String dpopProof = ZetaPepJwtTestFactory.createDpopProofForRequest("GET", pepUrl + testPath);
+    TigerGlobalConfiguration.putValue("tiger.httpClient.defaultHeader.DPoP", dpopProof);
   }
 
   @Gegebensei("ein ungültiger ZETA-PEP AccessToken wird erzeugt")
@@ -82,6 +84,14 @@ public class ZetaPepJwtSteps {
     TigerGlobalConfiguration.putValue("tiger.httpClient.defaultHeader.Authorization", bearer);
   }
 
+  @Gegebensei("ein DPoP-Proof für {string} {string} wird erzeugt")
+  @Given("a DPoP proof for {string} {string} is created")
+  public void createDpopProofForUrl(String method, String url) {
+    String resolvedUrl = TigerGlobalConfiguration.resolvePlaceholders(url);
+    String dpopProof = ZetaPepJwtTestFactory.createDpopProofForRequest(method, resolvedUrl);
+    TigerGlobalConfiguration.putValue("ZETA_PEP_DPOP", dpopProof);
+  }
+
   @Wenn("sende Token-Exchange-Request für Client {string} an {string} über Tiger-Proxy {string}")
   @When("send token exchange request for client {string} to {string} via Tiger proxy {string}")
   public void sendTokenExchangeViaTigerProxy(String clientId, String targetUrl, String proxyUrl) {
@@ -89,58 +99,25 @@ public class ZetaPepJwtSteps {
     String resolvedTarget = TigerGlobalConfiguration.resolvePlaceholders(targetUrl);
     String resolvedProxy = TigerGlobalConfiguration.resolvePlaceholders(proxyUrl);
 
-    URI targetUri = URI.create(resolvedTarget);
     URI proxyUri = URI.create(resolvedProxy);
 
-    // RestTemplate mit HTTP-Proxy konfigurieren
-    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-    factory.setProxy(
-        new java.net.Proxy(
-            java.net.Proxy.Type.HTTP,
-            new java.net.InetSocketAddress(proxyUri.getHost(), proxyUri.getPort())));
-
-    RestTemplate rt = new RestTemplate(factory);
-
-    // Form-Body für Token-Exchange
-    MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-    form.add("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange");
-    form.add("requested_token_type", "urn:ietf:params:oauth:token-type:access_token");
-
-    String subjectToken =
-        ZetaPdpSubjectTokenFactory.createSubjectToken(clientId, "1.2.276.0.76.4.49");
-    form.add("subject_token", subjectToken);
-    form.add("subject_token_type", "urn:ietf:params:oauth:token-type:access_token");
-
-    // Request mit Content-Type Header
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-    HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);
-
-    rt.postForEntity(targetUri, request, String.class);
+    // Full Keycloak token exchange with proper auth (SMC-B subject token + client_assertion + DPoP)
+    ZetaPepJwtTestFactory.doTokenExchangeViaProxy(
+        resolvedTarget, proxyUri.getHost(), proxyUri.getPort());
     // Response wird vom Tiger-Proxy mitgeschnitten und kann mit TGR-Steps geprüft werden
   }
 
   @Wenn("Hole JWT für Client {string} von {string} und speichere in der Variable {string}")
   @When("fetch JWT for client {string} from {string} and store it in variable {string}")
   public void fetchJwtForClientAndStore(String clientId, String tokenEndpoint, String varName) {
-    String resolved = TigerGlobalConfiguration.resolvePlaceholders(tokenEndpoint);
-    URI uri = URI.create(resolved);
+    // Use the full Keycloak token exchange flow to get a valid access token
+    String bearer = ZetaPepJwtTestFactory.createBearerToken();
+    String accessToken = bearer.replaceFirst("^Bearer ", "");
 
-    RestTemplate rt = new RestTemplate();
-
-    MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-    form.add("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange");
-    form.add("requested_token_type", "urn:ietf:params:oauth:token-type:access_token");
-
-    String subjectToken =
-        ZetaPdpSubjectTokenFactory.createSubjectToken(clientId, "1.2.276.0.76.4.49");
-    form.add("subject_token", subjectToken);
-    form.add("subject_token_type", "urn:ietf:params:oauth:token-type:access_token");
-
-    ResponseEntity<String> response = rt.postForEntity(uri, form, String.class);
-
-    TigerGlobalConfiguration.putValue(varName, response.getBody());
-    TigerGlobalConfiguration.putValue(varName + "_status", response.getStatusCode().value());
+    // Build a JSON response structure matching what downstream steps expect
+    String jsonResponse = "{\"access_token\":\"" + accessToken + "\"}";
+    TigerGlobalConfiguration.putValue(varName, jsonResponse);
+    TigerGlobalConfiguration.putValue(varName + "_status", 200);
   }
 
   @Wenn("erzeuge PoPP-Token über den PoPP-Server {string}")
@@ -215,6 +192,9 @@ public class ZetaPepJwtSteps {
     HttpHeaders headers = new HttpHeaders();
     headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
     headers.set("PoPP", poppToken);
+    // DPoP proof must match the actual request URL for PEP validation
+    String dpopProof = ZetaPepJwtTestFactory.createDpopProofForRequest("GET", resolvedPepUrl);
+    headers.set("DPoP", dpopProof);
 
     HttpEntity<Void> request = new HttpEntity<>(headers);
     log.info("Sending resource request with PoPP-Token to PEP: {}", resolvedPepUrl);

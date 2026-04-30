@@ -7,14 +7,17 @@ otel:
 
 popp:
   http:
-    url: http://popp-client:8081/token
+    # Port must match PORT_POPP_CLIENT in doc/docker/.env (default: 8081)
+    url: http://localhost:${PORT_POPP_CLIENT:8081}/token
   ws:
     url: ws://localhost:9110
 
 vsdm:
-  resourceServerUrl: http://localhost:9120
+  # Port must match PORT_VSDM_ZETA_PEP in doc/docker/.env (default: 9120)
+  resourceServerUrl: http://localhost:${PORT_VSDM_ZETA_PEP:9120}
   use-mock-popp-token: true
-  popp-token-generator-url: http://localhost:9500
+  # Port must match PORT_POPP_TOKEN_GENERATOR in doc/docker/.env (default: 9500)
+  popp-token-generator-url: http://localhost:${PORT_POPP_TOKEN_GENERATOR:9500}
 
 zetasdk:
   smcbAlias: "alias"

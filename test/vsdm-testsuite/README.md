@@ -15,10 +15,10 @@ Die Implementierung der Testschritte folgt dem sogenannten Screenplay Pattern vo
 hier das Primärsystem, welcher bestimmte Fähigkeiten (abilities) besitzt, um bestimmte Aufgaben (tasks) übernehmen zu
 können. Schließlich kann der Actor auch Fragen (questions) beantworten, welche die Ergebnisse der Aufgaben prüfen.
 
-* Actor --> HCCS (Healthcare Client System)
-* Abilities --> API-Knowledge
-* Tasks --> API-Requests
-* Questions --> API-Responses
+* Actor → HCCS (Healthcare Client System)
+* Abilities → API-Knowledge
+* Tasks → API-Requests
+* Questions → API-Responses
 
 Weiterhin bietet die VSDM 2.0 Testsuite eine Lastsimulation basierend auf Gatling an. Diese Simulation kann je nach
 Konfiguration verschiedene Laststufen und Lastkurven (linear, nicht-linear) generieren. Die Konfiguration für die
@@ -44,7 +44,8 @@ Docker-Container gestartet werden: (Die Befehle sollten im Projekt-Root-Verzeich
 ```bash
 # Build Docker images
 ./mvnw clean install -Pdocker -DskipTests
-
+```
+```bash
 # Start containers
 docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
 ```
@@ -54,13 +55,14 @@ docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-
 Der TestHub unterstützt verschiedene Docker Compose Profile. Diese Profile ermöglichen es, je nach Anwendungsfall
 unterschiedliche Kombinationen von Diensten zu starten.
 
-Weitere Informationen zu den verschiedenen Profilen und deren Anwendungsfällen sind im [Benutzerhandbuch](https://gematik.github.io/ti20-testhub/#_docker_compose_profiles) zu finden.
+Weitere Informationen zu den verschiedenen Profilen und deren Anwendungsfällen sind
+im [Benutzerhandbuch](https://gematik.github.io/ti20-testhub/#_docker_compose_profiles) zu finden.
 
 Die untere Grafik zeigt den TI 2.0 TestHub in seiner aktuellen Ausbaustufe. Die VSDM 2.0 Testsuite sendet Anfragen an
 den Card, den PoPP und den VSDM Client Simulator. Diese kommunizieren mit den jeweiligen Server Simulatoren.
 
 <br/>
-<img width="1108" height="744" src="./src/test/resources/images/TI20_TestHub_Stufe_5.png" alt=""/>
+<img width="1108" height="744" src="./src/test/resources/images/TI20_TestHub_Stufe_6.png" alt=""/>
 <br/>
 
 ## Integrationstests
@@ -73,7 +75,7 @@ und somit deren Funktionsweise demonstrieren. Die Tests verwenden das Jupiter-Fr
 
 Die Integrationstests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
-```
+```bash
 ./mvnw -pl test/vsdm-testsuite/ -Dit.test="Vsdm*IT" -Dskip.inttests=false verify
 ```
 
@@ -95,7 +97,7 @@ antwortet. In diesem Fall liest das PS die wichtigsten VSD von der eGK direkt. T
 
 Die E2E-Tests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
-```
+```bash
 ./mvnw -pl test/vsdm-testsuite/ clean verify -Dcucumber.filter.tags="@TYPE:E2E" -Dskip.inttests=false
 ```
 
@@ -119,7 +121,7 @@ Testfälle:
 
 Die Lasttests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
-```
+```bash
 ./mvnw -pl test/vsdm-testsuite/ clean verify -Dcucumber.filter.tags="@TYPE:LOAD" -Dvsdm.loadtesting.active=true -Dskip.inttests=false
 ```
 
@@ -131,6 +133,7 @@ und für unterschiedliche Zwecke einsetzbar sind.
 > [!TIP]
 > Für Performance-Tests empfiehlt sich das `perf` Profil, da hierbei die Clients direkt mit dem Backend kommunizieren
 > und der Tiger-Proxy umgangen wird:
+
 > ```bash
 > docker compose -f doc/docker/compose-local.yaml --profile perf up -d
 > ```
@@ -141,7 +144,7 @@ Diese Simulation liest eine Liste von IK- und KVNR ein und generiert dann mithil
 aus Popp-Token. Diese Liste kann dann später als Feeder für die Simulation der Hintergrundlast verwendet werden. Die
 Simulation kann mittels Maven und folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
-```
+```bash
 ./mvnw -pl test/vsdm-testsuite/ gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.GeneratePoppTokenSimulation
 ```
 
@@ -151,7 +154,7 @@ Diese Simulation ruft zuerst den PoppTokenGenerator mit einer Kombination aus IK
 Popp-Token zurückliefert. Danach wird dieser Popp-Token während der Abfrage der VSD vom VsdmServerSimulator verwendet.
 Die Simulation kann mittels Maven und folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
-```
+```bash
 ./mvnw -pl test/vsdm-testsuite/ gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.PoppVsdmServerSimulation
 ```
 
@@ -160,7 +163,7 @@ Die Simulation kann mittels Maven und folgender Kommandozeile im Projekt-Root-Ve
 Diese Simulation simuliert den kompletten Ablauf vom Einstecken der Karten, über die Erlangung des Versorgungskontextes
 bis hin zur Abfrage der VSD vom Fachdienst VSDM 2.0 und kann im Projekt-Root-Verzeichnis wie folgt gestartet werden:
 
-```
+```bash
 ./mvnw -pl test/vsdm-testsuite/ gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmClientJourneySimulation
 ```
 
@@ -175,7 +178,7 @@ Diese Simulation verwendet die, von der GeneratePoppTokenSimulation erzeugte, Li
 VsdmServerSimulator ab und wird in Verbindung mit den Lasttests zur Generierung der Hintergrundlast eingesetzt.
 Die Simulation kann mittels Maven und folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
-```
+```bash
 ./mvnw -pl test/vsdm-testsuite/ gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmBackgroundLoadSimulation
 ```
 

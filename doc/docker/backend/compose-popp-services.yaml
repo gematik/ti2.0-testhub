@@ -3,8 +3,11 @@ services:
     container_name: popp-token-generator
     platform: linux/amd64
     image: gematik1/popp-token-generator:1.0.11
+    env_file:
+      - path: ../.env
+        required: true
     ports:
-      - "9500:80"
+      - "${PORT_POPP_TOKEN_GENERATOR:?PORT_POPP_TOKEN_GENERATOR missing – set it in doc/docker/.env}:80"
     environment:
       - SPRING_PROFILES_ACTIVE=beispielimpl
     networks:
@@ -13,6 +16,9 @@ services:
   popp-client:
     profiles: [ "full" ]
     image: gematik1/popp-client:2.2.0
+    env_file:
+      - path: ../.env
+        required: true
     platform: linux/amd64
     container_name: popp-client
     environment:
@@ -25,8 +31,8 @@ services:
     networks:
       - testhub_backend
     ports:
-      - "8081:8081"
-      - "5013:9001"
+      - "${PORT_POPP_CLIENT:?PORT_POPP_CLIENT missing – set it in doc/docker/.env}:8081"
+      - "${PORT_POPP_CLIENT_MGMT:?PORT_POPP_CLIENT_MGMT missing – set it in doc/docker/.env}:9001"
     volumes:
       - ./zeta/smcb-private/smcb_private.p12:/app/smcb_private.p12:ro
       - ../../../test/vsdm-testsuite/src/test/resources/data/cards:/data/cards
@@ -38,10 +44,13 @@ services:
   popp-server:
     profiles: [ "full" ]
     image: gematik1/popp-server:2.2.0
+    env_file:
+      - path: ../.env
+        required: true
     platform: linux/amd64
     container_name: popp-server
     ports:
-      - "8443:8443"
+      - "${PORT_POPP_SERVER:?PORT_POPP_SERVER missing – set it in doc/docker/.env}:8443"
     environment:
       - IDENTITIES_LOCATION=classpath:identities
       - CERT_HASH_IMPORT_LOCATION=file:/app/import
@@ -55,6 +64,9 @@ services:
   popp-server-db:
     profiles: [ "full" ]
     image: postgres:18-alpine
+    env_file:
+      - path: ../.env
+        required: true
     platform: linux/amd64
     container_name: popp-server-db
     environment:
@@ -62,7 +74,7 @@ services:
       POSTGRES_PASSWORD: verysafe
       POSTGRES_DB: egk_hash_db
     ports:
-      - "5432:5432"
+      - "${PORT_POPP_SERVER_DB:?PORT_POPP_SERVER_DB missing – set it in doc/docker/.env}:5432"
     volumes:
       - popp-server-db-data:/var/lib/postgresql
     restart: on-failure
@@ -74,8 +86,11 @@ services:
     container_name: popp-zeta-ingress
     platform: linux/amd64
     image: "nginx:1.29.7"
+    env_file:
+      - path: ../.env
+        required: true
     ports:
-      - "443:443"
+      - "${PORT_POPP_ZETA_INGRESS:?PORT_POPP_ZETA_INGRESS missing – set it in doc/docker/.env}:443"
     volumes:
       - ./zeta-popp/ingress/conf:/etc/nginx/conf.d:ro
       - ./zeta-popp/ingress/certs:/etc/nginx/certs:ro
@@ -87,6 +102,9 @@ services:
   popp-zeta-pep:
     profiles: [ "full" ]
     image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:0.5.1
+    env_file:
+      - path: ../.env
+        required: true
     platform: linux/amd64
     environment:
       - POPP_SERVER_HOST=popp-server:8443
@@ -99,7 +117,7 @@ services:
       - NO_PROXY=localhost,127.0.0.1,popp-zeta-ingress,popp-zeta-pep,popp-zeta-pdp,popp-zeta-pdp-opa,popp-server
       - no_proxy=localhost,127.0.0.1,popp-zeta-ingress,popp-zeta-pep,popp-zeta-pdp,popp-zeta-pdp-opa,popp-server
     ports:
-      - "2101:80"
+      - "${PORT_POPP_ZETA_PEP:?PORT_POPP_ZETA_PEP missing – set it in doc/docker/.env}:80"
     volumes:
       - ./zeta-popp/pep/conf/:/etc/nginx/templates/:ro
       - ./zeta-popp/pep/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -115,6 +133,9 @@ services:
   popp-zeta-pdp:
     profiles: [ "full" ]
     image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:0.5.1
+    env_file:
+      - path: ../.env
+        required: true
     platform: linux/amd64
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
@@ -155,9 +176,9 @@ services:
       DEBUG: "true"
       DEBUG_PORT: "*:5022"
     ports:
-      - "2201:80"
-      - "2202:9000"
-      - "2203:5022"
+      - "${PORT_POPP_ZETA_PDP:?PORT_POPP_ZETA_PDP missing – set it in doc/docker/.env}:80"
+      - "${PORT_POPP_ZETA_PDP_HEALTH:?PORT_POPP_ZETA_PDP_HEALTH missing – set it in doc/docker/.env}:9000"
+      - "${PORT_POPP_ZETA_PDP_DEBUG:?PORT_POPP_ZETA_PDP_DEBUG missing – set it in doc/docker/.env}:5022"
     volumes:
       - ./zeta-popp/realm:/opt/keycloak/data/import
       - ./zeta-popp/smcb:/opt/keycloak/conf/smcb
@@ -178,8 +199,11 @@ services:
     container_name: popp-zeta-pdp-db
     platform: linux/amd64
     image: postgres:16.2
+    env_file:
+      - path: ../.env
+        required: true
     ports:
-      - "2301:5432"
+      - "${PORT_POPP_ZETA_PDP_DB:?PORT_POPP_ZETA_PDP_DB missing – set it in doc/docker/.env}:5432"
     volumes:
       - popp-zeta-postgres-db-data:/var/lib/postgresql/data
     networks:
@@ -196,6 +220,9 @@ services:
     profiles: [ "full" ]
     container_name: popp-zeta-pdp-opa
     image: openpolicyagent/opa:1.15.2-static
+    env_file:
+      - path: ../.env
+        required: true
     platform: linux/amd64
     environment:
       HTTP_PROXY: ""
@@ -207,7 +234,7 @@ services:
       NO_PROXY: "localhost,127.0.0.1,popp-zeta-pdp-opa,popp-zeta-pdp"
       no_proxy: "localhost,127.0.0.1,popp-zeta-pdp-opa,popp-zeta-pdp"
     ports:
-      - "2401:8181"
+      - "${PORT_POPP_ZETA_PDP_OPA:?PORT_POPP_ZETA_PDP_OPA missing – set it in doc/docker/.env}:8181"
     command:
       - 'run'
       - '--server'

@@ -1,0 +1,23 @@
+lib:
+  workflowUiPort: ${ports.tigerWorkflowUiPort}
+  rbelPathDebugging: false
+  activateWorkflowUi: true # Set to false for headless execution (e.g. in CI)
+  workflowUiStartTimeoutInSeconds: 120
+  trafficVisualization: true
+  httpClientConfig:
+    activateRbelWriter: true
+  logging.level:
+    de.gematik.test.tiger: INFO
+  additionalKeyStorePasswords:
+    [ "testpassword", "changeit", "00" ]
+
+fhir:
+  encoded: json
+
+additionalConfigurationFiles:
+  - filename: ./defaults.yaml
+  - filename: ./ports.yaml
+  - filename: ./flags.yaml
+  - filename: ./paths.yaml
+  - filename: ./tiger-${env|default}.yaml
+    baseKey: tiger

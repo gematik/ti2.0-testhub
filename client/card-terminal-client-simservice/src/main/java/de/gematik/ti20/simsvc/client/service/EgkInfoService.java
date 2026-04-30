@@ -97,6 +97,12 @@ public class EgkInfoService {
     logger.debug(
         "Analyzing card with {} files for authentic patient data extraction", files.size());
 
+    // First: check for simulator-generated SIM.* files (fastest path, no cert parsing needed)
+    EgkInfoDto simData = extractSimulatorDataFromFiles(files);
+    if (simData != null) {
+      return simData;
+    }
+
     // Extract authentic data from files if available
     EgkInfoDto authenticData = extractAuthenticDataFromFiles(files);
     if (authenticData != null) {
@@ -146,6 +152,64 @@ public class EgkInfoService {
     errorInfo.setCardType("EGK");
     errorInfo.setValidUntil("00000000");
     return errorInfo;
+  }
+
+  /**
+   * Extract patient data from simulator-generated {@code SIM.*} files. These files are created by
+   * {@link de.gematik.ti20.simsvc.client.service.CardImageService} and store each data field as
+   * plain text, avoiding the need for real PKI certificates.
+   *
+   * @return populated {@link EgkInfoDto} when at least KVNR and IKNR are present, {@code null}
+   *     otherwise
+   */
+  private EgkInfoDto extractSimulatorDataFromFiles(List<FileData> files) {
+    String kvnr = null;
+    String iknr = null;
+    String firstName = null;
+    String lastName = null;
+    String patientName = null;
+    String dateOfBirth = null;
+    String insuranceName = null;
+    String validUntil = null;
+    Boolean valid = null;
+
+    for (FileData file : files) {
+      if (file.getName() == null || file.getData() == null) continue;
+      String name = file.getName();
+      String data = file.getData().trim();
+      switch (name) {
+        case "SIM.KVNR" -> kvnr = data;
+        case "SIM.IKNR" -> iknr = data;
+        case "SIM.FIRSTNAME" -> firstName = data;
+        case "SIM.LASTNAME" -> lastName = data;
+        case "SIM.PATIENT_NAME" -> patientName = data;
+        case "SIM.DATE_OF_BIRTH" -> dateOfBirth = data;
+        case "SIM.INSURANCE_NAME" -> insuranceName = data;
+        case "SIM.VALID_UNTIL" -> validUntil = data;
+        case "SIM.VALID" -> valid = Boolean.parseBoolean(data);
+        default -> {
+          /* not a SIM file */
+        }
+      }
+    }
+
+    if (kvnr == null || iknr == null) {
+      return null;
+    }
+
+    EgkInfoDto dto = new EgkInfoDto();
+    dto.setKvnr(kvnr);
+    dto.setIknr(iknr);
+    dto.setFirstName(firstName);
+    dto.setLastName(lastName);
+    dto.setPatientName(patientName != null ? patientName : (firstName + " " + lastName));
+    dto.setDateOfBirth(dateOfBirth);
+    dto.setInsuranceName(insuranceName);
+    dto.setValidUntil(validUntil);
+    dto.setValid(valid);
+    dto.setCardType("EGK");
+    logger.debug("Extracted simulator EGK data for KVNR {}", kvnr);
+    return dto;
   }
 
   /**

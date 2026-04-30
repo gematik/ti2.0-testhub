@@ -31,10 +31,16 @@ zeta:
       tokenUrl: http://127.0.0.1:9112/token
       # Keycloak issuer – used as 'aud' in client_assertion JWTs (must match KC_HOSTNAME + realm)
       issuer: https://vsdm-zeta-ingress/auth/realms/zeta-guard
+    opa:
+      baseUrl: http://127.0.0.1:2401
   timeouts:
     httpRequestSeconds: 10
     healthCheckSeconds: 20
     healthCheckPollIntervalMs: 250
     wsConnectionSeconds: 10
     wsMessageSeconds: 10
+
+# ZETA Guard Ingress base URL (ohne Schema – wird von Tests mit https:// ergänzt)
+zeta_base_url: "localhost:9119"
+
 

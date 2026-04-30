@@ -15,15 +15,15 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0
   @DESCRIPTION
   Szenariogrundriss: Abfrage der VSD mit VSD Update
 
-    Dieser Testfall beschreibt den ersten Standard-Anwendungsfall zur Abfrage der VSD vom Fachdienst VSDM 2.0.
-    Die eGK des Versicherten wird in ein Kartenterminal der Leistungserbringerinstitution (LEI) eingesteckt.
-    Das Primärsystem (PS) authentifiziert sich mit seiner SMC-B beim ZETA-Guard des Fachdienstes VSDM 2.0 und
-    erhält von diesem einen gültigen Access-Token. Zusammen mit einem gültigen PoPP-Token, der den Versorgungskontext
-    zwischen dem Versicherten und der LEI bescheinigt, können nun die VSD vom VSDM Ressource Server abgefragt werden.
-    Zuvor vergleicht der VSDM Ressource Server das Entity-Tag des PS mit seinem eigenen und stellt einen Unterschied
-    fest. Das unterschiedliche Entity-Tag veranlasst den VSDM Ressource Server, die VSD als FHIR-Datensatz mit einem
-    HTTP Return Code 200 an das PS zu senden. Das PS speichert schließlich die VSD, die Prüfziffer, das Entity-Tag
-    sowie den PoPP-Token in seiner lokalen Datenbank und der Versicherte kann nun durch die LEI versorgt werden.
+  Dieser Testfall beschreibt den ersten Standard-Anwendungsfall zur Abfrage der VSD vom Fachdienst VSDM 2.0.
+  Die eGK des Versicherten wird in ein Kartenterminal der Leistungserbringerinstitution (LEI) eingesteckt.
+  Das Primärsystem (PS) authentifiziert sich mit seiner SMC-B beim ZETA-Guard des Fachdienstes VSDM 2.0 und
+  erhält von diesem einen gültigen Access-Token. Zusammen mit einem gültigen PoPP-Token, der den Versorgungskontext
+  zwischen dem Versicherten und der LEI bescheinigt, können nun die VSD vom VSDM Ressource Server abgefragt werden.
+  Zuvor vergleicht der VSDM Ressource Server das Entity-Tag des PS mit seinem eigenen und stellt einen Unterschied
+  fest. Das unterschiedliche Entity-Tag veranlasst den VSDM Ressource Server, die VSD als FHIR-Datensatz mit einem
+  HTTP Return Code 200 an das PS zu senden. Das PS speichert schließlich die VSD, die Prüfziffer, das Entity-Tag
+  sowie den PoPP-Token in seiner lokalen Datenbank und der Versicherte kann nun durch die LEI versorgt werden.
 
     Angenommen das Primärsystem in der LEI verwendet ein korrekt konfiguriertes Terminal
     Angenommen das Primärsystem in der LEI verwendet eine SMC-B <Smcb-Card> im Slot <Smcb-Slot>
@@ -40,4 +40,4 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0
 
     Beispiele:
       | Smcb-Card           | Smcb-Slot | Egk-Card           | Egk-Slot | Http-Code |
-      | "smcbCardImage.xml" | 1         | "egkCardImage.xml" | 2        | 200       |
+      | "smcbCardImage.xml" | 1         | "egkCardData.json" | 2        | 200       |

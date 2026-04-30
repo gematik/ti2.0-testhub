@@ -336,10 +336,10 @@ public class CardController {
    * @return EGK information with real patient data from certificate
    */
   @GetMapping("/{cardHandle}/egk-info")
-  public ResponseEntity<?> getEgkInfo(@PathVariable String cardHandle) {
+  public ResponseEntity<?> getEgkInfo(@PathVariable final String cardHandle) {
     try {
       // Find the card image for the given handle
-      CardImage card = cardManager.findCardByHandle(cardHandle);
+      final CardImage card = cardManager.findCardByHandle(cardHandle);
       if (card == null) {
         Map<String, Object> errorInfo = new HashMap<>();
         errorInfo.put("error", "Card not found");
@@ -347,9 +347,8 @@ public class CardController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorInfo);
       }
 
-      EgkInfoDto egkInfo = egkInfoService.extractEgkInfo(card);
+      final EgkInfoDto egkInfo = egkInfoService.extractEgkInfo(card);
       return ResponseEntity.ok(egkInfo);
-
     } catch (Exception e) {
       Map<String, Object> errorInfo = new HashMap<>();
       errorInfo.put("error", "Internal Server Error");

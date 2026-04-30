@@ -35,11 +35,17 @@ import de.gematik.ti20.vsdm.fhir.builder.*;
 import de.gematik.ti20.vsdm.fhir.def.*;
 import java.util.List;
 import org.hl7.fhir.r4.model.*;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class CodecServiceR4Test {
 
-  FhirCodec codec = FhirCodec.forR4().andBbriccsValidator();
+  static FhirCodec codec;
+
+  @BeforeAll
+  static void init() {
+    codec = FhirCodec.forR4().andBbriccsValidator();
+  }
 
   @Test
   void testValidPatientFhir() {
@@ -186,13 +192,14 @@ class CodecServiceR4Test {
     VsdmPayorOrganization payorOrganization =
         VsdmPayorOrganizationBuilder.create()
             .iknr("107723372")
-            .name("Beispielkostenträger")
+            .name("https://gematik.de/fhir/Organization/107723372")
             .build();
 
     VsdmCoverage coverage =
         VsdmCoverageBuilder.create()
             .withStatus("active")
-            .withPayor("https://gematik.de/fhir/Organization/" + payorOrganization.getId())
+            .withPayor("https://gematik.de/fhir/Organization/107723372")
+            .withIknr("107723372")
             .withBeneficiary("https://gematik.de/fhir/Patient/" + patient.getId())
             .build();
 
@@ -210,6 +217,7 @@ class CodecServiceR4Test {
         validationResult.getMessages().stream()
             .filter(msg -> msg.getSeverity() == ResultSeverityEnum.ERROR)
             .toList();
+
     assertEquals(0, errors.size());
   }
 
@@ -238,139 +246,8 @@ class CodecServiceR4Test {
             .addEntry(payorOrganization)
             .build();
 
-    //    String json = codec.encode(vsdmBundle, EncodingType.JSON);
-    String json =
-        "{\n"
-            + "  \"resourceType\": \"Bundle\",\n"
-            + "  \"id\": \"b05a393d-a765-4748-9f38-599ad2718e49\",\n"
-            + "  \"meta\": {\n"
-            + "    \"lastUpdated\": \"2025-10-17T10:28:38.916+02:00\",\n"
-            + "    \"profile\": [\n"
-            + "      \"https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMBundle\"\n"
-            + "    ]\n"
-            + "  },\n"
-            + "  \"identifier\": {\n"
-            + "    \"system\": \"urn:ietf:rfc:3986\",\n"
-            + "    \"value\": \"urn:uuid:b05a393d-a765-4748-9f38-599ad2718e49\"\n"
-            + "  },\n"
-            + "  \"type\": \"collection\",\n"
-            + "  \"timestamp\": \"2025-10-17T10:28:38.915+02:00\",\n"
-            + "  \"entry\": [\n"
-            + "    {\n"
-            + "      \"fullUrl\": \"https://gematik.de/fhir/Patient/1acd2a41-2cfa-461d-9eed-7fcedd92cc29\",\n"
-            + "      \"resource\": {\n"
-            + "        \"resourceType\": \"Patient\",\n"
-            + "        \"id\": \"1acd2a41-2cfa-461d-9eed-7fcedd92cc29\",\n"
-            + "        \"meta\": {\n"
-            + "          \"profile\": [\n"
-            + "            \"https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMPatient\"\n"
-            + "          ]\n"
-            + "        },\n"
-            + "        \"identifier\": [\n"
-            + "          {\n"
-            + "            \"system\": \"http://fhir.de/sid/gkv/kvid-10\",\n"
-            + "            \"value\": \"X123456789\"\n"
-            + "          }\n"
-            + "        ],\n"
-            + "        \"name\": [\n"
-            + "          {\n"
-            + "            \"use\": \"official\",\n"
-            + "            \"text\": \"text\",\n"
-            + "            \"family\": \"family\",\n"
-            + "            \"given\": [\n"
-            + "              \"given\"\n"
-            + "            ]\n"
-            + "          }\n"
-            + "        ],\n"
-            + "        \"gender\": \"male\",\n"
-            + "        \"birthDate\": \"2025-10-17\"\n"
-            + "      }\n"
-            + "    },\n"
-            + "    {\n"
-            + "      \"fullUrl\": \"https://gematik.de/fhir/Coverage/eba45bce-e7cd-4f11-b11c-a12b5b93f554\",\n"
-            + "      \"resource\": {\n"
-            + "        \"resourceType\": \"Coverage\",\n"
-            + "        \"id\": \"eba45bce-e7cd-4f11-b11c-a12b5b93f554\",\n"
-            + "        \"meta\": {\n"
-            + "          \"profile\": [\n"
-            + "            \"https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMCoverageGKV\"\n"
-            + "          ]\n"
-            + "        },\n"
-            + "        \"extension\": [\n"
-            + "          {\n"
-            + "            \"url\": \"http://fhir.de/StructureDefinition/gkv/wop\",\n"
-            + "            \"valueCoding\": {\n"
-            + "              \"system\": \"https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_ITA_WOP\",\n"
-            + "              \"code\": \"98\",\n"
-            + "              \"display\": \"Sachsen\"\n"
-            + "            }\n"
-            + "          },\n"
-            + "          {\n"
-            + "            \"url\": \"http://fhir.de/StructureDefinition/gkv/versichertenart\",\n"
-            + "            \"valueCoding\": {\n"
-            + "              \"system\": \"https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_KBV_VERSICHERTENSTATUS\",\n"
-            + "              \"code\": \"1\",\n"
-            + "              \"display\": \"Mitglieder\"\n"
-            + "            }\n"
-            + "          }\n"
-            + "        ],\n"
-            + "        \"identifier\": [\n"
-            + "          {\n"
-            + "            \"system\": \"http://fhir.de/sid/gkv/kvid-10\",\n"
-            + "            \"value\": \"A123454321\"\n"
-            + "          }\n"
-            + "        ],\n"
-            + "        \"status\": \"active\",\n"
-            + "        \"type\": {\n"
-            + "          \"coding\": [\n"
-            + "            {\n"
-            + "              \"system\": \"http://fhir.de/CodeSystem/versicherungsart-de-basis\",\n"
-            + "              \"code\": \"GKV\"\n"
-            + "            }\n"
-            + "          ]\n"
-            + "        },\n"
-            + "        \"beneficiary\": {\n"
-            + "          \"reference\": \"https://gematik.de/fhir/Patient/1acd2a41-2cfa-461d-9eed-7fcedd92cc29\"\n"
-            + "        },\n"
-            + "        \"payor\": [\n"
-            + "          {\n"
-            + "            \"extension\": [\n"
-            + "              {\n"
-            + "                \"url\": \"https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMKostentraegerRolle\",\n"
-            + "                \"valueCoding\": {\n"
-            + "                  \"system\": \"https://gematik.de/fhir/vsdm2/CodeSystem/VSDMKostentraegerRolleCS\",\n"
-            + "                  \"code\": \"H\",\n"
-            + "                  \"display\": \"Haupt-Kostenträger\"\n"
-            + "                }\n"
-            + "              }\n"
-            + "            ],\n"
-            + "            \"reference\": \"https://gematik.de/fhir/Organization/d7939590-4d0a-496d-8ae3-08167a978073\",\n"
-            + "            \"display\": \"https://gematik.de/fhir/Organization/d7939590-4d0a-496d-8ae3-08167a978073\"\n"
-            + "          }\n"
-            + "        ]\n"
-            + "      }\n"
-            + "    },\n"
-            + "    {\n"
-            + "      \"fullUrl\": \"https://gematik.de/fhir/Organization/d7939590-4d0a-496d-8ae3-08167a978073\",\n"
-            + "      \"resource\": {\n"
-            + "        \"resourceType\": \"Organization\",\n"
-            + "        \"id\": \"d7939590-4d0a-496d-8ae3-08167a978073\",\n"
-            + "        \"meta\": {\n"
-            + "          \"profile\": [\n"
-            + "            \"https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMPayorOrganization\"\n"
-            + "          ]\n"
-            + "        },\n"
-            + "        \"identifier\": [\n"
-            + "          {\n"
-            + "            \"system\": \"http://fhir.de/sid/arge-ik/iknr\",\n"
-            + "            \"value\": \"107723372\"\n"
-            + "          }\n"
-            + "        ],\n"
-            + "        \"name\": \"Beispielkostenträger\"\n"
-            + "      }\n"
-            + "    }\n"
-            + "  ]\n"
-            + "}\n";
+    String json = codec.encode(vsdmBundle, EncodingType.JSON);
+
     Resource resource = codec.decode(json);
     assertNotNull(resource);
 

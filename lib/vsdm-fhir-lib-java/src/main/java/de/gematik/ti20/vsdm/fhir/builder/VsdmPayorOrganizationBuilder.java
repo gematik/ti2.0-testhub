@@ -58,6 +58,7 @@ public class VsdmPayorOrganizationBuilder
     var type =
         new CanonicalType(VsdmPayorOrganization.class.getAnnotation(ResourceDef.class).profile());
     var payorOrganization = this.createResource(VsdmPayorOrganization::new, type);
+    payorOrganization.setId(iknr);
 
     // identifier
     Identifier identifier = new Identifier();

@@ -65,7 +65,7 @@ public class PoppConfig {
   }
 
   @Bean
-  public PoppClientAdapter poppClientAdapter(WebClient webClient) {
+  public PoppClientAdapter poppClientAdapter(final WebClient webClient) {
     return new PoppClientAdapter(
         new PoppClientConfig(this.tokenType, this.getWs().getUrl(), this.getHttp().getUrl()),
         webClient);

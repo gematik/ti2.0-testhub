@@ -1,6 +1,78 @@
 
 == Configuration
 
+=== Port Configuration via `.env` File
+
+All external ports exposed by the Docker containers are centrally configured in
+`doc/docker/.env`. Docker Compose automatically loads this file when you run
+commands from the `doc/docker/` directory (or pass `-f doc/docker/compose-local.yaml`).
+
+.Default port assignments
+[cols="2,1,3", options="header"]
+|===
+| Variable | Default | Service
+
+| `PORT_CARD_TERMINAL_CLIENT` | `6200` | Card Terminal Client HTTP
+| `PORT_CARD_TERMINAL_CLIENT_DEBUG` | `5005` | Card Terminal Client remote debugger
+| `PORT_VSDM_CLIENT` | `6100` | VSDM Client HTTP
+| `PORT_VSDM_CLIENT_DEBUG` | `5006` | VSDM Client remote debugger
+| `PORT_TIGER_PROXY` | `6300` | Tiger Proxy HTTP
+| `PORT_TIGER_PROXY_ADMIN` | `6350` | Tiger Proxy admin UI
+| `PORT_TI_CONNECT_TIGER_PROXY` | `6400` | TI-Connect Tiger Proxy HTTP
+| `PORT_TI_CONNECT_TIGER_PROXY_ADMIN` | `6450` | TI-Connect Tiger Proxy admin UI
+| `PORT_OTEL_COLLECTOR` | `4318` | OpenTelemetry Collector
+| `PORT_PROMETHEUS` | `7100` | Prometheus
+| `PORT_GRAFANA` | `7001` | Grafana dashboard
+| `PORT_POPP_TOKEN_GENERATOR` | `9500` | PoPP Token Generator HTTP
+| `PORT_POPP_CLIENT` | `18081` | PoPP Client HTTP
+| `PORT_POPP_CLIENT_MGMT` | `5013` | PoPP Client management
+| `PORT_POPP_SERVER` | `18443` | PoPP Server HTTPS
+| `PORT_POPP_SERVER_DB` | `15432` | PoPP Server PostgreSQL
+| `PORT_POPP_ZETA_INGRESS` | `1443` | PoPP ZETA Ingress (nginx)
+| `PORT_POPP_ZETA_PEP` | `2101` | PoPP ZETA PEP
+| `PORT_POPP_ZETA_PDP` | `2201` | PoPP ZETA PDP (Keycloak)
+| `PORT_POPP_ZETA_PDP_HEALTH` | `2202` | PoPP ZETA PDP health endpoint
+| `PORT_POPP_ZETA_PDP_DEBUG` | `2203` | PoPP ZETA PDP remote debugger
+| `PORT_POPP_ZETA_PDP_DB` | `2301` | PoPP ZETA PDP PostgreSQL
+| `PORT_POPP_ZETA_PDP_OPA` | `2401` | PoPP ZETA OPA policy engine
+| `PORT_VSDM_ZETA_INGRESS` | `9119` | VSDM ZETA Ingress (nginx)
+| `PORT_VSDM_SERVER` | `9130` | VSDM Server HTTP
+| `PORT_VSDM_SERVER_DEBUG` | `5012` | VSDM Server remote debugger
+| `PORT_VSDM_ZETA_PEP` | `9120` | VSDM ZETA PEP
+| `PORT_VSDM_ZETA_PDP` | `9122` | VSDM ZETA PDP (Keycloak)
+| `PORT_VSDM_ZETA_PDP_HEALTH` | `9123` | VSDM ZETA PDP health endpoint
+| `PORT_VSDM_ZETA_PDP_DEBUG` | `5022` | VSDM ZETA PDP remote debugger
+| `PORT_VSDM_ZETA_PDP_OPA` | `8181` | VSDM ZETA OPA policy engine
+|===
+
+To remap a port that conflicts with another service on your machine, either edit
+`doc/docker/.env` directly or pass the variable inline:
+
+[source,bash]
+----
+# Remap VSDM server to port 19130 for this run only
+PORT_VSDM_SERVER=19130 docker compose -f doc/docker/compose-local.yaml --profile full up -d
+
+# Or export the variable in your shell session
+export PORT_VSDM_SERVER=19130
+docker compose -f doc/docker/compose-local.yaml --profile full up -d
+----
+
+The Spring Boot `application-local.yaml` files in the client services reference
+the same port variables (e.g. `${PORT_VSDM_ZETA_PEP:9120}`), so the service
+URLs used during local development automatically stay in sync with the Docker
+setup. If you run a client service directly from IntelliJ or the command line,
+you can load the variables from `.env` in one of two ways:
+
+- **IntelliJ:** Open *Run → Edit Configurations*, switch to the **EnvFile** tab,
+  click `+` and select `doc/docker/.env`. All port variables are then available
+  to the Spring Boot process.
+- **Shell:** Source the file before starting the application:
+  ```bash
+  export $(grep -v '^#' doc/docker/.env | xargs)
+  ./mvnw spring-boot:run -pl client/vsdm-client-simservice-java -Dspring-boot.run.profiles=local
+  ```
+
 === Environment Variables
 
 Each service can be configured via environment variables. Key configuration options:

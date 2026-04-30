@@ -10,16 +10,17 @@ Das Feature testet die **REST-basierte Datenübertragung** über den ZETA-PEP Pr
 - Bei gültigem Token leitet der PEP die Anfrage an das Backend (PoPP-Server) weiter
 - Bei fehlendem oder ungültigem Token antwortet der PEP direkt mit HTTP 401
 
-## Vorbedienungen
+## Vorbedingungen
 
-* ZETA PEP Server Mockservice
-* PoPP Server Mockservice (Backend hinter PEP)
+* ZETA PEP (ngx_pep Docker Container, Port 2101)
+* ZETA PDP (Keycloak Docker Container, Port 2201/2202)
+* PoPP Server (Backend hinter PEP)
 * Tiger-Proxy
 
 ## Architektur-Hinweis
 
 Der `HttpProxyController` des PEP fängt alle Anfragen unter `/**` ab (außer `/service/**` und `/.well-known/**`).
-Für die Tests wird der Endpunkt `/openapi.yaml` des PoPP-Servers verwendet, da dieser:
+Für die Tests wird der Endpunkt `/v3/api-docs` des PoPP-Servers verwendet, da dieser:
 1. Durch den Auth-geschützten `HttpProxyController` geroutet wird
 2. Im Backend existiert und mit HTTP 200 antwortet
 
@@ -35,7 +36,7 @@ Für die Tests wird der Endpunkt `/openapi.yaml` des PoPP-Servers verwendet, da 
 │ Client  │         │  (localhost)│         │          │         │  (Backend)  │
 └────┬────┘         └──────┬──────┘         └────┬─────┘         └──────┬──────┘
      │                     │                     │                      │
-     │  1. GET /openapi.yaml                     │                      │
+     │  1. GET /v3/api-docs                      │                      │
      │  Authorization:     │                     │                      │
      │  Bearer <JWT>       │                     │                      │
      │────────────────────>│                     │                      │
@@ -72,7 +73,7 @@ Für die Tests wird der Endpunkt `/openapi.yaml` des PoPP-Servers verwendet, da 
 │ Client  │         │  (localhost)│         │          │
 └────┬────┘         └──────┬──────┘         └────┬─────┘
      │                     │                     │
-     │  1. GET /openapi.yaml                     │
+     │  1. GET /v3/api-docs                      │
      │  (KEIN Authorization│                     │
      │   Header!)          │                     │
      │────────────────────>│                     │
@@ -104,7 +105,7 @@ Für die Tests wird der Endpunkt `/openapi.yaml` des PoPP-Servers verwendet, da 
 │ Client  │         │  (localhost)│         │          │
 └────┬────┘         └──────┬──────┘         └────┬─────┘
      │                     │                     │
-     │  1. GET /openapi.yaml                     │
+     │  1. GET /v3/api-docs                      │
      │  Authorization:     │                     │
      │  Bearer <UNGÜLTIGES │                     │
      │         JWT>        │                     │

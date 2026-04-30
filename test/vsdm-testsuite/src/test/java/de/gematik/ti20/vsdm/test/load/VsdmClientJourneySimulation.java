@@ -71,7 +71,7 @@ public class VsdmClientJourneySimulation extends BaseSimulation {
           .exec(
               http("Inserting eGK card")
                   .put(URL_CLIENT_CARD + "/slots/#{egk_slot}")
-                  .body(ElFileBody("data/cards/egkCardImage.xml"))
+                  .body(ElFileBody("data/cards/egkCardData.json"))
                   .asXml()
                   .check(status().is(201)))
           .exec(

@@ -11,6 +11,10 @@ ports:
   tiConnectTigerProxyAdminPort: 6400
   tiConnectTigerProxyProxyPort: 6450
 
-  poppPepPort: 9110
-  poppPdpPort: 9112
+  poppPepPort: 2101
+  poppPdpPort: 2201
 
+  vsdmPepPort: 9120
+  vsdmPdpPort: 9122
+  vsdmIngressPort: 9119
+  vsdmServerPort: 9130

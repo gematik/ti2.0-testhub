@@ -31,4 +31,4 @@ Funktionalität: Abfrage der Versichertenstammdaten von der eGK
 
     Beispiele:
       | Smcb-Card           | Smcb-Slot | Egk-Card           | Egk-Slot | Http-Code | Error-Text                 |
-      | "smcbCardImage.xml" | 1         | "egkCardImage.xml" | 2        | 403       | "PoPP error: InvalidToken" |
+      | "smcbCardImage.xml" | 1         | "egkCardData.json" | 2        | 403       | "PoPP error: InvalidToken" |

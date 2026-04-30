@@ -12,7 +12,8 @@ Funktionalität: REST Datenübertragung zwischen Client und Server via ZETA-PEP 
 
   Grundlage:
     Wenn TGR lösche aufgezeichnete Nachrichten
-    Und TGR setze lokale Variable "pepProxyUrl" auf "http://127.0.0.1:9110"
+    Und TGR setze lokale Variable "pepProxyUrl" auf "http://127.0.0.1:2101"
+    Und TGR setze lokale Variable "pepTestPath" auf "/v3/api-docs"
     Und TGR lösche alle default headers
 
   @rest_pep_transfer
@@ -20,26 +21,26 @@ Funktionalität: REST Datenübertragung zwischen Client und Server via ZETA-PEP 
     Gegeben sei ein gültiger ZETA-PEP AccessToken wird erzeugt
 
     # Anfrage an einen existierenden Backend-Endpunkt über PEP senden
-    Wenn TGR sende eine leere GET Anfrage an "${pepProxyUrl}/openapi.yaml"
+    Wenn TGR sende eine leere GET Anfrage an "${pepProxyUrl}${pepTestPath}"
 
     # PEP akzeptiert Token, leitet an PoPP-Server weiter, Backend antwortet mit 200
-    Dann TGR finde die letzte Anfrage mit dem Pfad "/openapi.yaml"
+    Dann TGR finde die letzte Anfrage mit dem Pfad "${pepTestPath}"
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "200"
 
   @rest_pep_transfer
   Szenario: REST-Anfrage ohne Authorization wird vom PEP abgelehnt
-    Wenn TGR sende eine leere GET Anfrage an "${pepProxyUrl}/openapi.yaml"
+    Wenn TGR sende eine leere GET Anfrage an "${pepProxyUrl}${pepTestPath}"
 
     # PEP muss mit 401 Unauthorized antworten
-    Dann TGR finde die letzte Anfrage mit dem Pfad "/openapi.yaml"
+    Dann TGR finde die letzte Anfrage mit dem Pfad "${pepTestPath}"
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "401"
 
   @rest_pep_transfer
   Szenario: REST-Anfrage mit ungültigem Token wird vom PEP abgelehnt
     Gegeben sei ein ungültiger ZETA-PEP AccessToken wird erzeugt
 
-    Wenn TGR sende eine leere GET Anfrage an "${pepProxyUrl}/openapi.yaml"
+    Wenn TGR sende eine leere GET Anfrage an "${pepProxyUrl}${pepTestPath}"
 
-    Dann TGR finde die letzte Anfrage mit dem Pfad "/openapi.yaml"
+    Dann TGR finde die letzte Anfrage mit dem Pfad "${pepTestPath}"
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "401"
 

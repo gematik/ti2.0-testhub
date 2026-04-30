@@ -1,5 +1,6 @@
 server:
-  port: ${SERVER_PORT:9130}
+  # Port must match PORT_VSDM_SERVER in doc/docker/.env (default: 9130)
+  port: ${PORT_VSDM_SERVER:9130}
 
 otel:
   sdk:

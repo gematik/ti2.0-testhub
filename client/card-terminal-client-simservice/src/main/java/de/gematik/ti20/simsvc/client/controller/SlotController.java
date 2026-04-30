@@ -24,12 +24,16 @@
  */
 package de.gematik.ti20.simsvc.client.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.gematik.ti20.simsvc.client.dto.EgkInfoDto;
 import de.gematik.ti20.simsvc.client.model.card.CardImage;
 import de.gematik.ti20.simsvc.client.model.dto.CardInfoDto;
 import de.gematik.ti20.simsvc.client.model.dto.TransmitRequestDto;
 import de.gematik.ti20.simsvc.client.model.dto.TransmitResponseDto;
 import de.gematik.ti20.simsvc.client.service.CardImageParser;
+import de.gematik.ti20.simsvc.client.service.CardImageService;
 import de.gematik.ti20.simsvc.client.service.SlotManager;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -43,10 +47,13 @@ import org.springframework.web.server.ResponseStatusException;
  */
 @RestController
 @RequestMapping("/slots")
+@Slf4j
 public class SlotController {
 
   private final SlotManager slotManager;
   private final CardImageParser cardImageParser;
+  private final CardImageService cardImageService;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   /**
    * Constructor for SlotController.
@@ -55,9 +62,13 @@ public class SlotController {
    * @param cardImageParser Service to parse card images
    */
   @Autowired
-  public SlotController(SlotManager slotManager, CardImageParser cardImageParser) {
+  public SlotController(
+      final SlotManager slotManager,
+      final CardImageParser cardImageParser,
+      final CardImageService cardImageService) {
     this.slotManager = slotManager;
     this.cardImageParser = cardImageParser;
+    this.cardImageService = cardImageService;
   }
 
   /**
@@ -91,6 +102,8 @@ public class SlotController {
   @PutMapping(value = "/{slotId}", consumes = MediaType.APPLICATION_XML_VALUE)
   public ResponseEntity<CardInfoDto> insertCard(
       @PathVariable int slotId, @RequestBody String xmlCardData) {
+    log.info("Inserting card as XML card image");
+
     if (!slotManager.isValidSlotId(slotId)) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Slot not found: " + slotId);
     }
@@ -101,6 +114,39 @@ public class SlotController {
 
     try {
       CardImage card = cardImageParser.parseCardImage(xmlCardData);
+      slotManager.insertCard(slotId, card);
+
+      CardInfoDto cardInfo = createCardInfoDto(card, slotId);
+      return ResponseEntity.status(HttpStatus.CREATED).body(cardInfo);
+    } catch (Exception e) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Invalid card data: " + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Insert a card into a specific slot.
+   *
+   * @param slotId Slot identifier
+   * @param jsonCardData JSON representation of the card data
+   * @return Information about the inserted card
+   */
+  @PutMapping(value = "/{slotId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<CardInfoDto> insertCardDataJson(
+      @PathVariable final int slotId, @RequestBody final String jsonCardData) {
+    log.info("Inserting card as JSON card data: {}", jsonCardData);
+
+    if (!slotManager.isValidSlotId(slotId)) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Slot not found: " + slotId);
+    }
+
+    if (slotManager.isCardPresent(slotId)) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Slot already contains a card");
+    }
+
+    try {
+      EgkInfoDto egkInfoDto = objectMapper.readValue(jsonCardData, EgkInfoDto.class);
+      CardImage card = cardImageService.createCardImage(egkInfoDto);
       slotManager.insertCard(slotId, card);
 
       CardInfoDto cardInfo = createCardInfoDto(card, slotId);

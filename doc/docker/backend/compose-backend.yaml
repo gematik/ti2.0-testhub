@@ -7,29 +7,41 @@ include:
 services:
   otel-collector:
     image: otel/opentelemetry-collector-contrib
+    env_file:
+      - path: ../.env
+        required: true
+    profiles: [ "full", "mock-popp" ]
     platform: linux/amd64
     command: [ "--config=/etc/otel-collector-config.yaml" ]
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
-      - "4318:4318"
+      - "${PORT_OTEL_COLLECTOR:?PORT_OTEL_COLLECTOR missing – set it in doc/docker/.env}:4318"
     depends_on:
       - prometheus
 
   prometheus:
     image: prom/prometheus
+    env_file:
+      - path: ../.env
+        required: true
+    profiles: [ "full", "mock-popp", "backend-only" ]
     platform: linux/amd64
     volumes:
       - ./prometheus:/etc/prometheus
       - prometheus-data:/prometheus
     ports:
-      - "7100:7100"
+      - "${PORT_PROMETHEUS:?PORT_PROMETHEUS missing – set it in doc/docker/.env}:7100"
     command:
       - '--config.file=/etc/prometheus/config.yaml'
       - '--web.listen-address=:7100'
 
   grafana:
     image: grafana/grafana
+    env_file:
+      - path: ../.env
+        required: true
+    profiles: [ "full", "mock-popp", "backend-only" ]
     platform: linux/amd64
     volumes:
       - grafana-data:/var/lib/grafana
@@ -41,7 +53,7 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_SECURITY_ADMIN_PASSWORD_MUST_CHANGE=false
     ports:
-      - "7001:3000"
+      - "${PORT_GRAFANA:?PORT_GRAFANA missing – set it in doc/docker/.env}:3000"
     depends_on:
       - prometheus
 
