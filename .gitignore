@@ -13,7 +13,7 @@ pactconfig-local.properties
 /.vscode/
 jenkinsfiles
 .owaspignore
-/doc/traffic/INTERNAL.md
+ReleaseChecklist.internal.md
 /test/popp-testsuite/src/test/resources/features/e2e/UC_PoPP_1_2a_eGK_OCSP_revoked_Invalid.feature
 /test/popp-testsuite/src/test/resources/features/e2e/UC_PoPP_1_2a_eGK_expired_Invalid.feature
 /test/popp-testsuite/tiger-intern.yaml

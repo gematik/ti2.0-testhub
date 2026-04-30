@@ -12,15 +12,17 @@ Funktionalität: PEP Header Management – Weiterleitung und Transformation von 
   Grundlage:
     Gegeben sei TGR lösche aufgezeichnete Nachrichten
     Und TGR lösche alle default headers
+    Und TGR setze lokale Variable "pepProxyUrl" auf "http://127.0.0.1:${ports.poppPepPort}"
+    Und TGR setze lokale Variable "pepTestPath" auf "/v3/api-docs"
 
   @pep_header_management
   Szenario: PEP transformiert Authorization- und PoPP-Header korrekt ans Backend
 
     # 1. Ressourcen-Anfrage mit Authorization + PoPP an den PEP senden (via Tiger-Proxy)
-    Wenn sende Ressourcen-Anfrage mit PoPP-Token über PEP an "http://127.0.0.1:9110/openapi.yaml"
+    Wenn sende Ressourcen-Anfrage mit PoPP-Token über PEP an "http://127.0.0.1:${ports.poppPepPort}/v3/api-docs"
 
     # 2. Client→PEP Request prüfen: Authorization und PoPP Header sind gesetzt
-    Dann TGR finde die letzte Anfrage mit dem Pfad "/openapi.yaml"
+    Dann TGR finde die letzte Anfrage mit dem Pfad "/v3/api-docs"
     Und TGR prüfe aktueller Request enthält Knoten "$.header.Authorization"
     Und TGR prüfe aktueller Request enthält Knoten "$.header.PoPP"
 
@@ -51,17 +53,17 @@ Funktionalität: PEP Header Management – Weiterleitung und Transformation von 
     # Gemäß PoPP Token Validierung: Wenn der PEP PoPP-Header verlangt und keiner da ist → 400
     Gegeben sei ein gültiger ZETA-PEP AccessToken wird erzeugt
 
-    Wenn TGR sende eine leere GET Anfrage an "http://127.0.0.1:9110/openapi.yaml"
+    Wenn TGR sende eine leere GET Anfrage an "${pepProxyUrl}${pepTestPath}"
 
     # PEP leitet trotzdem weiter (PoPP ist im Mockservice optional) → 200
     # Im echten Guard wäre hier 400, wenn PoPP required ist
-    Dann TGR finde die letzte Anfrage mit dem Pfad "/openapi.yaml"
+    Dann TGR finde die letzte Anfrage mit dem Pfad "${pepTestPath}"
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "200"
 
   @pep_header_management
   Szenario: PEP lehnt Request ohne Authorization ab
-    Wenn TGR sende eine leere GET Anfrage an "http://127.0.0.1:9110/openapi.yaml"
+    Wenn TGR sende eine leere GET Anfrage an "${pepProxyUrl}${pepTestPath}"
 
-    Dann TGR finde die letzte Anfrage mit dem Pfad "/openapi.yaml"
+    Dann TGR finde die letzte Anfrage mit dem Pfad "${pepTestPath}"
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "401"
 

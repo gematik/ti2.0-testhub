@@ -141,7 +141,7 @@ class VsdmClientServiceTest {
 
       assertEquals(expectedToken, result);
       verify(mockPoppTokenRepository).get(terminalId, egkSlotId, "card1");
-      verify(mockPoppClientAdapter, never()).getPoppToken(any(), any(), any());
+      verify(mockPoppClientAdapter, never()).getPoppToken(any());
     }
 
     @Test
@@ -150,13 +150,13 @@ class VsdmClientServiceTest {
 
       when(mockPoppTokenRepository.get(terminalId, egkSlotId, "card1")).thenReturn(null);
 
-      when(mockPoppClientAdapter.getPoppToken(any(), any(), any())).thenReturn(expectedToken);
+      when(mockPoppClientAdapter.getPoppToken(any())).thenReturn(expectedToken);
 
       String result =
           vsdmClientService.requestPoppToken(terminalId, egkSlotId, smcBSlotId, mockEgkCard);
 
       assertEquals(expectedToken, result);
-      verify(mockPoppClientAdapter).getPoppToken(eq(mockEgkCard), any(), any());
+      verify(mockPoppClientAdapter).getPoppToken(eq(mockEgkCard));
       verify(mockPoppTokenRepository).put(terminalId, egkSlotId, "card1", expectedToken);
     }
 
@@ -206,7 +206,7 @@ class VsdmClientServiceTest {
         assertEquals(expectedToken, result);
 
         verify(mockPoppTokenRepository, never()).get(any(), any(), any());
-        verify(mockPoppClientAdapter, never()).getPoppToken(any(), any(), any());
+        verify(mockPoppClientAdapter, never()).getPoppToken(any());
       }
     }
 

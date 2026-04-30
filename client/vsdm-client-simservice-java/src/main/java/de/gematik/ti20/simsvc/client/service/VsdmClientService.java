@@ -49,7 +49,6 @@ import java.util.Objects;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.jena.sparql.function.library.leviathan.log;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
@@ -188,8 +187,7 @@ public class VsdmClientService {
     }
 
     try {
-      final String poppTokenFromService =
-          poppClientAdapter.getPoppToken(attachedCard, smcbSlotId, this);
+      final String poppTokenFromService = poppClientAdapter.getPoppToken(attachedCard);
       log.debug("Received PoPP token from popp service: {}", poppTokenFromService);
       poppTokenRepository.put(terminalId, egkSlotId, attachedCard.getId(), poppTokenFromService);
 

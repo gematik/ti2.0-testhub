@@ -36,6 +36,7 @@ public class VsdmCoverageBuilder extends ResourceBuilder<VsdmCoverage, VsdmCover
   protected String beneficiary;
   protected String payor;
   protected String kvnr;
+  protected String iknr;
 
   private VsdmCoverageBuilder() {}
 
@@ -63,6 +64,11 @@ public class VsdmCoverageBuilder extends ResourceBuilder<VsdmCoverage, VsdmCover
     return this;
   }
 
+  public VsdmCoverageBuilder withIknr(String iknr) {
+    this.iknr = iknr;
+    return this;
+  }
+
   @Override
   public VsdmCoverage build() {
     var type = new CanonicalType(VsdmCoverage.class.getAnnotation(ResourceDef.class).profile());
@@ -87,18 +93,11 @@ public class VsdmCoverageBuilder extends ResourceBuilder<VsdmCoverage, VsdmCover
     // payor
     Reference payorReference = new Reference();
     payorReference.setDisplay(this.payor);
+    Identifier payorIdentifier = new Identifier();
+    payorIdentifier.setSystem("http://fhir.de/sid/arge-ik/iknr");
+    payorIdentifier.setValue(iknr);
+    payorReference.setIdentifier(payorIdentifier);
 
-    Extension hauptkostentraeger = new Extension();
-    hauptkostentraeger.setUrl(
-        "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMKostentraegerRolle");
-    Coding hauptkostentraegerCoding = new Coding();
-    hauptkostentraegerCoding.setCode("H");
-    hauptkostentraegerCoding.setSystem(
-        "https://gematik.de/fhir/vsdm2/CodeSystem/VSDMKostentraegerRolleCS");
-    hauptkostentraegerCoding.setDisplay("Haupt-Kostenträger");
-    hauptkostentraeger.setValue(hauptkostentraegerCoding);
-
-    payorReference.addExtension(hauptkostentraeger);
     payorReference.setReference(payor);
     coverage.setPayor(List.of(payorReference));
 

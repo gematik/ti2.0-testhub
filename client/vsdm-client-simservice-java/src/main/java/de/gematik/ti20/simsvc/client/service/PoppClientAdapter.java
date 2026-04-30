@@ -44,8 +44,7 @@ public class PoppClientAdapter {
     this.webClient = webClient;
   }
 
-  public String getPoppToken(
-      AttachedCard attachedCard, Integer smcbSlotId, VsdmClientService vsdmClientService) {
+  public String getPoppToken(final AttachedCard attachedCard) {
     log.info(
         "============ Starting PoPP token session for card with tokentype={} and URL={}",
         poppClientConfig.getTokenType(),
@@ -67,13 +66,4 @@ public class PoppClientAdapter {
 
     return response.token();
   }
-
-  // FIXME raku umziehen
-  //  public EgkInfo getEgkInfo(AttachedCard attachedCard) throws CardTerminalException {
-  //    return poppClientService.getEgkInfo(attachedCard);
-  //  }
-  //
-  //  public PoppClientConfig getPoppClientConfig() {
-  //    return poppClientService.getPoppClientConfig();
-  //  }
 }

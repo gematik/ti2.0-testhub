@@ -37,4 +37,4 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0 unte
 
     Beispiele:
       | Smcb-Card           | Smcb-Slot | Egk-Card           | Egk-Slot | Calls-Per-Sec | Number-Calls | Max-Answer-Time |
-      | "smcbCardImage.xml" | 2007      | "egkCardImage.xml" | 2008     | 100           | 100          | 1000            |
+      | "smcbCardImage.xml" | 2007      | "egkCardData.json" | 2008     | 100           | 100          | 1000            |

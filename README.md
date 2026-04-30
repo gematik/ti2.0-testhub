@@ -56,6 +56,21 @@ ZETA requires an SMC-B certificate to work. Follow these steps:
     ```bash
     docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
 
+### Port Configuration
+
+Host ports are defined in [`doc/docker/.env`](./doc/docker/.env).
+Docker Compose loads this file automatically. You can customize these to fit your environment. For more information
+refer to the
+[user manual configuration section](https://gematik.github.io/ti20-testhub/#_port_configuration_via_env_file).
+
+```bash
+# Example: remap VSDM server from 9130 to 19130
+PORT_VSDM_SERVER=19130 docker compose -f ./doc/docker/compose-local.yaml --profile full up -d
+```
+
+A full list of available port variables and their defaults is documented in the
+[user manual configuration section](https://gematik.github.io/ti20-testhub/#_port_configuration_via_env_file).
+
 To learn about additional scenarios and available `docker compose` profiles refer to
 the [Docker Compose Profiles section in the user manual](https://gematik.github.io/ti20-testhub/#_docker_compose_profiles).
 

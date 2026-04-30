@@ -25,6 +25,8 @@
 package de.gematik.ti20.simsvc.client.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import de.gematik.ti20.simsvc.client.model.card.CardImage;
@@ -33,6 +35,7 @@ import de.gematik.ti20.simsvc.client.model.dto.CardInfoDto;
 import de.gematik.ti20.simsvc.client.model.dto.TransmitRequestDto;
 import de.gematik.ti20.simsvc.client.model.dto.TransmitResponseDto;
 import de.gematik.ti20.simsvc.client.service.CardImageParser;
+import de.gematik.ti20.simsvc.client.service.CardImageService;
 import de.gematik.ti20.simsvc.client.service.SlotManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,13 +48,15 @@ class SlotControllerTest {
 
   private SlotManager slotManager;
   private CardImageParser cardImageParser;
+  private CardImageService cardImageService;
   private SlotController controller;
 
   @BeforeEach
   void setUp() {
     slotManager = mock(SlotManager.class);
     cardImageParser = mock(CardImageParser.class);
-    controller = new SlotController(slotManager, cardImageParser);
+    cardImageService = mock(CardImageService.class);
+    controller = new SlotController(slotManager, cardImageParser, cardImageService);
   }
 
   @Test
@@ -127,6 +132,73 @@ class SlotControllerTest {
         assertThrows(ResponseStatusException.class, () -> controller.insertCard(1, "<bad/>"));
     assertEquals(HttpStatusCode.valueOf(HttpStatus.BAD_REQUEST.value()), ex.getStatusCode());
     assertEquals(HttpStatusCode.valueOf(HttpStatus.BAD_REQUEST.value()), ex.getStatusCode());
+  }
+
+  // ---------------------------------------------------------------------------
+  // insertCardDataJson (JSON endpoint)
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void insertCardDataJson_success() {
+    when(slotManager.isValidSlotId(0)).thenReturn(true);
+    when(slotManager.isCardPresent(0)).thenReturn(false);
+    CardImage card = mock(CardImage.class);
+    when(cardImageService.createCardImage(any())).thenReturn(card);
+    when(card.getId()).thenReturn("sim-X110639491");
+    when(card.getCardType()).thenReturn(CardType.EGK);
+    when(card.getLabel()).thenReturn("Kriemhild Muster");
+
+    String json =
+        """
+        {
+          "kvnr": "X110639491",
+          "iknr": "109500969",
+          "firstName": "Kriemhild",
+          "lastName": "Muster",
+          "patientName": "Kriemhild Muster",
+          "dateOfBirth": "19900717",
+          "insuranceName": "Test GKV-SV",
+          "validUntil": "20261231",
+          "valid": true
+        }
+        """;
+
+    ResponseEntity<CardInfoDto> response = controller.insertCardDataJson(0, json);
+
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    assertEquals("sim-X110639491", response.getBody().getCardId());
+    verify(cardImageService).createCardImage(any());
+    verify(slotManager).insertCard(eq(0), eq(card));
+  }
+
+  @Test
+  void insertCardDataJson_invalidJson_throwsBadRequest() {
+    when(slotManager.isValidSlotId(1)).thenReturn(true);
+    when(slotManager.isCardPresent(1)).thenReturn(false);
+
+    ResponseStatusException ex =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> controller.insertCardDataJson(1, "not-valid-json{{{"));
+    assertEquals(HttpStatusCode.valueOf(HttpStatus.BAD_REQUEST.value()), ex.getStatusCode());
+    verifyNoInteractions(cardImageService);
+  }
+
+  @Test
+  void insertCardDataJson_slotNotFound_throws() {
+    when(slotManager.isValidSlotId(5)).thenReturn(false);
+    ResponseStatusException ex =
+        assertThrows(ResponseStatusException.class, () -> controller.insertCardDataJson(5, "{}"));
+    assertEquals(HttpStatusCode.valueOf(HttpStatus.NOT_FOUND.value()), ex.getStatusCode());
+  }
+
+  @Test
+  void insertCardDataJson_slotOccupied_throws() {
+    when(slotManager.isValidSlotId(1)).thenReturn(true);
+    when(slotManager.isCardPresent(1)).thenReturn(true);
+    ResponseStatusException ex =
+        assertThrows(ResponseStatusException.class, () -> controller.insertCardDataJson(1, "{}"));
+    assertEquals(HttpStatusCode.valueOf(HttpStatus.CONFLICT.value()), ex.getStatusCode());
   }
 
   @Test

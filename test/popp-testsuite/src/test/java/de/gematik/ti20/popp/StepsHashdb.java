@@ -28,8 +28,6 @@ import static de.gematik.test.tiger.lib.TigerHttpClient.executeCommandWithContin
 import static de.gematik.test.tiger.lib.TigerHttpClient.givenDefaultSpec;
 import static de.gematik.ti20.popp.data.TestConstants.FOLDER_FOR_SIGNED_HASHDB_PAYLOADS;
 import static de.gematik.ti20.popp.data.TestConstants.HASH_DB_SUCCESSFUL_IMPORT_RESULT_RESPONSE_FILE;
-import static de.gematik.ti20.popp.data.TestConstants.JOBID_FOR_FINISHED_SUCCESSFULL_DELETE;
-import static de.gematik.ti20.popp.data.TestConstants.JOBID_FOR_FINISHED_SUCCESSFULL_IMPORT;
 import static de.gematik.ti20.popp.data.TestConstants.URL_HASH_DB_IMPORT_RU;
 import static de.gematik.ti20.popp.data.TestConstants.VALID_HASH_DB_IMPORT_RESPONSE_FILE;
 import static de.gematik.ti20.popp.data.TestConstants.VALID_HASH_DB_JOB_STATUS_RESPONSE_FILE;
@@ -49,7 +47,6 @@ import io.restassured.http.Method;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.KeyStore;
 import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -59,8 +56,6 @@ import org.htmlunit.http.HttpStatus;
 @Slf4j
 public class StepsHashdb {
 
-  private static final String ALIAS_FOR_TRUSTSTORE = "alias";
-  static KeyStore tspEntrySigner;
   TigerProxyGlue tigerProxyGlue = new TigerProxyGlue();
   private final RbelMessageRetriever rbelMessageRetriever;
   private final RbelValidator rbelValidator;
@@ -98,16 +93,6 @@ public class StepsHashdb {
         () ->
             givenDefaultSpec()
                 .request(Method.GET, URL_HASH_DB_IMPORT_RU + "/" + jobId + "/status"));
-  }
-
-  @Wenn("der TSP fragt das Ergebnis seines erfolgreichen Imports ab")
-  public void sendStatusRequestForSuccessfulImport() {
-    sendResultRequest(JOBID_FOR_FINISHED_SUCCESSFULL_IMPORT);
-  }
-
-  @Wenn("der TSP fragt das Ergebnis seiner erfolgreichen Löschung ab")
-  public void sendStatusRequestForSuccessfulDelete() {
-    sendResultRequest(JOBID_FOR_FINISHED_SUCCESSFULL_DELETE);
   }
 
   @Wenn("der TSP fragt das Ergebnis des Jobs mit der jobID {tigerResolvedString} ab")
@@ -201,7 +186,7 @@ public class StepsHashdb {
         .until(() -> true);
   }
 
-  @Wenn("der TSP löscht den abgeschlossenen Importauftrag mit der JobId {string}")
+  @Wenn("der TSP löscht den abgeschlossenen Auftrag mit der JobId {tigerResolvedString}")
   public void sendDeleteRequestWithJobId(final String jobId) {
     executeCommandWithContingentWait(
         () -> givenDefaultSpec().request(Method.DELETE, URL_HASH_DB_IMPORT_RU + "/" + jobId));

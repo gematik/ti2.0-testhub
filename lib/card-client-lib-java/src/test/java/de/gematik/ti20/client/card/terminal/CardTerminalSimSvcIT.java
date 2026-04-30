@@ -55,17 +55,7 @@ class CardTerminalSimSvcIT {
     cardService =
         new CardTerminalService(
             List.of(
-                new SimulatorConnectionConfig("Card Terminal SimSvc", "http://localhost:8000")
-                //        ,
-                //        new ConnectorConnectionConfig(
-                //            "KoCoBox MED+",
-                //            "https://192.168.1.100",
-                //            "Mandant123",
-                //            "PoppClientTest",
-                //            "Workplace789",
-                //            "User001"
-                //        )
-                ));
+                new SimulatorConnectionConfig("Card Terminal SimSvc", "http://localhost:8000")));
   }
 
   @AfterEach

@@ -71,6 +71,7 @@ class VsdmClientIT {
     httpClient =
         new OkHttpClient.Builder()
             .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .build();
     fhirCodec = FhirCodec.forR4().andDummyValidator();
   }
@@ -138,7 +139,7 @@ class VsdmClientIT {
   }
 
   @Test
-  @Order(1)
+  @Order(2)
   void testReadVsdReturnsExpectedDataXML() throws Exception {
     final Result result = readVsdOnce("0", true);
     assertEquals(200, result.response.code());
@@ -189,8 +190,7 @@ class VsdmClientIT {
   }
 
   @Test
-  @Order(2)
-  // Caution! The test fails with Timeout during the first run. Further analysis is required.
+  @Order(3)
   void testPruefzifferHasCorrectLength() throws Exception {
     final Result result = readVsdOnce("0", false);
     assertEquals(200, result.response.code());
@@ -208,7 +208,7 @@ class VsdmClientIT {
   }
 
   @Test
-  @Order(3)
+  @Order(4)
   void testEtagIsConsistent() throws Exception {
     final Result result1 = readVsdOnce("0", false);
     assertEquals(200, result1.response.code());
@@ -229,7 +229,7 @@ class VsdmClientIT {
   }
 
   @Test
-  @Order(4)
+  @Order(5)
   void testResponseContentType() throws Exception {
     final Result result1 = readVsdOnce("0", false);
     assertTrue(result1.response.isSuccessful());
@@ -240,7 +240,7 @@ class VsdmClientIT {
   }
 
   @Test
-  @Order(5)
+  @Order(6)
   void testHttpVersion() throws Exception {
     final Result result1 = readVsdOnce("0", false);
     assertTrue(result1.response.isSuccessful());
@@ -264,7 +264,7 @@ class VsdmClientIT {
   }
 
   @Test
-  @Order(6)
+  @Order(7)
   void testPoppTokenIsCached() throws Exception {
     final Result result1 = readVsdOnce("0", false);
     assertTrue(result1.response.isSuccessful());
@@ -298,7 +298,7 @@ class VsdmClientIT {
   }
 
   @Test
-  @Order(7)
+  @Order(8)
   void testVsdmDataIsCached() throws Exception {
     final Result result1 = readVsdOnce("0", false);
     assertTrue(result1.response.isSuccessful());
@@ -311,6 +311,7 @@ class VsdmClientIT {
     assertTrue(cardHandleResponse.isSuccessful());
     final String cardHandleBody = cardHandleResponse.body().string();
 
+    System.out.println(cardHandleBody);
     final String cardId =
         cardHandleBody.substring(
             cardHandleBody.indexOf("card-"), cardHandleBody.indexOf("card-") + 18);
@@ -337,7 +338,7 @@ class VsdmClientIT {
   }
 
   @Test
-  @Order(8)
+  @Order(9)
   void testLoadTruncatedData() throws Exception {
     final String VSDM_TEST_LOAD_TRUNCATED_DATA_URL =
         VSDM_CLIENT_URL
@@ -365,10 +366,14 @@ class VsdmClientIT {
   private static void insertCard(final String filename, final int slot) throws Exception {
     final String cardImage = loadClasspathRessourceWithTigerResolving(filename);
 
+    final MediaType mediaType =
+        filename.endsWith("xml")
+            ? MediaType.parse("application/xml")
+            : MediaType.parse("application/json");
     final Request insertCard =
         new Request.Builder()
             .url(resolvePlaceholders(CARD_CLIENT_URL + "/slots/" + slot))
-            .put(RequestBody.create(cardImage, MediaType.parse("application/xml")))
+            .put(RequestBody.create(cardImage, mediaType))
             .build();
 
     final Response insertCardResponse = httpClient.newCall(insertCard).execute();
@@ -380,7 +385,7 @@ class VsdmClientIT {
   }
 
   private static void insertEgkCard() throws Exception {
-    insertCard("data/cards/egkCardImage.xml", EGK_SLOT);
+    insertCard("data/cards/egkCardData.json", EGK_SLOT);
   }
 
   private static void insertSmcbCard() throws Exception {

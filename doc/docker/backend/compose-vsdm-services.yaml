@@ -12,9 +12,12 @@ services:
   vsdm-zeta-ingress:
     container_name: vsdm-zeta-ingress
     image: "nginx:1.29.7"
+    env_file:
+      - path: ../.env
+        required: true
     platform: linux/amd64
     ports:
-      - "9119:443"
+      - "${PORT_VSDM_ZETA_INGRESS:?PORT_VSDM_ZETA_INGRESS missing – set it in doc/docker/.env}:443"
     volumes:
       - ./zeta/ingress/conf:/etc/nginx/conf.d:ro
       - ./zeta/ingress/certs:/etc/nginx/certs:ro
@@ -26,9 +29,12 @@ services:
   vsdm-server:
     container_name: vsdm-server
     image: de.gematik.ti20.simsvc.server/vsdm-server-simservice:local
+    env_file:
+      - path: ../.env
+        required: true
     ports:
-      - "9130:80"
-      - "5012:5012"
+      - "${PORT_VSDM_SERVER:?PORT_VSDM_SERVER missing – set it in doc/docker/.env}:80"
+      - "${PORT_VSDM_SERVER_DEBUG:?PORT_VSDM_SERVER_DEBUG missing – set it in doc/docker/.env}:5012"
     # volumes:
     #   - type: bind
     #     source: /tmp/testhub/test-data
@@ -44,11 +50,14 @@ services:
 
   vsdm-zeta-pep:
     image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:0.5.1
+    env_file:
+      - path: ../.env
+        required: true
     platform: linux/amd64
     container_name: vsdm-zeta-pep
     environment: *vsdm-no-proxy-env
     ports:
-      - "9120:80"
+      - "${PORT_VSDM_ZETA_PEP:?PORT_VSDM_ZETA_PEP missing – set it in doc/docker/.env}:80"
     volumes:
       - ./zeta/vsdm-zeta-pep.conf:/etc/nginx/nginx.conf:ro
       - ./zeta/well-known/oauth-protected-resource:/srv/.well-known/oauth-protected-resource:ro
@@ -63,6 +72,9 @@ services:
 
   vsdm-zeta-pdp:
     image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:0.5.1
+    env_file:
+      - path: ../.env
+        required: true
     platform: linux/amd64
     container_name: vsdm-zeta-pdp
     environment:
@@ -101,9 +113,9 @@ services:
       DEBUG: "false"
       DEBUG_PORT: "*:5022"
     ports:
-      - "9122:80"
-      - "9123:9000"
-      - "5022:5022"
+      - "${PORT_VSDM_ZETA_PDP:?PORT_VSDM_ZETA_PDP missing – set it in doc/docker/.env}:80"
+      - "${PORT_VSDM_ZETA_PDP_HEALTH:?PORT_VSDM_ZETA_PDP_HEALTH missing – set it in doc/docker/.env}:9000"
+      - "${PORT_VSDM_ZETA_PDP_DEBUG:?PORT_VSDM_ZETA_PDP_DEBUG missing – set it in doc/docker/.env}:5022"
     volumes:
       - ./zeta/realm:/opt/keycloak/data/import
       - ./zeta/smcb:/opt/keycloak/conf/smcb
@@ -122,6 +134,9 @@ services:
   vsdm-zeta-pdp-db:
     container_name: vsdm-zeta-pdp-db
     image: postgres:16.2
+    env_file:
+      - path: ../.env
+        required: true
     platform: linux/amd64
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -134,10 +149,13 @@ services:
 
   vsdm-zeta-pdp-opa:
     image: openpolicyagent/opa:1.15.2-static
+    env_file:
+      - path: ../.env
+        required: true
     platform: linux/amd64
     environment: *vsdm-no-proxy-env
     ports:
-      - "8181:8181"
+      - "${PORT_VSDM_ZETA_PDP_OPA:?PORT_VSDM_ZETA_PDP_OPA missing – set it in doc/docker/.env}:8181"
     command:
       - 'run'
       - '--server'

@@ -2,6 +2,24 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 2.3.0
+
+### Update Notes
+
+#### Support for JSON Card Data in card-terminal-client
+
+This change allows the use of card data in JSON format within the card-terminal-client component instead only the
+premade XML card images.
+Tests can now change the data to any desired value. Examples of valid JSON card data can be found in the
+`test/vsdm-testsuite/src/test/resource/data/cards` directory.
+
+### Changes
+
+- TESTHUB-117: extract port configuration to a separate file. The port configuration can be found in
+  `doc/docker/.env`.
+- TESTHUB-123: allow JSON card data in card-terminal-client
+- PTVSDM-1598: update Fhir schema to match latest version of VSDM2 specification 1.0.0
+
 ## Release 2.2.0
 
 ### Update Notes
@@ -47,6 +65,7 @@ disable ASL.
   for more information.
 - TESTHUB-116: refactor handling of attached card and PoPP token (contributed by
   [@prat023](https://github.com/prat023))
+- ZTI-4187: Add policy hot-reload test verifying that OPA applies policy changes at runtime without restart.
 
 ## Release 2.1.0
 
@@ -97,6 +116,12 @@ the TestHub to use it for PoPP token generation.
 
 ### Known issues
 
+The ngx_pep (ZETA PEP, version 0.3.0) rejects WebSocket upgrade requests with
+HTTP 403 even when the Access Token and DPoP proof are valid. Regular REST
+requests with the same credentials work correctly (HTTP 200). The WebSocket
+integration test (`popp_websocket_via_pep.feature`) is therefore marked as
+`@Ignore` until the issue is resolved in a future ngx_pep release.
+
 It is possible that PoPP token generation will lead to timeouts on systems with
 high load. We are aware and are going to investigate possible solutions.
 
@@ -111,6 +136,11 @@ of PoPP token generation.
   implementation](https://github.com/gematik/popp-sample-code). Uses an older
   ZETA version.
 - TESTHUB-53: Replace license plugin by license-maven-plugin
+- ZTI-4099: Added TLS Guard conformance tests to ZETA Testsuite (BSI TR-02102-2)
+- ZTI-4375: migrate ZETA testsuite from mock services to Docker-based
+  ngx_pep + Keycloak PDP. Token creation now uses real OAuth 2.0 Token Exchange
+  with SMC-B authentication and DPoP binding. Updated tests for REST data
+  transfer, header management, client registration and WebSocket communication.
 
 ## Release 1.1.15
 

@@ -1,0 +1,12 @@
+{
+  "kvnr" : "X110639491",
+  "iknr" : "109500969",
+  "patientName" : "Kriemhild Amelie Abigail H. Freifrau Bruser",
+  "firstName" : "Kriemhild",
+  "lastName" : "Amelie Abigail H. Freifrau Bruser",
+  "dateOfBirth" : "19900717",
+  "insuranceName" : "Test GKV-SV",
+  "cardType" : "EGK",
+  "validUntil" : "20250407",
+  "valid" : false
+}

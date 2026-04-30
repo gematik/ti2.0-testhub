@@ -26,6 +26,7 @@ package de.gematik.ti20.simsvc.client.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -40,54 +41,60 @@ import au.com.dius.pact.core.model.annotations.Pact;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.gematik.ti20.client.card.terminal.simsvc.SimulatorAttachedCard;
-import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
 import de.gematik.ti20.simsvc.client.pact.PactConfig;
 import de.gematik.zeta.sdk.ZetaSdkClient;
-import de.gematik.zeta.sdk.network.http.client.ZetaHttpClient;
-import de.gematik.zeta.sdk.network.http.client.ZetaHttpClientBuilder;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
+@ActiveProfiles("local")
 @ExtendWith(PactConsumerTestExt.class)
 @TestPropertySource(value = "classpath:pactconfig.properties")
 @MockServerConfig(hostInterface = "localhost")
 @Slf4j
-@Disabled
 class VsdmClientServicePactTest {
 
-  @Autowired private VsdmClientConfig vsdmConfig;
   @Autowired private VsdmClientService vsdmClientService;
   @Autowired private PactConfig pactConfig;
+
+  /**
+   * Prevents VsdmZetaSdkClientConfig.vsdmServiceClient() from being called, which would fail due to
+   * the missing smcb_private.p12 file in the test environment.
+   */
   @MockitoBean private ZetaSdkClient zetaSdkClient;
+
+  /**
+   * Mocked so we can forward httpGet() calls to the Pact mock server using Java's built-in
+   * HttpClient (no cleartext restrictions on JVM).
+   */
+  @MockitoBean private ZetaSdkClientAdapter zetaSdkClientAdapter;
+
   private SimulatorAttachedCard mockEgkCard;
 
   @BeforeEach
   void beforeEach() {
-    // We set the properties in this way, so that we can use the configuration in the
-    // @Pact annotation. Otherwise it does not see the values of the spring configuration bean
     System.setProperty("pact.consumer.name", pactConfig.getPactConsumerName());
     System.setProperty("pact.provider.name", pactConfig.getPactProviderName());
     MDC.put("traceId", "test-trace-12345");
-
-    // We mock the zetaSdkClient.httpClient() method to return a regular httpclient which does NOT
-    // add any zetaSpecific headers and does not do any additional authentication with a zeta
-    // service.
-    //  In this way the test returns the mocked responses and registers the pact into the pact file.
-    ZetaHttpClient customKtorHttpClient = new ZetaHttpClientBuilder("fake:///base-url").build();
-    when(zetaSdkClient.httpClient(any())).thenReturn(customKtorHttpClient);
 
     mockEgkCard = mock(SimulatorAttachedCard.class);
     when(mockEgkCard.isEgk()).thenReturn(true);
@@ -127,17 +134,13 @@ class VsdmClientServicePactTest {
   @Test
   @PactTestFor(pactMethod = "getPatientBundle", pactVersion = PactSpecVersion.V3)
   void testGetPatientResponseStatusCodeIs200(MockServer mockServer) {
-    Integer egkSlotId = 1;
-    Integer smcBSlotId = 1;
+    configureAdapterToCallMockServer(mockServer.getUrl());
 
-    configureVsdmUrl(mockServer.getUrl());
+    var result =
+        vsdmClientService.requestVsd("terminalId", 1, mockEgkCard, "token123", "etag123", false);
 
-    var patientBundleAsString =
-        vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, mockEgkCard, "token123", "etag123", false);
-
-    assertThat(patientBundleAsString.getStatusCodeValue()).isEqualTo(200);
-    assertThat(patientBundleAsString.getBody()).isNotEmpty();
+    assertThat(result.getStatusCode().value()).isEqualTo(200);
+    assertThat(result.getBody()).isNotEmpty();
   }
 
   // Verify that on response 200 a valid Bundle FHIR resource is returned
@@ -145,19 +148,12 @@ class VsdmClientServicePactTest {
   @Test
   @PactTestFor(pactMethod = "getPatientBundle", pactVersion = PactSpecVersion.V3)
   void testGetPatient200isBundle(MockServer mockServer) {
-    Integer egkSlotId = 2;
-    Integer smcBSlotId = 2;
+    configureAdapterToCallMockServer(mockServer.getUrl());
 
-    configureVsdmUrl(mockServer.getUrl());
+    var result =
+        vsdmClientService.requestVsd("terminalId", 2, mockEgkCard, "token456", "etag456", false);
 
-    var patientBundleAsString =
-        vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, mockEgkCard, "token456", "etag456", false);
-
-    String responseBody = patientBundleAsString.getBody();
-    ObjectMapper objectMapper = new ObjectMapper();
-    JsonNode rootNode = objectMapper.readTree(responseBody);
-
+    JsonNode rootNode = new ObjectMapper().readTree(result.getBody());
     assertThat(rootNode.get("resourceType").asText()).isEqualTo("Bundle");
   }
 
@@ -166,26 +162,18 @@ class VsdmClientServicePactTest {
   @Test
   @PactTestFor(pactMethod = "getPatientBundle", pactVersion = PactSpecVersion.V3)
   void testGetPatient200isVSDMBundle(MockServer mockServer) {
-    Integer egkSlotId = 3;
-    Integer smcBSlotId = 3;
+    configureAdapterToCallMockServer(mockServer.getUrl());
 
-    configureVsdmUrl(mockServer.getUrl());
+    var result =
+        vsdmClientService.requestVsd("terminalId", 3, mockEgkCard, "token456", "etag456", false);
 
-    var patientBundleAsString =
-        vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, mockEgkCard, "token456", "etag456", false);
-
-    String responseBody = patientBundleAsString.getBody();
-    ObjectMapper objectMapper = new ObjectMapper();
-    JsonNode rootNode = objectMapper.readTree(responseBody);
+    JsonNode rootNode = new ObjectMapper().readTree(result.getBody());
     JsonNode entries = rootNode.get("entry");
 
     assertThat(rootNode.get("meta").get("profile").get(0).asText())
         .isEqualTo("https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMBundle");
     assertThat(entries.isArray()).isTrue();
-
     log.info("Entries: {}", entries);
-
     assertThat(getResourceFromBundle(entries, "Patient").get("resourceType").asText())
         .isEqualTo("Patient");
     assertThat(getResourceFromBundle(entries, "Composition").get("resourceType").asText())
@@ -199,23 +187,13 @@ class VsdmClientServicePactTest {
   @Test
   @PactTestFor(pactMethod = "getPatientBundle", pactVersion = PactSpecVersion.V3)
   void testGetPatient200isValidVSDMPatient(MockServer mockServer) {
-    Integer egkSlotId = 4;
-    Integer smcBSlotId = 4;
+    configureAdapterToCallMockServer(mockServer.getUrl());
 
-    configureVsdmUrl(mockServer.getUrl());
+    var result =
+        vsdmClientService.requestVsd("terminalId", 4, mockEgkCard, "token789", "etag789", false);
 
-    var patientBundleAsString =
-        vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, mockEgkCard, "token789", "etag789", false);
-
-    String responseBody = patientBundleAsString.getBody();
-    ObjectMapper objectMapper = new ObjectMapper();
-    JsonNode rootNode = objectMapper.readTree(responseBody);
-    JsonNode entries = rootNode.get("entry");
-
-    JsonNode patientResource = getResourceFromBundle(entries, "Patient");
-
-    assertThat(patientResource.get("meta").get("profile").get(0).asText())
+    JsonNode entries = new ObjectMapper().readTree(result.getBody()).get("entry");
+    assertThat(getResourceFromBundle(entries, "Patient").get("meta").get("profile").get(0).asText())
         .isEqualTo("https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMPatient");
   }
 
@@ -224,23 +202,18 @@ class VsdmClientServicePactTest {
   @Test
   @PactTestFor(pactMethod = "getPatientBundle", pactVersion = PactSpecVersion.V3)
   void testGetPatient200isValidVSDMComposition(MockServer mockServer) {
-    Integer egkSlotId = 5;
-    Integer smcBSlotId = 5;
+    configureAdapterToCallMockServer(mockServer.getUrl());
 
-    configureVsdmUrl(mockServer.getUrl());
+    var result =
+        vsdmClientService.requestVsd("terminalId", 5, mockEgkCard, "token101", "etag101", false);
 
-    var patientBundleAsString =
-        vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, mockEgkCard, "token101", "etag101", false);
-
-    String responseBody = patientBundleAsString.getBody();
-    ObjectMapper objectMapper = new ObjectMapper();
-    JsonNode rootNode = objectMapper.readTree(responseBody);
-    JsonNode entries = rootNode.get("entry");
-
-    JsonNode compositionResource = getResourceFromBundle(entries, "Composition");
-
-    assertThat(compositionResource.get("meta").get("profile").get(0).asText())
+    JsonNode entries = new ObjectMapper().readTree(result.getBody()).get("entry");
+    assertThat(
+            getResourceFromBundle(entries, "Composition")
+                .get("meta")
+                .get("profile")
+                .get(0)
+                .asText())
         .isEqualTo("https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMComposition");
   }
 
@@ -249,52 +222,77 @@ class VsdmClientServicePactTest {
   @Test
   @PactTestFor(pactMethod = "getPatientBundle", pactVersion = PactSpecVersion.V3)
   void testGetPatient200isValidVSDMCoverage(MockServer mockServer) {
-    Integer egkSlotId = 6;
-    Integer smcBSlotId = 6;
+    configureAdapterToCallMockServer(mockServer.getUrl());
 
-    configureVsdmUrl(mockServer.getUrl());
+    var result =
+        vsdmClientService.requestVsd("terminalId", 6, mockEgkCard, "token202", "etag202", false);
 
-    var patientBundleAsString =
-        vsdmClientService.requestVsd(
-            "terminalId", egkSlotId, mockEgkCard, "token202", "etag202", false);
-
-    String responseBody = patientBundleAsString.getBody();
-    ObjectMapper objectMapper = new ObjectMapper();
-    JsonNode rootNode = objectMapper.readTree(responseBody);
-    JsonNode entries = rootNode.get("entry");
-
-    JsonNode coverageResource = getResourceFromBundle(entries, "Coverage");
-
-    assertThat(coverageResource.get("meta").get("profile").get(0).asText())
+    JsonNode entries = new ObjectMapper().readTree(result.getBody()).get("entry");
+    assertThat(
+            getResourceFromBundle(entries, "Coverage").get("meta").get("profile").get(0).asText())
         .isEqualTo("https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMCoverage");
+  }
+
+  /**
+   * Configures the ZetaSdkClientAdapter mock to forward httpGet() calls to the Pact mock server
+   * using Java's built-in HttpClient. This avoids any cleartext or TLS certificate restrictions
+   * imposed by the Zeta SDK's Ktor client.
+   *
+   * @param baseUrl the URL of the Pact mock server (e.g. "http://localhost:12345")
+   */
+  @SneakyThrows
+  private void configureAdapterToCallMockServer(String baseUrl) {
+    doAnswer(
+            invocation -> {
+              String urlPath = invocation.getArgument(0);
+              ZetaSdkClientAdapter.RequestParameters params = invocation.getArgument(1);
+
+              HttpClient httpClient = HttpClient.newHttpClient();
+              HttpRequest.Builder builder =
+                  HttpRequest.newBuilder()
+                      .uri(URI.create(baseUrl + "/" + urlPath))
+                      .GET()
+                      .header("PoPP", params.poppToken())
+                      .header("x-trace-id", params.traceId())
+                      .header(
+                          "Accept",
+                          params.isFhirXml() ? "application/fhir+xml" : "application/fhir+json");
+
+              if (params.ifNoneMatch() != null && !params.ifNoneMatch().isBlank()) {
+                builder.header("If-None-Match", params.ifNoneMatch());
+              }
+
+              HttpResponse<String> response =
+                  httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+              Map<String, String> responseHeaders =
+                  response.headers().map().entrySet().stream()
+                      .filter(e -> !e.getValue().isEmpty())
+                      .collect(
+                          Collectors.toMap(
+                              Map.Entry::getKey, e -> e.getValue().get(0), (a, b) -> a));
+
+              return new ZetaSdkClientAdapter.Response(
+                  HttpStatus.valueOf(response.statusCode()), responseHeaders, response.body());
+            })
+        .when(zetaSdkClientAdapter)
+        .httpGet(any(), any());
   }
 
   /**
    * Get a resource from a Bundle by its resource type.
    *
-   * @param entries
-   * @param resourceType
-   * @return a Resource or null if not found
+   * @param entries the entries array of the Bundle
+   * @param resourceType the FHIR resource type to look for
+   * @return the matching resource node, or null if not found
    */
   private static @Nullable JsonNode getResourceFromBundle(JsonNode entries, String resourceType) {
-    JsonNode resource = null;
     for (JsonNode entry : entries) {
-      JsonNode targetResource = entry.get("resource");
-      if (targetResource != null
-          && resourceType.equals(targetResource.get("resourceType").asText())) {
-        resource = targetResource;
-        break;
+      JsonNode resource = entry.get("resource");
+      if (resource != null && resourceType.equals(resource.get("resourceType").asText())) {
+        return resource;
       }
     }
-    return resource;
-  }
-
-  /**
-   * Set the target URL of the VSDM Simulation service.
-   *
-   * @param url
-   */
-  void configureVsdmUrl(String url) {
-    vsdmConfig.setResourceServerUrl(url);
+    return null;
   }
 }

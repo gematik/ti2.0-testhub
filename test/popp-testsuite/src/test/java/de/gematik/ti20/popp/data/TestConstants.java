@@ -37,8 +37,6 @@ public class TestConstants {
       BLUEPRINT_FOLDER + "hashDbImportResponse.json";
   public static final String VALID_HASH_DB_JOB_STATUS_RESPONSE_FILE =
       BLUEPRINT_FOLDER + "hashDbJobStatusResponse.json";
-  public static final String HASH_DB_SUCCESSFUL_DELETE_RESULT_RESPONSE_FILE =
-      BLUEPRINT_FOLDER + "hashDbSuccessDeleteResultResponse.der";
   public static final String HASH_DB_SUCCESSFUL_IMPORT_RESULT_RESPONSE_FILE =
       BLUEPRINT_FOLDER + "hashDbSuccessImportResultResponse.der";
   public static final String VALID_APDU_SEQUENCE_0_FILE =
@@ -52,15 +50,7 @@ public class TestConstants {
   public static final String VALID_APDU_SEQUENCE_2_CONNECTOR_FILE =
       BLUEPRINT_FOLDER + "poppApdusSequence2Connector.json";
 
-  public static final String ARBITRARY_VALUE_NOT_AFTER_FOR_HASHDB_ENTRIES = "281231235959Z";
-  public static final String JOBID_FOR_FINISHED_SUCCESSFULL_IMPORT =
-      "5afda8d5-d40a-4008-a1f1-afb0c535c61e";
-  public static final String JOBID_FOR_FINISHED_SUCCESSFULL_DELETE =
-      "d26f9133-3e78-48b1-a4a7-99810dd692c7";
-  public static final int VERSION_E_CONTENT = 0;
-
-  private static final String POPP_SERVICE_BASE_URL_RU =
-      "https://popp-ru-dev-interim.int.epa.rise-link.de:8443";
+  private static final String POPP_SERVICE_BASE_URL_RU = "https://popp.dev.poppservice.de";
 
   private static final String HASH_DB_IMPORT_PATH = "/api/v1/hash-db/import";
 

@@ -18,12 +18,12 @@ x-no-proxy-env: &no-proxy-env
   no_proxy: "localhost,127.0.0.1,card-terminal-client,docker-tiger-proxy,ti-connect-tiger-proxy,popp-client,popp-token-generator,popp-zeta-ingress,popp-zeta-pep,popp-zeta-pdp,popp-zeta-pdp-opa,vsdm-zeta-ingress,vsdm-zeta-pep,vsdm-zeta-pdp,vsdm-zeta-pdp-opa,vsdm-server"
 
 # Profiles:
-#   (no profile)  - Backend + Tiger-Proxies + Clients (via tiger-proxy) [default]
+#   full          - Backend + Tiger-Proxies + Clients (via tiger-proxy) [default]
 #   backend-only  - Backend only (no tiger-proxies, no clients)
 #   perf          - Backend + Tiger-Proxies + Clients (direct backend access, bypassing proxy)
 #
 # Usage:
-#   docker compose up                          # full stack (default)
+#   docker compose --profile full up           # full stack (default)
 #   docker compose --profile backend-only up   # backend only
 #   docker compose --profile perf up           # with clients direct (performance testing)
 
@@ -33,21 +33,29 @@ services:
   card-terminal-client-base:
     profiles: [ "abstract" ]
     build: ../../client/card-terminal-client-simservice
+    env_file:
+      - path: .env
+        required: true
     image: de.gematik.ti20.simsvc.client/card-terminal-client-simservice:local
     container_name: card-terminal-client
-    environment: *no-proxy-env
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://127.0.0.1:80/service/status" ]
       interval: 10s
       timeout: 10s
       retries: 3
     ports:
-      - "6200:80"
-      - "5005:5005"
+      - "${PORT_CARD_TERMINAL_CLIENT:?PORT_CARD_TERMINAL_CLIENT missing – set it in doc/docker/.env}:80"
+      - "${PORT_CARD_TERMINAL_CLIENT_DEBUG:?PORT_CARD_TERMINAL_CLIENT_DEBUG missing – set it in doc/docker/.env}:5005"
+    environment:
+      <<: *no-proxy-env
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
 
   vsdm-client-base:
     profiles: [ "abstract" ]
     build: ../../client/vsdm-client-simservice-java
+    env_file:
+      - path: .env
+        required: true
     image: de.gematik.ti20.simsvc.client/vsdm-client-simservice:local
     container_name: vsdm-client
     healthcheck:
@@ -56,8 +64,8 @@ services:
       timeout: 10s
       retries: 3
     ports:
-      - "6100:80"
-      - "5006:5006"
+      - "${PORT_VSDM_CLIENT:?PORT_VSDM_CLIENT missing – set it in doc/docker/.env}:80"
+      - "${PORT_VSDM_CLIENT_DEBUG:?PORT_VSDM_CLIENT_DEBUG missing – set it in doc/docker/.env}:5006"
     volumes:
       - ./backend/zeta/smcb-private/smcb_private.p12:/tmp/zeta/smcb_private.p12:ro
     environment:
@@ -75,6 +83,9 @@ services:
 
   docker-tiger-proxy:
     image: gematik1/tiger-proxy-image:4.2.1
+    env_file:
+      - path: .env
+        required: true
     platform: linux/amd64
     container_name: docker-tiger-proxy
     environment: *no-proxy-env
@@ -94,14 +105,18 @@ services:
       timeout: 10s
       retries: 3
     ports:
-      - "6300:8080"
-      - "6350:9090"
+      - "${PORT_BACKEND_TIGER_PROXY:?PORT_BACKEND_TIGER_PROXY missing – set it in doc/docker/.env}:8080"
+      - "${PORT_BACKEND_TIGER_PROXY_ADMIN:?PORT_BACKEND_TIGER_PROXY_ADMIN missing – set it in doc/docker/.env}:9090"
     volumes:
       - ./remoteTigerProxy/application.yaml:/app/application.yaml:ro
       - ./remoteTigerProxy/tigerProxy.p12:/app/tigerProxy.p12:ro
 
   ti-connect-tiger-proxy:
     image: gematik1/tiger-proxy-image:4.2.1
+    env_file:
+      - path: .env
+        required: true
+    profiles: [ "full", "mock-popp" ]
     platform: linux/amd64
     container_name: ti-connect-tiger-proxy
     environment: *no-proxy-env
@@ -113,8 +128,8 @@ services:
       timeout: 10s
       retries: 3
     ports:
-      - "6400:8080"
-      - "6450:9090"
+      - "${PORT_TI_CONNECT_TIGER_PROXY:?PORT_TI_CONNECT_TIGER_PROXY missing – set it in doc/docker/.env}:8080"
+      - "${PORT_TI_CONNECT_TIGER_PROXY_ADMIN:?PORT_TI_CONNECT_TIGER_PROXY_ADMIN missing – set it in doc/docker/.env}:9090"
     volumes:
       - ./tiConnectTigerProxy/application.yaml:/app/application.yaml:ro
       - ./tiConnectTigerProxy/tigerProxy.p12:/app/tigerProxy.p12:ro

@@ -41,13 +41,13 @@ import net.serenitybdd.screenplay.Task;
 
 public class InsertEgkCard implements Task {
 
-  private final String cardImage;
+  private final String cardImageName;
   private final int slot;
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   public InsertEgkCard(String cardImage, int slot) {
-    this.cardImage = cardImage;
+    this.cardImageName = cardImage;
     this.slot = slot;
   }
 
@@ -63,10 +63,12 @@ public class InsertEgkCard implements Task {
     Response removeResponse = api.request().delete("/slots/" + slot);
     removeResponse.then().statusCode(anyOf(is(204), is(404)));
 
+    ContentType contentType = cardImageName.endsWith("xml") ? ContentType.XML : ContentType.JSON;
+
     Response insertResponse =
         api.request()
-            .contentType(ContentType.XML)
-            .body(new File("src/test/resources/data/cards/" + cardImage))
+            .contentType(contentType)
+            .body(new File("src/test/resources/data/cards/" + cardImageName))
             .put("/slots/" + slot);
     insertResponse.then().statusCode(201);
 
