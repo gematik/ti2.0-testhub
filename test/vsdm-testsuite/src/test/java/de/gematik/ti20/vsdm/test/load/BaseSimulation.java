@@ -31,6 +31,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.gematik.ti20.vsdm.test.e2e.enums.ProofMethod;
 import io.gatling.javaapi.core.CheckBuilder;
+import io.gatling.javaapi.core.FeederBuilder;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.Simulation;
 import java.time.Duration;
@@ -70,6 +71,14 @@ public class BaseSimulation extends Simulation {
   protected static final String URL_CLIENT_VSDM = CFG.getUrl().getClient().getVsdm();
   protected static final String URL_SERVER_POPP = CFG.getUrl().getServer().getPopp();
   protected static final String URL_SERVER_VSDM = CFG.getUrl().getServer().getVsdm();
+  protected static final String URL_SERVER_ZETA = CFG.getUrl().getServer().getZeta();
+
+  protected static final FeederBuilder.FileBased<String> POPP_TOKEN_FEEDER =
+      csv("feeder/popp_tokens.csv").circular();
+  protected static final FeederBuilder.FileBased<String> SMCB_FEEDER =
+      csv("feeder/smcb_slots.csv").circular();
+  protected static final FeederBuilder.FileBased<String> EGK_FEEDER =
+      csv("feeder/egk_slots.csv").circular();
 
   @NotNull
   protected static List<OpenInjectionStep> getRandomReadVsdSteps() {

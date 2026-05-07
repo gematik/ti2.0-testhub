@@ -24,14 +24,10 @@
  */
 package de.gematik.ti20.vsdm.test.load;
 
-import static de.gematik.ti20.vsdm.test.util.ClasspathUtils.loadClasspathRessourceWithTigerResolving;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.http;
-import static io.gatling.javaapi.http.internal.HttpCheckBuilders.status;
 
-import io.gatling.javaapi.core.FeederBuilder;
 import io.gatling.javaapi.core.OpenInjectionStep;
-import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -42,67 +38,18 @@ public class VsdmClientJourneySimulation extends BaseSimulation {
 
   private static final HttpProtocolBuilder httpProtocol = http.acceptHeader("application/json");
 
-  private static final FeederBuilder.FileBased<String> POPP_TOKEN_FEEDER =
-      csv("feeder/popp_tokens.csv").circular();
-  private static final FeederBuilder.FileBased<String> SMCB_FEEDER =
-      csv("feeder/smcb_slots.csv").circular();
-  private static final FeederBuilder.FileBased<String> EGK_FEEDER =
-      csv("feeder/egk_slots.csv").circular();
-
-  private static final ScenarioBuilder readVsdScenario =
-      scenario("Complete Read VSD Journey")
-          .feed(POPP_TOKEN_FEEDER)
-          .feed(SMCB_FEEDER)
-          .feed(EGK_FEEDER)
-          .exec(
-              http("Removing SMC-B card")
-                  .delete(URL_CLIENT_CARD + "/slots/#{smcb_slot}")
-                  .check(status().in(200, 204, 404)))
-          .exec(
-              http("Inserting SMC-B card")
-                  .put(URL_CLIENT_CARD + "/slots/#{smcb_slot}")
-                  .body(ElFileBody("data/cards/smcbCardImage.xml"))
-                  .asXml()
-                  .check(status().is(201)))
-          .exec(
-              http("Removing eGK card")
-                  .delete(URL_CLIENT_CARD + "/slots/#{egk_slot}")
-                  .check(status().in(200, 204, 404)))
-          .exec(
-              http("Inserting eGK card")
-                  .put(URL_CLIENT_CARD + "/slots/#{egk_slot}")
-                  .body(ElFileBody("data/cards/egkCardData.json"))
-                  .asXml()
-                  .check(status().is(201)))
-          .exec(
-              http("Configuring Terminals")
-                  .put(URL_CLIENT_VSDM + "/client/config/terminal")
-                  .body(
-                      StringBody(
-                          loadClasspathRessourceWithTigerResolving("data/cards/terminal.json")))
-                  .asJson()
-                  .check(status().is(200)))
-          .exec(
-              http("Reading VSD")
-                  .get(URL_CLIENT_VSDM + "/client/vsdm/vsd")
-                  .header("poppToken", "#{popp_token}")
-                  .header("If-None-Match", "0")
-                  .queryParam("terminalId", "#{egk_slot}")
-                  .queryParam("egkSlotId", "#{egk_slot}")
-                  .queryParam("smcBSlotId", "#{smcb_slot}")
-                  .queryParam("isFhirXml", false)
-                  .check(status().is(200)));
-
   {
     if (RANDOM_READ_VSD) {
       List<OpenInjectionStep> randomReadVsdSteps = getRandomReadVsdSteps();
-      setUp(readVsdScenario.injectOpen(randomReadVsdSteps)).protocols(httpProtocol);
+      setUp(VsdmClientJourneyModule.readVsdScenario().injectOpen(randomReadVsdSteps))
+          .protocols(httpProtocol);
     } else {
       setUp(
-              readVsdScenario.injectOpen(
-                  rampUsersPerSec(RAMP_USERS_STEADY_NUMBER)
-                      .to(RAMP_USERS_STEADY_NUMBER)
-                      .during(RAMP_USERS_STEADY_DURATION)))
+              VsdmClientJourneyModule.readVsdScenario()
+                  .injectOpen(
+                      rampUsersPerSec(RAMP_USERS_STEADY_NUMBER)
+                          .to(RAMP_USERS_STEADY_NUMBER)
+                          .during(RAMP_USERS_STEADY_DURATION)))
           .protocols(httpProtocol);
     }
   }
