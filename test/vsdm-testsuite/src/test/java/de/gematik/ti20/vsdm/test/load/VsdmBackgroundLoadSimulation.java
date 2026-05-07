@@ -28,7 +28,6 @@ import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.internal.HttpCheckBuilders.status;
 
-import io.gatling.javaapi.core.FeederBuilder;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
@@ -42,31 +41,41 @@ public class VsdmBackgroundLoadSimulation extends BaseSimulation {
   private static final HttpProtocolBuilder httpProtocol =
       http.acceptHeader("application/fhir+json");
 
-  private static final FeederBuilder.FileBased<String> POPP_TOKEN_CONTENT_FEEDER =
-      csv("feeder/popp_token_contents.csv").circular();
+  private static final ScenarioBuilder readVsdScenario;
 
-  private static final ScenarioBuilder readVsdScenario =
-      scenario("ReadVSD using PoPP-Token-Feeder")
-          .feed(POPP_TOKEN_CONTENT_FEEDER)
-          .exec(
-              http("ReadVSD")
-                  .get(URL_SERVER_VSDM + "/vsdservice/v1/vsdmbundle")
-                  .header("zeta-popp-token-content", "#{popp_token_content}")
-                  .header("zeta-user-info", session -> getZetaUserInfo())
-                  .header("if-none-match", "0")
-                  .check(status().is(200)));
+  static {
+    readVsdScenario =
+        scenario("GET VSD from VSDM Server")
+            .feed(POPP_TOKEN_FEEDER)
+            .exec(VsdmClientTokenModule.getTokenChain())
+            .exec(
+                http("GET VSD from VSDM Server")
+                    .get(URL_SERVER_ZETA + "/vsdservice/v1/vsdmbundle")
+                    .header("authorization", "DPoP #{access_token}")
+                    .header("dpop", "#{dpop_token}")
+                    .header("popp", "#{popp_token}")
+                    .header("if-none-match", "0")
+                    .check(status().is(200)));
+  }
 
   {
     if (RANDOM_READ_VSD) {
       List<OpenInjectionStep> randomReadVsdSteps = getRandomReadVsdSteps();
-      setUp(readVsdScenario.injectOpen(randomReadVsdSteps)).protocols(httpProtocol);
+      setUp(
+          VsdmClientJourneyModule.readVsdScenario()
+              .injectOpen(atOnceUsers(1))
+              .andThen(readVsdScenario.injectOpen(randomReadVsdSteps))
+              .protocols(httpProtocol));
     } else {
       setUp(
-              readVsdScenario.injectOpen(
-                  rampUsersPerSec(RAMP_USERS_STEADY_NUMBER)
-                      .to(RAMP_USERS_STEADY_NUMBER)
-                      .during(RAMP_USERS_STEADY_DURATION)))
-          .protocols(httpProtocol);
+          VsdmClientJourneyModule.readVsdScenario()
+              .injectOpen(atOnceUsers(1))
+              .andThen(
+                  readVsdScenario.injectOpen(
+                      rampUsersPerSec(RAMP_USERS_STEADY_NUMBER)
+                          .to(RAMP_USERS_STEADY_NUMBER)
+                          .during(RAMP_USERS_STEADY_DURATION)))
+              .protocols(httpProtocol));
     }
   }
 }

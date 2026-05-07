@@ -71,6 +71,7 @@ services:
     environment:
       <<: *no-proxy-env
       VSDM_USE_MOCK_POPP_TOKEN: "true"
+      INTERCEPT_STORAGE: "false"
       POPP_HTTP_URL: http://popp-client:8081/token
       POPP_TOKEN_GENERATOR_URL: http://popp-token-generator:80
       VSDM_RESOURCE_SERVER_URL: https://vsdm-zeta-ingress
@@ -174,5 +175,7 @@ services:
     extends:
       service: vsdm-client-base
     profiles: [ "perf" ]
+    environment:
+      - INTERCEPT_STORAGE=true
     networks:
       - testhub_backend

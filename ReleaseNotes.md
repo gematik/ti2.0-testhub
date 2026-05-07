@@ -2,6 +2,13 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 2.4.0
+
+### Changes
+
+- TESTHUB-126: Update VsdmBackgroundLoadSimulation to send load directly to the Zeta guard using access and dpop tokens.
+- TESTHUB-127: Update project dependencies to latest versions.
+
 ## Release 2.3.0
 
 ### Update Notes

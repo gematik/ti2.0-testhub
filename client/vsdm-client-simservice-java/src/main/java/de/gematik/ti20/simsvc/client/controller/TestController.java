@@ -29,6 +29,7 @@ import de.gematik.ti20.client.card.terminal.CardTerminalException;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
 import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
+import de.gematik.ti20.simsvc.client.service.TestService;
 import de.gematik.ti20.simsvc.client.service.VsdmClientService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,14 +50,18 @@ public class TestController {
   private final VsdmDataRepository vsdmDataRepository;
 
   private final VsdmClientService vsdmClientService;
+  private final TestService testService;
 
+  @Autowired
   public TestController(
-      final @Autowired PoppTokenRepository poppTokenRepository,
-      final @Autowired VsdmDataRepository vsdmDataRepository,
-      final @Autowired VsdmClientService vsdmClientService) {
+      final PoppTokenRepository poppTokenRepository,
+      final VsdmDataRepository vsdmDataRepository,
+      final VsdmClientService vsdmClientService,
+      final TestService testService) {
     this.poppTokenRepository = poppTokenRepository;
     this.vsdmDataRepository = vsdmDataRepository;
     this.vsdmClientService = vsdmClientService;
+    this.testService = testService;
   }
 
   @GetMapping("/poppToken")
@@ -106,5 +111,26 @@ public class TestController {
     }
 
     return ResponseEntity.ok(egkData);
+  }
+
+  @GetMapping("/accessToken")
+  public ResponseEntity<String> readAccessToken() {
+    log.info("readAccessToken called, InterceptStorage is {}", System.getenv("INTERCEPT_STORAGE"));
+
+    final String at = testService.getAccessToken();
+    return ResponseEntity.ok(at);
+  }
+
+  @GetMapping("/dpopToken")
+  public ResponseEntity<String> readDpopToken(
+      @RequestParam final String htm, @RequestParam final String htu) throws Exception {
+    log.info(
+        "readAccessToken called with htm={}, htu={}, InterceptStorage is {}",
+        htm,
+        htu,
+        System.getenv("INTERCEPT_STORAGE"));
+
+    final String dpop = testService.getDpopToken(htm, htu);
+    return ResponseEntity.ok(dpop);
   }
 }

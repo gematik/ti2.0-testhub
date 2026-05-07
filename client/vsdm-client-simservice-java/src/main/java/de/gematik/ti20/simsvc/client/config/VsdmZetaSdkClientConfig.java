@@ -24,6 +24,7 @@
  */
 package de.gematik.ti20.simsvc.client.config;
 
+import de.gematik.ti20.simsvc.client.util.StorageInterceptor;
 import de.gematik.zeta.sdk.BuildConfig;
 import de.gematik.zeta.sdk.StorageConfig;
 import de.gematik.zeta.sdk.TpmConfig;
@@ -61,8 +62,25 @@ public class VsdmZetaSdkClientConfig {
 
   private String smcbPrivateKeyPath;
 
+  private boolean interceptStorage;
+
   @Bean
-  public ZetaSdkClient vsdmServiceClient(final VsdmClientConfig vsdmConfig) {
+  StorageInterceptor storageInterceptor(final VsdmClientConfig vsdmConfig) {
+    return new StorageInterceptor();
+  }
+
+  @Bean
+  public StorageConfig storageConfig(final StorageInterceptor storageInterceptor) {
+    if (interceptStorage) {
+      return new StorageConfig(storageInterceptor, "7aae7xXr8rnzVqjpYbosS0CFMrlprkD7jbVotm0fd+w=");
+    } else {
+      return new StorageConfig();
+    }
+  }
+
+  @Bean
+  public ZetaSdkClient vsdmServiceClient(
+      final VsdmClientConfig vsdmConfig, final StorageConfig storageConfig) {
     boolean disableServerValidation = true;
 
     return ZetaSdk.INSTANCE.build(
@@ -71,7 +89,7 @@ public class VsdmZetaSdkClientConfig {
             "demo-client",
             "0.2.0",
             "sdk-client",
-            new StorageConfig(),
+            storageConfig,
             new TpmConfig() {},
             new AuthConfig(
                 List.of("zero:audience"),

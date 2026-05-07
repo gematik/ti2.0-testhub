@@ -101,7 +101,7 @@ Die E2E-Tests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis ge
 ./mvnw -pl test/vsdm-testsuite/ clean verify -Dcucumber.filter.tags="@TYPE:E2E" -Dskip.inttests=false
 ```
 
-## Lasttests
+## Lasttests (Tiger)
 
 Die VSDM 2.0 Testsuite enthält aktuell vier Lasttests, welche die Antwortzeiten der VSDM 2.0 Server Simulation prüfen.
 Hierbei werden die beiden Varianten Antwort HTTP Code 200 mit VSD und HTTP Code 304 ohne VSD sowie einzelne und
@@ -125,7 +125,7 @@ Die Lasttests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis ge
 ./mvnw -pl test/vsdm-testsuite/ clean verify -Dcucumber.filter.tags="@TYPE:LOAD" -Dvsdm.loadtesting.active=true -Dskip.inttests=false
 ```
 
-## Gatling-Simulationen
+## Lasttests (Gatling)
 
 Die VSDM 2.0 Testsuite enthält mehrere Lasttest-Simulationen basierend auf Gatling, welche sich im Ablauf unterscheiden
 und für unterschiedliche Zwecke einsetzbar sind.
@@ -148,30 +148,6 @@ Simulation kann mittels Maven und folgender Kommandozeile im Projekt-Root-Verzei
 ./mvnw -pl test/vsdm-testsuite/ gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.GeneratePoppTokenSimulation
 ```
 
-### PoppVsdmServerSimulation.java
-
-Diese Simulation ruft zuerst den PoppTokenGenerator mit einer Kombination aus IK- und KVNR auf, welcher einen gültigen
-Popp-Token zurückliefert. Danach wird dieser Popp-Token während der Abfrage der VSD vom VsdmServerSimulator verwendet.
-Die Simulation kann mittels Maven und folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
-
-```bash
-./mvnw -pl test/vsdm-testsuite/ gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.PoppVsdmServerSimulation
-```
-
-### VsdmClientJourneySimulation.java
-
-Diese Simulation simuliert den kompletten Ablauf vom Einstecken der Karten, über die Erlangung des Versorgungskontextes
-bis hin zur Abfrage der VSD vom Fachdienst VSDM 2.0 und kann im Projekt-Root-Verzeichnis wie folgt gestartet werden:
-
-```bash
-./mvnw -pl test/vsdm-testsuite/ gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmClientJourneySimulation
-```
-
-> [!NOTE]
-> Durch die aktuelle Integration weiterer Tiger-Komponenten, welche die Client-Simulationen starten und mehrere
-> Proxies in den Datenverkehr einschleusen, ist die Lauffähigkeit der Lastsimulation "VsdmClientJourneySimulation"
-> beeinträchtigt. Es wird empfohlen, die Last entsprechend zu reduzieren. Siehe "Konfiguration der Simulation".
-
 ### VsdmBackgroundLoadSimulation.java
 
 Diese Simulation verwendet die, von der GeneratePoppTokenSimulation erzeugte, Liste aus Popp-Token, fragt die VSD vom
@@ -182,11 +158,16 @@ Die Simulation kann mittels Maven und folgender Kommandozeile im Projekt-Root-Ve
 ./mvnw -pl test/vsdm-testsuite/ gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmBackgroundLoadSimulation
 ```
 
+> [!TIP]
+> Der Standardwert für den Access-Token beträgt 300 Sekunden, sodass der ZETA Guard nach dieser Zeitspanne nicht mit 200
+> OK, sondern mit 401 UNAUTHORIZED antworten würde. Die Gültigkeitsdauer (TTL) des Access-Tokens lässt sich in der Datei
+> "doc/docker/backend/zeta/policies/authz.rego" jedoch erhöhen.
+
 ### Konfiguration der Simulationen
 
 Die Lastverteilung ist aktuell in der Datei "simulation.conf" so konfiguriert, dass diese eine zufällige Last im Bereich
-von 5 und 25 Aufrufen über einen Zeitraum von 300 Sekunden versendet. Wird der Parameter "randomReadVsd" in dieser Datei
-auf den Wert "false" gesetzt, werden stattdessen konstant 25 Aufrufe über einen Zeitraum von 60 Sekunden gesendet.
+von 95 und 105 Aufrufen über einen Zeitraum von 100 Sekunden versendet. Wird der Parameter "randomReadVsd" in dieser Datei
+auf den Wert "false" gesetzt, werden stattdessen konstant 100 Aufrufe über einen Zeitraum von 100 Sekunden gesendet.
 
 Der Anwender kann auch eine eigene Konfigurationsdatei, welche sich im Resource-Ordner befinden sollte, definieren. Die
 eigene Datei muss sich jedoch strukturell an der Datei "simulation.conf" orientieren. Für eine Datei mit dem Pfad

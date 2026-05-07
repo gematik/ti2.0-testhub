@@ -49,6 +49,7 @@ public class SimulationConfigBean {
     public static class Server {
       private String popp;
       private String vsdm;
+      private String zeta;
     }
   }
 
