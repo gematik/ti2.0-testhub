@@ -44,6 +44,7 @@ import io.cucumber.java.de.Und;
 import io.cucumber.java.de.Wenn;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
@@ -324,10 +325,11 @@ public class VsdmSteps {
     }
   }
 
-  @Wenn("das Primärsystem die VSD mit einer ungültigen IK-Nummer vom VSDM Ressource Server abfragt")
-  public void whenClientSystemIsRequestingVsdWithInvalidIkNumber() {
+  @Wenn(
+      "das Primärsystem die VSD mit einer ungültigen IK {string} vom VSDM Ressource Server abfragt")
+  public void whenClientSystemIsRequestingVsdWithInvalidIkNumber(String invalidIk) {
     EgkCardInfo egk = hccs().recall("egkCardInfo");
-    egk.setIknr("WRONG_IKNR");
+    egk.setIknr(invalidIk);
     hccs().attemptsTo(GeneratePoppToken.now());
     hccs()
         .attemptsTo(
@@ -336,10 +338,10 @@ public class VsdmSteps {
   }
 
   @Wenn(
-      "das Primärsystem die VSD mit einer unbekannten IK-Nummer vom VSDM Ressource Server abfragt")
-  public void whenClientSystemIsRequestingVsdWithUnknownIkNumber() {
+      "das Primärsystem die VSD mit einer unbekannten IK {string} vom VSDM Ressource Server abfragt")
+  public void whenClientSystemIsRequestingVsdWithUnknownIkNumber(String unknownIk) {
     EgkCardInfo egk = hccs().recall("egkCardInfo");
-    egk.setIknr("123456789"); // Well-known IK: 109500969
+    egk.setIknr(unknownIk);
     hccs().attemptsTo(GeneratePoppToken.now());
     hccs()
         .attemptsTo(
@@ -369,10 +371,11 @@ public class VsdmSteps {
                 "\"0\"", hccs().recall("poppToken"), false, null));
   }
 
-  @Wenn("das Primärsystem die VSD mit einer ungültigen KV-Nummer vom VSDM Ressource Server abfragt")
-  public void whenClientSystemIsRequestingVsdWithInvalidKvNumber() {
+  @Wenn(
+      "das Primärsystem die VSD mit einer ungültigen KVNR {string} vom VSDM Ressource Server abfragt")
+  public void whenClientSystemIsRequestingVsdWithInvalidKvnr(String invalidKvnr) {
     EgkCardInfo egk = hccs().recall("egkCardInfo");
-    egk.setKvnr("WRONG_KVNR");
+    egk.setKvnr(invalidKvnr);
     hccs().attemptsTo(GeneratePoppToken.now());
     hccs()
         .attemptsTo(
@@ -381,10 +384,10 @@ public class VsdmSteps {
   }
 
   @Wenn(
-      "das Primärsystem die VSD mit einer unbekannten KV-Nummer vom VSDM Ressource Server abfragt")
-  public void whenClientSystemIsRequestingVsdWithUnknownKvNumber() {
+      "das Primärsystem die VSD mit einer unbekannten KVNR {string} vom VSDM Ressource Server abfragt")
+  public void whenClientSystemIsRequestingVsdWithUnknownKvnr(String unknownKvnr) {
     EgkCardInfo egk = hccs().recall("egkCardInfo");
-    egk.setKvnr("X987654321");
+    egk.setKvnr(resolveEnvPlaceholder(unknownKvnr));
     hccs().attemptsTo(GeneratePoppToken.now());
     hccs()
         .attemptsTo(
@@ -415,6 +418,25 @@ public class VsdmSteps {
     hccs().should(seeThat(LastOperationOutcome.value(), is(notNullValue())));
     hccs().should(seeThat(LastOperationOutcome.code(), is(errorCode)));
     hccs().should(seeThat(LastOperationOutcome.text(), is(Error.valueOf(errorCode).getValue())));
+  }
+
+  @Dann(
+      "antwortet der VSDM Ressource Server mit dem Fehlercode {int} und dem Text {string} {string}")
+  public void thenVsdmAnswersWithErrorCodeAndTextAndValue(
+      Integer httpCode, String errorValue, String errorCode) {
+    hccs().should(seeThat(LastStatusCode.value(), is(httpCode)));
+    hccs().should(seeThat(LastOperationOutcome.value(), is(notNullValue())));
+    hccs().should(seeThat(LastOperationOutcome.code(), is(errorCode)));
+
+    String errorWithValue;
+    if (Objects.equals(errorCode, "VSDSERVICE_UNKNOWN_KVNR")) {
+      EgkCardInfo egkCardInfo = hccs().recall("egkCardInfo");
+      egkCardInfo.setKvnr(errorValue);
+      errorWithValue = Error.valueOf(errorCode).resolvePlaceholder(egkCardInfo);
+    } else {
+      errorWithValue = Error.valueOf(errorCode).resolvePlaceholder(errorValue);
+    }
+    hccs().should(seeThat(LastOperationOutcome.text(), matchesPattern(errorWithValue)));
   }
 
   @Dann("antwortet der ZETA Guard mit dem Fehlercode {int} und dem Text {string}")

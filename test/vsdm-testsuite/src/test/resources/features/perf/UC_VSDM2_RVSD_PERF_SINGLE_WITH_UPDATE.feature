@@ -35,5 +35,5 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0 unte
     Und die Antwortzeit des Fachdienstes VSDM 2.0 überschreitet nicht den Maximalwert von <Max-Answer-Time> ms
 
     Beispiele:
-      | Smcb-Card           | Smcb-Slot | Egk-Card           | Egk-Slot | Calls-Per-Sec | Max-Answer-Time | Http-Code |
-      | "smcbCardImage.xml" | 2001      | "egkCardData.json" | 2002     | 100           | 1000            | 200       |
+      | Smcb-Card           | Smcb-Slot | Egk-Card                                  | Egk-Slot | Calls-Per-Sec | Max-Answer-Time | Http-Code |
+      | "smcbCardImage.xml" | 2001      | "${EGK_CARD_IMAGE_FILE:egkCardData.json}" | 2002     | 100           | 1000            | 200       |

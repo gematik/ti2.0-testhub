@@ -349,7 +349,9 @@ class VsdmServerIT {
     assertNotNull(cc);
 
     assertEquals("VSDSERVICE_INVALID_KVNR", cc.getCoding().getFirst().getCode());
-    assertEquals("[kvnr] aus dem PoPP-Token weist Formatfehler auf.", cc.getText());
+    assertEquals(
+        "Krankenversichertennummer 'X9110639492' aus dem PoPP-Token weist Formatfehler auf.",
+        cc.getText());
   }
 
   @Test
@@ -375,7 +377,9 @@ class VsdmServerIT {
     final CodeableConcept cc = vsdmOperationOutcome.getIssue().getFirst().getDetails();
     assertNotNull(cc);
     assertEquals("VSDSERVICE_UNKNOWN_IK", cc.getCoding().getFirst().getCode());
-    assertEquals("[ik] aus dem PoPP-Token ist dem Fachdienst nicht bekannt.", cc.getText());
+    assertEquals(
+        "Institutionskennung '109500971' aus dem PoPP-Token ist dem Fachdienst nicht bekannt.",
+        cc.getText());
   }
 
   @Test
@@ -401,7 +405,9 @@ class VsdmServerIT {
     final CodeableConcept cc = vsdmOperationOutcome.getIssue().getFirst().getDetails();
     assertNotNull(cc);
     assertEquals("VSDSERVICE_INVALID_IK", cc.getCoding().getFirst().getCode());
-    assertEquals("[ik] aus dem PoPP-Token weist Formatfehler auf.", cc.getText());
+    assertEquals(
+        "Institutionskennung '10950097123' aus dem PoPP-Token weist Formatfehler auf.",
+        cc.getText());
   }
 
   @Test
@@ -618,7 +624,7 @@ class VsdmServerIT {
     final CodeableConcept cc = vsdmOperationOutcome.getIssue().getFirst().getDetails();
     assertNotNull(cc);
     assertEquals(
-        "Die vom Clientsystem angefragte Profilversion [version] wird nicht unterstützt.",
+        "Die vom Clientsystem angefragte Profilversion 'unknown' wird nicht unterstützt.",
         cc.getText());
   }
 

@@ -6,7 +6,7 @@
 Funktionalität: Import von Daten in eGK-Hash-Datenbank
 
   @TCID:UC_PoPP_Import_eGK_hashDb_Valid
-  @STATUS:InBearbeitung
+  @STATUS:Implementiert
   @MODUS:Automatisch
   @TESTFALL:Positiv
   @TESTSTUFE:3
@@ -33,7 +33,7 @@ Funktionalität: Import von Daten in eGK-Hash-Datenbank
 
 
   @TCID:UC_PoPP_Delete_eGK_hashDb_Valid
-  @STATUS:InBearbeitung
+  @STATUS:Implementiert
   @MODUS:Automatisch
   @TESTFALL:Positiv
   @TESTSTUFE:3
@@ -66,3 +66,31 @@ Funktionalität: Import von Daten in eGK-Hash-Datenbank
     Und warte für "30" Sekunden
     Wenn der TSP fragt das Ergebnis des Jobs mit der jobID "${job_id_delete}" ab
     Und der TSP löscht den abgeschlossenen Auftrag mit der JobId "${job_id_delete}"
+
+
+  @TCID:UC_PoPP_hashDb_getJobIds_Valid
+  @STATUS:Implementiert
+  @MODUS:Automatisch
+  @TESTFALL:Positiv
+  @TESTSTUFE:3
+  @PRIO:1
+  @DESCRIPTION
+
+  Szenario: Erfolgreiches Abrufen der jobId
+
+  Dieser Testfall testet die Abfrage einer zuvor vergebenen JobId. Ist kein Job offen, so wird eine leere Liste zurückgegeben.
+  Gibt es einen noch nicht gelöschten Job, so wird die JobId zurückgegeben.
+
+    Angenommen TGR lösche aufgezeichnete Nachrichten
+    Und der TSP verwendet die Client Identität "tspEgkTlsValid" für die mTLS-Verbindung zum PoPP-Service
+    Wenn der TSP erfragt seine jobID
+    Dann der TSP erhält eine positive Rückmeldung mit einer leeren jobID-Liste
+    Angenommen TGR lösche aufgezeichnete Nachrichten
+    Und der TSP sendet den signierten eContent "80276883110000144098.eContent-signed" zum importieren an den PoPP Service
+    Dann der TSP erhält eine positive Rückmeldung mit einer jobID
+    Und TGR find first request to path "/api/v1/hash-db/import"
+    Und TGR set local variable "job_id_import" to "!{rbel:currentResponseAsString('$.body.jobId')}"
+    Wenn TGR lösche aufgezeichnete Nachrichten
+    Und der TSP erfragt seine jobID
+    Dann der TSP erhält eine positive Rückmeldung mit einer jobID und diese entspricht "${job_id_import}"
+    Und der TSP löscht den abgeschlossenen Auftrag mit der JobId "${job_id_import}"

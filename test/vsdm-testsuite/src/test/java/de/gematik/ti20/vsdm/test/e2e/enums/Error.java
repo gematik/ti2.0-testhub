@@ -24,18 +24,22 @@
  */
 package de.gematik.ti20.vsdm.test.e2e.enums;
 
+import de.gematik.ti20.vsdm.test.e2e.models.EgkCardInfo;
 import lombok.Getter;
 
 @Getter
 public enum Error {
-  VSDSERVICE_INVALID_IK("[ik] aus dem PoPP-Token weist Formatfehler auf."),
-  VSDSERVICE_INVALID_KVNR("[kvnr] aus dem PoPP-Token weist Formatfehler auf."),
-  VSDSERVICE_UNKNOWN_IK("[ik] aus dem PoPP-Token ist dem Fachdienst nicht bekannt."),
-  VSDSERVICE_UNKNOWN_KVNR("[kvnr] aus dem PoPP-Token ist dem Fachdienst nicht bekannt."),
+  VSDSERVICE_INVALID_IK("Institutionskennung '[ik]' aus dem PoPP-Token weist Formatfehler auf."),
+  VSDSERVICE_INVALID_KVNR(
+      "Krankenversichertennummer '[kvnr]' aus dem PoPP-Token weist Formatfehler auf."),
+  VSDSERVICE_UNKNOWN_IK(
+      "Institutionskennung '[ik]' aus dem PoPP-Token ist dem Fachdienst nicht bekannt."),
+  VSDSERVICE_UNKNOWN_KVNR(
+      "Krankenversichertennummer '[kvnr]' aus dem PoPP-Token ist dem Fachdienst zur Institutionskennung '[ik]' nicht bekannt."),
   VSDSERVICE_MISSING_PATIENT_RECORD_VERSION(
-      "Der erforderliche Änderungsindikator [etag_value] fehlt in der Anfrage."),
+      "Der erforderliche Änderungsindikator im Header If-None-Match fehlt."),
   VSDSERVICE_INVALID_PROFILE_VERSION(
-      "Die vom Clientsystem angefragte Profilversion [version] wird nicht unterstützt."),
+      "Die vom Clientsystem angefragte Profilversion '[version]' wird nicht unterstützt."),
   VSDSERVICE_MISSING_PROFILE_VERSION("Der erforderliche Query-Parameter 'profileVersion' fehlt."),
   SERVICE_INTERNAL_SERVER_ERROR("Ein unerwarteter interner Fehler ist aufgetreten."),
   ;
@@ -44,5 +48,15 @@ public enum Error {
 
   Error(String value) {
     this.value = value;
+  }
+
+  public String resolvePlaceholder(String replacement) {
+    return value.replaceFirst("\\[[^]]+]", replacement);
+  }
+
+  public String resolvePlaceholder(EgkCardInfo egkCardInfo) {
+    return value
+        .replaceFirst("\\[[^]]+]", egkCardInfo.getKvnr())
+        .replaceFirst("\\[[^]]+]", egkCardInfo.getIknr());
   }
 }

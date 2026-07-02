@@ -85,8 +85,11 @@ public class RequestVsdFromServer implements Task {
             .queryParam("terminalId", "0")
             .queryParam("isFhirXml", isFhirXml)
             .queryParam("smcBSlotId", smcbSlot)
-            .queryParam("egkSlotId", egkSlot)
-            .queryParam("profileVersion", profileVersion);
+            .queryParam("egkSlotId", egkSlot);
+
+    if (profileVersion != null) {
+      request.queryParam("profileVersion", profileVersion);
+    }
 
     if (etag != null) {
       request.header("If-None-Match", etag);

@@ -2,7 +2,7 @@
 #noinspection NonAsciiCharacters,SpellCheckingInspection
 
 @PRODUKT:VSDM_2_FD
-@AFO-ID:A_27012-03
+@AFO-ID:A_27012-06
 @TYPE:ERROR
 Funktionalität: Fehlerbehandlung VSDM 2.0
 
@@ -26,5 +26,5 @@ Funktionalität: Fehlerbehandlung VSDM 2.0
     Dann antwortet der VSDM Ressource Server mit dem Fehlercode <Http-Code> und dem Text <Error-Code>
 
     Beispiele:
-      | Smcb-Card           | Smcb-Slot | Egk-Card           | Egk-Slot | Http-Code | Error-Code                                  |
-      | "smcbCardImage.xml" | 1         | "egkCardData.json" | 2        | 428       | "VSDSERVICE_MISSING_PATIENT_RECORD_VERSION" |
+      | Smcb-Card           | Smcb-Slot | Egk-Card                                  | Egk-Slot | Http-Code | Error-Code                                  |
+      | "smcbCardImage.xml" | 1         | "${EGK_CARD_IMAGE_FILE:egkCardData.json}" | 2        | 428       | "VSDSERVICE_MISSING_PATIENT_RECORD_VERSION" |

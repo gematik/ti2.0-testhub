@@ -26,6 +26,7 @@ package de.gematik.ti20.simsvc.server.exception;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,5 +72,28 @@ class GlobalExceptionHandlerTest {
     assertThat(response.getBody())
         .contains(
             "{\"error\": \"MISSING_HEADER_POPP\", \"error_description\": \"Header ZETA-PoPP-Token-Content fehlt.\"}");
+  }
+
+  @Test
+  void thatVsdmErrorIsMappedWithStatusAndInterpolation() {
+    final VsdmErrorException ex =
+        new VsdmErrorException(ErrorCase.VSDSERVICE_INVALID_IK, Map.of("ik", "A123456789"));
+
+    final ResponseEntity<String> response = globalExceptionHandler.handleVsdmErrorException(ex);
+
+    assertThat(response.getStatusCode().value()).isEqualTo(400);
+    assertThat(response.getBody()).contains("VSDSERVICE_INVALID_IK");
+    assertThat(response.getBody()).contains("A123456789");
+    assertThat(response.getBody()).doesNotContain("[ik]");
+  }
+
+  @Test
+  void thatVsdmErrorWithoutErrorCaseFallsBackToInternalServerError() {
+    final VsdmErrorException ex = new VsdmErrorException(null, Map.of("ik", "A123456789"));
+
+    final ResponseEntity<String> response = globalExceptionHandler.handleVsdmErrorException(ex);
+
+    assertThat(response.getStatusCode().value()).isEqualTo(500);
+    assertThat(response.getBody()).contains("SERVICE_INTERNAL_SERVER_ERROR");
   }
 }

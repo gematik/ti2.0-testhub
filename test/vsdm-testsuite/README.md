@@ -63,7 +63,7 @@ den Card, den PoPP und den VSDM Client Simulator. Diese kommunizieren mit den je
 mit den realen Servern.
 
 <br/>
-<img width="1108" height="744" src="./src/test/resources/images/TI20_TestHub_Stufe_7.png" alt=""/>
+<img src="./src/test/resources/images/TI20_TestHub_Stufe_7.png" alt="" style="border: 1px solid black;"/>
 <br/>
 
 ## Integrationstests
@@ -99,7 +99,7 @@ antwortet. In diesem Fall liest das PS die wichtigsten VSD von der eGK direkt. T
 Die E2E-Tests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
 ```
-./mvnw -pl test/vsdm-testsuite/ clean verify -Dcucumber.filter.tags="@TYPE:E2E" -Dskip.inttests=false
+./mvnw -pl test/vsdm-testsuite/ verify -Dcucumber.filter.tags="@TYPE:E2E" -Dskip.inttests=false
 ```
 
 ## ERROR-Tests
@@ -119,7 +119,7 @@ Die folgenden Error-Codes werden getestet:
 Die ERROR-Tests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
 ```
-./mvnw -pl test/vsdm-testsuite/ clean verify -Dcucumber.filter.tags="@TYPE:ERROR" -Dskip.inttests=false
+./mvnw -pl test/vsdm-testsuite/ verify -Dcucumber.filter.tags="@TYPE:ERROR" -Dskip.inttests=false
 ```
 
 ## PERF-Tests
@@ -143,7 +143,7 @@ Testfälle:
 Die Lasttests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
 ```
-./mvnw -pl test/vsdm-testsuite/ clean verify -Dcucumber.filter.tags="@TYPE:PERF" -Dvsdm.loadtesting.active=true -Dskip.inttests=false
+./mvnw -pl test/vsdm-testsuite/ verify -Dcucumber.filter.tags="@TYPE:PERF" -Dvsdm.loadtesting.active=true -Dskip.inttests=false
 ```
 
 ## Lasttest-Simulationen

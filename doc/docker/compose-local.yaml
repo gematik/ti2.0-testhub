@@ -1,4 +1,4 @@
-name: "testhub-local"
+name: "testhub-${ENV_NAME:-local}"
 
 include:
   - path: ./backend/compose-backend.yaml
@@ -76,7 +76,7 @@ services:
     environment:
       <<: *no-proxy-env
       VSDM_USE_MOCK_POPP_TOKEN: ${VSDM_USE_MOCK_POPP_TOKEN:-true}
-      INTERCEPT_STORAGE: false
+      INTERCEPT_STORAGE: ${INTERCEPT_STORAGE:-false}
       POPP_HTTP_URL: http://popp-client:8081/token
       POPP_TOKEN_GENERATOR_URL: http://popp-token-generator:80
       VSDM_RESOURCE_SERVER_URL: ${VSDM_RESOURCE_SERVER_URL:-https://vsdm-zeta-ingress}
@@ -147,7 +147,7 @@ services:
       service: vsdm-client-base
     profiles: [ "full", "ps-only" ]
     environment:
-      - VSDM_USE_MOCK_POPP_TOKEN=false
+      - VSDM_USE_MOCK_POPP_TOKEN=${VSDM_USE_MOCK_POPP_TOKEN:-false}
     networks:
       - testhub_client
 

@@ -44,7 +44,7 @@ final class VsdmClientTokenModule extends BaseSimulation {
             http("GET DPoP Token")
                 .get(URL_CLIENT_VSDM + "/client/test/dpopToken")
                 .queryParam("htm", "GET")
-                .queryParam("htu", "https://vsdm-zeta-ingress/vsdservice/v1/vsdmbundle")
+                .queryParam("htu", URL_SERVER_ZETA + "/vsdservice/v1/vsdmbundle")
                 .check(status().is(200))
                 .check(bodyString().saveAs("dpop_token")));
   }

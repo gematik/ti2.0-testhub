@@ -2,6 +2,16 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.6.0
+
+### Changes
+
+- TESTHUB-112: add documentation about how to use podman
+- TESTHUB-169: update BDE messages and resolve placeholder values in vsdm-testsuite
+- TESTHUB-175: add documentation about testing configuration with .env files
+- TESTHUB-181: update Popp components to use Zeta 1.2.x
+- PTVSDM-1637: load test preparations for provider approval phase
+
 ## Release 3.5.0
 
 ### Update Notes
@@ -11,7 +21,7 @@
 OPA is used to enforce authorization policies. In this version we have added a
 policy to verify that authorization tokens use the scope defined in the VSDM 2.0
 specification: `vsdservice`. Ensure you are updating custom code that uses the
-old `zero:audience` scope. Otherwise you will see error messages mentioning an
+old `zero:audience` scope. Otherwise, you will see error messages mentioning an
 invalid, unknown or forbidden scope.
 
 The PDP (Keycloak) configuration was adjusted too.

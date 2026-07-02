@@ -89,6 +89,51 @@ Each service can be configured via environment variables. Key configuration opti
 - `POPP_HTTP_URL` - PoPP service HTTP URL
 - `VSDM_RESOURCE_SERVER_URL` - VSDM service HTTP URL
 
+=== Test Environment Configuration via `.env` File
+To simply switch between different configuration for testing purposes one can apply additional `.env` files with the
+parameter `--env_file` when starting docker compose setup. Each `.env` file is defined with its own parameter:
+```shell
+docker compose -f ./doc/docker/compose-local.yaml --env-file=./doc/docker/.env --env-file=./doc/docker/env-private/.my-own.env --profile ps-only
+```
+
+The table below contains a list of currently used parameters used to overwrite corresponding variables in the docker
+compose YAMLs.
+
+.Test environment parameters
+[cols="1,1,3", options="header"]
+|===
+|Parameter |Default |Meaning
+
+|ENV_NAME
+|testhub-local
+|The docker compose name enhanced by environment name which should correspond to .env file's name.
+
+|SMCB_FILE
+|smcb_private.p12
+|The SMCB private key used by VSDM client simulation and PoPP example client as well.
+
+|VIRTUAL_CARD_IMAGE_FILE
+|/data/cards/egkCardImage.xml
+|The eGK image used by PoPP example client and vsdm testsuite as well.
+
+|VSDM_USE_MOCK_POPP_TOKEN
+|false
+|Switch between PoPP token generator and PoPP service provided by RISE.
+
+|VSDM_RESOURCE_SERVER_URL
+|https://vsdm-zeta-ingress
+|The VSDM server used for testing.
+
+|POPP_SERVER_URL
+|wss://popp-zeta-ingress:443/ws
+|The PoPP server used for testing. Should be set to 'UNUSED' when PoPP token generator is applied.
+|===
+
+Two examples demonstrating the usage of a real PoPP service or the PoPP token generator can be found here:
+
+* `doc/docker/.dev-with-popp-service-rise.env`
+* `doc/docker/.dev-with-popp-token-generator.env`
+
 === Docker Compose Profiles
 
 The Testhub supports different startup profiles for various use cases:

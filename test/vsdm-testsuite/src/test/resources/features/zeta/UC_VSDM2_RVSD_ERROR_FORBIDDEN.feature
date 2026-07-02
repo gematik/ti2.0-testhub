@@ -2,7 +2,7 @@
 #noinspection NonAsciiCharacters,SpellCheckingInspection
 
 @PRODUKT:VSDM_2_FD
-@AFO-ID:A_26477
+@AFO-ID:A_26477-01
 @TYPE:ERROR
 Funktionalität: Fehlerbehandlung VSDM 2.0
 
@@ -26,5 +26,5 @@ Funktionalität: Fehlerbehandlung VSDM 2.0
     Dann antwortet der ZETA Guard mit dem Fehlercode <Http-Code> und dem Text <Error-Text>
 
     Beispiele:
-      | Smcb-Card           | Smcb-Slot | Egk-Card           | Egk-Slot | Http-Code | Error-Text                 |
-      | "smcbCardImage.xml" | 1         | "egkCardData.json" | 2        | 403       | "PoPP error: InvalidToken" |
+      | Smcb-Card           | Smcb-Slot | Egk-Card                                  | Egk-Slot | Http-Code | Error-Text                 |
+      | "smcbCardImage.xml" | 1         | "${EGK_CARD_IMAGE_FILE:egkCardData.json}" | 2        | 403       | "PoPP error: InvalidToken" |

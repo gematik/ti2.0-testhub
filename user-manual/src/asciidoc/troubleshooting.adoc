@@ -1,4 +1,3 @@
-
 == FAQ / Troubleshooting
 
 === Testhub
@@ -36,7 +35,7 @@ TGR Tiger shut down orderly
 [ERROR] Failed to start bean 'webServerStartStop' 
 ....
 
-This happens when you are using the Tiger Workflow UI and you didn't press the power off button in the Workflow UI. To fix the issus:
+This happens when you are using the Tiger Workflow UI and you didn't press the power off button in the Workflow UI. To fix the issues:
 
 * Press the red power button in the Workflow UI and try again
 * Kill the process listening on the port mentioned by YOUR error message. Note that port configurations can change and the above error message is for illustration only.
@@ -76,7 +75,6 @@ usually indicates that the PEP could not fetch the public key for PoPP token val
 - the PoPP server provides a JWKS endpoint that exposes the public key corresponding to the Key ID (KID) specified in the token. While this endpoint typically defaults to `.well-known/signed-jwks`, it is fully configurable. The authoritative URI for the JWKS endpoint should be retrieved dynamically via the PoPP server's OpenID Connect discovery document located at `.well-known/openid-federation`
 
 If you switch between PoPP example implementation and PoPP token generator double check that the PEP is using the correct endpoint.
-
 
 === Docker
 
@@ -158,3 +156,71 @@ try to run it with the passthrough `--%` symbol
     ./mvnw --% -pl test/vsdm-testsuite/ -Dit.test="Vsdm*IT" -Dskip.inttests=false verify
 
 which should prevent PowerShell from interpreting the `-Dit.test` parameter as its own and instead pass it correctly to the `mvnw` command.
+
+=== Podman
+
+NOTE: We can not provide support for using Podman.
+The following are just some hints how to adapt the build process to use Podman instead of Docker.
+Please refer to the Podman documentation for further details.
+
+The Maven profile `-Pdocker` calls the `docker` CLI directly (`docker build ...`).
+If Docker is not installed, you can apply a local (not committed) POM override to use Podman.
+
+==== Use `-Pdocker` with Podman image storage
+
+1. Ensure Podman is running:
+
+[source,bash]
+----
+podman machine start
+----
+
+2. Add `container.cli` in the root POM `pom.xml` (local change only):
+
+[source,xml]
+----
+<properties>
+    ...
+    <container.cli>podman</container.cli>
+</properties>
+----
+
+3. Replace `executable="docker"` with `executable="${container.cli}"` in:
+
+* `pom.xml`
+* `server/vsdm-server-simservice/pom.xml`
+
+4. Run the build with Podman:
+
+[source,bash]
+----
+./mvnw clean install -Pdocker -DskipTests -Dcontainer.cli=podman
+----
+
+5. Verify that the created image is available in Podman:
+
+[source,bash]
+----
+podman images
+----
+
+==== Docker commands can be executed with Podman
+
+Most commands from this documentation can be mapped 1:1 from Docker to Podman.
+
+[source,bash]
+----
+# Docker
+docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
+
+# Podman equivalent
+podman compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
+----
+
+If `podman compose` is not available in your setup, use `podman-compose` instead:
+
+[source,bash]
+----
+podman-compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
+----
+

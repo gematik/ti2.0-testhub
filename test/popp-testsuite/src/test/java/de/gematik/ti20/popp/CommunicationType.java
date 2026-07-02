@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
 
+@Getter
 public enum CommunicationType {
   CONTACT_STANDARD("contact-standard", "Standardleser", "kontaktbehaftet"),
   CONTACTLESS_STANDARD("contactless-standard", "Standardleser", "kontaktlos"),
@@ -39,11 +40,11 @@ public enum CommunicationType {
   CONTACT_VIRTUAL("contact-virtual", "virtuell", "kontaktbehaftet"),
   CONTACTLESS_VIRTIAL("contactless-virtual", "virtuell", "kontaktlos");
 
-  @Getter private final String value;
+  private final String value;
   private final String readerType;
   private final String commType;
 
-  CommunicationType(String value, String readerType, String commType) {
+  CommunicationType(final String value, final String readerType, final String commType) {
     this.value = value;
     this.readerType = readerType;
     this.commType = commType;
@@ -55,12 +56,12 @@ public enum CommunicationType {
               Collectors.toUnmodifiableMap(
                   ct -> createKey(ct.readerType, ct.commType), Function.identity()));
 
-  private static String createKey(String readerType, String commType) {
+  private static String createKey(final String readerType, final String commType) {
     return readerType + ":" + commType;
   }
 
-  public static CommunicationType from(String readerType, String commType) {
-    String key = createKey(readerType, commType);
+  public static CommunicationType from(final String readerType, final String commType) {
+    final String key = createKey(readerType, commType);
     return Optional.ofNullable(MAPPING.get(key))
         .orElseThrow(() -> new IllegalArgumentException("Unbekannte Kombination: " + key));
   }
