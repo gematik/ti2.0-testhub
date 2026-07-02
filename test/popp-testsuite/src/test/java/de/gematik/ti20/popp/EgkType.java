@@ -27,15 +27,22 @@ package de.gematik.ti20.popp;
 import lombok.Getter;
 
 @Getter
-public enum ImageType {
-  EXPIRED_EGK("EGK_80276883110000179865_gema5_abgelaufen2025.xml"),
-  VALID_EGK("IMG_eGK_G21_TU_root6 1.xml"),
-  EGK_80276883110000163142("EGK_80276883110000163142_gema5.xml"),
-  VALID_TK_EGK("EGK_TK_1b.xml");
+public enum EgkType {
+  EGK_80276883110000179865_EXPIRED(
+      "EGK_80276883110000179865_gema5_abgelaufen2025.xml", "X110691122", "109500969"),
+  EGK_80276883110000152715_VALID("IMG_eGK_G21_TU_root6 1.xml", "X110540756", "109500969"),
+  EGK_80276883110000163142_VALID("EGK_80276883110000163142_gema5.xml", "X110644390", "109500969"),
+  EGK_80276883110000165689_REDUZIERT(
+      "EGK_80276883110000163142_gema5.xml", "X110654201", "109500969"),
+  EGK_80276001042001660952_TK("EGK_TK_1b.xml", "T028447785", "101575519");
 
   private final String fileName;
+  private final String kvnr;
+  private final String ikNumber;
 
-  ImageType(final String fileName) {
+  EgkType(final String fileName, final String kvnr, final String ikNumber) {
     this.fileName = fileName;
+    this.kvnr = kvnr;
+    this.ikNumber = ikNumber;
   }
 }

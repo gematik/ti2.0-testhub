@@ -6,7 +6,7 @@
 Funktionalität: Import und löschen von Daten in eGK-Hash-Datenbank
 
   @TCID:UC_PoPP_Import_Delete_hashDb_Valid
-  @STATUS:InBearbeitung
+  @STATUS:Implementiert
   @MODUS:Manuell
   @TESTFALL:Positiv
   @TESTSTUFE:3

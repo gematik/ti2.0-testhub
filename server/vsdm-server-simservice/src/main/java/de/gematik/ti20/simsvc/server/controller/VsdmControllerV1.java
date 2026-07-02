@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import de.gematik.ti20.simsvc.server.config.VsdmConfig;
 import de.gematik.ti20.simsvc.server.exception.ErrorCase;
+import de.gematik.ti20.simsvc.server.exception.VsdmErrorException;
 import de.gematik.ti20.simsvc.server.exception.ZetaErrorException;
 import de.gematik.ti20.simsvc.server.model.PoppTokenContent;
 import de.gematik.ti20.simsvc.server.service.ChecksumService;
@@ -39,6 +40,7 @@ import de.gematik.ti20.simsvc.server.service.VsdmService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Map;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Resource;
@@ -111,8 +113,8 @@ public class VsdmControllerV1 {
     }
 
     if (!vsdmConfig.getValidProfileVersionMapping().containsKey(profileVersion)) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "VSDSERVICE_INVALID_PROFILE_VERSION");
+      throw new VsdmErrorException(
+          ErrorCase.VSDSERVICE_INVALID_PROFILE_VERSION, Map.of("version", profileVersion));
     }
 
     if (etagService.checkEtag(kvnr, ifNoneMatch)) {
@@ -141,9 +143,7 @@ public class VsdmControllerV1 {
       throw new ZetaErrorException(ErrorCase.MISSING_HEADER_USERINFO);
     }
     if (request.getHeader("if-none-match") == null) {
-      throw new ResponseStatusException(
-          HttpStatus.PRECONDITION_REQUIRED,
-          ErrorCase.VSDSERVICE_MISSING_PATIENT_RECORD_VERSION.getBdeReference());
+      throw new VsdmErrorException(ErrorCase.VSDSERVICE_MISSING_PATIENT_RECORD_VERSION);
     }
     if (!isQuoted(request.getHeader("if-none-match"))) {
       throw new ResponseStatusException(
@@ -157,6 +157,7 @@ public class VsdmControllerV1 {
 
   private String checkAndGetKvnr(final JsonNode claims) {
     final String kvnr = claims.path("patientId").asText(null);
+    final String iknr = claims.path("insurerId").asText(null);
     if (kvnr == null) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
@@ -165,13 +166,12 @@ public class VsdmControllerV1 {
               .replaceAll("<header>", "zeta-popp-token-content"));
     }
     if (!VALID_KVNR_PATTERN.matcher(kvnr).matches()) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, ErrorCase.VSDSERVICE_INVALID_KVNR.getBdeReference());
+      throw new VsdmErrorException(ErrorCase.VSDSERVICE_INVALID_KVNR, Map.of("kvnr", kvnr));
     }
 
     if (kvnr.startsWith(vsdmConfig.getUnknownKvnrPrefix())) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, ErrorCase.VSDSERVICE_UNKNOWN_KVNR.getBdeReference());
+      throw new VsdmErrorException(
+          ErrorCase.VSDSERVICE_UNKNOWN_KVNR, Map.of("kvnr", kvnr, "ik", iknr));
     }
 
     return kvnr;
@@ -187,12 +187,10 @@ public class VsdmControllerV1 {
               .replaceAll("<header>", "zeta-popp-token-content"));
     }
     if (!VALID_IKNR_PATTERN.matcher(iknr).matches()) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, ErrorCase.VSDSERVICE_INVALID_IK.getBdeReference());
+      throw new VsdmErrorException(ErrorCase.VSDSERVICE_INVALID_IK, Map.of("ik", iknr));
     }
     if (!iknr.equals(vsdmConfig.getIknr())) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, ErrorCase.VSDSERVICE_UNKNOWN_IK.getBdeReference());
+      throw new VsdmErrorException(ErrorCase.VSDSERVICE_UNKNOWN_IK, Map.of("ik", iknr));
     }
 
     return iknr;
@@ -208,7 +206,7 @@ public class VsdmControllerV1 {
       final String patientId = checkAndGetKvnr(root);
 
       return new PoppTokenContent(insurerId, patientId);
-    } catch (final ResponseStatusException e) {
+    } catch (final ResponseStatusException | VsdmErrorException e) {
       throw e;
     } catch (final Exception e) {
       // Base64 decoding failed, JSON parsing or other unexpected errors

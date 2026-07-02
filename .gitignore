@@ -22,6 +22,11 @@ ReleaseChecklist.internal.md
 /test/popp-testsuite/src/test/resources/hashDbPayloads
 /test/vsdm-testsuite/src/test/resources/drafts
 /test/vsdm-testsuite/src/test/resources/scripts
+/test/vsdm-testsuite/src/test/resources/data/cards/egkCardImageTK.xml
+/test/vsdm-testsuite/src/test/resources/simulation_tk_ref.conf
+/test/vsdm-testsuite/src/test/resources/simulation_tk_test.conf
+/test/vsdm-testsuite/src/test/resources/feeder/iknr_kvnr_tk_ref.csv
+/test/vsdm-testsuite/src/test/resources/feeder/iknr_kvnr_tk_test.csv
 /test/vsdm-testsuite/POLARION.md
 /test/vsdm-testsuite/HOWTO-TEST.md
 /test/zeta-testsuite/POLARION.md

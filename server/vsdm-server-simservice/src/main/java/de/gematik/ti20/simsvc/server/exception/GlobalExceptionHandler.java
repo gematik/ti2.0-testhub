@@ -29,6 +29,9 @@ import de.gematik.bbriccs.fhir.codec.FhirCodec;
 import de.gematik.ti20.vsdm.fhir.builder.VsdmOperationOutcomeBuilder;
 import de.gematik.ti20.vsdm.fhir.def.VsdmOperationOutcome;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -47,11 +50,25 @@ public class GlobalExceptionHandler {
     if (errorCase != null) {
       return ResponseEntity.status(errorCase.getHttpCode())
           .contentType(new MediaType("application", "fhir+json", StandardCharsets.UTF_8))
-          .body(operationOutcome(errorCase));
+          .body(operationOutcome(errorCase, Map.of()));
     } else {
       return ResponseEntity.status(ex.getStatusCode())
           .contentType(new MediaType("application", "fhir+json", StandardCharsets.UTF_8))
-          .body(operationOutcome(ErrorCase.SERVICE_INTERNAL_SERVER_ERROR));
+          .body(operationOutcome(ErrorCase.SERVICE_INTERNAL_SERVER_ERROR, Map.of()));
+    }
+  }
+
+  @ExceptionHandler(VsdmErrorException.class)
+  public ResponseEntity<String> handleVsdmErrorException(final VsdmErrorException ex) {
+    final ErrorCase errorCase = ex.getErrorCase();
+    if (errorCase != null) {
+      return ResponseEntity.status(errorCase.getHttpCode())
+          .contentType(new MediaType("application", "fhir+json", StandardCharsets.UTF_8))
+          .body(operationOutcome(errorCase, ex.getValues()));
+    } else {
+      return ResponseEntity.status(500)
+          .contentType(new MediaType("application", "fhir+json", StandardCharsets.UTF_8))
+          .body(operationOutcome(ErrorCase.SERVICE_INTERNAL_SERVER_ERROR, ex.getValues()));
     }
   }
 
@@ -69,14 +86,39 @@ public class GlobalExceptionHandler {
         .body(zetaError);
   }
 
-  private String operationOutcome(final ErrorCase errorCase) {
+  private String operationOutcome(final ErrorCase errorCase, final Map<String, String> values) {
     final VsdmOperationOutcome vsdmOperationOutcome =
         VsdmOperationOutcomeBuilder.create()
             .withCode(errorCase.getBdeCode())
-            .withText(errorCase.getBdeText())
+            .withText(interpolate(errorCase.getBdeText(), values))
             .withReference(errorCase.getBdeReference())
             .build();
 
     return FhirCodec.forR4().andDummyValidator().encode(vsdmOperationOutcome, EncodingType.JSON);
+  }
+
+  private static final Pattern PLACEHOLDER = Pattern.compile("\\[([^\\[\\]]+)]");
+
+  private String interpolate(final String template, final Map<String, String> values) {
+    if (template == null || template.isEmpty() || values == null || values.isEmpty()) {
+      return template;
+    }
+
+    final Matcher matcher = PLACEHOLDER.matcher(template);
+    final StringBuffer result = new StringBuffer();
+
+    while (matcher.find()) {
+      final String key = matcher.group(1); // Inhalt zwischen [ und ]
+      final String replacement = values.get(key);
+
+      if (replacement == null) {
+        matcher.appendReplacement(result, Matcher.quoteReplacement(matcher.group(0)));
+      } else {
+        matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+      }
+    }
+
+    matcher.appendTail(result);
+    return result.toString();
   }
 }

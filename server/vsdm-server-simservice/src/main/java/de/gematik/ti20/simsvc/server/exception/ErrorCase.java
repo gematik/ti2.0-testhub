@@ -29,29 +29,35 @@ import lombok.Getter;
 @Getter
 public enum ErrorCase {
   VSDSERVICE_INVALID_IK(
-      "79010", 400, "VSDSERVICE_INVALID_IK", "[ik] aus dem PoPP-Token weist Formatfehler auf."),
+      "79010",
+      400,
+      "VSDSERVICE_INVALID_IK",
+      "Institutionskennung '[ik]' aus dem PoPP-Token weist Formatfehler auf."),
   VSDSERVICE_INVALID_KVNR(
-      "79011", 400, "VSDSERVICE_INVALID_KVNR", "[kvnr] aus dem PoPP-Token weist Formatfehler auf."),
+      "79011",
+      400,
+      "VSDSERVICE_INVALID_KVNR",
+      "Krankenversichertennummer '[kvnr]' aus dem PoPP-Token weist Formatfehler auf."),
   VSDSERVICE_UNKNOWN_IK(
       "79012",
       400,
       "VSDSERVICE_UNKNOWN_IK",
-      "[ik] aus dem PoPP-Token ist dem Fachdienst nicht bekannt."),
+      "Institutionskennung '[ik]' aus dem PoPP-Token ist dem Fachdienst nicht bekannt."),
   VSDSERVICE_UNKNOWN_KVNR(
       "79013",
       404,
       "VSDSERVICE_UNKNOWN_KVNR",
-      "[kvnr] aus dem PoPP-Token ist dem Fachdienst nicht bekannt."),
+      "Krankenversichertennummer '[kvnr]' aus dem PoPP-Token ist dem Fachdienst zur Institutionskennung '[ik]' nicht bekannt."),
   VSDSERVICE_MISSING_PATIENT_RECORD_VERSION(
       "79014",
       428,
       "VSDSERVICE_MISSING_PATIENT_RECORD_VERSION",
-      "Der erforderliche Änderungsindikator [etag_value] fehlt in der Anfrage."),
+      "Der erforderliche Änderungsindikator im Header If-None-Match fehlt."),
   VSDSERVICE_INVALID_PROFILE_VERSION(
       "79015",
       400,
       "VSDSERVICE_INVALID_PROFILE_VERSION",
-      "Die vom Clientsystem angefragte Profilversion [version] wird nicht unterstützt."),
+      "Die vom Clientsystem angefragte Profilversion '[version]' wird nicht unterstützt."),
   VSDSERVICE_MISSING_PROFILE_VERSION(
       "79016",
       400,

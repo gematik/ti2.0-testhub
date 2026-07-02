@@ -30,5 +30,5 @@ Funktionalität: Abfrage der Versichertenstammdaten von der eGK
     Dann werden die VSD von der eGK gelesen und der Versicherte kann versorgt werden
 
     Beispiele:
-      | Smcb-Card           | Smcb-Slot | Egk-Card           | Egk-Slot | Http-Code | Error-Text                 |
-      | "smcbCardImage.xml" | 1         | "egkCardData.json" | 2        | 403       | "PoPP error: InvalidToken" |
+      | Smcb-Card           | Smcb-Slot | Egk-Card                                  | Egk-Slot | Http-Code | Error-Text                 |
+      | "smcbCardImage.xml" | 1         | "${EGK_CARD_IMAGE_FILE:egkCardData.json}" | 2        | 403       | "PoPP error: InvalidToken" |

@@ -100,6 +100,12 @@ public class StepsHashdb {
                 .request(Method.GET, URL_HASH_DB_IMPORT_RU + "/" + jobId + "/result"));
   }
 
+  @Wenn("der TSP erfragt seine jobID")
+  public void sendGetJobIdRequest() {
+    executeCommandWithContingentWait(
+        () -> givenDefaultSpec().request(Method.GET, URL_HASH_DB_IMPORT_RU));
+  }
+
   @Und("der TSP verwendet die Client Identität {string} für die mTLS-Verbindung zum PoPP-Service")
   public void configureTlsClientIdentity(final String identityFileName) {
     final String prefixWithFileLocation = "../../no-publish/test-data/p12/popp-testsuite/";
@@ -129,6 +135,27 @@ public class StepsHashdb {
             "!{file('" + VALID_HASH_DB_IMPORT_RESPONSE_FILE + "')}"),
         "",
         this.rbelMessageRetriever);
+  }
+
+  @Dann(
+      "der TSP erhält eine positive Rückmeldung mit einer jobID und diese entspricht {tigerResolvedString}")
+  public void jobIdInLastResponseMatchesJobIdPreviouslyGiven(final String previousJobId) {
+    this.rbelMessageRetriever.filterRequestsAndStoreInContext(
+        RequestParameter.builder().path(".*/api/v1/hash-db/import").build().resolvePlaceholders());
+    this.rbelValidator.assertAttributeOfCurrentResponseMatches(
+        "$.responseCode", String.valueOf(HttpStatus.OK_200), true, this.rbelMessageRetriever);
+    this.rbelValidator.assertAttributeOfCurrentResponseMatches(
+        "$.body.jobIds.0", previousJobId, true, this.rbelMessageRetriever);
+  }
+
+  @Dann("der TSP erhält eine positive Rückmeldung mit einer leeren jobID-Liste")
+  public void lastResponseResponseContainsEmptyJobIdList() {
+    this.rbelMessageRetriever.filterRequestsAndStoreInContext(
+        RequestParameter.builder().path(".*/api/v1/hash-db/import").build().resolvePlaceholders());
+    this.rbelValidator.assertAttributeOfCurrentResponseMatches(
+        "$.responseCode", String.valueOf(HttpStatus.OK_200), true, this.rbelMessageRetriever);
+    this.rbelValidator.assertAttributeOfCurrentResponseMatches(
+        "$.body.jobIds", "[]", true, this.rbelMessageRetriever);
   }
 
   @Dann("der TSP erhält Informationen über den Status seines Imports")

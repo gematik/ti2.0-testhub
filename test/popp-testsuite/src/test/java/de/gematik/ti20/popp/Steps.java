@@ -49,7 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Steps {
 
   HttpGlueCode httpGlueCode = new HttpGlueCode();
-  private String communicationType = "";
+  private CommunicationType communicationType;
   private RbelMessageRetriever rbelMessageRetriever;
   private RbelValidator rbelValidator;
   private ApduValidator apduValidator;
@@ -87,34 +87,44 @@ public class Steps {
 
   @Wenn("Das Primärsystem den PoPP-Token mit Image {string} vom PoPP-Service abgefragt")
   public void psRequestsPoppTokenWithImage(final String image) {
-    final ImageType imageType = ImageType.valueOf(image);
-    requestsPoppTokenWithImage(imageType);
+    final EgkType egkType = EgkType.valueOf(image);
+    requestsPoppTokenWithImage(egkType);
   }
 
   @Und("das PoPP-Token ist vollständig und spezifikationskonform")
   public void tokenIsCorrect() {
-    if (communicationType.contains("connector")) {
-      poppTokenValidator.validatePoppTokenforEHealthKT();
-    } else {
-      poppTokenValidator.validatePoppTokenforStandardKt();
-    }
+    poppTokenValidator.validateClaimsInPoppToken();
+    poppTokenValidator.proofMethodInTokenMatchesCommTypeOrThrow(communicationType);
+  }
+
+  @Dann("Die Daten des Versicherten im PoPP-Token entsprechen denen auf der Karte {string}")
+  public void patientDataInTokenMatchesEgkData(final String image) {
+    final EgkType egkType = EgkType.valueOf(image);
+    poppTokenValidator.assertThatPatientDataInTokenMatchesDataOnEgk(egkType);
+  }
+
+  @Dann(
+      "Die Daten der Leisungserbringerorganisation im PoPP-Token entsprichen denen auf der Karte {string}")
+  public void practitionerDataInTokenMatchesSmcbData(final String smcb) {
+    final SmcbType smcbType = SmcbType.valueOf(smcb);
+    poppTokenValidator.asserThatPractitionerDataInTokenMatchesDataOnSmcb(smcbType);
   }
 
   @Angenommen("der Versicherte in der LEI präsentiert seine eGK {string} am Lesegerät {string}")
   public void derVersichertePreasentiertEgk(final String readerType, final String commType) {
-    communicationType = CommunicationType.from(readerType, commType).getValue();
-    log.info("Nutze {} für die Kommunikation", communicationType);
+    communicationType = CommunicationType.from(readerType, commType);
+    log.info("Nutze {} für die Kommunikation", communicationType.getValue());
   }
 
   private void requestPoppTokenWithValidEgkImage() {
-    requestsPoppTokenWithImage(ImageType.VALID_EGK);
+    requestsPoppTokenWithImage(EgkType.EGK_80276883110000152715_VALID);
   }
 
-  private void requestsPoppTokenWithImage(final ImageType image) {
+  private void requestsPoppTokenWithImage(final EgkType image) {
 
     final ObjectMapper mapper = new ObjectMapper();
     final ObjectNode json = mapper.createObjectNode();
-    json.put("communicationType", communicationType);
+    json.put("communicationType", communicationType.getValue());
     json.put("clientSessionId", "123456");
     json.put("virtualCard", image.getFileName());
 

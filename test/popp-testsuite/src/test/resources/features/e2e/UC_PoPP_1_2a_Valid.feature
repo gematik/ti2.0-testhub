@@ -10,7 +10,7 @@ Funktionalität: PoPP-Token erzeugen mit eGK bei physischer Anwesenheit
 
 
   @TCID:UC_PoPP_1_2a_Valid
-  @STATUS:InBearbeitung
+  @STATUS:Implementiert
   @MODUS:Automatisch
   @TESTFALL:Positiv
   @TESTSTUFE:3
@@ -35,20 +35,22 @@ Funktionalität: PoPP-Token erzeugen mit eGK bei physischer Anwesenheit
   des erhaltenen PoPP-Tokens.
 
     Angenommen der Versicherte in der LEI präsentiert seine eGK <readerType> am Lesegerät <commType>
-    Wenn das Primärsystem den PoPP-Token vom PoPP-Service abfragt
+    Wenn Das Primärsystem den PoPP-Token mit Image <eGK> vom PoPP-Service abgefragt
     Dann das PoPP-Token ist vollständig und spezifikationskonform
+    Und Die Daten des Versicherten im PoPP-Token entsprechen denen auf der Karte <eGK>
+    Und Die Daten der Leisungserbringerorganisation im PoPP-Token entsprichen denen auf der Karte <SMCB>
     Und die empfangenen APDUs sind korrekt <readerType>
 
     Beispiele:
-      | readerType      | commType          |
-    #  | "Standardleser" | "kontaktbehaftet" |
-    #  | "Standardleser" | "kontaktlos"      |
-      | "virtuell"      | "kontaktbehaftet" |
-      | "virtuell"      | "kontaktlos"      |
+      | readerType | commType          | eGK                              | SMCB                                       |
+    #  | "Standardleser" | "kontaktbehaftet" ||SMCB_80276001011699902303_APOTHEKE_VALID|
+    #  | "Standardleser" | "kontaktlos"      ||SMCB_80276001011699902303_APOTHEKE_VALID|
+      | "virtuell" | "kontaktbehaftet" | "EGK_80276883110000152715_VALID" | "SMCB_80276001011699902303_APOTHEKE_VALID" |
+      | "virtuell" | "kontaktlos"      | "EGK_80276883110000152715_VALID" | "SMCB_80276001011699902303_APOTHEKE_VALID" |
 
 
   @TCID:UC_PoPP_1_2a_Valid_ehealth
-  @STATUS:InBearbeitung
+  @STATUS:Implementiert
   @MODUS:Automatisch
   @TESTFALL:Positiv
   @TESTSTUFE:3

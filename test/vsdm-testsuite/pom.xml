@@ -7,7 +7,7 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.5.0</version>
+        <version>3.6.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -20,6 +20,7 @@
     <properties>
         <skip.inttests>true</skip.inttests>
         <vsdm.testsuite.path>${maven.multiModuleProjectDirectory}/test/vsdm-testsuite</vsdm.testsuite.path>
+        <polarion.project>Mainline_OPB1</polarion.project>
         <polarion.testrun>VSDM2_GEMATIK</polarion.testrun>
     </properties>
 
@@ -309,7 +310,7 @@
                                     <polarionUrl>${polarion.url}</polarionUrl>
                                     <username>${polarion.username}</username>
                                     <password>${polarion.pat}</password>
-                                    <project>Mainline_OPB1</project>
+                                    <project>${polarion.project}</project>
                                     <luceneQuery>cfInternalId:UC_VSDM2_*</luceneQuery>
                                     <jsonFilePath>${vsdm.testsuite.path}/target/polarion/vsdm2-testcases.json</jsonFilePath>
                                 </configuration>
@@ -337,7 +338,7 @@
                                 <configuration>
                                     <username>${polarion.username}</username>
                                     <password>${polarion.pat}</password>
-                                    <project>Mainline_OPB1</project>
+                                    <project>${polarion.project}</project>
                                     <testRun>${polarion.testrun}</testRun>
                                     <serenityReportsFolderPath>${vsdm.testsuite.path}/target/site/serenity</serenityReportsFolderPath>
                                 </configuration>

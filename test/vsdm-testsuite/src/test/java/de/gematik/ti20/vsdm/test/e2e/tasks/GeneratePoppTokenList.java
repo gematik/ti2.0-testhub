@@ -43,6 +43,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.SneakyThrows;
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Task;
@@ -50,6 +51,8 @@ import org.junit.jupiter.api.Assertions;
 
 public class GeneratePoppTokenList implements Task {
 
+  private static final String IKNR_KVNR_LIST =
+      Optional.ofNullable(System.getenv("IKNR_KVNR_LIST")).orElse("feeder/iknr_kvnr.csv");
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private final int nbrPoppTokens;
 
@@ -63,8 +66,8 @@ public class GeneratePoppTokenList implements Task {
 
   private List<String> loadLines() {
     InputStream is =
-        GeneratePoppTokenList.class.getClassLoader().getResourceAsStream("feeder/iknr_kvnr.csv");
-    Objects.requireNonNull(is, "Ressource nicht gefunden im Classpath: " + "feeder/iknr_kvnr.csv");
+        GeneratePoppTokenList.class.getClassLoader().getResourceAsStream(IKNR_KVNR_LIST);
+    Objects.requireNonNull(is, "Ressource nicht gefunden im Classpath: " + IKNR_KVNR_LIST);
 
     try (BufferedReader reader =
         new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {

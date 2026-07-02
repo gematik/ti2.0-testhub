@@ -28,10 +28,14 @@ import static de.gematik.ti20.popp.data.TestConstants.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import de.gematik.rbellogger.data.RbelElement;
+import de.gematik.ti20.popp.CommunicationType;
+import de.gematik.ti20.popp.EgkType;
+import de.gematik.ti20.popp.SmcbType;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.Assert;
 
 public class PoppTokenValidator extends BaseValidator {
 
@@ -39,7 +43,7 @@ public class PoppTokenValidator extends BaseValidator {
     super();
   }
 
-  public void validatePoppTokenforEHealthKT() {
+  public void validateClaimsInPoppToken() {
 
     findRequestForPath(".*/token");
     currentResponseAtMatchesAsJsonTheFile("$.body", VALID_POPP_TOKEN_JSON_RESPONSE_FILE);
@@ -47,17 +51,11 @@ public class PoppTokenValidator extends BaseValidator {
         "$.body.token.content.body", VALID_POPP_TOKEN_BODY_CLAIMS_FILE);
     currentResponseAtMatchesAsJsonTheFile(
         "$.body.token.content.header", VALID_POPP_TOKEN_HEADER_CLAIMS_FILE);
+    validateTimeInToken();
   }
 
-  public void validatePoppTokenforStandardKt() {
-    findRequestForPath(".*/token");
-    currentResponseAtMatchesAsJsonTheFile("$.body", VALID_POPP_TOKEN_JSON_RESPONSE_FILE);
-    currentResponseAtMatchesAsJsonTheFile(
-        "$.body.token.content.body", VALID_POPP_TOKEN_BODY_CLAIMS_FILE);
-    currentResponseAtMatchesAsJsonTheFile(
-        "$.body.token.content.header", VALID_POPP_TOKEN_HEADER_CLAIMS_FILE);
-
-    int MAX_AGE_POPP_TOKEN_IN_SECONDS = 30;
+  private void validateTimeInToken() {
+    final int MAX_AGE_POPP_TOKEN_IN_SECONDS = 30;
     assertThat(
             this.rbelMessageRetriever.findElementInCurrentResponse("$.body.token.content.body.iat"))
         .as("iat element should exist")
@@ -95,8 +93,36 @@ public class PoppTokenValidator extends BaseValidator {
     currentResponseAtMatches("$.body.status", "ERROR");
   }
 
-  public void validatePoppTokenforInvalidCaErrorResponse(String errorMessage) {
+  public void validatePoppTokenforInvalidCaErrorResponse(final String errorMessage) {
     findRequestForPath(".*/token");
     currentResponseAtMatches("$.body.errorMessage", errorMessage);
+  }
+
+  public void assertThatPatientDataInTokenMatchesDataOnEgk(final EgkType egkType) {
+    findRequestForPath(".*/token");
+    currentResponseAtMatches("$.body.token.content.body.patientId", egkType.getKvnr());
+    currentResponseAtMatches("$.body.token.content.body.insurerId", egkType.getIkNumber());
+  }
+
+  public void asserThatPractitionerDataInTokenMatchesDataOnSmcb(final SmcbType smcbType) {
+    findRequestForPath(".*/token");
+    currentResponseAtMatches("$.body.token.content.body.actorId", smcbType.getTelematikId());
+    currentResponseAtMatches(
+        "$.body.token.content.body.actorProfessionOid", smcbType.getProfessionOid());
+  }
+
+  public void proofMethodInTokenMatchesCommTypeOrThrow(final CommunicationType commType) {
+    findRequestForPath(".*/token");
+    if (commType.getCommType().equals("kontaktbehaftet")) {
+      currentResponseAtMatches(
+          "$.body.token.content.body.proofMethod", "ehc-practitioner-trustedchannel");
+    } else if (commType.getCommType().equals("kontaktlos")) {
+      currentResponseAtMatches(
+          "$.body.token.content.body.proofMethod", "ehc-practitioner-cvc-authenticated");
+    } else {
+      Assert.fail(
+          "expecting commType to be either 'kontaktbehaftet' or 'kontaktlos' but found "
+              + commType.getCommType());
+    }
   }
 }

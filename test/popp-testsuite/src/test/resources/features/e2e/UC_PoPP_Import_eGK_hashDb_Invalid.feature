@@ -11,7 +11,7 @@ Funktionalität: Fehlerfälle beim TLS-Aufbau der Verbindung
   das zeitlich gültig und nicht gesperrt ist.
 
   @TCID:UC_PoPP_TLS_Fehler_ZertifikatGesperrt
-  @STATUS:InBearbeitung
+  @STATUS:Implementiert
   @MODUS:Automatisch
   @TESTFALL:Negativ
   @TESTSTUFE:3
@@ -25,7 +25,7 @@ Funktionalität: Fehlerfälle beim TLS-Aufbau der Verbindung
     Dann wird die Verbindung vom PoPP-Service abgelehnt
 
   @TCID:UC_PoPP_TLS_Fehler_ZertifikatAbgelaufen
-  @STATUS:InBearbeitung
+  @STATUS:Implementiert
   @MODUS:Automatisch
   @TESTFALL:Negativ
   @TESTSTUFE:3
@@ -39,7 +39,7 @@ Funktionalität: Fehlerfälle beim TLS-Aufbau der Verbindung
     Dann wird die Verbindung vom PoPP-Service abgelehnt
 
   @TCID:UC_PoPP_TLS_Fehler_ZertifikatFalscheRolle
-  @STATUS:InBearbeitung
+  @STATUS:Implementiert
   @MODUS:Automatisch
   @TESTFALL:Negativ
   @TESTSTUFE:3

@@ -6,7 +6,7 @@
 Funktionalität: Prüfen des JWKS vom PoPP-Service
 
   @TCID:UC_PoPP_getJWKS_Valid
-  @STATUS:InBearbeitung
+  @STATUS:Implementiert
   @MODUS:Automatisch
   @TESTFALL:Positiv
   @TESTSTUFE:3

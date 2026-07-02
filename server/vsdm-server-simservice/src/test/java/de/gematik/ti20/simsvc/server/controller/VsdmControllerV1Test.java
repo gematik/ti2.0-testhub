@@ -28,6 +28,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import de.gematik.ti20.simsvc.server.config.VsdmConfig;
+import de.gematik.ti20.simsvc.server.exception.ErrorCase;
+import de.gematik.ti20.simsvc.server.exception.VsdmErrorException;
 import de.gematik.ti20.simsvc.server.exception.ZetaErrorException;
 import de.gematik.ti20.simsvc.server.service.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -432,15 +434,15 @@ class VsdmControllerV1Test {
 
     when(request.getHeader("if-none-match")).thenReturn(etag);
 
-    ResponseStatusException exception =
+    VsdmErrorException exception =
         assertThrows(
-            ResponseStatusException.class,
+            VsdmErrorException.class,
             () ->
                 vsdmController.vsdmbundle(
                     poppTokenContentCoded, userInfo, etag, profileVersion, request));
 
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
-    assertEquals("VSDSERVICE_UNKNOWN_IK", exception.getReason());
+    assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getErrorCase().getHttpCode());
+    assertEquals(ErrorCase.VSDSERVICE_UNKNOWN_IK, exception.getErrorCase());
   }
 
   @Test
@@ -455,15 +457,15 @@ class VsdmControllerV1Test {
 
     when(request.getHeader("if-none-match")).thenReturn(etag);
 
-    ResponseStatusException exception =
+    VsdmErrorException exception =
         assertThrows(
-            ResponseStatusException.class,
+            VsdmErrorException.class,
             () ->
                 vsdmController.vsdmbundle(
                     poppTokenContentCoded, userInfo, etag, profileVersion, request));
 
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
-    assertEquals("VSDSERVICE_INVALID_IK", exception.getReason());
+    assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getErrorCase().getHttpCode());
+    assertEquals(ErrorCase.VSDSERVICE_INVALID_IK, exception.getErrorCase());
   }
 
   @Test
@@ -497,14 +499,14 @@ class VsdmControllerV1Test {
 
     when(request.getHeader("if-none-match")).thenReturn(etag);
 
-    ResponseStatusException exception =
+    VsdmErrorException exception =
         assertThrows(
-            ResponseStatusException.class,
+            VsdmErrorException.class,
             () ->
                 vsdmController.vsdmbundle(
                     poppTokenContentCoded, userInfo, etag, "unknown", request));
 
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
-    assertEquals("VSDSERVICE_INVALID_PROFILE_VERSION", exception.getReason());
+    assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getErrorCase().getHttpCode());
+    assertEquals(ErrorCase.VSDSERVICE_INVALID_PROFILE_VERSION, exception.getErrorCase());
   }
 }
