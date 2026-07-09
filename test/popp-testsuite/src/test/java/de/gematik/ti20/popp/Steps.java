@@ -30,8 +30,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
 import de.gematik.test.tiger.glue.HttpGlueCode;
-import de.gematik.test.tiger.lib.rbel.RbelMessageRetriever;
-import de.gematik.test.tiger.lib.rbel.RbelValidator;
 import de.gematik.ti20.popp.validation.ApduValidator;
 import de.gematik.ti20.popp.validation.EntityStatementValidator;
 import de.gematik.ti20.popp.validation.JwksValidator;
@@ -50,30 +48,8 @@ public class Steps {
 
   HttpGlueCode httpGlueCode = new HttpGlueCode();
   private CommunicationType communicationType;
-  private RbelMessageRetriever rbelMessageRetriever;
-  private RbelValidator rbelValidator;
-  private ApduValidator apduValidator;
-  private PoppTokenValidator poppTokenValidator;
 
-  public Steps(
-      final RbelMessageRetriever rbelMessageRetriever,
-      final RbelValidator rbelValidator,
-      final ApduValidator apduValidator,
-      final PoppTokenValidator poppTokenValidator) {
-    this.rbelMessageRetriever = rbelMessageRetriever;
-    this.rbelValidator = new RbelValidator();
-    this.apduValidator = new ApduValidator();
-    this.poppTokenValidator = new PoppTokenValidator();
-  }
-
-  public Steps() {
-    this(RbelMessageRetriever.getInstance());
-    this.rbelValidator = new RbelValidator();
-    this.apduValidator = new ApduValidator();
-    this.poppTokenValidator = new PoppTokenValidator();
-  }
-
-  public Steps(final RbelMessageRetriever instance) {}
+  public Steps() {}
 
   @Angenommen("das Primärsystem hat einen gültigen Access- und Refresh-Token vom ZETA Guard")
   public void primaersystem_hat_token() {
@@ -93,21 +69,21 @@ public class Steps {
 
   @Und("das PoPP-Token ist vollständig und spezifikationskonform")
   public void tokenIsCorrect() {
-    poppTokenValidator.validateClaimsInPoppToken();
-    poppTokenValidator.proofMethodInTokenMatchesCommTypeOrThrow(communicationType);
+    PoppTokenValidator.validateClaimsInPoppToken();
+    PoppTokenValidator.proofMethodInTokenMatchesCommTypeOrThrow(communicationType);
   }
 
   @Dann("Die Daten des Versicherten im PoPP-Token entsprechen denen auf der Karte {string}")
   public void patientDataInTokenMatchesEgkData(final String image) {
     final EgkType egkType = EgkType.valueOf(image);
-    poppTokenValidator.assertThatPatientDataInTokenMatchesDataOnEgk(egkType);
+    PoppTokenValidator.assertThatPatientDataInTokenMatchesDataOnEgk(egkType);
   }
 
   @Dann(
       "Die Daten der Leisungserbringerorganisation im PoPP-Token entsprichen denen auf der Karte {string}")
   public void practitionerDataInTokenMatchesSmcbData(final String smcb) {
     final SmcbType smcbType = SmcbType.valueOf(smcb);
-    poppTokenValidator.asserThatPractitionerDataInTokenMatchesDataOnSmcb(smcbType);
+    PoppTokenValidator.asserThatPractitionerDataInTokenMatchesDataOnSmcb(smcbType);
   }
 
   @Angenommen("der Versicherte in der LEI präsentiert seine eGK {string} am Lesegerät {string}")
@@ -121,7 +97,6 @@ public class Steps {
   }
 
   private void requestsPoppTokenWithImage(final EgkType image) {
-
     final ObjectMapper mapper = new ObjectMapper();
     final ObjectNode json = mapper.createObjectNode();
     json.put("communicationType", communicationType.getValue());
@@ -140,9 +115,9 @@ public class Steps {
   @Und("die empfangenen APDUs sind korrekt {string}")
   public void dieEmpfangenenAPDUsSindKorrekt(final String readerType) {
     if (Objects.equals(readerType, "Standardleser") || Objects.equals(readerType, "virtuell")) {
-      apduValidator.validateApdusforStdKT();
+      ApduValidator.validateApdusforStdKT();
     } else if (Objects.equals(readerType, "eH-KT")) {
-      apduValidator.validateApdusforEHealthKT();
+      ApduValidator.validateApdusforEHealthKT();
     } else {
       throw new IllegalArgumentException(
           "Unsupported reader type: "
@@ -158,8 +133,7 @@ public class Steps {
 
   @Und("die Anfrage liefert ein gültiges EntityStatement mit einem gültigen JWKS-Link")
   public void checkValidEntityStatement() {
-    final EntityStatementValidator entityStatementValidator = new EntityStatementValidator();
-    entityStatementValidator.validateEntityStatement();
+    EntityStatementValidator.validateEntityStatement();
   }
 
   @Wenn("frage das JWKS über den JWKS Link {tigerResolvedUrl} aus dem EntityStatement ab")
@@ -169,13 +143,12 @@ public class Steps {
 
   @Und("validiere das JWKS")
   public void validateJwks() {
-    final JwksValidator jwksValidator = new JwksValidator();
-    jwksValidator.validateSignedJwks();
+    JwksValidator.validateSignedJwks();
   }
 
   @Dann("erhält das Primärsystem den Status ERROR vom PoPP-Service mit Message {string}")
   public void validatePoppError(final String errorMessage) {
-    poppTokenValidator.validatePoppTokenforBasicErrorResponse();
-    poppTokenValidator.validatePoppTokenforInvalidCaErrorResponse(errorMessage);
+    PoppTokenValidator.validatePoppTokenforBasicErrorResponse();
+    PoppTokenValidator.validatePoppTokenforInvalidCaErrorResponse(errorMessage);
   }
 }

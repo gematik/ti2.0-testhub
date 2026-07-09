@@ -28,7 +28,6 @@ import static de.gematik.test.tiger.common.config.TigerGlobalConfiguration.resol
 import static net.serenitybdd.screenplay.GivenWhenThen.*;
 import static org.hamcrest.Matchers.*;
 
-import de.gematik.test.tiger.common.config.TigerTypedConfigurationKey;
 import de.gematik.test.tiger.lib.TigerDirector;
 import de.gematik.ti20.vsdm.test.e2e.abilities.CallCardClient;
 import de.gematik.ti20.vsdm.test.e2e.abilities.CallPoppTokenGenerator;
@@ -49,8 +48,6 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.core.Serenity;
 import net.serenitybdd.screenplay.Actor;
@@ -65,42 +62,16 @@ import org.junit.jupiter.api.Assertions;
 public class VsdmSteps {
 
   private static final List<Long> answerTimes = new ArrayList<>();
-  private static final TigerTypedConfigurationKey<Boolean> VSDM_LOAD_TESTING_ACTIVE =
-      new TigerTypedConfigurationKey<>("vsdm.loadTesting.active", Boolean.class, Boolean.FALSE);
-
+  private static final TigerConfigBean CFG = TigerConfigProvider.getInstance();
+  private static final String SMCB_CARD_IMAGE_FILE = CFG.getTestData().getSmcbCardImageFile();
+  private static final String EGK_CARD_IMAGE_FILE = CFG.getTestData().getEgkCardImageFile();
   private static final String VALID_PROFILE_VERSION = "1.0";
+  private static final boolean VSDM_LOAD_TESTING_ACTIVE =
+      Boolean.parseBoolean(
+          Optional.ofNullable(System.getenv("VSDM_LOAD_TESTING_ACTIVE")).orElse("true"));
 
   private Actor hccs() {
     return OnStage.theActorInTheSpotlight();
-  }
-
-  // Matches ${ENV_NAME:defaultValue}
-  private static final Pattern ENV_PLACEHOLDER_PATTERN =
-      Pattern.compile("^\\$\\{([A-Z0-9_]+)(?::([^}]*))?}$");
-
-  @Nonnull
-  private String resolveEnvPlaceholder(final @Nonnull String rawValue) {
-    // Cucumber-Stringwerte können mit Quotes kommen
-    String value = rawValue.replaceAll("^\"|\"$", "");
-    var matcher = ENV_PLACEHOLDER_PATTERN.matcher(value);
-
-    if (!matcher.matches()) {
-      return value; // normaler fixer Wert
-    }
-
-    String envName = matcher.group(1);
-    String fallback = matcher.group(2); // kann null sein
-    String envValue = System.getenv(envName);
-
-    if (envValue != null && !envValue.isBlank()) {
-      return envValue;
-    }
-    if (fallback != null) {
-      return fallback;
-    }
-
-    throw new IllegalArgumentException(
-        "Environment variable '" + envName + "' is not set and no fallback was provided.");
   }
 
   @Before
@@ -121,14 +92,14 @@ public class VsdmSteps {
     hccs().attemptsTo(ConfigureTerminal.withDefaultConfig());
   }
 
-  @Angenommen("das Primärsystem in der LEI verwendet eine SMC-B {string} im Slot {int}")
-  public void givenHccsIsUsingItsSmcb(String smcbCard, Integer slot) {
-    hccs().attemptsTo(InsertSmcbCard.fromFileInSlot(smcbCard, slot));
+  @Angenommen("das Primärsystem in der LEI verwendet eine SMC-B im Slot {int}")
+  public void givenHccsIsUsingItsSmcb(Integer slot) {
+    hccs().attemptsTo(InsertSmcbCard.fromFileInSlot(SMCB_CARD_IMAGE_FILE, slot));
   }
 
-  @Angenommen("der Versicherte in der LEI verwendet eine eGK {string} im Slot {int}")
-  public void givenPatientIsUsingItsEgk(String egkCard, Integer slot) {
-    hccs().attemptsTo(InsertEgkCard.fromFileInSlot(resolveEnvPlaceholder(egkCard), slot));
+  @Angenommen("der Versicherte in der LEI verwendet eine eGK im Slot {int}")
+  public void givenPatientIsUsingItsEgk(Integer slot) {
+    hccs().attemptsTo(InsertEgkCard.fromFileInSlot(EGK_CARD_IMAGE_FILE, slot));
   }
 
   @Angenommen("das Primärsystem hat die VSD bereits einmal im Quartal abgefragt")
@@ -147,7 +118,7 @@ public class VsdmSteps {
 
   @Angenommen("der Fachdienst VSDM 2.0 wird mit {int} Aufrufen pro Sekunde unter Last gesetzt")
   public void givenTheVsdmServiceIsProcessingCallsPerSecond(int callsPerSecond) {
-    if (VSDM_LOAD_TESTING_ACTIVE.getValueOrDefault()) {
+    if (VSDM_LOAD_TESTING_ACTIVE) {
       TigerDirector.pauseExecution(
           String.format(
               "Bitte senden Sie jetzt eine Hintergrundlast von durchschnittlich %d Aufrufen pro Sekunde an den Fachdienst VSDM 2.0.",
@@ -214,7 +185,7 @@ public class VsdmSteps {
     String result =
         String.format("Der VSDM 2.0 Fachdienst antwortete in %d Millisekunden.", answerTime);
 
-    if (VSDM_LOAD_TESTING_ACTIVE.getValueOrDefault()) {
+    if (VSDM_LOAD_TESTING_ACTIVE) {
       TigerDirector.pauseExecution(result);
     }
     log.info(result);
@@ -302,7 +273,7 @@ public class VsdmSteps {
             """,
             min.orElse(0L), max.orElse(0L), avg.orElse(0D), answerTimesSize);
 
-    if (VSDM_LOAD_TESTING_ACTIVE.getValueOrDefault()) {
+    if (VSDM_LOAD_TESTING_ACTIVE) {
       TigerDirector.pauseExecution(result);
     }
     log.info(result);
@@ -387,7 +358,7 @@ public class VsdmSteps {
       "das Primärsystem die VSD mit einer unbekannten KVNR {string} vom VSDM Ressource Server abfragt")
   public void whenClientSystemIsRequestingVsdWithUnknownKvnr(String unknownKvnr) {
     EgkCardInfo egk = hccs().recall("egkCardInfo");
-    egk.setKvnr(resolveEnvPlaceholder(unknownKvnr));
+    egk.setKvnr(unknownKvnr);
     hccs().attemptsTo(GeneratePoppToken.now());
     hccs()
         .attemptsTo(

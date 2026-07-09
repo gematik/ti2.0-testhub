@@ -19,11 +19,11 @@ Funktionalität: Fehlerbehandlung VSDM 2.0
   Abfrage der VSD verursacht wird. Aktuell unterstützt der Fachdienst VSDM 2.0 nur die Version 1.0.0.
 
     Angenommen das Primärsystem in der LEI verwendet ein korrekt konfiguriertes Terminal
-    Angenommen das Primärsystem in der LEI verwendet eine SMC-B <Smcb-Card> im Slot <Smcb-Slot>
-    Angenommen der Versicherte in der LEI verwendet eine eGK <Egk-Card> im Slot <Egk-Slot>
+    Angenommen das Primärsystem in der LEI verwendet eine SMC-B im Slot <Smcb-Slot>
+    Angenommen der Versicherte in der LEI verwendet eine eGK im Slot <Egk-Slot>
     Wenn das Primärsystem die VSD mit einer unbekannten FHIR Profile Version <Version> abfragt
     Dann antwortet der VSDM Ressource Server mit dem Fehlercode <Http-Code> und dem Text <Version> <Error-Code>
 
     Beispiele:
-      | Smcb-Card           | Smcb-Slot | Egk-Card                                  | Egk-Slot | Http-Code | Error-Code                           | Version |
-      | "smcbCardImage.xml" | 1         | "${EGK_CARD_IMAGE_FILE:egkCardData.json}" | 2        | 400       | "VSDSERVICE_INVALID_PROFILE_VERSION" | "1.2.3" |
+      | Smcb-Slot | Egk-Slot | Http-Code | Error-Code                           | Version |
+      | 1         | 2        | 400       | "VSDSERVICE_INVALID_PROFILE_VERSION" | "1.2.3" |

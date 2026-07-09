@@ -24,10 +24,10 @@
  */
 package de.gematik.zeta.steps;
 
+import static de.gematik.ti20.rbel.fluent.RbelFluentApi.assertCurrentRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import de.gematik.rbellogger.data.RbelElement;
-import de.gematik.test.tiger.lib.rbel.RbelMessageRetriever;
 import io.cucumber.java.de.Und;
 import io.cucumber.java.en.And;
 import java.util.List;
@@ -73,11 +73,7 @@ public class JwtVerificationSteps {
   @Und("verifiziere die ES256 Signatur des JWT aus dem aktuellen Request Knoten {string}")
   @And("verify the ES256 signature of the JWT from current request node {string}")
   public void verifyJwtSignatureFromCurrentRequest(String rbelPath) {
-    var retriever = RbelMessageRetriever.getInstance();
-    var elements = retriever.findElementsInCurrentRequest(rbelPath);
-    assertThat(elements).as("JWT must exist at path: " + rbelPath).isNotEmpty();
-
-    RbelElement jwtElement = elements.getFirst();
+    RbelElement jwtElement = assertCurrentRequest().elementAtPath(rbelPath);
 
     // Try RBel built-in verification first
     if (tryRbelVerification(jwtElement, rbelPath)) {
@@ -100,7 +96,7 @@ public class JwtVerificationSteps {
     String resolvedJwt =
         de.gematik.test.tiger.common.config.TigerGlobalConfiguration.resolvePlaceholders(jwt);
 
-    var retriever = RbelMessageRetriever.getInstance();
+    var request = assertCurrentRequest();
     for (String path :
         List.of(
             "$.header.PoPP",
@@ -108,24 +104,22 @@ public class JwtVerificationSteps {
             "$.body.client_assertion",
             "$.body.subject_token",
             "$.body.access_token")) {
-      List<RbelElement> elements;
+      String rawContent;
+      RbelElement element;
       try {
-        elements = retriever.findElementsInCurrentRequest(path);
-      } catch (RuntimeException | AssertionError e) {
+        element = request.elementAtPath(path);
+        rawContent = element.getRawStringContent();
+      } catch (AssertionError e) {
         log.debug("Path {} not found in current request, skipping: {}", path, e.getMessage());
         continue;
       }
-      if (!elements.isEmpty()) {
-        RbelElement element = elements.getFirst();
-        String rawContent = element.getRawStringContent();
-        String comparableRaw =
-            rawContent != null && rawContent.startsWith("Bearer ")
-                ? rawContent.substring(7)
-                : rawContent;
-        if (resolvedJwt.equals(comparableRaw) || resolvedJwt.equals(rawContent)) {
-          if (tryRbelVerification(element, path)) {
-            return;
-          }
+      String comparableRaw =
+          rawContent != null && rawContent.startsWith("Bearer ")
+              ? rawContent.substring(7)
+              : rawContent;
+      if (resolvedJwt.equals(comparableRaw) || resolvedJwt.equals(rawContent)) {
+        if (tryRbelVerification(element, path)) {
+          return;
         }
       }
     }

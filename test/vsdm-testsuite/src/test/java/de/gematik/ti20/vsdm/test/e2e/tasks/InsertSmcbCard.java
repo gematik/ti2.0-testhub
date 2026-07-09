@@ -66,7 +66,7 @@ public class InsertSmcbCard implements Task {
     Response insertResponse =
         api.request()
             .contentType(ContentType.XML)
-            .body(new File("src/test/resources/data/cards/" + cardImage))
+            .body(new File("src/test/resources/" + cardImage))
             .put("/slots/" + slot);
     insertResponse.then().statusCode(201);
 

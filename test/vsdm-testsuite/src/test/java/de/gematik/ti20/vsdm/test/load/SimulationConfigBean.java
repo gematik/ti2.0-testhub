@@ -33,6 +33,7 @@ public class SimulationConfigBean {
   private Url url;
   private Ramp ramp;
   private boolean randomReadVsd;
+  private TestData testData;
 
   @Data
   public static class Url {
@@ -47,9 +48,8 @@ public class SimulationConfigBean {
 
     @Data
     public static class Server {
-      private String popp;
       private String vsdm;
-      private String zeta;
+      private String htu;
     }
   }
 
@@ -76,5 +76,13 @@ public class SimulationConfigBean {
         private Duration duration;
       }
     }
+  }
+
+  @Data
+  public static class TestData {
+    private String iknrKvnrList;
+    private String poppTokens;
+    private String smcbSlots;
+    private String egkSlots;
   }
 }

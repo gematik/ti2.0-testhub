@@ -74,7 +74,8 @@ public class VsdmZetaSdkClientConfig {
     if (interceptStorage) {
       return new StorageConfig.Custom(storageInterceptor);
     } else {
-      return new StorageConfig.Default("7aae7xXr8rnzVqjpYbosS0CFMrlprkD7jbVotm0fd+w=", null);
+      return new StorageConfig.Default(
+          "7aae7xXr8rnzVqjpYbosS0CFMrlprkD7jbVotm0fd+w=", null, "vsdm-client-simservice");
     }
   }
 

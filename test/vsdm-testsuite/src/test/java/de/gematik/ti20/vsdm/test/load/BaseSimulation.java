@@ -25,20 +25,13 @@
 package de.gematik.ti20.vsdm.test.load;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
-import static java.time.Instant.now;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import de.gematik.ti20.vsdm.test.e2e.enums.ProofMethod;
-import io.gatling.javaapi.core.CheckBuilder;
 import io.gatling.javaapi.core.FeederBuilder;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.Simulation;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -69,16 +62,17 @@ public class BaseSimulation extends Simulation {
 
   protected static final String URL_CLIENT_CARD = CFG.getUrl().getClient().getCard();
   protected static final String URL_CLIENT_VSDM = CFG.getUrl().getClient().getVsdm();
-  protected static final String URL_SERVER_POPP = CFG.getUrl().getServer().getPopp();
   protected static final String URL_SERVER_VSDM = CFG.getUrl().getServer().getVsdm();
-  protected static final String URL_SERVER_ZETA = CFG.getUrl().getServer().getZeta();
+  protected static final String HTU_SERVER_VSDM = CFG.getUrl().getServer().getHtu();
+
+  protected static final String POPP_TOKENS = CFG.getTestData().getPoppTokens();
+  protected static final String SMCB_SLOTS = CFG.getTestData().getSmcbSlots();
+  protected static final String EGK_SLOTS = CFG.getTestData().getEgkSlots();
 
   protected static final FeederBuilder.FileBased<String> POPP_TOKEN_FEEDER =
-      csv("feeder/popp_tokens.csv").circular();
-  protected static final FeederBuilder.FileBased<String> SMCB_FEEDER =
-      csv("feeder/smcb_slots.csv").circular();
-  protected static final FeederBuilder.FileBased<String> EGK_FEEDER =
-      csv("feeder/egk_slots.csv").circular();
+      csv(POPP_TOKENS).circular();
+  protected static final FeederBuilder.FileBased<String> SMCB_FEEDER = csv(SMCB_SLOTS).circular();
+  protected static final FeederBuilder.FileBased<String> EGK_FEEDER = csv(EGK_SLOTS).circular();
 
   protected static final String FHIR_PROFILE_VERSION = "1.0";
 
@@ -100,61 +94,5 @@ public class BaseSimulation extends Simulation {
               .during(RAMP_USERS_RANDOM_DURATION.getSeconds() / 2));
     }
     return steps;
-  }
-
-  protected static String getPoppTokenJsonBody(final String iknr, final String kvnr) {
-    Map<String, List<Map<String, String>>> tokenArgs =
-        Map.of(
-            "tokenParamsList",
-            List.of(
-                Map.of(
-                    "proofMethod",
-                    ProofMethod.EHC_PRACTITIONER_TRUSTEDCHANNEL.getValue(),
-                    "patientProofTime",
-                    String.valueOf(now().getEpochSecond()),
-                    "iat",
-                    String.valueOf(now().getEpochSecond() + 86_400),
-                    "patientId",
-                    kvnr,
-                    "insurerId",
-                    iknr,
-                    "actorId",
-                    "1-SMC-B-Testkarte--883110000168765",
-                    "actorProfessionOid",
-                    OID_PRAXIS_ARZT)));
-
-    try {
-      return new ObjectMapper().writeValueAsString(tokenArgs);
-    } catch (JsonProcessingException e) {
-      return null;
-    }
-  }
-
-  protected static String extractJwtPayload(String token) {
-    if (token == null) {
-      return null;
-    }
-    String[] parts = token.split("\\.");
-    return parts.length >= 2 ? parts[1] : token;
-  }
-
-  protected static CheckBuilder findAndSavePoppTokenContent() {
-    return jsonPath("$.tokenResults[0]")
-        .transform(BaseSimulation::extractJwtPayload)
-        .saveAs("poppTokenContent");
-  }
-
-  protected static String getZetaUserInfo() {
-    String userInfo =
-        """
-            {
-              "subject": "subject",
-              "commonName": "commonName",
-              "identifier": "1-SMC-B-Testkarte--883110000168765",
-              "professionOID": "%s"
-            }
-               \s"""
-            .formatted(OID_PRAXIS_ARZT);
-    return Base64.getEncoder().encodeToString(userInfo.getBytes());
   }
 }

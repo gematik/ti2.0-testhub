@@ -2,6 +2,15 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.7.0
+
+### Update Notes
+
+### Changes
+
+- TESTHUB-184: add support for eGK G2.1, PTV_4.7.0 card images in card terminal client
+- TESTHUB-186: Upgrade ZETA components (VSDM)
+
 ## Release 3.6.0
 
 ### Changes

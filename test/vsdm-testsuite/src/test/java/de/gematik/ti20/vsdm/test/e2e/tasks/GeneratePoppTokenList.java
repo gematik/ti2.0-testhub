@@ -31,6 +31,8 @@ import de.gematik.ti20.vsdm.test.e2e.abilities.CallPoppTokenGenerator;
 import de.gematik.ti20.vsdm.test.e2e.enums.ProofMethod;
 import de.gematik.ti20.vsdm.test.e2e.models.SmcbCardInfo;
 import de.gematik.ti20.vsdm.test.e2e.models.TokenResults;
+import de.gematik.ti20.vsdm.test.e2e.steps.TigerConfigBean;
+import de.gematik.ti20.vsdm.test.e2e.steps.TigerConfigProvider;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import java.io.BufferedReader;
@@ -43,7 +45,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import lombok.SneakyThrows;
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Task;
@@ -51,8 +52,8 @@ import org.junit.jupiter.api.Assertions;
 
 public class GeneratePoppTokenList implements Task {
 
-  private static final String IKNR_KVNR_LIST =
-      Optional.ofNullable(System.getenv("IKNR_KVNR_LIST")).orElse("feeder/iknr_kvnr.csv");
+  private static final TigerConfigBean CFG = TigerConfigProvider.getInstance();
+  private static final String IKNR_KVNR_LIST = CFG.getTestData().getIknrKvnrList();
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private final int nbrPoppTokens;
 
@@ -74,8 +75,7 @@ public class GeneratePoppTokenList implements Task {
       List<String> lines = reader.lines().toList();
       return lines.subList(1, nbrPoppTokens + 1);
     } catch (final IOException e) {
-      throw new UncheckedIOException(
-          "Fehler beim Lesen der Ressource: " + "feeder/iknr_kvnr.csv", e);
+      throw new UncheckedIOException("Fehler beim Lesen der Ressource: " + IKNR_KVNR_LIST, e);
     }
   }
 

@@ -31,7 +31,7 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - POPP_SERVER_URL=${POPP_SERVER_URL:-wss://popp-zeta-ingress:443/ws}
       - SPRING_PROFILES_ACTIVE=dev
-      - VIRTUAL_CARD_IMAGE_FILE=${VIRTUAL_CARD_IMAGE_FILE:-/data/cards/egkCardImage.xml}
+      - VIRTUAL_CARD_IMAGE_FILE=${VIRTUAL_CARD_IMAGE_PATH:-/data/cards}/${VIRTUAL_CARD_IMAGE_FILE:-egkCardImage.xml}
       - ZETA_AUTHENTICATION_SMB_KEYFILE=/app/smcb_private.p12
       # - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5013"
     networks:
@@ -41,7 +41,7 @@ services:
       - "${PORT_POPP_CLIENT_MGMT:?PORT_POPP_CLIENT_MGMT missing – set it in doc/docker/.env}:9001"
     volumes:
       - ./zeta/smcb-private/${SMCB_FILE:-smcb_private.p12}:/app/smcb_private.p12:ro
-      - ../../../test/vsdm-testsuite/src/test/resources/data/cards:/data/cards:ro
+      - ../../../test/vsdm-testsuite/src/test/resources/${VIRTUAL_CARD_IMAGE_PATH:-data/cards}:${VIRTUAL_CARD_IMAGE_PATH:-/data/cards}:ro
     depends_on:
       - otel-collector
 
@@ -115,10 +115,10 @@ services:
       POPP_SERVER_HOST: popp-server:8443
     ports:
       - "${PORT_POPP_ZETA_PEP:?PORT_POPP_ZETA_PEP missing – set it in doc/docker/.env}:80"
-    command: [ "nginx", "-g", "daemon off;", "-c", "/etc/nginx/nginx.conf" ]
+    command: [ "nginx", "-g", "daemon off;", "-c", "/ci_nginx/nginx.conf" ]
     volumes:
       - ./zeta-popp/pep/conf/:/etc/nginx/templates/:ro
-      - ./zeta-popp/pep/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./zeta-popp/pep:/ci_nginx:ro
       - ./zeta-popp/well-known/:/srv/.well-known/:ro
     networks:
       - testhub_backend
@@ -137,7 +137,6 @@ services:
     platform: linux/amd64
     environment:
       <<: *popp-no-proxy-env
-      CHECK_CLIENT_ATTESTATION_ENABLED: true
       DEBUG_PORT: "*:5022"
       DEBUG: "true"
       GENESIS_HASH: "4841c2142fef441daa6ee6c57db65c011935964b14e94a6c8f5ec0447b83526c"
@@ -161,8 +160,6 @@ services:
       KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_OPA_ENABLED: true
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-      OCSP_KEYSTORE_LOCATION: /var/trust-data/ocsp-signers.p12
-      OCSP_KEYSTORE_PASSWORD: no_secret_for_trust_only
       PROXY_ADDRESS_FORWARDING: true
       SMCB_HASHING_PEPPER: "-085c1245-dc0d-4d39-95b4-97496bec6182"
       SMCB_KEYSTORE_LOCATION: /opt/keycloak/conf/smcb/truststore.p12
@@ -177,7 +174,6 @@ services:
       - ./zeta-popp/realm:/opt/keycloak/data/import
       - ./zeta-popp/smcb:/opt/keycloak/conf/smcb
       - ./zeta/tpm/:/opt/keycloak/conf/tpm
-      - ./zeta/ocsp-signers.p12:/var/trust-data/ocsp-signers.p12:ro
     networks:
       - testhub_backend
     healthcheck:

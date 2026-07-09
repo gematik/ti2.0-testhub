@@ -8,7 +8,7 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.6.0</version>
+        <version>3.7.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -22,77 +22,6 @@
         <skip.unittests>false</skip.unittests>
         <skip.inttests>true</skip.inttests>
     </properties>
-
-    <!-- Tiger 4.2.x is built against Spring Boot 3.x; keep the testsuite on that baseline.
-         Force JUnit Platform 1.14.1 so Cucumber 7.31.0 can discover tests (DiscoveryIssueReporter).
-         Tiger still brings older JUnit Platform bits transitively, so we override them here. -->
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${version.spring-boot-testsuite}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.springdoc</groupId>
-                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-                <version>${version.springdoc-testsuite}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springdoc</groupId>
-                <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
-                <version>${version.springdoc-testsuite}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springdoc</groupId>
-                <artifactId>springdoc-openapi-starter-common</artifactId>
-                <version>${version.springdoc-testsuite}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.platform</groupId>
-                <artifactId>junit-platform-commons</artifactId>
-                <version>${version.junit-platform}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.platform</groupId>
-                <artifactId>junit-platform-engine</artifactId>
-                <version>${version.junit-platform}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.platform</groupId>
-                <artifactId>junit-platform-launcher</artifactId>
-                <version>${version.junit-platform}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.platform</groupId>
-                <artifactId>junit-platform-suite</artifactId>
-                <version>${version.junit-platform}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.platform</groupId>
-                <artifactId>junit-platform-suite-api</artifactId>
-                <version>${version.junit-platform}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.platform</groupId>
-                <artifactId>junit-platform-suite-commons</artifactId>
-                <version>${version.junit-platform}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.platform</groupId>
-                <artifactId>junit-platform-suite-engine</artifactId>
-                <version>${version.junit-platform}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter</artifactId>
-                <version>${version.junit-jupiter}</version>
-                <scope>test</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <dependencies>
         <!-- dependencies from base -->
@@ -139,49 +68,10 @@
         <dependency>
             <groupId>de.gematik.test</groupId>
             <artifactId>tiger-test-lib</artifactId>
-            <exclusions>
-                <!-- Keep Tiger's Spring Boot transitives from overriding the SB4.0.6 baseline. -->
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-web-server</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-webmvc</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-servlet</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-jackson</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-validation</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-http-converter</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.junit.platform</groupId>
-                    <artifactId>junit-platform-suite</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.junit.platform</groupId>
-                    <artifactId>junit-platform-suite-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.junit.platform</groupId>
-                    <artifactId>junit-platform-suite-commons</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.junit.platform</groupId>
-                    <artifactId>junit-platform-suite-engine</artifactId>
-                </exclusion>
-            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>de.gematik.ti20.rbel</groupId>
+            <artifactId>rbel-fluent-api</artifactId>
         </dependency>
         <dependency>
             <groupId>de.gematik.ti20.client</groupId>

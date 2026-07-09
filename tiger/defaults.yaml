@@ -29,11 +29,11 @@ zeta:
   env: "local"
   server:
     popp:
-      url: http://${ports.host}:9500
+      url: http://${ports.host}:${ports.poppTokenGeneratorPort}
     poppClient:
-      url: http://${ports.host}:8081
+      url: http://${ports.host}:${ports.poppClientPort}
     poppTokenGenerator:
-      url: http://${ports.host}:9500
+      url: http://${ports.host}:${ports.poppTokenGeneratorPort}
     pdp:
       tokenUrl: http://${ports.host}:${ports.poppPdpPort}/auth/realms/zeta-guard/protocol/openid-connect/token
       issuer: https://popp-zeta-ingress/auth/realms/zeta-guard
@@ -46,7 +46,7 @@ zeta:
     pep:
       url: http://${ports.host}:${ports.poppPepPort}
     opa:
-      baseUrl: http://${ports.host}:2401
+      baseUrl: http://${ports.host}:${ports.poppOpaPort}
   timeouts:
     httpRequestSeconds: 10
     healthCheckSeconds: 20

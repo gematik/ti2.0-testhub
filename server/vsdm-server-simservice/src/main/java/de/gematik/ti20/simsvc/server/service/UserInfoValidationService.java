@@ -54,7 +54,7 @@ public class UserInfoValidationService {
   private Schema userInfoSchema;
 
   @PostConstruct
-  public void init() throws IOException {
+  public void init() {
     try (InputStream schemaStream = getClass().getResourceAsStream(SCHEMA_PATH)) {
       if (schemaStream == null) {
         throw new IllegalStateException("JSON schema not found: " + SCHEMA_PATH);
@@ -64,6 +64,11 @@ public class UserInfoValidationService {
           SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_7);
       userInfoSchema = schemaRegistry.getSchema(schemaStream, InputFormat.JSON);
       log.info("user-info-vsdm2 json schema successfully loaded");
+    } catch (final IOException e) {
+      throw new IllegalStateException("Failed to load user-info-vsdm2 JSON schema", e);
+    } catch (final NoClassDefFoundError e) {
+      throw new IllegalStateException(
+          "Failed to initialize json-schema-validator due to missing class: " + e.getMessage(), e);
     }
   }
 

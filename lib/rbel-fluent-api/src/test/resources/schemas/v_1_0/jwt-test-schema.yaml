@@ -1,0 +1,24 @@
+type: object
+required:
+  - header
+  - payload
+properties:
+  header:
+    type: object
+    required:
+      - alg
+    properties:
+      alg:
+        type: string
+        const: RS256
+    additionalProperties: true
+  payload:
+    type: object
+    required:
+      - foo
+    properties:
+      foo:
+        type: string
+        const: bar
+    additionalProperties: true
+additionalProperties: true

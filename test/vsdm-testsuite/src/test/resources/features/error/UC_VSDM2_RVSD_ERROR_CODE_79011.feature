@@ -20,11 +20,11 @@ Funktionalität: Fehlerbehandlung VSDM 2.0
   Fehlerfall könnte z.B. eine abgelaufene Versicherung oder ein Versichertenwechsel sein.
 
     Angenommen das Primärsystem in der LEI verwendet ein korrekt konfiguriertes Terminal
-    Angenommen das Primärsystem in der LEI verwendet eine SMC-B <Smcb-Card> im Slot <Smcb-Slot>
-    Angenommen der Versicherte in der LEI verwendet eine eGK <Egk-Card> im Slot <Egk-Slot>
+    Angenommen das Primärsystem in der LEI verwendet eine SMC-B im Slot <Smcb-Slot>
+    Angenommen der Versicherte in der LEI verwendet eine eGK im Slot <Egk-Slot>
     Wenn das Primärsystem die VSD mit einer ungültigen KVNR <KVNR> vom VSDM Ressource Server abfragt
     Dann antwortet der VSDM Ressource Server mit dem Fehlercode <Http-Code> und dem Text <KVNR> <Error-Code>
 
     Beispiele:
-      | Smcb-Card           | Smcb-Slot | Egk-Card                                  | Egk-Slot | KVNR         | Http-Code | Error-Code                |
-      | "smcbCardImage.xml" | 1         | "${EGK_CARD_IMAGE_FILE:egkCardData.json}" | 2        | "WRONG_KVNR" | 400       | "VSDSERVICE_INVALID_KVNR" |
+      | Smcb-Slot | Egk-Slot | KVNR         | Http-Code | Error-Code                |
+      | 1         | 2        | "WRONG_KVNR" | 400       | "VSDSERVICE_INVALID_KVNR" |

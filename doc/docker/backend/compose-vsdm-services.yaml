@@ -71,7 +71,7 @@ services:
       - testhub_backend
 
   vsdm-zeta-pdp:
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:1.2.1
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:1.2.3
     env_file:
       - path: ../.env
         required: true

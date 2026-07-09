@@ -43,10 +43,10 @@ public final class SimulationConfigProvider {
   }
 
   private static SimulationConfigBean load() {
-    String configResource = System.getProperty("config.resource");
+    String config = System.getProperty("config");
 
     Config root =
-        ConfigFactory.parseResources(Objects.requireNonNullElse(configResource, "simulation.conf"))
+        ConfigFactory.parseResources(Objects.requireNonNullElse(config, "simulation.conf"))
             .resolve();
 
     Config simulation = root.getConfig("simulation");

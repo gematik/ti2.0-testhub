@@ -21,29 +21,29 @@ zeta:
       # Lokaler Docker-Mock. Die PEP-/OPA-/Proxy-Infrastruktur läuft immer
       # lokal; im local-Modus ist zusätzlich der PDP (Keycloak) lokal gemockt.
       pepUrl: "http://${ports.host}:${ports.poppPepPort}"
-      poppClientUrl: "http://${ports.host}:18081"
+      poppClientUrl: "http://${ports.host}:${ports.poppClientPort}"
       pdpRealmUrl: "http://${ports.host}:${ports.poppPdpPort}/auth/realms/zeta-guard"
-      pdpIssuer: "https://${ports.host}:9119/auth/realms/zeta-guard"
+      pdpIssuer: "https://${ports.host}:${ports.poppIngressPort}/auth/realms/zeta-guard"
       # Audiences müssen gegen den von Keycloak veröffentlichten Frontend-Hostnamen
       # (KC_HOSTNAME=https://popp-zeta-ingress/auth/) geprüft werden, NICHT gegen die
       # lokale Request-URL (127.0.0.1) — sonst lehnt Keycloak mit invalid_client /
       # "Invalid token audience" ab.
       smcbAudience: "https://popp-zeta-ingress/auth/"
       clientAssertionAud: "https://popp-zeta-ingress/auth/realms/zeta-guard/protocol/openid-connect/token"
-      opaBaseUrl: "http://${ports.host}:2401"
-      tlsHost: "${ports.host}:9119"
+      opaBaseUrl: "http://${ports.host}:${ports.poppOpaPort}"
+      tlsHost: "${ports.host}:${ports.vsdmIngressPort}"
       discoveryPdpUrl: "http://${ports.host}:${ports.poppPdpPort}/auth/realms/zeta-guard/.well-known/openid-configuration"
       discoveryPepUrl: "http://${ports.host}:${ports.poppPepPort}/.well-known/oauth-protected-resource"
     rudev:
       # Echter PoPP-Server (RU-DEV). PEP/OPA/Proxy bleiben lokal, PoPP und PDP
       # zeigen auf popp.dev.poppservice.de.
       pepUrl: "https://popp.dev.poppservice.de"
-      poppClientUrl: "http://${ports.host}:18081"
+      poppClientUrl: "http://${ports.host}:${ports.poppClientPort}"
       pdpRealmUrl: "https://popp.dev.poppservice.de/auth/realms/zeta-guard"
       pdpIssuer: "https://popp.dev.poppservice.de/auth/realms/zeta-guard"
       smcbAudience: "https://popp.dev.poppservice.de/auth/"
       clientAssertionAud: "https://popp.dev.poppservice.de/auth/realms/zeta-guard/protocol/openid-connect/token"
-      opaBaseUrl: "http://${ports.host}:2401"
+      opaBaseUrl: "http://${ports.host}:${ports.poppOpaPort}"
       tlsHost: "popp.dev.poppservice.de"
       discoveryPdpUrl: "https://popp.dev.poppservice.de:443/auth/realms/zeta-guard/.well-known/openid-configuration"
       discoveryPepUrl: "https://popp.dev.poppservice.de:443/.well-known/oauth-protected-resource"

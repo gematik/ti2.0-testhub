@@ -24,6 +24,8 @@
  */
 package de.gematik.zeta.steps;
 
+import static de.gematik.ti20.rbel.fluent.RbelFluentApi.assertCurrentRequest;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.gematik.rbellogger.data.RbelElement;
 import de.gematik.rbellogger.facets.pki.RbelX509CertificateFacet;
@@ -75,8 +77,8 @@ public class SmcbSteps {
     var retriever = RbelMessageRetriever.getInstance();
 
     // Subject-DN fields from the parsed RBel tree (RbelX500Converter)
-    String commonName = getElementText(retriever, rbelPath + ".content.subject.CN");
-    String orgName = getElementText(retriever, rbelPath + ".content.subject.O");
+    String commonName = getElementText(rbelPath + ".content.subject.CN");
+    String orgName = getElementText(rbelPath + ".content.subject.O");
 
     // X509Certificate object from the RBel facet for Admission extension parsing
     RbelElement certElement = retriever.findElementInCurrentRequest(rbelPath + ".content");
@@ -108,15 +110,8 @@ public class SmcbSteps {
     String professionId;
   }
 
-  private static String getElementText(RbelMessageRetriever retriever, String rbelPath) {
-    var elements = retriever.findElementsInCurrentRequestOrEmpty(rbelPath);
-    if (elements.isEmpty()) {
-      return "";
-    }
-    return elements
-        .getFirst()
-        .printValue()
-        .orElseGet(() -> elements.getFirst().getRawStringContent());
+  private static String getElementText(String rbelPath) {
+    return assertCurrentRequest().childAtPath(rbelPath).rawValue();
   }
 
   private static void extractAdmissionValues(X509Certificate cert, CertificateInfo info) {

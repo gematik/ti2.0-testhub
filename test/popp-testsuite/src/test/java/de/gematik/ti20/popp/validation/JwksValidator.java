@@ -26,23 +26,23 @@ package de.gematik.ti20.popp.validation;
 
 import static de.gematik.ti20.popp.data.TestConstants.POPP_SERVICE_BASE_URL;
 import static de.gematik.ti20.popp.data.TestConstants.VALDID_JWKS_FILE;
+import static de.gematik.ti20.rbel.fluent.RbelFluentApi.expectRequests;
 
 import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
 
-public class JwksValidator extends BaseValidator {
-  public JwksValidator() {
-    super();
-  }
+public final class JwksValidator {
+  private JwksValidator() {}
 
-  public void validateSignedJwks() {
-    findRequestForPath("/.well-known/signed-jwks");
-    currentResponseAtMatchesAsJsonTheFile("$.body.body", VALDID_JWKS_FILE);
-    currentResponseAtMatches("$..x5c.0.content.issuer.CN", "GEM.KOMP-CA.*");
-    currentResponseAtMatches("$.body.body.iss", POPP_SERVICE_BASE_URL);
-    currentResponseAtMatches("$.body.body.sub", POPP_SERVICE_BASE_URL);
-    currentResponseAtMatches("$.body.signature.isValid", "true");
-    currentResponseAtMatches(
-        "$.body.body.keys.0.kid",
-        TigerGlobalConfiguration.resolvePlaceholders("${tiger.kidTokenKey}"));
+  public static void validateSignedJwks() {
+    expectRequests("/.well-known/signed-jwks")
+        .nextResponse()
+        .hasJsonAtPathEqualToFile("$.body.body", VALDID_JWKS_FILE)
+        .hasValueAtPathMatching("$..x5c.0.content.issuer.CN", "GEM.KOMP-CA.*")
+        .hasValueAtPathEqualTo("$.body.body.iss", POPP_SERVICE_BASE_URL)
+        .hasValueAtPathEqualTo("$.body.body.sub", POPP_SERVICE_BASE_URL)
+        .hasValueAtPathEqualTo("$.body.signature.isValid", "true")
+        .hasValueAtPathEqualTo(
+            "$.body.body.keys.0.kid",
+            TigerGlobalConfiguration.resolvePlaceholders("${tiger.kidTokenKey}"));
   }
 }

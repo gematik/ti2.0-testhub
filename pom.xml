@@ -5,13 +5,14 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>3.6.0</version>
+    <version>3.7.0</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>
 
     <modules>
         <module>lib/card-client-lib-java</module>
+        <module>lib/rbel-fluent-api</module>
         <module>lib/vsdm-fhir-lib-java</module>
         <module>client/card-terminal-client-simservice</module>
         <module>client/vsdm-client-simservice-java</module>
@@ -28,28 +29,21 @@
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.release>21</maven.compiler.release>
 
-        <zeta-sdk-jvm.version>1.2.0</zeta-sdk-jvm.version>
+        <zeta-sdk-jvm.version>1.2.2</zeta-sdk-jvm.version>
 
         <version.maven-antrun-plugin>3.2.0</version.maven-antrun-plugin>
         <version.maven.surefire>3.5.5</version.maven.surefire>
         <version.maven.failsafe>3.5.5</version.maven.failsafe>
         <version.maven.jacoco>0.8.14</version.maven.jacoco>
-        <version.tiger>4.3.1</version.tiger>
+        <version.tiger>4.3.2</version.tiger>
         <version.tiger-cloud-extension>10.0.18</version.tiger-cloud-extension>
         <version.serenity>5.3.10</version.serenity>
         <version.gem.testdata>1.0.10</version.gem.testdata>
-        <version.springdoc>3.0.3</version.springdoc>
-        <version.spring-boot>4.1.0</version.spring-boot>
-        <version.spring-boot-testsuite>3.5.7</version.spring-boot-testsuite>
-        <version.springdoc-testsuite>2.8.13</version.springdoc-testsuite>
         <version.gem.bbriccs>0.10.0</version.gem.bbriccs>
         <version.pact.consumer>4.7.1</version.pact.consumer>
         <version.gatling.highcharts>3.13.5</version.gatling.highcharts>
         <version.license-maven-plugin>2.7.1</version.license-maven-plugin>
-        <version.json-schema-validator>3.0.2</version.json-schema-validator>
         <version.maven.format>2.29</version.maven.format>
-        <version.junit-jupiter>5.14.1</version.junit-jupiter>
-        <version.junit-platform>1.14.1</version.junit-platform>
         <version.testcontainers>2.0.5</version.testcontainers>
         <version.nimbus-jose-jwt>10.9</version.nimbus-jose-jwt>
         <version.tyrus-standalone-client>2.2.2</version.tyrus-standalone-client>
@@ -65,62 +59,11 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${version.spring-boot}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
                 <groupId>de.gematik.test</groupId>
                 <artifactId>tiger-bom</artifactId>
                 <version>${version.tiger}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.springdoc</groupId>
-                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-                <version>${version.springdoc}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter</artifactId>
-                <version>${version.junit-jupiter}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter-api</artifactId>
-                <version>${version.junit-jupiter}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter-engine</artifactId>
-                <version>${version.junit-jupiter}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter-params</artifactId>
-                <version>${version.junit-jupiter}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.platform</groupId>
-                <artifactId>junit-platform-commons</artifactId>
-                <version>${version.junit-platform}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.platform</groupId>
-                <artifactId>junit-platform-engine</artifactId>
-                <version>${version.junit-platform}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.platform</groupId>
-                <artifactId>junit-platform-launcher</artifactId>
-                <version>${version.junit-platform}</version>
             </dependency>
             <dependency>
                 <groupId>de.gematik.test</groupId>
@@ -153,6 +96,11 @@
             <dependency>
                 <groupId>de.gematik.ti20.vsdm</groupId>
                 <artifactId>vsdm-fhir-lib</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>de.gematik.ti20.rbel</groupId>
+                <artifactId>rbel-fluent-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -227,11 +175,6 @@
                 <version>5.3.2</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.networknt</groupId>
-                <artifactId>json-schema-validator</artifactId>
-                <version>${version.json-schema-validator}</version>
             </dependency>
             <dependency>
                 <groupId>org.bouncycastle</groupId>
@@ -452,7 +395,7 @@
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>${version.spring-boot}</version>
+                    <version>3.5.7</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

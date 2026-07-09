@@ -26,51 +26,23 @@ package de.gematik.ti20.popp.validation;
 
 import static de.gematik.ti20.popp.data.TestConstants.ENTITY_STATEMENT_PATH;
 import static de.gematik.ti20.popp.data.TestConstants.POPP_SERVICE_BASE_URL;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static de.gematik.ti20.rbel.fluent.RbelFluentApi.expectRequests;
 
-import de.gematik.rbellogger.data.RbelElement;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import org.assertj.core.api.InstanceOfAssertFactories;
+import java.time.Duration;
 
-public class EntityStatementValidator extends BaseValidator {
+public final class EntityStatementValidator {
+  private EntityStatementValidator() {}
 
-  public EntityStatementValidator() {
-    super();
-  }
-
-  public void validateEntityStatement() {
-    findRequestForPath(ENTITY_STATEMENT_PATH);
-    currentResponseAtMatches("$.body.body.iss", POPP_SERVICE_BASE_URL);
-    currentResponseAtMatches("$.body.body.sub", POPP_SERVICE_BASE_URL);
-    currentResponseAtMatches("$.body.signature.isValid", "true");
-    currentResponseAtMatches("$.body.body.metadata.oauth_resource.signed_jwks_uri", "https.*");
-    assertThat(this.rbelMessageRetriever.findElementInCurrentResponse("$.body.body.iat"))
-        .as("iat element should exist")
-        .isNotNull()
-        .extracting(RbelElement::getRawStringContent)
-        .as("raw iat should not be null")
-        .isNotNull()
-        .extracting(Long::parseLong)
-        .extracting(
-            epochSeconds ->
-                ZonedDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneOffset.UTC))
-        .asInstanceOf(InstanceOfAssertFactories.ZONED_DATE_TIME)
-        .as("iat must be recent enough")
-        .isAfter(ZonedDateTime.now().minusSeconds(30));
-    assertThat(this.rbelMessageRetriever.findElementInCurrentResponse("$.body.body.exp"))
-        .as("exp element should exist")
-        .isNotNull()
-        .extracting(RbelElement::getRawStringContent)
-        .as("raw exp should not be null")
-        .isNotNull()
-        .extracting(Long::parseLong)
-        .extracting(
-            epochSeconds ->
-                ZonedDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneOffset.UTC))
-        .asInstanceOf(InstanceOfAssertFactories.ZONED_DATE_TIME)
-        .as("exp must be within the next 24 hours")
-        .isBefore(ZonedDateTime.now().plusHours(24));
+  public static void validateEntityStatement() {
+    expectRequests(ENTITY_STATEMENT_PATH)
+        .nextResponse()
+        .hasValueAtPathEqualTo("$.body.body.iss", POPP_SERVICE_BASE_URL)
+        .hasValueAtPathEqualTo("$.body.body.sub", POPP_SERVICE_BASE_URL)
+        .hasValueAtPathEqualTo("$.body.signature.isValid", "true")
+        .hasValueAtPathMatching("$.body.body.metadata.oauth_resource.signed_jwks_uri", "https.*")
+        .hasEpochSecondsAtPathAfterNowMinusSeconds(
+            "$.body.body.iat", Duration.ofSeconds(30).toSeconds())
+        .hasEpochSecondsAtPathBeforeNowPlusSeconds(
+            "$.body.body.exp", Duration.ofHours(24).toSeconds());
   }
 }

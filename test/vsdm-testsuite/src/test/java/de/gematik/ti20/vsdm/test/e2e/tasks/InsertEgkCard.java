@@ -68,7 +68,7 @@ public class InsertEgkCard implements Task {
     Response insertResponse =
         api.request()
             .contentType(contentType)
-            .body(new File("src/test/resources/data/cards/" + cardImageName))
+            .body(new File("src/test/resources/" + cardImageName))
             .put("/slots/" + slot);
     insertResponse.then().statusCode(201);
 
