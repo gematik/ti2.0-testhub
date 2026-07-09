@@ -25,104 +25,76 @@
 package de.gematik.ti20.popp.validation;
 
 import static de.gematik.ti20.popp.data.TestConstants.*;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static de.gematik.ti20.rbel.fluent.RbelFluentApi.expectRequests;
 
-import de.gematik.rbellogger.data.RbelElement;
 import de.gematik.ti20.popp.CommunicationType;
 import de.gematik.ti20.popp.EgkType;
 import de.gematik.ti20.popp.SmcbType;
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.Assert;
 
-public class PoppTokenValidator extends BaseValidator {
+public final class PoppTokenValidator {
+  private PoppTokenValidator() {}
 
-  public PoppTokenValidator() {
-    super();
+  public static void validateClaimsInPoppToken() {
+    expectRequests(".*/token")
+        .nextResponse(
+            response -> {
+              response
+                  .hasJsonAtPathEqualToFile("$.body", VALID_POPP_TOKEN_JSON_RESPONSE_FILE)
+                  .hasJsonAtPathEqualToFile(
+                      "$.body.token.content.body", VALID_POPP_TOKEN_BODY_CLAIMS_FILE)
+                  .hasJsonAtPathEqualToFile(
+                      "$.body.token.content.header", VALID_POPP_TOKEN_HEADER_CLAIMS_FILE);
+
+              response
+                  .childAtPath("$.body.token.content.body.iat")
+                  .mapToInstant()
+                  .isBefore(Instant.now().plusSeconds(30));
+              response
+                  .childAtPath("$.body.token.content.body.patientProofTime")
+                  .mapToInstant()
+                  .isBefore(Instant.now().plusSeconds(30));
+            });
   }
 
-  public void validateClaimsInPoppToken() {
-
-    findRequestForPath(".*/token");
-    currentResponseAtMatchesAsJsonTheFile("$.body", VALID_POPP_TOKEN_JSON_RESPONSE_FILE);
-    currentResponseAtMatchesAsJsonTheFile(
-        "$.body.token.content.body", VALID_POPP_TOKEN_BODY_CLAIMS_FILE);
-    currentResponseAtMatchesAsJsonTheFile(
-        "$.body.token.content.header", VALID_POPP_TOKEN_HEADER_CLAIMS_FILE);
-    validateTimeInToken();
+  public static void validatePoppTokenforBasicErrorResponse() {
+    expectRequests(".*/token").nextResponse().hasValueAtPathEqualTo("$.body.status", "ERROR");
   }
 
-  private void validateTimeInToken() {
-    final int MAX_AGE_POPP_TOKEN_IN_SECONDS = 30;
-    assertThat(
-            this.rbelMessageRetriever.findElementInCurrentResponse("$.body.token.content.body.iat"))
-        .as("iat element should exist")
-        .isNotNull()
-        .extracting(RbelElement::getRawStringContent)
-        .as("raw iat should not be null")
-        .isNotNull()
-        .extracting(Long::parseLong)
-        .extracting(
-            epochSeconds ->
-                ZonedDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneOffset.UTC))
-        .asInstanceOf(InstanceOfAssertFactories.ZONED_DATE_TIME)
-        .as("iat must be recent enough")
-        .isAfter(ZonedDateTime.now().minusSeconds(MAX_AGE_POPP_TOKEN_IN_SECONDS));
-
-    assertThat(
-            this.rbelMessageRetriever.findElementInCurrentResponse(
-                "$.body.token.content.body.patientProofTime"))
-        .as("patientProofTime element should exist")
-        .isNotNull()
-        .extracting(RbelElement::getRawStringContent)
-        .as("raw patientProofTime should not be null")
-        .isNotNull()
-        .extracting(Long::parseLong)
-        .extracting(
-            epochSeconds ->
-                ZonedDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneOffset.UTC))
-        .asInstanceOf(InstanceOfAssertFactories.ZONED_DATE_TIME)
-        .as("patientProofTime must be recent enough")
-        .isAfter(ZonedDateTime.now().minusSeconds(MAX_AGE_POPP_TOKEN_IN_SECONDS));
+  public static void validatePoppTokenforInvalidCaErrorResponse(final String errorMessage) {
+    expectRequests(".*/token")
+        .nextResponse()
+        .hasValueAtPathEqualTo("$.body.errorMessage", errorMessage);
   }
 
-  public void validatePoppTokenforBasicErrorResponse() {
-    findRequestForPath(".*/token");
-    currentResponseAtMatches("$.body.status", "ERROR");
+  public static void assertThatPatientDataInTokenMatchesDataOnEgk(final EgkType egkType) {
+    expectRequests(".*/token")
+        .nextResponse()
+        .hasValueAtPathEqualTo("$.body.token.content.body.patientId", egkType.getKvnr())
+        .hasValueAtPathEqualTo("$.body.token.content.body.insurerId", egkType.getIkNumber());
   }
 
-  public void validatePoppTokenforInvalidCaErrorResponse(final String errorMessage) {
-    findRequestForPath(".*/token");
-    currentResponseAtMatches("$.body.errorMessage", errorMessage);
+  public static void asserThatPractitionerDataInTokenMatchesDataOnSmcb(final SmcbType smcbType) {
+    expectRequests(".*/token")
+        .nextResponse()
+        .hasValueAtPathEqualTo("$.body.token.content.body.actorId", smcbType.getTelematikId())
+        .hasValueAtPathEqualTo(
+            "$.body.token.content.body.actorProfessionOid", smcbType.getProfessionOid());
   }
 
-  public void assertThatPatientDataInTokenMatchesDataOnEgk(final EgkType egkType) {
-    findRequestForPath(".*/token");
-    currentResponseAtMatches("$.body.token.content.body.patientId", egkType.getKvnr());
-    currentResponseAtMatches("$.body.token.content.body.insurerId", egkType.getIkNumber());
-  }
-
-  public void asserThatPractitionerDataInTokenMatchesDataOnSmcb(final SmcbType smcbType) {
-    findRequestForPath(".*/token");
-    currentResponseAtMatches("$.body.token.content.body.actorId", smcbType.getTelematikId());
-    currentResponseAtMatches(
-        "$.body.token.content.body.actorProfessionOid", smcbType.getProfessionOid());
-  }
-
-  public void proofMethodInTokenMatchesCommTypeOrThrow(final CommunicationType commType) {
-    findRequestForPath(".*/token");
+  public static void proofMethodInTokenMatchesCommTypeOrThrow(final CommunicationType commType) {
+    final String expectedProofMethod;
     if (commType.getCommType().equals("kontaktbehaftet")) {
-      currentResponseAtMatches(
-          "$.body.token.content.body.proofMethod", "ehc-practitioner-trustedchannel");
+      expectedProofMethod = "ehc-practitioner-trustedchannel";
     } else if (commType.getCommType().equals("kontaktlos")) {
-      currentResponseAtMatches(
-          "$.body.token.content.body.proofMethod", "ehc-practitioner-cvc-authenticated");
+      expectedProofMethod = "ehc-practitioner-cvc-authenticated";
     } else {
-      Assert.fail(
+      throw new AssertionError(
           "expecting commType to be either 'kontaktbehaftet' or 'kontaktlos' but found "
               + commType.getCommType());
     }
+    expectRequests(".*/token")
+        .nextResponse()
+        .hasValueAtPathEqualTo("$.body.token.content.body.proofMethod", expectedProofMethod);
   }
 }

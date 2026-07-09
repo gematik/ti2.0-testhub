@@ -27,14 +27,9 @@ package de.gematik.ti20.popp;
 import static de.gematik.test.tiger.lib.TigerHttpClient.executeCommandWithContingentWait;
 import static de.gematik.test.tiger.lib.TigerHttpClient.givenDefaultSpec;
 import static de.gematik.ti20.popp.data.TestConstants.*;
+import static de.gematik.ti20.rbel.fluent.RbelFluentApi.expectRequests;
 
-import de.gematik.rbellogger.data.RbelElement;
-import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
 import de.gematik.test.tiger.glue.TigerProxyGlue;
-import de.gematik.test.tiger.lib.rbel.ModeType;
-import de.gematik.test.tiger.lib.rbel.RbelMessageRetriever;
-import de.gematik.test.tiger.lib.rbel.RbelValidator;
-import de.gematik.test.tiger.lib.rbel.RequestParameter;
 import io.cucumber.java.de.Angenommen;
 import io.cucumber.java.de.Dann;
 import io.cucumber.java.de.Und;
@@ -45,28 +40,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
-import org.htmlunit.http.HttpStatus;
 
 @Slf4j
 public class StepsHashdb {
 
   TigerProxyGlue tigerProxyGlue = new TigerProxyGlue();
-  private final RbelMessageRetriever rbelMessageRetriever;
-  private final RbelValidator rbelValidator;
-
-  public StepsHashdb(final RbelMessageRetriever rbelMessageRetriever) {
-    this.rbelMessageRetriever = rbelMessageRetriever;
-    this.rbelValidator = new RbelValidator();
-  }
-
-  public StepsHashdb() {
-    this(RbelMessageRetriever.getInstance());
-  }
 
   @Angenommen(
       "der TSP sendet den signierten eContent {tigerResolvedString} zum importieren an den PoPP Service")
@@ -81,7 +64,7 @@ public class StepsHashdb {
 
   @Wenn("der TSP fragt den Status seines Imports oder seiner Löschung ab")
   public void sendStatusRequest() {
-    final String jobId = findeJobIdInResponseOrThrow();
+    final String jobId = findeJobIdsInResponseOrEmpty().getFirst();
     executeCommandWithContingentWait(
         () ->
             givenDefaultSpec()
@@ -116,81 +99,50 @@ public class StepsHashdb {
 
   @Dann("wird die Verbindung vom PoPP-Service abgelehnt")
   public void wirdDieVerbindungVomPoPPServiceAbgelehnt() {
-    this.rbelMessageRetriever.filterRequestsAndStoreInContext(
-        RequestParameter.builder().path(".*/api/v1/hash-db/import").build().resolvePlaceholders());
-    this.rbelValidator.assertAttributeOfCurrentResponseMatches(
-        "$.responseCode", "(400|401|403)", true, this.rbelMessageRetriever);
+    expectRequests(".*/api/v1/hash-db/import")
+        .nextResponse()
+        .hasValueAtPathMatchingAnyOf("$.responseCode", "400", "401", "403");
   }
 
   @Dann("der TSP erhält eine positive Rückmeldung mit einer jobID")
   public void checkLastResponseForSuccess() {
-    this.rbelMessageRetriever.filterRequestsAndStoreInContext(
-        RequestParameter.builder().path(".*/api/v1/hash-db/import").build().resolvePlaceholders());
-    this.rbelValidator.assertAttributeOfCurrentResponseMatches(
-        "$.responseCode", String.valueOf(HttpStatus.CREATED_201), true, this.rbelMessageRetriever);
-    this.rbelValidator.assertAttributeOfCurrentResponseMatchesAs(
-        "$.body",
-        ModeType.JSON,
-        TigerGlobalConfiguration.resolvePlaceholders(
-            "!{file('" + VALID_HASH_DB_IMPORT_RESPONSE_FILE + "')}"),
-        "",
-        this.rbelMessageRetriever);
+    expectRequests(".*/api/v1/hash-db/import")
+        .nextResponse()
+        .hasValueAtPathEqualTo("$.responseCode", "201")
+        .hasJsonAtPathEqualToFile("$.body", VALID_HASH_DB_IMPORT_RESPONSE_FILE);
   }
 
   @Dann(
       "der TSP erhält eine positive Rückmeldung mit einer jobID und diese entspricht {tigerResolvedString}")
   public void jobIdInLastResponseMatchesJobIdPreviouslyGiven(final String previousJobId) {
-    this.rbelMessageRetriever.filterRequestsAndStoreInContext(
-        RequestParameter.builder().path(".*/api/v1/hash-db/import").build().resolvePlaceholders());
-    this.rbelValidator.assertAttributeOfCurrentResponseMatches(
-        "$.responseCode", String.valueOf(HttpStatus.OK_200), true, this.rbelMessageRetriever);
-    this.rbelValidator.assertAttributeOfCurrentResponseMatches(
-        "$.body.jobIds.0", previousJobId, true, this.rbelMessageRetriever);
+    expectRequests(".*/api/v1/hash-db/import")
+        .nextResponse()
+        .hasValueAtPathEqualTo("$.responseCode", "200")
+        .hasValueAtPathEqualTo("$.body.jobIds.0", previousJobId);
   }
 
   @Dann("der TSP erhält eine positive Rückmeldung mit einer leeren jobID-Liste")
   public void lastResponseResponseContainsEmptyJobIdList() {
-    this.rbelMessageRetriever.filterRequestsAndStoreInContext(
-        RequestParameter.builder().path(".*/api/v1/hash-db/import").build().resolvePlaceholders());
-    this.rbelValidator.assertAttributeOfCurrentResponseMatches(
-        "$.responseCode", String.valueOf(HttpStatus.OK_200), true, this.rbelMessageRetriever);
-    this.rbelValidator.assertAttributeOfCurrentResponseMatches(
-        "$.body.jobIds", "[]", true, this.rbelMessageRetriever);
+    expectRequests(".*/api/v1/hash-db/import")
+        .nextResponse()
+        .hasValueAtPathEqualTo("$.responseCode", "200")
+        .hasValueAtPathEqualTo("$.body.jobIds", "[]");
   }
 
   @Dann("der TSP erhält Informationen über den Status seines Imports")
   public void checkLastResponseForStatus() {
-    this.rbelMessageRetriever.filterRequestsAndStoreInContext(
-        RequestParameter.builder()
-            .path(".*/api/v1/hash-db/import/.*/status")
-            .build()
-            .resolvePlaceholders());
-    this.rbelValidator.assertAttributeOfCurrentResponseMatches(
-        "$.responseCode", String.valueOf(HttpStatus.OK_200), true, this.rbelMessageRetriever);
-    this.rbelValidator.assertAttributeOfCurrentResponseMatchesAs(
-        "$.body",
-        ModeType.JSON,
-        TigerGlobalConfiguration.resolvePlaceholders(
-            "!{file('" + VALID_HASH_DB_JOB_STATUS_RESPONSE_FILE + "')}"),
-        "",
-        this.rbelMessageRetriever);
+    expectRequests(".*/api/v1/hash-db/import/.*/status")
+        .nextResponse()
+        .hasValueAtPathEqualTo("$.responseCode", "200")
+        .hasJsonAtPathEqualToFile("$.body", VALID_HASH_DB_JOB_STATUS_RESPONSE_FILE);
   }
 
   @Dann("der TSP erhält Informationen über das Ergebnis seines Imports")
   public void checkLastResponseForResult() {
-    this.rbelMessageRetriever.filterRequestsAndStoreInContext(
-        RequestParameter.builder()
-            .path(".*/api/v1/hash-db/import/.*/result")
-            .build()
-            .resolvePlaceholders());
-    this.rbelValidator.assertAttributeOfCurrentResponseMatches(
-        "$.responseCode", String.valueOf(HttpStatus.OK_200), true, this.rbelMessageRetriever);
-    this.rbelValidator.assertAttributeOfCurrentResponseMatches(
-        "$.body",
-        TigerGlobalConfiguration.resolvePlaceholders(
-            "!{file('" + HASH_DB_SUCCESSFUL_IMPORT_RESULT_RESPONSE_FILE + "')}"),
-        true,
-        this.rbelMessageRetriever);
+    expectRequests(".*/api/v1/hash-db/import/.*/result")
+        .nextResponse()
+        .hasValueAtPathEqualTo("$.responseCode", "200")
+        .hasValueAtPathEqualToFile("$.body", HASH_DB_SUCCESSFUL_IMPORT_RESULT_RESPONSE_FILE);
   }
 
   @SneakyThrows
@@ -218,8 +170,7 @@ public class StepsHashdb {
       executeCommandWithContingentWait(
           () ->
               givenDefaultSpec().body(eContentPayload).request(Method.POST, URL_HASH_DB_IMPORT_RU));
-      final String[] jobIds = findeJobIdsInResponseOrEmpty();
-      writeJobIdsToFile(jobIds);
+      writeJobIdsToFile(findeJobIdsInResponseOrEmpty());
 
     } catch (final IOException e) {
       throw new RuntimeException(
@@ -230,37 +181,26 @@ public class StepsHashdb {
     }
   }
 
-  private String[] findeJobIdsInResponseOrEmpty() {
-    this.rbelMessageRetriever.filterRequestsAndStoreInContext(
-        RequestParameter.builder().path(".*/api/v1/hash-db/import").build().resolvePlaceholders());
-    return this.rbelMessageRetriever.findElementsInCurrentResponseOrEmpty("$.body.jobId").stream()
-        .map(RbelElement::getRawStringContent)
-        .toArray(String[]::new);
+  private List<String> findeJobIdsInResponseOrEmpty() {
+    return expectRequests(".*/api/v1/hash-db/import")
+        .nextResponse()
+        .readValuesAtPath("$.body.jobId");
   }
 
-  private String findeJobIdInResponseOrThrow() {
-    final String[] jobIds = findeJobIdsInResponseOrEmpty();
-    if (jobIds.length != 1) {
-      throw new RuntimeException("expecting exactly one job ID but found " + jobIds.length);
-    }
-    return jobIds[0];
-  }
-
-  private void writeJobIdsToFile(final String[] jobIds) {
+  private void writeJobIdsToFile(final List<String> jobIds) {
     final Path path = Path.of("jobIds.txt");
-    Arrays.stream(jobIds)
-        .forEach(
-            jobId -> {
-              try {
-                Files.write(
-                    path,
-                    (jobId + System.lineSeparator()).getBytes(),
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.APPEND);
-              } catch (final IOException e) {
-                throw new RuntimeException(
-                    "Error while writing the following jobid to jobIds.txt: " + jobId, e);
-              }
-            });
+    jobIds.forEach(
+        jobId -> {
+          try {
+            Files.write(
+                path,
+                (jobId + System.lineSeparator()).getBytes(),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.APPEND);
+          } catch (final IOException e) {
+            throw new RuntimeException(
+                "Error while writing the following jobid to jobIds.txt: " + jobId, e);
+          }
+        });
   }
 }

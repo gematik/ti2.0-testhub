@@ -78,9 +78,10 @@ public class CardImageParser {
     } catch (JAXBException e) {
       // First check if this is a new format card (Gema5)
       if (xmlString.contains("Produkttyp:")
-          && (xmlString.contains("eGK Objektsystem")
-              || xmlString.contains("SMC-B Objektsystem")
-              || xmlString.contains("HPC Objektsystem"))) {
+              && (xmlString.contains("eGK Objektsystem")
+                  || xmlString.contains("SMC-B Objektsystem")
+                  || xmlString.contains("HPC Objektsystem"))
+          || xmlString.contains("<objectSystem>")) {
 
         // Try with the fallback method specifically for new format cards
         CardImage newFormatCard = convertNewFormatCard(xmlString);

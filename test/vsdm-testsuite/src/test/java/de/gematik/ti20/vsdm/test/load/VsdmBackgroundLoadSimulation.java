@@ -50,7 +50,7 @@ public class VsdmBackgroundLoadSimulation extends BaseSimulation {
             .exec(VsdmClientTokenModule.getTokenChain())
             .exec(
                 http("GET VSD from VSDM Server")
-                    .get(URL_SERVER_ZETA + "/vsdservice/v1/vsdmbundle")
+                    .get(URL_SERVER_VSDM + "/vsdservice/v1/vsdmbundle")
                     .queryParam("profileVersion", FHIR_PROFILE_VERSION)
                     .header("authorization", "DPoP #{access_token}")
                     .header("dpop", "#{dpop_token}")

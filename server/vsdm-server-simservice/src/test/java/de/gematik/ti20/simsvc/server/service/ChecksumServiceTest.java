@@ -48,7 +48,7 @@ class ChecksumServiceTest {
 
     checksumService.addChecksumHeader(content, headers);
 
-    assertTrue(headers.containsHeader(ChecksumService.HEADER_NAME));
+    assertTrue(headers.containsKey(ChecksumService.HEADER_NAME));
     assertNotNull(headers.getFirst(ChecksumService.HEADER_NAME));
     assertFalse(headers.getFirst(ChecksumService.HEADER_NAME).isEmpty());
   }
@@ -60,7 +60,7 @@ class ChecksumServiceTest {
 
     checksumService.addChecksumHeader(content, headers);
 
-    assertFalse(headers.containsHeader(ChecksumService.HEADER_NAME));
+    assertFalse(headers.containsKey(ChecksumService.HEADER_NAME));
   }
 
   @Test
@@ -109,7 +109,7 @@ class ChecksumServiceTest {
     HttpHeaders headers = new HttpHeaders();
 
     assertDoesNotThrow(() -> checksumService.addChecksumHeader(largeContent.toString(), headers));
-    assertTrue(headers.containsHeader(ChecksumService.HEADER_NAME));
+    assertTrue(headers.containsKey(ChecksumService.HEADER_NAME));
   }
 
   @Test
@@ -118,7 +118,7 @@ class ChecksumServiceTest {
     HttpHeaders headers = new HttpHeaders();
 
     assertDoesNotThrow(() -> checksumService.addChecksumHeader(content, headers));
-    assertTrue(headers.containsHeader(ChecksumService.HEADER_NAME));
+    assertTrue(headers.containsKey(ChecksumService.HEADER_NAME));
     assertNotNull(headers.getFirst(ChecksumService.HEADER_NAME));
   }
 

@@ -25,56 +25,39 @@
 package de.gematik.ti20.popp.validation;
 
 import static de.gematik.ti20.popp.data.TestConstants.*;
+import static de.gematik.ti20.rbel.fluent.RbelFluentApi.expectRequestsWithNodeMatching;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ApduValidator extends BaseValidator {
+public final class ApduValidator {
+  private ApduValidator() {}
 
-  public ApduValidator() {
-    super();
-  }
-
-  public void validateApdusforEHealthKT() {
+  public static void validateApdusforEHealthKT() {
     log.info("Valdidate eH-KT APDUS");
-    // Sequenz 0
-    findNextRequestToPathContainingNode("$..body.message.sequenceCounter", "0");
-    currentResponseAtMatchesAsJsonTheFile("$..body.message", VALID_APDU_SEQUENCE_0_FILE);
-
-    // Sequenz 1
-    findNextRequestToPathContainingNode("$..body.message.sequenceCounter", "1");
-    currentResponseAtMatchesAsJsonTheFile("$..body.message", VALID_APDU_SEQUENCE_1_FILE);
-
-    // Sequenz 2
-    //  findNextRequestToPathContainingNode("$..body.message.sequenceCounter", "2");
-    //  currentRequestAtMatchesAsJsonTheFile("$..body.message", VALID_APDU_SEQUENCE_2_FILE);
-
-    // Sequenz 3
-    findNextRequestToPathContainingNode("$..body.message.sequenceCounter", "3");
-    currentResponseAtMatchesAsJsonTheFile("$..body.message", VALID_APDU_SEQUENCE_3_FILE);
-
+    expectRequestsWithNodeMatching("$..body.message.sequenceCounter", "0")
+        .nextResponse()
+        .hasJsonAtPathEqualToFile("$..body.message", VALID_APDU_SEQUENCE_0_FILE);
+    expectRequestsWithNodeMatching("$..body.message.sequenceCounter", "1")
+        .nextResponse()
+        .hasJsonAtPathEqualToFile("$..body.message", VALID_APDU_SEQUENCE_1_FILE);
+    expectRequestsWithNodeMatching("$..body.message.sequenceCounter", "3")
+        .nextResponse()
+        .hasJsonAtPathEqualToFile("$..body.message", VALID_APDU_SEQUENCE_3_FILE);
     log.info("eH-KT APDUS succesfully validated");
   }
 
-  public void validateApdusforStdKT() {
+  public static void validateApdusforStdKT() {
     log.info("Valdidate Standard Cardreader APDUS");
-    // Sequenz 0
-    findNextRequestToPathContainingNode("$..payload.sequenceCounter", "0");
-    currentRequestApdusMatchCaseInsensitive("$..payload", VALID_APDU_SEQUENCE_0_FILE);
-
-    // Sequenz 1
-    findNextRequestToPathContainingNode("$..payload.sequenceCounter", "1");
-    currentRequestApdusMatchCaseInsensitive("$..payload", VALID_APDU_SEQUENCE_1_FILE);
-
-    // Sollte noch angepasst werden:
-    // Sequenz 2
-    // findNextRequestToPathContainingNode("$..payload.sequenceCounter", "2");
-    // currentRequestAtMatchesAsJsonTheFile("$..payload", VALID_APDU_SEQUENCE_2_FILE);
-
-    // Sequenz 3
-    //  findNextRequestToPathContainingNode("$..payload.sequenceCounter", "3");
-    //  currentRequestAtMatchesAsJsonTheFile("$..payload", VALID_APDU_SEQUENCE_3_FILE);
-
+    expectRequestsWithNodeMatching("$..payload.sequenceCounter", "0")
+        .nextResponse()
+        .hasJsonAtPathEqualToFile("$..payload", VALID_APDU_SEQUENCE_0_FILE);
+    expectRequestsWithNodeMatching("$..payload.sequenceCounter", "1")
+        .nextResponse()
+        .hasJsonAtPathEqualToFile("$..payload", VALID_APDU_SEQUENCE_1_FILE);
+    expectRequestsWithNodeMatching("$..payload.sequenceCounter", "3")
+        .nextResponse()
+        .hasJsonAtPathEqualToFile("$..payload", VALID_APDU_SEQUENCE_3_FILE);
     log.info("Standard Cardreader APDUS succesfully validated");
   }
 }

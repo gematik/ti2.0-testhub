@@ -181,6 +181,6 @@ class FhirServiceTest {
     String result = fhirService.encodeResponse(resource, request, headers);
 
     assertNotNull(result);
-    assertTrue(headers.containsHeader("Content-Type"));
+    assertTrue(headers.containsKey("Content-Type"));
   }
 }

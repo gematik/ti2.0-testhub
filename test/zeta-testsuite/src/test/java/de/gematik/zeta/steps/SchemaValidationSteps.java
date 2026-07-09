@@ -24,17 +24,17 @@
  */
 package de.gematik.zeta.steps;
 
+import static de.gematik.ti20.rbel.fluent.RbelFluentApi.assertCurrentRequest;
+import static de.gematik.ti20.rbel.fluent.RbelFluentApi.assertCurrentResponse;
+import static de.gematik.ti20.rbel.fluent.RbelFluentApi.assertJwt;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.networknt.schema.*;
-import com.nimbusds.jwt.SignedJWT;
 import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
-import de.gematik.test.tiger.lib.rbel.RbelMessageRetriever;
 import io.cucumber.java.de.Dann;
 import io.cucumber.java.en.Then;
-import java.text.ParseException;
 import java.util.Comparator;
 import lombok.extern.slf4j.Slf4j;
 
@@ -204,10 +204,11 @@ public class SchemaValidationSteps {
   @Then("decode and validate {tigerResolvedString} against schema {string} soft assert")
   @SuppressWarnings("unused") // Cucumber step – not yet referenced in any active feature
   public void softlyValidateEncodedJwtAgainstYamlSchema(String encodedJwt, String schemaName) {
-
-    var schema = loadYamlSchema(schemaName);
-    var jsonNode = decodeJwt(encodedJwt);
-    assertValid(schema, jsonNode, schemaName, true);
+    try {
+      assertJwt(encodedJwt).matchesSchema(schemaName);
+    } catch (AssertionError | RuntimeException ex) {
+      SoftAssertionsContext.recordSoftFailure("Schema validation (soft) for " + schemaName, ex);
+    }
   }
 
   /**
@@ -229,9 +230,7 @@ public class SchemaValidationSteps {
   @Then("decode and validate {tigerResolvedString} against schema {string}")
   @SuppressWarnings("unused") // Cucumber step – not yet referenced in any active feature
   public void validateEncodedJwtAgainstYamlSchema(String encodedJwt, String schemaName) {
-    var schema = loadYamlSchema(schemaName);
-    var jsonNode = decodeJwt(encodedJwt);
-    assertValid(schema, jsonNode, schemaName, false);
+    assertJwt(encodedJwt).matchesSchema(schemaName);
   }
 
   /**
@@ -244,10 +243,7 @@ public class SchemaValidationSteps {
   @Dann("decodiere und validiere JWT {string} gegen Schema {string}")
   @Then("decode and validate JWT {string} against schema {string}")
   public void validateRawJwtAgainstYamlSchema(String encodedJwt, String schemaName) {
-    String resolved = TigerGlobalConfiguration.resolvePlaceholders(encodedJwt);
-    var schema = loadYamlSchema(schemaName);
-    var jsonNode = decodeJwt(resolved);
-    assertValid(schema, jsonNode, schemaName, false);
+    assertJwt(encodedJwt).matchesSchema(schemaName);
   }
 
   /**
@@ -262,18 +258,7 @@ public class SchemaValidationSteps {
       "decodiere und validiere JWT aus dem aktuellen Request Knoten {string} gegen Schema {string}")
   @Then("decode and validate JWT from current request node {string} against schema {string}")
   public void validateJwtFromCurrentRequestAgainstSchema(String rbelPath, String schemaName) {
-    var retriever = RbelMessageRetriever.getInstance();
-    var elements = retriever.findElementsInCurrentRequest(rbelPath);
-    if (elements.isEmpty()) {
-      throw new AssertionError("No element found at RBel path: " + rbelPath);
-    }
-    String jwt = elements.getFirst().getRawStringContent();
-    if (jwt == null || jwt.isBlank()) {
-      throw new AssertionError("JWT at path " + rbelPath + " is null or blank");
-    }
-    var schema = loadYamlSchema(schemaName);
-    var jsonNode = decodeJwt(jwt);
-    assertValid(schema, jsonNode, schemaName, false);
+    assertCurrentRequest().childAtPath(rbelPath).asJwt().matchesSchema(schemaName);
   }
 
   /**
@@ -290,47 +275,10 @@ public class SchemaValidationSteps {
       "decode and validate JWT from current response node {string} against schema {string} soft assert")
   public void validateJwtFromCurrentResponseAgainstSchemaSoftAssert(
       String rbelPath, String schemaName) {
-    var retriever = RbelMessageRetriever.getInstance();
-    var request = retriever.getCurrentRequest();
-    if (request == null) {
-      throw new AssertionError("No current request/response message found!");
-    }
-    // The response is the paired message of the request
-    var response =
-        request
-            .getFacet(de.gematik.rbellogger.data.core.TracingMessagePairFacet.class)
-            .map(de.gematik.rbellogger.data.core.TracingMessagePairFacet::getResponse)
-            .orElseThrow(() -> new AssertionError("No response found for the current request!"));
-    var elements = response.findRbelPathMembers(rbelPath);
-    if (elements.isEmpty()) {
-      throw new AssertionError("No element found at RBel path: " + rbelPath + " in response");
-    }
-    String jwt = elements.getFirst().getRawStringContent();
-    if (jwt == null || jwt.isBlank()) {
-      throw new AssertionError("JWT at path " + rbelPath + " is null or blank in response");
-    }
-    var schema = loadYamlSchema(schemaName);
-    var jsonNode = decodeJwt(jwt);
-    assertValid(schema, jsonNode, schemaName, true);
-  }
-
-  /**
-   * @param encodedToken the Base64URL coded JWT to be validated
-   * @return the decoded json string
-   */
-  private ObjectNode decodeJwt(String encodedToken) {
-
     try {
-      SignedJWT signedJwt = SignedJWT.parse(encodedToken);
-
-      ObjectNode jsNode = JSON.createObjectNode();
-      jsNode.set("header", JSON.valueToTree(signedJwt.getHeader().toJSONObject()));
-      jsNode.set("payload", JSON.readTree(signedJwt.getPayload().toString()));
-
-      return jsNode;
-
-    } catch (ParseException | JsonProcessingException e) {
-      throw new AssertionError("signed JWT could not be parsed.");
+      assertCurrentResponse().childAtPath(rbelPath).asJwt().matchesSchema(schemaName);
+    } catch (AssertionError | RuntimeException ex) {
+      SoftAssertionsContext.recordSoftFailure("Schema validation (soft) for " + schemaName, ex);
     }
   }
 }

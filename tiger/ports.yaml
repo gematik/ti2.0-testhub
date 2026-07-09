@@ -15,8 +15,12 @@ ports:
 
   poppPepPort: 2101
   poppPdpPort: 2201
+  poppIngressPort: 2202
+  poppClientPort: 8081
+  poppOpaPort: 2401
 
   vsdmPepPort: 9120
   vsdmPdpPort: 9122
   vsdmIngressPort: 9119
   vsdmServerPort: 9130
+  vsdmOpaPort: 9121

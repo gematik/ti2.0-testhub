@@ -723,12 +723,7 @@
         "email"
       ],
       "optionalClientScopes": [
-        "zero:register",
-        "zero:manage",
-        "zero:read",
-        "zero:update",
-        "vsdservice",
-        "zero:write"
+        "vsdservice"
       ]
     },
     {
@@ -1009,18 +1004,6 @@
       ]
     },
     {
-      "id": "e17f88ad-a51a-4303-ad8f-8e5455f08fa4",
-      "name": "zero:register",
-      "description": "Zero Trust scope for service registration",
-      "protocol": "openid-connect",
-      "attributes": {
-        "include.in.token.scope": "true",
-        "display.on.consent.screen": "false",
-        "gui.order": "",
-        "consent.screen.text": ""
-      }
-    },
-    {
       "id": "f58c2b4d-34c4-4a91-be5a-806452d40699",
       "name": "basic",
       "description": "OpenID Connect scope for add all basic claims to the token",
@@ -1057,30 +1040,6 @@
           }
         }
       ]
-    },
-    {
-      "id": "72c0fde6-814d-424b-a4ed-a8c02001d77f",
-      "name": "zero:write",
-      "description": "Additional PDP scope 'zero:write'",
-      "protocol": "openid-connect",
-      "attributes": {
-        "include.in.token.scope": "true",
-        "display.on.consent.screen": "false",
-        "gui.order": "",
-        "consent.screen.text": ""
-      }
-    },
-    {
-      "id": "16a9dcc7-92d9-4acd-bf5f-f46c394d95ec",
-      "name": "zero:read",
-      "description": "Additional PDP scope 'zero:read'",
-      "protocol": "openid-connect",
-      "attributes": {
-        "include.in.token.scope": "true",
-        "display.on.consent.screen": "false",
-        "gui.order": "",
-        "consent.screen.text": ""
-      }
     },
     {
       "id": "a1e0f9aa-de2f-4582-aee7-fb447f9adfe6",
@@ -1192,18 +1151,6 @@
       ]
     },
     {
-      "id": "28b8ff4e-03d4-4fb4-b659-f13a7abe8a9a",
-      "name": "zero:update",
-      "description": "Additional PDP scope 'zero:update'",
-      "protocol": "openid-connect",
-      "attributes": {
-        "include.in.token.scope": "true",
-        "display.on.consent.screen": "false",
-        "gui.order": "",
-        "consent.screen.text": ""
-      }
-    },
-    {
       "id": "20f7e260-edcc-42b9-8957-85731a02afab",
       "name": "phone",
       "description": "OpenID Connect built-in scope: phone",
@@ -1308,18 +1255,6 @@
           }
         }
       ]
-    },
-    {
-      "id": "b379573e-41cf-414b-8714-d614fff82ef5",
-      "name": "zero:manage",
-      "description": "Zero Trust scope for policy and trust management",
-      "protocol": "openid-connect",
-      "attributes": {
-        "include.in.token.scope": "true",
-        "display.on.consent.screen": "false",
-        "gui.order": "",
-        "consent.screen.text": ""
-      }
     },
     {
       "id": "c3648fe8-16cc-4c15-be38-ec2da182edbc",
@@ -1666,12 +1601,7 @@
     "basic"
   ],
   "defaultOptionalClientScopes": [
-    "zero:manage",
-    "zero:write",
-    "vsdservice",
-    "zero:update",
-    "zero:read",
-    "zero:register"
+    "vsdservice"
   ],
   "browserSecurityHeaders": {
     "contentSecurityPolicyReportOnly": "",

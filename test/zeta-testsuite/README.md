@@ -64,7 +64,6 @@ angepasst werden. Aus dem Java-Code werden die abgeleiteten Werte über
 > echten PoPP-Server müssen diese Docker-Variablen zusätzlich gesetzt werden. Details und das
 > vollständige RU-DEV-Setup: siehe [`README-real-popp.md`](README-real-popp.md).
 
-<<<<<<< HEAD
 ### Smoke-Tests
 
 Die Smoke-Tests prüfen die grundlegende Erreichbarkeit der ZETA-Komponenten. Die Szenarien sind in der
@@ -125,8 +124,6 @@ Feature-Datei
 ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false \
   -Dcucumber.filter.tags="@client_registrierung and not @Ignore"
 ```
-=======
->>>>>>> d58a8f46 (ZTI-4519: Refactor ZETA tests for local setup and RUDEV)
 
 ## Testausführung
 

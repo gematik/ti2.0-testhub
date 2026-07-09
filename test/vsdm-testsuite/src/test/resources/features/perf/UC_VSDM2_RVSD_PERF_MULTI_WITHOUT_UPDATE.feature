@@ -27,8 +27,8 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0 unte
   Systemvariablen simuliert Gatling eine lineare Lastsimulation.
 
     Angenommen das Primärsystem in der LEI verwendet ein korrekt konfiguriertes Terminal
-    Angenommen das Primärsystem in der LEI verwendet eine SMC-B <Smcb-Card> im Slot <Smcb-Slot>
-    Angenommen der Versicherte in der LEI verwendet eine eGK <Egk-Card> im Slot <Egk-Slot>
+    Angenommen das Primärsystem in der LEI verwendet eine SMC-B im Slot <Smcb-Slot>
+    Angenommen der Versicherte in der LEI verwendet eine eGK im Slot <Egk-Slot>
     Angenommen das Primärsystem hat den Versorgungskontext als PoPP-Token gespeichert
     Angenommen das Primärsystem hat die VSD bereits einmal im Quartal abgefragt
     Angenommen der Fachdienst VSDM 2.0 wird mit <Calls-Per-Sec> Aufrufen pro Sekunde unter Last gesetzt
@@ -36,5 +36,5 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0 unte
     Dann überschreiten die Antworten des Fachdienstes VSDM 2.0 nicht den Maximalwert von <Max-Answer-Time> ms
 
     Beispiele:
-      | Smcb-Card           | Smcb-Slot | Egk-Card                                  | Egk-Slot | Calls-Per-Sec | Number-Calls | Max-Answer-Time |
-      | "smcbCardImage.xml" | 2007      | "${EGK_CARD_IMAGE_FILE:egkCardData.json}" | 2008     | 100           | 100          | 1000            |
+      | Smcb-Slot | Egk-Slot | Calls-Per-Sec | Number-Calls | Max-Answer-Time |
+      | 2007      | 2008     | 100           | 100          | 1000            |

@@ -53,10 +53,15 @@ docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-
 ### Profile
 
 Der TestHub unterstützt verschiedene Docker Compose Profile. Diese Profile ermöglichen es, je nach Anwendungsfall
-unterschiedliche Kombinationen von Diensten zu starten.
+unterschiedliche Kombinationen von Diensten zu starten. Die folgenden Profile werden aktuell unterstützt:
 
-Weitere Informationen zu den verschiedenen Profilen und deren Anwendungsfällen sind
-im [Benutzerhandbuch](https://gematik.github.io/ti20-testhub/#_docker_compose_profiles) zu finden.
+**Tabelle: Dockerprofile**
+
+| Bezeichnung | Einsatz             | Anmerkung                                                                                                                   |
+|:------------|:--------------------|:----------------------------------------------------------------------------------------------------------------------------|
+| full        | Lokale Testumgebung | Dieses Profil startet alle Module des Testhubs und kann zur Durchführung von E2E-, ERROR- und PERF-Tests verwendet werden.  |
+| perf        | Lokale Testumgebung | Dieses Profil startet die Module alle Vsdm-Client und Vsdm-Server-Module und eignet sich zum Test der Gatling-Simulationen. |
+| ps-only     | Remote Testumgebung | Dieses Profil startet alle Client-Module und kann für die Zulassungstests verwendet werden.                                 | 
 
 Die untere Grafik zeigt den TI 2.0 TestHub in seiner aktuellen Ausbaustufe. Die VSDM 2.0 Testsuite sendet Anfragen an
 den Card, den PoPP und den VSDM Client Simulator. Diese kommunizieren mit den jeweiligen Server Simulatoren oder auch
@@ -143,7 +148,19 @@ Testfälle:
 Die Lasttests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
 ```
-./mvnw -pl test/vsdm-testsuite/ verify -Dcucumber.filter.tags="@TYPE:PERF" -Dvsdm.loadtesting.active=true -Dskip.inttests=false
+./mvnw -pl test/vsdm-testsuite/ verify -Dcucumber.filter.tags="@TYPE:PERF" -Dskip.inttests=false
+```
+
+### Konfiguration der Tiger-Tests (E2E, ERROR, PERF)
+
+Die Konfiguration der Tiger-Tests ist in der Datei "tiger.conf" hinterlegt. Hier werden die eGK-, das SMC-B-Image
+und der Parameter zur Steuerung der Dialoge für die Lasttests definiert.  Der Anwender kann auch eine eigene 
+Konfigurationsdatei, welche sich im Resource-Ordner befinden sollte, definieren. Die  eigene Datei muss sich jedoch 
+strukturell an der Datei "tiger.conf" orientieren. Für eine Datei mit dem Pfad "src/test/resources/my-own-tiger.conf"
+sähe der Parameter zur Angabe der Konfiguration dann wie folgt aus:
+
+```
+-Dconfig=my-own-tiger.conf
 ```
 
 ## Lasttest-Simulationen
@@ -199,5 +216,5 @@ eigene Datei muss sich jedoch strukturell an der Datei "simulation.conf" orienti
 "src/test/resources/my-own-simulation.conf" sähe der Parameter zur Angabe der Konfiguration dann wie folgt aus:
 
 ```
--Dconfig.resource=my-own-simulation.conf
+-Dconfig=my-own-simulation.conf
 ```

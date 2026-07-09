@@ -20,11 +20,11 @@ Funktionalität: Fehlerbehandlung VSDM 2.0
   Fehlerfall könnte z.B. ein falsch konfiguriertes Routing zum Fachdienst VSDM 2.0 sein.
 
     Angenommen das Primärsystem in der LEI verwendet ein korrekt konfiguriertes Terminal
-    Angenommen das Primärsystem in der LEI verwendet eine SMC-B <Smcb-Card> im Slot <Smcb-Slot>
-    Angenommen der Versicherte in der LEI verwendet eine eGK <Egk-Card> im Slot <Egk-Slot>
+    Angenommen das Primärsystem in der LEI verwendet eine SMC-B im Slot <Smcb-Slot>
+    Angenommen der Versicherte in der LEI verwendet eine eGK im Slot <Egk-Slot>
     Wenn das Primärsystem die VSD mit einer ungültigen IK <IK> vom VSDM Ressource Server abfragt
     Dann antwortet der VSDM Ressource Server mit dem Fehlercode <Http-Code> und dem Text <IK> <Error-Code>
 
     Beispiele:
-      | Smcb-Card           | Smcb-Slot | Egk-Card                                  | Egk-Slot | IK         | Http-Code | Error-Code              |
-      | "smcbCardImage.xml" | 1         | "${EGK_CARD_IMAGE_FILE:egkCardData.json}" | 2        | "WRONG_IK" | 400       | "VSDSERVICE_INVALID_IK" |
+      | Smcb-Slot | Egk-Slot | IK         | Http-Code | Error-Code              |
+      | 1         | 2        | "WRONG_IK" | 400       | "VSDSERVICE_INVALID_IK" |

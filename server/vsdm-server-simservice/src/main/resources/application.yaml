@@ -4,6 +4,11 @@ server:
     whitelabel.enabled: false
     include-message: always
   port: ${SERVER_PORT:80}
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 vsdm:
   path-to-test-data: ${VSDM_PATH_TO_TEST_DATA:./public-test-data}
