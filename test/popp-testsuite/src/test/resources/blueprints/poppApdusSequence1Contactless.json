@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "clientSessionId": ".*",
+  "sequenceCounter": 1,
+  "timeSpan": 0,
+  "type": "StandardScenario",
+  "steps": [
+    {
+      "commandApdu": "00B0870000",
+      "expectedStatusWords": [
+        "9000",
+        "6281"
+      ]
+    },
+    {
+      "commandApdu": "00B0860000",
+      "expectedStatusWords": [
+        "9000",
+        "6281"
+      ]
+    },
+    {
+      "commandApdu": "00A4040C0AA000000167455349474E",
+      "expectedStatusWords": [
+        "9000"
+      ]
+    },
+    {
+      "commandApdu": "002241A406840109800100",
+      "expectedStatusWords": [
+        "9000"
+      ]
+    },
+    {
+      "commandApdu": "00B08400000000",
+      "expectedStatusWords": [
+        "9000",
+        "6281"
+      ]
+    },
+    {
+      "commandApdu": ".*",
+      "expectedStatusWords": [
+        "9000"
+      ]
+    }
+  ]
+}

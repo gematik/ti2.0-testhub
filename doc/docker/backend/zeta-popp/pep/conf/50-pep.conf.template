@@ -5,39 +5,37 @@ server {
     include /etc/nginx/templates/server_common.conf;
     include /etc/nginx/templates/proxy_headers.conf;
 
-    location /ws {
-    # root /usr/share/nginx/html;
+    location /popp/practitioner/api/v1/token-generation-ehc {
+        proxy_pass http://${POPP_SERVER_HOST};
 
-    proxy_pass http://${POPP_SERVER_HOST}/ws;
+        pep on;
+        include /etc/nginx/templates/proxy_headers.conf;
 
-    pep                  on;
-    include /etc/nginx/templates/proxy_headers.conf;
-
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
     }
 
     location / {
-    # root /usr/share/nginx/html;
+        # root /usr/share/nginx/html;
 
-    proxy_pass http://${POPP_SERVER_HOST}/;
+        proxy_pass http://${POPP_SERVER_HOST}/;
 
-    pep                  on;
-    include /etc/nginx/templates/proxy_headers.conf;
+        pep on;
+            include /etc/nginx/templates/proxy_headers.conf;
     }
 
     # Proxy OAuth Authorization Server metadata to Keycloak
     # Served as: http(s)://<host>/.well-known/oauth-authorization-server
-    # Target:   http://authserver/auth/realms/zeta-guard/.well-known/zeta-guard-well-known
-    location = /.well-known/oauth-authorization-server {
-    proxy_pass         http://popp-zeta-pdp/auth/realms/zeta-guard/.well-known/zeta-guard-well-known;
-    proxy_http_version 1.1;
+    # Target: http://authserver/auth/realms/zeta-guard/.well-known/zeta-guard-well-known
+    location /.well-known/oauth-authorization-server {
+        proxy_pass          http://popp-zeta-pdp/auth/realms/zeta-guard/.well-known/zeta-guard-well-known;
+        proxy_http_version  1.1;
     }
+
     location /.well-known/ {
-    default_type  application/json;
-    alias         /srv/.well-known/;
-    autoindex     off;
+        default_type  application/json;
+        alias         /srv/.well-known/;
+        autoindex     off;
     }
 }
-

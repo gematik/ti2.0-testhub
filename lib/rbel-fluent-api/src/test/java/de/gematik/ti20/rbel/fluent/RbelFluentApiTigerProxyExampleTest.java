@@ -30,7 +30,6 @@ import de.gematik.test.tiger.lib.rbel.RbelMessageRetriever;
 import de.gematik.test.tiger.lib.rbel.RbelValidator;
 import de.gematik.test.tiger.proxy.TigerProxy;
 import de.gematik.test.tiger.testenvmgr.TigerTestEnvMgr;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
@@ -90,15 +89,6 @@ class RbelFluentApiTigerProxyExampleTest {
   }
 
   private static Path findTrafficFile(final String fileName) {
-    Path current = Path.of(System.getProperty("user.dir")).toAbsolutePath();
-    while (current != null) {
-      final var candidate = current.resolve("doc").resolve("traffic").resolve(fileName);
-      if (Files.exists(candidate)) {
-        return candidate;
-      }
-      current = current.getParent();
-    }
-    throw new IllegalStateException(
-        "Could not locate doc/traffic/" + fileName + " from current project path.");
+    return Path.of("lib/rbel-fluent-api/src/test/resources").resolve(fileName);
   }
 }

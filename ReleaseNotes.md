@@ -2,9 +2,27 @@
 
 # Release Notes TI 2.0 TestHub
 
-## Release 3.7.0
+## Release 3.8.0
 
 ### Update Notes
+
+#### Canopy replaces Docker network construct
+
+Previously we used complicated Docker network configurations to get our services
+to use Tiger proxies for traffic recording. To simplify the setup we are now
+using Canopy. Canopy is a DNS server that helps manage the network traffic
+between services without us having to touch Docker networks.
+
+### Changes
+
+- TESTHUB-178: simplify Tiger proxy configuration by introducing Canopy DNS server
+- TESTHUB-190: Update PoPP dependencies to 2.7.0 
+- TESTHUB-194: (vsdm) Update ZETA client to 1.2.5 
+- Dependency Updates:
+  - gatling-maven-plugin from 4.21.5 to 4.21.8
+  - logback:logback-core from 1.5.32 to 1.5.38
+
+## Release 3.7.0
 
 ### Changes
 

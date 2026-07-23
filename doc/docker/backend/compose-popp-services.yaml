@@ -17,10 +17,41 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=beispielimpl
     networks:
-      - testhub_backend
+      - testhub_network
 
   popp-client:
-    profiles: [ "full", "ps-only" ]
+    profiles: [ "full" ]
+    image: gematik1/popp-client:2.7.0
+    env_file:
+      - path: ../.env
+        required: true
+    platform: linux/amd64
+    container_name: popp-client
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - POPP_SERVER_URL=${POPP_SERVER_URL:-wss://popp-zeta-ingress:443/popp/practitioner/api/v1/token-generation-ehc}
+      - SPRING_PROFILES_ACTIVE=dev
+      - VIRTUAL_CARD_IMAGE_FILE=${VIRTUAL_CARD_IMAGE_PATH:-/data/cards}/${VIRTUAL_CARD_IMAGE_FILE:-egkCardImage.xml}
+      - ZETA_AUTHENTICATION_SMB_KEYFILE=/app/smcb_private.p12
+      # - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5013"
+    networks:
+      - testhub_network
+    ports:
+      - "${PORT_POPP_CLIENT:?PORT_POPP_CLIENT missing – set it in doc/docker/.env}:8081"
+      - "${PORT_POPP_CLIENT_MGMT:?PORT_POPP_CLIENT_MGMT missing – set it in doc/docker/.env}:9001"
+    volumes:
+      - ./zeta/smcb-private/${SMCB_FILE:-smcb_private.p12}:/app/smcb_private.p12:ro
+      - ../../../test/vsdm-testsuite/src/test/resources/data/cards:/data/cards
+      - ../dns/resolv.conf:/etc/resolv.conf:ro
+      - ../../../test/vsdm-testsuite/src/test/resources/${VIRTUAL_CARD_IMAGE_PATH:-data/cards}:${VIRTUAL_CARD_IMAGE_PATH:-/data/cards}:ro
+    depends_on:
+      otel-collector:
+        condition: service_started
+      resolv-writer:
+        condition: service_completed_successfully
+
+  popp-client-perf:
+    profiles: [ "ps-only" ]
     image: gematik1/popp-client:2.6.0
     env_file:
       - path: ../.env
@@ -35,19 +66,21 @@ services:
       - ZETA_AUTHENTICATION_SMB_KEYFILE=/app/smcb_private.p12
       # - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5013"
     networks:
-      - testhub_client
+      - testhub_network
     ports:
       - "${PORT_POPP_CLIENT:?PORT_POPP_CLIENT missing – set it in doc/docker/.env}:8081"
       - "${PORT_POPP_CLIENT_MGMT:?PORT_POPP_CLIENT_MGMT missing – set it in doc/docker/.env}:9001"
     volumes:
       - ./zeta/smcb-private/${SMCB_FILE:-smcb_private.p12}:/app/smcb_private.p12:ro
+      - ../../../test/vsdm-testsuite/src/test/resources/data/cards:/data/cards
       - ../../../test/vsdm-testsuite/src/test/resources/${VIRTUAL_CARD_IMAGE_PATH:-data/cards}:${VIRTUAL_CARD_IMAGE_PATH:-/data/cards}:ro
     depends_on:
-      - otel-collector
+      otel-collector:
+        condition: service_started
 
   popp-server:
     profiles: [ "full" ]
-    image: gematik1/popp-server:2.6.0
+    image: gematik1/popp-server:2.7.0
     env_file:
       - path: ../.env
         required: true
@@ -60,7 +93,7 @@ services:
       - IDENTITIES_LOCATION=classpath:identities
       - SPRING_DATASOURCE_URL=jdbc:postgresql://popp-server-db:5432/egk_hash_db
     networks:
-      - testhub_backend
+      - testhub_network
     depends_on:
       - popp-server-db
       - otel-collector
@@ -83,7 +116,7 @@ services:
       - /var/lib/postgresql
     restart: on-failure
     networks:
-      - testhub_backend
+      - testhub_network
 
   popp-zeta-ingress:
     profiles: [ "full" ]
@@ -99,7 +132,7 @@ services:
       - ./zeta-popp/ingress/conf:/etc/nginx/conf.d:ro
       - ./zeta-popp/ingress/certs:/etc/nginx/certs:ro
     networks:
-      - testhub_backend
+      - testhub_network
     depends_on:
       - popp-zeta-pep
 
@@ -121,7 +154,7 @@ services:
       - ./zeta-popp/pep:/ci_nginx:ro
       - ./zeta-popp/well-known/:/srv/.well-known/:ro
     networks:
-      - testhub_backend
+      - testhub_network
     depends_on:
       popp-zeta-pdp:
         condition: service_healthy
@@ -175,7 +208,7 @@ services:
       - ./zeta-popp/smcb:/opt/keycloak/conf/smcb
       - ./zeta/tpm/:/opt/keycloak/conf/tpm
     networks:
-      - testhub_backend
+      - testhub_network
     healthcheck:
       test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;echo -e \"GET /auth/health/live HTTP/1.1\r\nhost: localhost:9000\r\nConnection: close\r\n\r\n\" >&3;grep \"status.*UP\" <&3" ]
       start_period: 120s
@@ -199,7 +232,7 @@ services:
     tmpfs:
       - /var/lib/postgresql/data
     networks:
-      - testhub_backend
+      - testhub_network
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_PASSWORD: keycloak_db_user_password
@@ -226,4 +259,4 @@ services:
     volumes:
       - ./zeta-popp/policies:/policies:ro
     networks:
-      - testhub_backend
+      - testhub_network

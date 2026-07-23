@@ -52,6 +52,10 @@ public class TestConstants {
   public static final String VALID_APDU_SEQUENCE_2_CONNECTOR_FILE =
       BLUEPRINT_FOLDER + "poppApdusSequence2Connector.json";
   public static final String VALDID_JWKS_FILE = BLUEPRINT_FOLDER + "JwksResponse.json";
+  public static final String VALID_APDU_CONTACTLESS_SEQUENCE_0_FILE =
+      BLUEPRINT_FOLDER + "poppApdusSequence0Contactless.json";
+  public static final String VALID_APDU_CONTACTLESS_SEQUENCE_1_FILE =
+      BLUEPRINT_FOLDER + "poppApdusSequence1Contactless.json";
 
   private static final String HASH_DB_IMPORT_PATH = "/api/v1/hash-db/import";
   public static final String ENTITY_STATEMENT_PATH = "/.well-known/openid-federation";

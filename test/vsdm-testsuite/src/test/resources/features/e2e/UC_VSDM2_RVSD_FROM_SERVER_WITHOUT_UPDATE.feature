@@ -30,8 +30,8 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0
     Angenommen der Versicherte in der LEI verwendet eine eGK im Slot <Egk-Slot>
     Angenommen das Primärsystem hat die VSD bereits einmal im Quartal abgefragt
     Wenn das Primärsystem die VSD mittels PoPP- und Access-Token vom VSDM Ressource Server abfragt
-    Und der VSDM Ressource Server beim E-Tag-Vergleich keinen Unterschied feststellt
     Dann sendet der VSDM Ressource Server den Statuscode <Http-Code> ohne VSD zum Primärsystem
+    Und dann sendet der VSDM Ressource Server dasselbe E-Tag zum Primärsystem
     Und das Primärsystem speichert den PoPP-Token in seiner lokalen Datenbank
     Und das Primärsystem speichert die Prüfziffer in seiner lokalen Datenbank
     Und das Primärsystem speichert das E-Tag in seiner lokalen Datenbank

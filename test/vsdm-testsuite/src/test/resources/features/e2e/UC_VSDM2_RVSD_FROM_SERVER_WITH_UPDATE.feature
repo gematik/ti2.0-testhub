@@ -29,8 +29,8 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0
     Angenommen das Primärsystem in der LEI verwendet eine SMC-B im Slot <Smcb-Slot>
     Angenommen der Versicherte in der LEI verwendet eine eGK im Slot <Egk-Slot>
     Wenn das Primärsystem die VSD mittels PoPP- und Access-Token vom VSDM Ressource Server abfragt
-    Und der VSDM Ressource Server beim E-Tag-Vergleich einen Unterschied feststellt
     Dann sendet der VSDM Ressource Server die aktualisierten VSD mit dem Statuscode <Http-Code> zum Primärsystem
+    Und dann sendet der VSDM Ressource Server ein neues E-Tag zum Primärsystem
     Und die aktualisierten VSD enthalten das VsdmBundle mit den korrekten Patientendaten
     Und die aktualisierten VSD enthalten das VsdmBundle mit den korrekten Versicherungsdaten
     Und das Primärsystem speichert die aktualisierten VSD in seiner lokalen Datenbank

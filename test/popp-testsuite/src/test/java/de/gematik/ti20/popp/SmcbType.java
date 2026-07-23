@@ -28,6 +28,7 @@ import lombok.Getter;
 
 @Getter
 public enum SmcbType {
+  SMCB_PRIVATE("smcb_private.p12", "1-20000300144", "1.2.276.0.76.4.50"),
   SMCB_80276001011699902303_APOTHEKE_VALID(
       "80276001011699902303-C_SMCB_AUT_E256_X509.p12",
       "3-01.2.2023001.16.103",

@@ -5,7 +5,7 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>3.7.0</version>
+    <version>3.8.0</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>
@@ -29,7 +29,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.release>21</maven.compiler.release>
 
-        <zeta-sdk-jvm.version>1.2.2</zeta-sdk-jvm.version>
+        <zeta-sdk-jvm.version>1.2.5</zeta-sdk-jvm.version>
 
         <version.maven-antrun-plugin>3.2.0</version.maven-antrun-plugin>
         <version.maven.surefire>3.5.5</version.maven.surefire>
@@ -37,7 +37,7 @@
         <version.maven.jacoco>0.8.14</version.maven.jacoco>
         <version.tiger>4.3.2</version.tiger>
         <version.tiger-cloud-extension>10.0.18</version.tiger-cloud-extension>
-        <version.serenity>5.3.10</version.serenity>
+        <version.serenity>5.3.11</version.serenity>
         <version.gem.testdata>1.0.10</version.gem.testdata>
         <version.gem.bbriccs>0.10.0</version.gem.bbriccs>
         <version.pact.consumer>4.7.1</version.pact.consumer>
@@ -179,6 +179,11 @@
             <dependency>
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk18on</artifactId>
+                <version>1.84</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
                 <version>1.84</version>
             </dependency>
         </dependencies>
@@ -391,11 +396,6 @@
                     <artifactId>sonar-maven-plugin</artifactId>
                     <groupId>org.sonarsource.scanner.maven</groupId>
                     <version>5.6.0.6792</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>3.5.7</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

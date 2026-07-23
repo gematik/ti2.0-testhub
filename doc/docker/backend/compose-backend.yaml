@@ -21,6 +21,8 @@ services:
       - "${PORT_OTEL_COLLECTOR:?PORT_OTEL_COLLECTOR missing – set it in doc/docker/.env}:4318"
     depends_on:
       - prometheus
+    networks:
+      testhub_network:
 
   prometheus:
     image: prom/prometheus
@@ -37,6 +39,8 @@ services:
     command:
       - '--config.file=/etc/prometheus/config.yaml'
       - '--web.listen-address=:7100'
+    networks:
+      testhub_network:
 
   grafana:
     image: grafana/grafana
@@ -58,12 +62,12 @@ services:
       - "${PORT_GRAFANA:?PORT_GRAFANA missing – set it in doc/docker/.env}:3000"
     depends_on:
       - prometheus
+    networks:
+      testhub_network:
 
 volumes:
   prometheus-data:
   grafana-data:
 
 networks:
-  default:
-    name: testhub_backend
-
+  testhub_network:

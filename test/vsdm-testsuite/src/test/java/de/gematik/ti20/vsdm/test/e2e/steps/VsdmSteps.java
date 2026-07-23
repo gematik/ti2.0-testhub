@@ -107,6 +107,7 @@ public class VsdmSteps {
     hccs()
         .attemptsTo(
             RequestVsdFromServer.withEtagAndPoppToken("\"0\"", null, true, VALID_PROFILE_VERSION));
+    hccs().should(seeThat(LastStatusCode.value(), is(200)));
     hccs().remember("etag", LastEtag.value().answeredBy(hccs()));
     hccs().should(seeThat(LastVsdmBundle.value(), is(notNullValue())));
   }
@@ -135,13 +136,13 @@ public class VsdmSteps {
             RequestVsdFromServer.withEtagAndPoppToken(etag, null, false, VALID_PROFILE_VERSION));
   }
 
-  @Und("der VSDM Ressource Server beim E-Tag-Vergleich einen Unterschied feststellt")
+  @Und("dann sendet der VSDM Ressource Server ein neues E-Tag zum Primärsystem")
   public void andRessourceServerIsFindingDifferentEtag() {
     String previousEtag = hccs().recall("etag");
     hccs().should(seeThat(LastEtag.value(), not(equalTo(previousEtag))));
   }
 
-  @Und("der VSDM Ressource Server beim E-Tag-Vergleich keinen Unterschied feststellt")
+  @Und("dann sendet der VSDM Ressource Server dasselbe E-Tag zum Primärsystem")
   public void andRessourceServerIsFindingEqualEtag() {
     String previousEtag = hccs().recall("etag");
     hccs().should(seeThat(LastEtag.value(), equalTo(previousEtag)));

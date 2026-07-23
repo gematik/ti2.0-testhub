@@ -18,8 +18,6 @@ commands from the `doc/docker/` directory (or pass `-f doc/docker/compose-local.
 | `PORT_VSDM_CLIENT_DEBUG` | `5006` | VSDM Client remote debugger
 | `PORT_TIGER_PROXY` | `6300` | Tiger Proxy HTTP
 | `PORT_TIGER_PROXY_ADMIN` | `6350` | Tiger Proxy admin UI
-| `PORT_TI_CONNECT_TIGER_PROXY` | `6400` | TI-Connect Tiger Proxy HTTP
-| `PORT_TI_CONNECT_TIGER_PROXY_ADMIN` | `6450` | TI-Connect Tiger Proxy admin UI
 | `PORT_OTEL_COLLECTOR` | `4318` | OpenTelemetry Collector
 | `PORT_PROMETHEUS` | `7100` | Prometheus
 | `PORT_GRAFANA` | `7001` | Grafana dashboard
@@ -128,11 +126,6 @@ compose YAMLs.
 |wss://popp-zeta-ingress:443/ws
 |The PoPP server used for testing. Should be set to 'UNUSED' when PoPP token generator is applied.
 |===
-
-Two examples demonstrating the usage of a real PoPP service or the PoPP token generator can be found here:
-
-* `doc/docker/.dev-with-popp-service-rise.env`
-* `doc/docker/.dev-with-popp-token-generator.env`
 
 === Docker Compose Profiles
 
