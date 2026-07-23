@@ -40,7 +40,6 @@ import io.cucumber.java.de.Und;
 import io.cucumber.java.de.Wenn;
 import io.restassured.http.Method;
 import java.net.URI;
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -112,17 +111,27 @@ public class Steps {
         jsonBody);
   }
 
-  @Und("die empfangenen APDUs sind korrekt {string}")
-  public void dieEmpfangenenAPDUsSindKorrekt(final String readerType) {
-    if (Objects.equals(readerType, "Standardleser") || Objects.equals(readerType, "virtuell")) {
-      ApduValidator.validateApdusforStdKT();
-    } else if (Objects.equals(readerType, "eH-KT")) {
-      ApduValidator.validateApdusforEHealthKT();
-    } else {
-      throw new IllegalArgumentException(
-          "Unsupported reader type: "
-              + readerType
-              + ". Expected 'Standardleser', 'virtuell', or 'eH-KT'.");
+  @Und("die empfangenen APDUs sind korrekt")
+  public void dieEmpfangenenAPDUsSindKorrekt() {
+
+    switch (communicationType) {
+      case CONTACT_STANDARD:
+      case CONTACT_VIRTUAL:
+        ApduValidator.validateApdusforStdKT();
+        break;
+
+      case CONTACTLESS_STANDARD:
+      case CONTACTLESS_VIRTIAL:
+        ApduValidator.validateApdusforStdKTContactless();
+        break;
+
+      case CONTACT_CONNECTOR:
+        ApduValidator.validateApdusforEHealthKT();
+        break;
+
+      case CONTACTLESS_CONNECTOR:
+        throw new IllegalArgumentException(
+            "CommunicationType 'contactless-connector' wird nicht unterstützt.");
     }
   }
 

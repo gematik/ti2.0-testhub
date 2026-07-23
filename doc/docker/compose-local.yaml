@@ -5,8 +5,7 @@ include:
     project_directory: ./backend
 
 networks:
-  testhub_client:
-  testhub_backend:
+  testhub_network:
 
 x-no-proxy-env: &no-proxy-env
   HTTP_PROXY: ""
@@ -15,8 +14,6 @@ x-no-proxy-env: &no-proxy-env
   http_proxy: ""
   https_proxy: ""
   all_proxy: ""
-  NO_PROXY: "localhost,127.0.0.1,card-terminal-client,docker-tiger-proxy,ti-connect-tiger-proxy,popp-client,popp-token-generator,popp-zeta-ingress,popp-zeta-pep,popp-zeta-pdp,popp-zeta-pdp-opa,vsdm-zeta-ingress,vsdm-zeta-pep,vsdm-zeta-pdp,vsdm-zeta-pdp-opa,vsdm-server"
-  no_proxy: "localhost,127.0.0.1,card-terminal-client,docker-tiger-proxy,ti-connect-tiger-proxy,popp-client,popp-token-generator,popp-zeta-ingress,popp-zeta-pep,popp-zeta-pdp,popp-zeta-pdp-opa,vsdm-zeta-ingress,vsdm-zeta-pep,vsdm-zeta-pdp,vsdm-zeta-pdp-opa,vsdm-server"
 
 # Profiles:
 #   full          - Backend + Tiger-Proxies + Clients (via tiger-proxy) [default]
@@ -71,8 +68,6 @@ services:
     ports:
       - "${PORT_VSDM_CLIENT:?PORT_VSDM_CLIENT missing – set it in doc/docker/.env}:80"
       - "${PORT_VSDM_CLIENT_DEBUG:?PORT_VSDM_CLIENT_DEBUG missing – set it in doc/docker/.env}:5006"
-    volumes:
-      - ./backend/zeta/smcb-private/${SMCB_FILE:-smcb_private.p12}:/tmp/zeta/smcb_private.p12:ro
     environment:
       <<: *no-proxy-env
       VSDM_USE_MOCK_POPP_TOKEN: ${VSDM_USE_MOCK_POPP_TOKEN:-true}
@@ -87,6 +82,20 @@ services:
       ZETASDK_SMCB_PRIVATE_KEY_PASSWORD: "00"
       ZETASDK_SMCB_PRIVATE_KEY_PATH: /tmp/zeta/smcb_private.p12
 
+  # Resolves the Canopy container's IP via Docker DNS and writes it as the
+  # sole nameserver into a shared file, which client containers mount as
+  # /etc/resolv.conf. This ensures Canopy is queried first for all DNS.
+  resolv-writer:
+    image: alpine:3
+    profiles: [ "ps-only", "full" ]
+    command: [ "sh", "-c", "getent hosts canopy | awk '{print \"nameserver\", $1}' > /dns/resolv.conf" ]
+    networks:
+      - testhub_network
+    depends_on:
+      - canopy
+    volumes:
+      - ./dns:/dns
+
   docker-tiger-proxy:
     image: gematik1/tiger-proxy-image:4.2.7
     env_file:
@@ -99,72 +108,90 @@ services:
       <<: *no-proxy-env
       SPRING_CONFIG_LOCATION: "file:/app/tiger-config/"
     networks:
-      testhub_client:
-        aliases:
-          - popp-ru-dev-interim.int.epa.rise-link.de
-          - popp-zeta-ingress
-          - popp-zeta-pep
-          - popp-zeta-pdp
-          - popp-token-generator
-          - vsdm-zeta-ingress
-      testhub_backend:
+      - testhub_network
     ports:
       - "${PORT_BACKEND_TIGER_PROXY:?PORT_BACKEND_TIGER_PROXY missing – set it in doc/docker/.env}:8080"
       - "${PORT_BACKEND_TIGER_PROXY_ADMIN:?PORT_BACKEND_TIGER_PROXY_ADMIN missing – set it in doc/docker/.env}:9090"
     volumes:
       - ./remoteTigerProxy:/app/tiger-config:ro
 
-  ti-connect-tiger-proxy:
-    image: gematik1/tiger-proxy-image:4.2.7
-    env_file:
-      - path: .env
-        required: true
-    profiles: [ "full", "ps-only" ]
+  canopy:
+    image: docker.io/gematik1/tiger-canopy-image:4.3.2
+    container_name: tiger-canopy
+    profiles: [ "ps-only", "full" ]
     platform: linux/amd64
-    container_name: ti-connect-tiger-proxy
-    environment:
-      <<: *no-proxy-env
-      SPRING_CONFIG_LOCATION: "file:/app/tiger-config/"
     networks:
-      testhub_backend:
+      - testhub_network
     ports:
-      - "${PORT_TI_CONNECT_TIGER_PROXY:?PORT_TI_CONNECT_TIGER_PROXY missing – set it in doc/docker/.env}:8080"
-      - "${PORT_TI_CONNECT_TIGER_PROXY_ADMIN:?PORT_TI_CONNECT_TIGER_PROXY_ADMIN missing – set it in doc/docker/.env}:9090"
-    volumes:
-      - ./tiConnectTigerProxy:/app/tiger-config:ro
+      - "${PORT_CANOPY:-8080}:8080"
+    environment:
+      SPRING_APPLICATION_JSON: |
+        {
+          "canopy": {
+            "dnsPort": 53,
+            "tigerProxyUrl": "http://docker-tiger-proxy:9090/",
+            "controlMode": "NONE",
+            "proxiedHosts": [
+              {"host": "popp-ru-dev-interim.int.epa.rise-link.de", "matchType": "EXACT"},
+              {"host": "popp.dev.poppservice.de", "matchType": "EXACT"},
+              {"host": "popp-zeta-ingress", "matchType": "EXACT"},
+              {"host": "popp-zeta-pep", "matchType": "EXACT"},
+              {"host": "popp-zeta-pdp", "matchType": "EXACT"},
+              {"host": "popp-token-generator", "matchType": "EXACT"},
+              {"host": "vsdm-zeta-ingress", "matchType": "EXACT"},
+              {"host": "popp-client", "matchType": "EXACT"},
+              {"host": "vsdm-client", "matchType": "EXACT"},
+              {"host": "card-terminal-client", "matchType": "EXACT"}
+            ]
+          }
+        }
 
   # ==================== Default (via tiger-proxy) ====================
 
   card-terminal-client:
     extends:
       service: card-terminal-client-base
-    profiles: [ "full", "ps-only" ]
+    profiles: [ "full" ]
     networks:
-      - testhub_client
+      - testhub_network
+    depends_on:
+      resolv-writer:
+        condition: service_completed_successfully
+    volumes:
+      - ./dns/resolv.conf:/etc/resolv.conf:ro
 
   vsdm-client:
     extends:
       service: vsdm-client-base
-    profiles: [ "full", "ps-only" ]
+    profiles: [ "full" ]
     environment:
       - VSDM_USE_MOCK_POPP_TOKEN=${VSDM_USE_MOCK_POPP_TOKEN:-false}
     networks:
-      - testhub_client
+      - testhub_network
+    depends_on:
+      resolv-writer:
+        condition: service_completed_successfully
+    volumes:
+      - ./backend/zeta/smcb-private/${SMCB_FILE:-smcb_private.p12}:/tmp/zeta/smcb_private.p12:ro
+      - ./dns/resolv.conf:/etc/resolv.conf:ro
 
   # ==================== Perf Profile (direct backend access) ====================
 
   card-terminal-client-perf:
     extends:
       service: card-terminal-client-base
-    profiles: [ "perf" ]
+    profiles: [ "perf", "ps-only" ]
     networks:
-      - testhub_backend
+      - testhub_network
 
   vsdm-client-perf:
     extends:
       service: vsdm-client-base
-    profiles: [ "perf" ]
+    profiles: [ "perf", "ps-only" ]
     environment:
       - INTERCEPT_STORAGE=true
     networks:
-      - testhub_backend
+      - testhub_network
+    volumes:
+      - ./backend/zeta/smcb-private/${SMCB_FILE:-smcb_private.p12}:/tmp/zeta/smcb_private.p12:ro
+

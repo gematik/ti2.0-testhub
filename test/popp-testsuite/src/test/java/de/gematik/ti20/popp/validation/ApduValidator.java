@@ -55,9 +55,36 @@ public final class ApduValidator {
     expectRequestsWithNodeMatching("$..payload.sequenceCounter", "1")
         .nextResponse()
         .hasJsonAtPathEqualToFile("$..payload", VALID_APDU_SEQUENCE_1_FILE);
-    expectRequestsWithNodeMatching("$..payload.sequenceCounter", "3")
+    expectRequestsWithNodeMatching("$..payload.sequenceCounter", "2")
         .nextResponse()
-        .hasJsonAtPathEqualToFile("$..payload", VALID_APDU_SEQUENCE_3_FILE);
+        .hasJsonAtPathEqualToFile("$..payload", VALID_APDU_SEQUENCE_2_FILE);
     log.info("Standard Cardreader APDUS succesfully validated");
+  }
+
+  public static void validateApdusforStdKTContactless() {
+    log.info("Validate contactless standard card reader APDUs");
+
+    expectRequestsWithNodeMatching("$..payload.sequenceCounter", "0")
+        .nextResponse()
+        .hasJsonAtPathEqualToFile("$..payload", VALID_APDU_SEQUENCE_0_FILE);
+
+    validateContactlessSequence1();
+  }
+
+  private static void validateContactlessSequence1() {
+
+    expectRequestsWithNodeMatching("$..payload.sequenceCounter", "1")
+        .hasValueAtPathMatching("$..payload.version", "1\\.0\\.0")
+        .hasValueAtPathMatching("$..payload.clientSessionId", "123456")
+        .hasValueAtPathMatching("$..payload.timeSpan", "0")
+        .hasValueAtPathMatching("$..payload.type", "StandardScenario")
+        // Statische APDUs
+        .hasValueAtPathMatching("$..payload.steps[0].commandApdu", "00B0870000")
+        .hasValueAtPathMatching("$..payload.steps[1].commandApdu", "00B0860000")
+        .hasValueAtPathMatching("$..payload.steps[2].commandApdu", "00A4040C0AA000000167455349474E")
+        .hasValueAtPathMatching("$..payload.steps[3].commandApdu", "002241A406840109800100")
+        .hasValueAtPathMatching("$..payload.steps[4].commandApdu", "00B08400000000")
+        // Dynamischer Challenge-Anteil: 24 Byte bzw. 48 Hex-Zeichen
+        .hasValueAtPathMatching("$..payload.steps[5].commandApdu", "0088000018[0-9A-F]{48}");
   }
 }

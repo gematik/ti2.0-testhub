@@ -39,15 +39,16 @@ Funktionalität: PoPP-Token erzeugen mit eGK bei physischer Anwesenheit
     Dann das PoPP-Token ist vollständig und spezifikationskonform
     Und Die Daten des Versicherten im PoPP-Token entsprechen denen auf der Karte <eGK>
     Und Die Daten der Leisungserbringerorganisation im PoPP-Token entsprichen denen auf der Karte <SMCB>
-    Und die empfangenen APDUs sind korrekt <readerType>
+    Und die empfangenen APDUs sind korrekt
 
     Beispiele:
-      | readerType | commType          | eGK                              | SMCB                                       |
-    #  | "Standardleser" | "kontaktbehaftet" ||SMCB_80276001011699902303_APOTHEKE_VALID|
-    #  | "Standardleser" | "kontaktlos"      ||SMCB_80276001011699902303_APOTHEKE_VALID|
-      | "virtuell" | "kontaktbehaftet" | "EGK_80276883110000152715_VALID" | "SMCB_80276001011699902303_APOTHEKE_VALID" |
-      | "virtuell" | "kontaktlos"      | "EGK_80276883110000152715_VALID" | "SMCB_80276001011699902303_APOTHEKE_VALID" |
-
+      | readerType      | commType          | eGK                                  | SMCB           |
+    #  | "Standardleser" | "kontaktlos" |SMCB_80276001011699902303_APOTHEKE_VALID| "SMCB_PRIVATE" |
+      | "Standardleser" | "kontaktbehaftet" | "EGK_80276883110000165691_VALID"     | "SMCB_PRIVATE" |
+      | "virtuell"      | "kontaktlos"      | "EGK_80276883110000152715_VALID"     | "SMCB_PRIVATE" |
+      | "virtuell"      | "kontaktbehaftet" | "EGK_80276883110000152715_VALID"     | "SMCB_PRIVATE" |
+      | "virtuell"      | "kontaktbehaftet" | "EGK_80276883110000165689_REDUZIERT" | "SMCB_PRIVATE" |
+      | "virtuell"      | "kontaktbehaftet" | "EGK_80276001042001660952_TK"        | "SMCB_PRIVATE" |
 
   @TCID:UC_PoPP_1_2a_Valid_ehealth
   @STATUS:Implementiert

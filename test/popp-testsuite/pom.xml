@@ -8,7 +8,7 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.7.0</version>
+        <version>3.8.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -24,18 +24,9 @@
     </properties>
 
     <dependencies>
-        <!-- dependencies from base -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -91,26 +82,6 @@
             <artifactId>tiger-cloud-extension</artifactId>
             <version>${version.tiger-cloud-extension}</version>
             <type>pom</type>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- junit-platform-suite-* are excluded from tiger-test-lib to avoid
-            version conflicts; re-declare them explicitly so the generated
-            Driver*IT classes (which import org.junit.platform.suite.api)
-            can compile. Remove this when Tiger also goes SB 4.x -->
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-suite-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-suite-engine</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-suite-commons</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

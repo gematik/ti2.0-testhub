@@ -57,19 +57,12 @@ unterschiedliche Kombinationen von Diensten zu starten. Die folgenden Profile we
 
 **Tabelle: Dockerprofile**
 
-| Bezeichnung | Einsatz             | Anmerkung                                                                                                                   |
-|:------------|:--------------------|:----------------------------------------------------------------------------------------------------------------------------|
-| full        | Lokale Testumgebung | Dieses Profil startet alle Module des Testhubs und kann zur Durchführung von E2E-, ERROR- und PERF-Tests verwendet werden.  |
-| perf        | Lokale Testumgebung | Dieses Profil startet die Module alle Vsdm-Client und Vsdm-Server-Module und eignet sich zum Test der Gatling-Simulationen. |
-| ps-only     | Remote Testumgebung | Dieses Profil startet alle Client-Module und kann für die Zulassungstests verwendet werden.                                 | 
+| Bezeichnung | Einsatz             | Anmerkung                                                                                                                  |
+|:------------|:--------------------|:---------------------------------------------------------------------------------------------------------------------------|
+| full        | Lokale Testumgebung | Dieses Profil startet alle Module des Testhubs und kann zur Durchführung von E2E-, ERROR- und PERF-Tests verwendet werden. |
+| perf        | Lokale Testumgebung | Dieses Profil startet alle Vsdm-Client und Vsdm-Server-Module und eignet sich zum Test der Gatling-Simulationen.           |
+| ps-only     | Remote Testumgebung | Dieses Profil startet alle Client-Module und kann für die Zulassungstests verwendet werden.                                | 
 
-Die untere Grafik zeigt den TI 2.0 TestHub in seiner aktuellen Ausbaustufe. Die VSDM 2.0 Testsuite sendet Anfragen an
-den Card, den PoPP und den VSDM Client Simulator. Diese kommunizieren mit den jeweiligen Server Simulatoren oder auch
-mit den realen Servern.
-
-<br/>
-<img src="./src/test/resources/images/TI20_TestHub_Stufe_7.png" alt="" style="border: 1px solid black;"/>
-<br/>
 
 ## Integrationstests
 

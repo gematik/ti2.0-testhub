@@ -30,7 +30,6 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0 unte
     Angenommen das Primärsystem hat den Versorgungskontext als PoPP-Token gespeichert
     Angenommen der Fachdienst VSDM 2.0 wird mit <Calls-Per-Sec> Aufrufen pro Sekunde unter Last gesetzt
     Wenn das Primärsystem die VSD mittels PoPP- und Access-Token vom VSDM Ressource Server abfragt
-    Und der VSDM Ressource Server beim E-Tag-Vergleich einen Unterschied feststellt
     Dann sendet der VSDM Ressource Server die aktualisierten VSD mit dem Statuscode <Http-Code> zum Primärsystem
     Und die Antwortzeit des Fachdienstes VSDM 2.0 überschreitet nicht den Maximalwert von <Max-Answer-Time> ms
 

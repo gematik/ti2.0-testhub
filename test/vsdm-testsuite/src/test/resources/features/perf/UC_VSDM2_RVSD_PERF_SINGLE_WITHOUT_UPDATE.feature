@@ -31,7 +31,6 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0 unte
     Angenommen das Primärsystem hat die VSD bereits einmal im Quartal abgefragt
     Angenommen der Fachdienst VSDM 2.0 wird mit <Calls-Per-Sec> Aufrufen pro Sekunde unter Last gesetzt
     Wenn das Primärsystem die VSD mittels PoPP- und Access-Token vom VSDM Ressource Server abfragt
-    Und der VSDM Ressource Server beim E-Tag-Vergleich keinen Unterschied feststellt
     Dann sendet der VSDM Ressource Server den Statuscode <Http-Code> ohne VSD zum Primärsystem
     Und die Antwortzeit des Fachdienstes VSDM 2.0 überschreitet nicht den Maximalwert von <Max-Answer-Time> ms
 

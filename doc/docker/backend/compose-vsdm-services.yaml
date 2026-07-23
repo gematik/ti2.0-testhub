@@ -21,7 +21,7 @@ services:
     depends_on:
       - vsdm-zeta-pep
     networks:
-      - testhub_backend
+      - testhub_network
 
   vsdm-server:
     container_name: vsdm-server
@@ -44,7 +44,7 @@ services:
       - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5012"
       # - VSDM_PATH_TO_TEST_DATA=/opt/custom-test-data
     networks:
-      - testhub_backend
+      - testhub_network
 
   vsdm-zeta-pep:
     image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:1.2.0
@@ -68,7 +68,7 @@ services:
       vsdm-server:
         condition: service_started # TODO: change to "service_healthy" when healthcheck is available
     networks:
-      - testhub_backend
+      - testhub_network
 
   vsdm-zeta-pdp:
     image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:1.2.3
@@ -134,7 +134,7 @@ services:
     depends_on:
       - vsdm-zeta-pdp-db
     networks:
-      - testhub_backend
+      - testhub_network
 
   vsdm-zeta-pdp-db:
     container_name: vsdm-zeta-pdp-db
@@ -151,7 +151,7 @@ services:
       POSTGRES_USER: keycloak_db_user
       POSTGRES_PASSWORD: keycloak_db_user_password
     networks:
-      - testhub_backend
+      - testhub_network
 
   vsdm-zeta-pdp-opa:
     image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/opa:1.16.2-static
@@ -172,11 +172,8 @@ services:
     volumes:
       - ./zeta/policies:/policies:ro
     networks:
-      - testhub_backend
+      - testhub_network
 
 volumes:
   postgres_data:
     driver: local
-
-networks:
-  testhub_backend:

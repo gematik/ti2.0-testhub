@@ -7,7 +7,7 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.7.0</version>
+        <version>3.8.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -26,19 +26,9 @@
 
 
     <dependencies>
-        <!-- dependencies from base -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -101,21 +91,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-suite-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-suite-commons</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-suite-engine</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>de.gematik.ti20.vsdm</groupId>
             <artifactId>vsdm-fhir-lib</artifactId>
             <scope>test</scope>
@@ -157,7 +132,7 @@
             <plugin>
                 <groupId>io.gatling</groupId>
                 <artifactId>gatling-maven-plugin</artifactId>
-                <version>4.21.5</version>
+                <version>4.21.9</version>
                 <configuration>
                     <jvmArgs>
                         <jvmArg>-Dtiger.testenv.cfgfile=${maven.multiModuleProjectDirectory}/tiger.yaml</jvmArg>

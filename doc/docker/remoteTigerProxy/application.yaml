@@ -7,13 +7,6 @@ tigerProxy:
     - 8443
     - 443
     - 80
-  forwardToProxy:
-    hostname: ti-connect-tiger-proxy
-    port: 9090
-    noProxyHosts:
-      - popp-client
-      - vsdm-client
-      - card-terminal-client
   tls:
     serverRootCa: "tiger-config/tigerProxy.p12"
 #    masterSecretsFile: /tmp/secrets.txt
