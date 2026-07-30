@@ -38,11 +38,12 @@ public final class EntityStatementValidator {
         .nextResponse()
         .hasValueAtPathEqualTo("$.body.body.iss", POPP_SERVICE_BASE_URL)
         .hasValueAtPathEqualTo("$.body.body.sub", POPP_SERVICE_BASE_URL)
-        .hasValueAtPathEqualTo("$.body.signature.isValid", "true")
         .hasValueAtPathMatching("$.body.body.metadata.oauth_resource.signed_jwks_uri", "https.*")
         .hasEpochSecondsAtPathAfterNowMinusSeconds(
             "$.body.body.iat", Duration.ofSeconds(30).toSeconds())
         .hasEpochSecondsAtPathBeforeNowPlusSeconds(
-            "$.body.body.exp", Duration.ofHours(24).toSeconds());
+            "$.body.body.exp", Duration.ofHours(24).toSeconds())
+        .extractChildWithPath("$.body.signature.isValid")
+        .hasValueEqualTo(Boolean.TRUE);
   }
 }

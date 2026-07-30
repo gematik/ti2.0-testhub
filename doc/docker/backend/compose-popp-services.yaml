@@ -101,6 +101,7 @@ services:
   popp-server-db:
     profiles: [ "full" ]
     image: postgres:18-alpine
+    pull_policy: if_not_present
     env_file:
       - path: ../.env
         required: true
@@ -123,6 +124,7 @@ services:
     container_name: popp-zeta-ingress
     platform: linux/amd64
     image: "nginx:1.29.7"
+    pull_policy: if_not_present
     env_file:
       - path: ../.env
         required: true
@@ -224,6 +226,7 @@ services:
     container_name: popp-zeta-pdp-db
     platform: linux/amd64
     image: postgres:16.2
+    pull_policy: if_not_present
     env_file:
       - path: ../.env
         required: true

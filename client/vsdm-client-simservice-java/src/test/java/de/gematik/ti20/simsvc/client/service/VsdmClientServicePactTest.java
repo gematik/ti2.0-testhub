@@ -42,6 +42,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.gematik.ti20.client.card.terminal.simsvc.SimulatorAttachedCard;
 import de.gematik.ti20.simsvc.client.pact.PactConfig;
+import de.gematik.ti20.simsvc.client.service.popp.PoppToken;
 import de.gematik.zeta.sdk.ZetaSdkClient;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -140,7 +141,7 @@ class VsdmClientServicePactTest {
 
     var result =
         vsdmClientService.requestVsd(
-            "terminalId", 1, mockEgkCard, "token123", "etag123", false, "1.0.0");
+            "terminalId", 1, mockEgkCard, new PoppToken("token123"), "etag123", false, "1.0.0");
 
     assertThat(result.getStatusCode().value()).isEqualTo(200);
     assertThat(result.getBody()).isNotEmpty();
@@ -155,7 +156,7 @@ class VsdmClientServicePactTest {
 
     var result =
         vsdmClientService.requestVsd(
-            "terminalId", 2, mockEgkCard, "token456", "etag456", false, "1.0.");
+            "terminalId", 2, mockEgkCard, new PoppToken("token456"), "etag456", false, "1.0.");
 
     JsonNode rootNode = new ObjectMapper().readTree(result.getBody());
     assertThat(rootNode.get("resourceType").asText()).isEqualTo("Bundle");
@@ -170,7 +171,7 @@ class VsdmClientServicePactTest {
 
     var result =
         vsdmClientService.requestVsd(
-            "terminalId", 3, mockEgkCard, "token456", "etag456", false, "1.0.0");
+            "terminalId", 3, mockEgkCard, new PoppToken("token456"), "etag456", false, "1.0.0");
 
     JsonNode rootNode = new ObjectMapper().readTree(result.getBody());
     JsonNode entries = rootNode.get("entry");
@@ -196,7 +197,7 @@ class VsdmClientServicePactTest {
 
     var result =
         vsdmClientService.requestVsd(
-            "terminalId", 4, mockEgkCard, "token789", "etag789", false, "1.0.0");
+            "terminalId", 4, mockEgkCard, new PoppToken("token789"), "etag789", false, "1.0.0");
 
     JsonNode entries = new ObjectMapper().readTree(result.getBody()).get("entry");
     assertThat(getResourceFromBundle(entries, "Patient").get("meta").get("profile").get(0).asText())
@@ -212,7 +213,7 @@ class VsdmClientServicePactTest {
 
     var result =
         vsdmClientService.requestVsd(
-            "terminalId", 5, mockEgkCard, "token101", "etag101", false, "1.0.0");
+            "terminalId", 5, mockEgkCard, new PoppToken("token101"), "etag101", false, "1.0.0");
 
     JsonNode entries = new ObjectMapper().readTree(result.getBody()).get("entry");
     assertThat(
@@ -233,7 +234,7 @@ class VsdmClientServicePactTest {
 
     var result =
         vsdmClientService.requestVsd(
-            "terminalId", 6, mockEgkCard, "token202", "etag202", false, "1.0.0");
+            "terminalId", 6, mockEgkCard, new PoppToken("token202"), "etag202", false, "1.0.0");
 
     JsonNode entries = new ObjectMapper().readTree(result.getBody()).get("entry");
     assertThat(

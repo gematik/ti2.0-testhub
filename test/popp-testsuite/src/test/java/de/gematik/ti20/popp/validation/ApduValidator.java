@@ -79,12 +79,12 @@ public final class ApduValidator {
         .hasValueAtPathMatching("$..payload.timeSpan", "0")
         .hasValueAtPathMatching("$..payload.type", "StandardScenario")
         // Statische APDUs
-        .hasValueAtPathMatching("$..payload.steps[0].commandApdu", "00B0870000")
-        .hasValueAtPathMatching("$..payload.steps[1].commandApdu", "00B0860000")
-        .hasValueAtPathMatching("$..payload.steps[2].commandApdu", "00A4040C0AA000000167455349474E")
-        .hasValueAtPathMatching("$..payload.steps[3].commandApdu", "002241A406840109800100")
-        .hasValueAtPathMatching("$..payload.steps[4].commandApdu", "00B08400000000")
+        .hasValueAtPathMatching("$..payload.steps.0.commandApdu", "00B0870000")
+        .hasValueAtPathMatching("$..payload.steps.1.commandApdu", "00B0860000")
+        .hasValueAtPathMatching("$..payload.steps.2.commandApdu", "00A4040C0AA000000167455349474E")
+        .hasValueAtPathMatching("$..payload.steps.3.commandApdu", "002241A406840109800100")
+        .hasValueAtPathMatching("$..payload.steps.4.commandApdu", "00B08400000000")
         // Dynamischer Challenge-Anteil: 24 Byte bzw. 48 Hex-Zeichen
-        .hasValueAtPathMatching("$..payload.steps[5].commandApdu", "0088000018[0-9A-F]{48}");
+        .hasValueAtPathMatching("$..payload.steps.5.commandApdu", "0088000018[0-9A-F]{48}00");
   }
 }

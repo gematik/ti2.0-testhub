@@ -24,8 +24,7 @@
  */
 package de.gematik.ti20.simsvc.client.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -35,6 +34,8 @@ import de.gematik.ti20.simsvc.client.model.card.CardImage;
 import de.gematik.ti20.simsvc.client.model.card.CardType;
 import de.gematik.ti20.simsvc.client.model.card.FileData;
 import de.gematik.ti20.simsvc.client.model.dto.SmcBInfoDto;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -205,6 +206,35 @@ class SmcBInfoServiceTest {
 
     // Then
     assertThat(result).isNotNull();
+  }
+
+  @Test
+  void shouldHandleRealCardImage() throws Exception {
+    // Given
+    final CardImage smcbCard = loadCardImage("SMC_B_80276883110000168650_gema5.xml");
+    final String cardHandle = smcbCard.getId();
+
+    when(slotManager.getSlotCount()).thenReturn(3);
+    when(slotManager.isCardPresent(0)).thenReturn(false);
+    when(slotManager.isCardPresent(1)).thenReturn(true);
+    when(slotManager.getCardInSlot(1)).thenReturn(smcbCard);
+
+    // When
+    SmcBInfoDto result = smcBInfoService.extractSmcBInfo(cardHandle);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getCardType()).isEqualTo(CardType.HPIC.toString());
+    assertThat(result.getTelematikId()).isEqualTo("1-SMC-B-Testkarte--883110000168650");
+    assertThat(result.getProfessionOid()).isEqualTo("1.2.276.0.76.4.50");
+  }
+
+  private CardImage loadCardImage(final String cardImageFilename) throws Exception {
+    final InputStream is =
+        SmcBInfoServiceTest.class.getClassLoader().getResourceAsStream(cardImageFilename);
+    final String xmlString = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+    final CardImage cardImage = new CardImageParser().parseCardImage(xmlString);
+
+    return cardImage;
   }
 
   private CardImage createMockCard(String id, CardType type, List<FileData> files) {

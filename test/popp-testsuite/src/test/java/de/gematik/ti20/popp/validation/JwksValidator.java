@@ -40,9 +40,10 @@ public final class JwksValidator {
         .hasValueAtPathMatching("$..x5c.0.content.issuer.CN", "GEM.KOMP-CA.*")
         .hasValueAtPathEqualTo("$.body.body.iss", POPP_SERVICE_BASE_URL)
         .hasValueAtPathEqualTo("$.body.body.sub", POPP_SERVICE_BASE_URL)
-        .hasValueAtPathEqualTo("$.body.signature.isValid", "true")
         .hasValueAtPathEqualTo(
             "$.body.body.keys.0.kid",
-            TigerGlobalConfiguration.resolvePlaceholders("${tiger.kidTokenKey}"));
+            TigerGlobalConfiguration.resolvePlaceholders("${tiger.kidTokenKey}"))
+        .extractChildWithPath("$.body.signature.isValid")
+        .hasValueEqualTo(Boolean.TRUE);
   }
 }

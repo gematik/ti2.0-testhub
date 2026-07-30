@@ -24,10 +24,14 @@
  */
 package de.gematik.ti20.simsvc.server.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.security.NoSuchAlgorithmException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -48,7 +52,7 @@ class ChecksumServiceTest {
 
     checksumService.addChecksumHeader(content, headers);
 
-    assertTrue(headers.containsKey(ChecksumService.HEADER_NAME));
+    assertTrue(headers.containsHeader(ChecksumService.HEADER_NAME));
     assertNotNull(headers.getFirst(ChecksumService.HEADER_NAME));
     assertFalse(headers.getFirst(ChecksumService.HEADER_NAME).isEmpty());
   }
@@ -60,7 +64,7 @@ class ChecksumServiceTest {
 
     checksumService.addChecksumHeader(content, headers);
 
-    assertFalse(headers.containsKey(ChecksumService.HEADER_NAME));
+    assertFalse(headers.containsHeader(ChecksumService.HEADER_NAME));
   }
 
   @Test
@@ -102,14 +106,11 @@ class ChecksumServiceTest {
 
   @Test
   void testAddChecksumHeader_LargeContent() {
-    StringBuilder largeContent = new StringBuilder();
-    for (int i = 0; i < 10000; i++) {
-      largeContent.append("test ");
-    }
+    final String largeContent = "test".repeat(10_000);
     HttpHeaders headers = new HttpHeaders();
 
-    assertDoesNotThrow(() -> checksumService.addChecksumHeader(largeContent.toString(), headers));
-    assertTrue(headers.containsKey(ChecksumService.HEADER_NAME));
+    assertDoesNotThrow(() -> checksumService.addChecksumHeader(largeContent, headers));
+    assertTrue(headers.containsHeader(ChecksumService.HEADER_NAME));
   }
 
   @Test
@@ -118,12 +119,12 @@ class ChecksumServiceTest {
     HttpHeaders headers = new HttpHeaders();
 
     assertDoesNotThrow(() -> checksumService.addChecksumHeader(content, headers));
-    assertTrue(headers.containsKey(ChecksumService.HEADER_NAME));
+    assertTrue(headers.containsHeader(ChecksumService.HEADER_NAME));
     assertNotNull(headers.getFirst(ChecksumService.HEADER_NAME));
   }
 
   @Test
-  void testAddChecksumHeader_HeaderFormat() throws NoSuchAlgorithmException {
+  void testAddChecksumHeader_HeaderFormat() {
     String content = "test content";
     HttpHeaders headers = new HttpHeaders();
 
@@ -131,6 +132,6 @@ class ChecksumServiceTest {
 
     String checksum = headers.getFirst(ChecksumService.HEADER_NAME);
     assertNotNull(checksum);
-    assertTrue(checksum.length() == 64);
+    assertEquals(64, checksum.length());
   }
 }

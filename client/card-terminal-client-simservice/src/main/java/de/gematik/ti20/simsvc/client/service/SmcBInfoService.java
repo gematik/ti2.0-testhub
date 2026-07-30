@@ -161,6 +161,10 @@ public class SmcBInfoService {
                       if (decodedValue.matches(".*[0-9]+-[A-Z0-9]+-.*")
                           && extractedTelematikId == null) {
                         extractedTelematikId = extractTelematikIdFromString(decodedValue);
+
+                        if (decodedValue.contains("Betriebsstätte Arzt")) {
+                          extractedProfessionOid = "1.2.276.0.76.4.50";
+                        }
                         if (extractedTelematikId != null) {
                           logger.debug(
                               "Extracted Telematik-ID from extension {}: {}",
@@ -573,8 +577,17 @@ public class SmcBInfoService {
     java.util.regex.Matcher numericMatcher = numericPattern.matcher(input);
 
     if (numericMatcher.find()) {
-      String candidate = numericMatcher.group(1).trim();
-      logger.debug("Found numeric Telematik-ID pattern: {}", candidate);
+      int numericStart = numericMatcher.start(1);
+      int numericEnd = numericMatcher.end(1);
+      int quoteStart = input.lastIndexOf('"', numericStart);
+
+      String candidate =
+          input.substring(quoteStart >= 0 ? quoteStart + 1 : numericStart, numericEnd).trim();
+
+      logger.debug(
+          "Found numeric Telematik-ID pattern{}: {}",
+          quoteStart >= 0 ? " with quoted prefix" : "",
+          candidate);
       return candidate;
     }
 

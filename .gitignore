@@ -10,7 +10,8 @@
 **/*.xml.versionsBackup
 pactconfig-local.properties
 /test/popp-testsuite/jobIds.txt
-/doc/docker/dns/resolv.conf
+/doc/docker/dns/
+
 /.idea/
 /.vscode/
 jenkinsfiles

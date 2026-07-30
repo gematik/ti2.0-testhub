@@ -82,6 +82,8 @@ class VsdmClientIT {
 
   @BeforeEach
   void beforeEach() throws Exception {
+    deletePoppTokenCache();
+
     removeCardFromSlot(EGK_SLOT);
     removeCardFromSlot(SMCB_SLOT);
 
@@ -544,6 +546,20 @@ class VsdmClientIT {
     log.info(configureTerminalResponse.body().string());
 
     assertTrue(configureTerminalResponse.isSuccessful(), "Configure Terminal");
+  }
+
+  private static void deletePoppTokenCache() throws Exception {
+    final Request deletePoppTokenCache =
+        new Request.Builder()
+            .url(resolvePlaceholders(VSDM_CLIENT_URL + "/client/test/poppToken"))
+            .delete()
+            .build();
+
+    final Response deletePoppTokenCacheResponse =
+        httpClient.newCall(deletePoppTokenCache).execute();
+
+    log.info("deletePoppTokenCache: " + deletePoppTokenCacheResponse.code());
+    assertTrue(deletePoppTokenCacheResponse.isSuccessful(), "Delete Popp Token cache");
   }
 
   private static class Result {

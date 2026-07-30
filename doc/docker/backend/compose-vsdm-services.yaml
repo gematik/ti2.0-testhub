@@ -8,6 +8,7 @@ services:
   vsdm-zeta-ingress:
     container_name: vsdm-zeta-ingress
     image: "nginx:1.29.7"
+    pull_policy: if_not_present
     env_file:
       - path: ../.env
         required: true
@@ -139,6 +140,7 @@ services:
   vsdm-zeta-pdp-db:
     container_name: vsdm-zeta-pdp-db
     image: postgres:16.2
+    pull_policy: if_not_present
     env_file:
       - path: ../.env
         required: true

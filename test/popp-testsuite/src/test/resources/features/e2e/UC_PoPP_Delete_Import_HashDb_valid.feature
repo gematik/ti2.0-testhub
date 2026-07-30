@@ -35,7 +35,7 @@ Funktionalität: Import und löschen von Daten in eGK-Hash-Datenbank
     Wenn der TSP fragt das Ergebnis des Jobs mit der jobID "${job_id_delete}" ab
     Und der TSP löscht den abgeschlossenen Auftrag mit der JobId "${job_id_delete}"
     Und der Versicherte in der LEI präsentiert seine eGK "virtuell" am Lesegerät "kontaktlos"
-    Und Das Primärsystem den PoPP-Token mit Image "EGK_80276883110000163142" vom PoPP-Service abgefragt
+    Und Das Primärsystem den PoPP-Token mit Image "EGK_80276883110000163142_VALID" vom PoPP-Service abgefragt
     Dann erhält das Primärsystem den Status ERROR vom PoPP-Service mit Message "Unexpected error: Server error WarningUnknownCertificates: "
     Wenn TGR lösche aufgezeichnete Nachrichten
     Und der TSP sendet den signierten eContent "80276883110000163142.eContent-signed" zum importieren an den PoPP Service
@@ -47,7 +47,7 @@ Funktionalität: Import und löschen von Daten in eGK-Hash-Datenbank
     Und der TSP löscht den abgeschlossenen Auftrag mit der JobId "${job_id_import}"
 
     Und der Versicherte in der LEI präsentiert seine eGK "virtuell" am Lesegerät "kontaktlos"
-    Und Das Primärsystem den PoPP-Token mit Image "EGK_80276883110000163142" vom PoPP-Service abgefragt
+    Und Das Primärsystem den PoPP-Token mit Image "EGK_80276883110000163142_VALID" vom PoPP-Service abgefragt
     Dann das PoPP-Token ist vollständig und spezifikationskonform
 
 

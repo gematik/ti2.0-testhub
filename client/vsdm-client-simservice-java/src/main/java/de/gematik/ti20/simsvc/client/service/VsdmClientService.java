@@ -24,7 +24,6 @@
  */
 package de.gematik.ti20.simsvc.client.service;
 
-import com.google.common.base.Strings;
 import de.gematik.bbriccs.fhir.EncodingType;
 import de.gematik.ti20.client.card.card.AttachedCard;
 import de.gematik.ti20.client.card.config.CardTerminalConnectionConfig;
@@ -36,6 +35,12 @@ import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
 import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
+import de.gematik.ti20.simsvc.client.service.popp.PoppClientAdapter;
+import de.gematik.ti20.simsvc.client.service.popp.PoppToken;
+import de.gematik.ti20.simsvc.client.service.popp.PoppTokenFromCacheStrategy;
+import de.gematik.ti20.simsvc.client.service.popp.PoppTokenFromInjectedStrategy;
+import de.gematik.ti20.simsvc.client.service.popp.PoppTokenFromMockedStrategy;
+import de.gematik.ti20.simsvc.client.service.popp.PoppTokenFromServiceStrategy;
 import de.gematik.ti20.vsdm.fhir.builder.VsdmBundleBuilder;
 import de.gematik.ti20.vsdm.fhir.builder.VsdmPatientBuilder;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
@@ -54,8 +59,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
@@ -64,19 +67,15 @@ public class VsdmClientService {
 
   public static final String HEADER_VSDM_PZ = "vsdm-pz";
   public static final String HEADER_ETAG = "etag";
-  private static final int POPP_TOKEN_MAX_ATTEMPTS = 3;
-  private static final String POPP_WEBSOCKET_NOT_CONNECTED = "Websocket client is not connected";
-  private static final String POPP_PREMATURE_CLOSE =
-      "Connection prematurely closed BEFORE response";
 
-  private final PoppClientAdapter poppClientAdapter;
-  private final VsdmClientConfig vsdmClientConfig;
   private final CardTerminalService cardTerminalService;
-  private final MockPoppTokenService mockPoppTokenService;
-
-  private final PoppTokenRepository poppTokenRepository;
   private final VsdmDataRepository vsdmDataRepository;
   private final ZetaSdkClientAdapter vsdmZetaClient;
+
+  private final PoppTokenFromInjectedStrategy poppTokenFromInjected;
+  private final PoppTokenFromMockedStrategy poppTokenFromMocked;
+  private final PoppTokenFromCacheStrategy poppTokenFromCache;
+  private final PoppTokenFromServiceStrategy poppTokenFromService;
 
   @Getter private List<CardTerminalConnectionConfig> terminalConnectionConfigs;
 
@@ -92,19 +91,21 @@ public class VsdmClientService {
       final VsdmDataRepository vsdmDataRepository,
       final ZetaSdkClientAdapter vsdmZetaClient) {
 
-    this.vsdmClientConfig = vsdmClientConfig;
-
-    this.mockPoppTokenService = mockPoppTokenService;
     this.cardTerminalService = cardTerminalService;
-
-    this.poppClientAdapter = poppClientAdapter;
     this.fhirService = fhirService;
 
-    this.poppTokenRepository = poppTokenRepository;
     this.vsdmDataRepository = vsdmDataRepository;
 
     this.terminalConnectionConfigs = new ArrayList<>();
     this.vsdmZetaClient = vsdmZetaClient;
+
+    this.poppTokenFromInjected = new PoppTokenFromInjectedStrategy();
+    this.poppTokenFromMocked =
+        new PoppTokenFromMockedStrategy(
+            vsdmClientConfig, cardTerminalService, mockPoppTokenService, poppTokenRepository);
+    this.poppTokenFromCache = new PoppTokenFromCacheStrategy(poppTokenRepository);
+    this.poppTokenFromService =
+        new PoppTokenFromServiceStrategy(poppClientAdapter, poppTokenRepository);
   }
 
   public ResponseEntity<String> read(
@@ -122,20 +123,12 @@ public class VsdmClientService {
         ifNoneMatch,
         poppTokenInjected != null,
         profileVersion);
+    final AttachedCard attachedCard =
+        poppTokenInjected != null ? null : getAttachedCard(terminalId, egkSlotId);
 
-    final AttachedCard attachedCard;
-
-    if (!Strings.isNullOrEmpty(poppTokenInjected)) {
-      log.debug("Using provided PoPP token, skipping Popp-Service call");
-      attachedCard = null;
-    } else {
-      attachedCard = getAttachedCard(terminalId, egkSlotId);
-    }
-
-    final String poppToken =
-        Optional.ofNullable(poppTokenInjected)
-            .orElseGet(() -> requestPoppToken(terminalId, egkSlotId, attachedCard, virtualCard));
-    log.debug("Received PoPP token: {}", poppToken);
+    final PoppToken poppToken =
+        requestPoppToken(poppTokenInjected, terminalId, egkSlotId, attachedCard, virtualCard);
+    log.debug("Received PoPP token: {}", poppToken.value());
 
     final ResponseEntity<String> vsd =
         requestVsd(
@@ -143,6 +136,35 @@ public class VsdmClientService {
     log.debug("Received VSD: {}", vsd);
 
     return vsd;
+  }
+
+  protected PoppToken requestPoppToken(
+      final String poppTokenInjected,
+      final String terminalId,
+      final int egkSlotId,
+      final AttachedCard attachedCard,
+      final String virtualCard) {
+
+    log.info(
+        "Requesting PoPP token for attached card: {}",
+        attachedCard != null ? attachedCard.getId() : "none");
+
+    final Optional<PoppToken> maybePoppToken =
+        poppTokenFromInjected
+            .get(poppTokenInjected)
+            .or(() -> poppTokenFromMocked.get(terminalId, egkSlotId, attachedCard))
+            .or(() -> poppTokenFromCache.get(terminalId, egkSlotId, attachedCard))
+            .or(() -> poppTokenFromService.get(terminalId, egkSlotId, attachedCard, virtualCard))
+            .or(() -> poppTokenFromService.get(terminalId, egkSlotId, attachedCard, virtualCard))
+            .or(() -> poppTokenFromService.get(terminalId, egkSlotId, attachedCard, virtualCard));
+
+    final PoppToken poppToken =
+        maybePoppToken.orElseThrow(
+            () ->
+                new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, "Could not retrieve PoPP token"));
+
+    return poppToken;
   }
 
   public AttachedCard getAttachedCard(final String terminalId, final Integer slotId) {
@@ -171,90 +193,13 @@ public class VsdmClientService {
     return attachedCard;
   }
 
-  protected String requestPoppToken(
-      final String terminalId,
-      final int egkSlotId,
-      final AttachedCard attachedCard,
-      final String virtualCard) {
-    log.info("Requesting PoPP token for attached card: {}", attachedCard.getId());
-
-    if (vsdmClientConfig.isUseMockPoppToken()) {
-      log.info("Load mocked PoPP token");
-      final String mockPoppToken = loadMockPoppToken(vsdmClientConfig, attachedCard);
-      poppTokenRepository.put(terminalId, egkSlotId, attachedCard.getId(), mockPoppToken);
-      return mockPoppToken;
-    }
-
-    final String poppTokenFromRepository =
-        poppTokenRepository.get(terminalId, egkSlotId, attachedCard.getId());
-
-    if (poppTokenFromRepository != null) {
-      log.debug("PoPP token found in repository: {}", poppTokenFromRepository);
-      return poppTokenFromRepository;
-    }
-
-    for (int attempt = 1; attempt <= POPP_TOKEN_MAX_ATTEMPTS; attempt++) {
-      try {
-        final String poppTokenFromService =
-            poppClientAdapter.getPoppToken(attachedCard, virtualCard);
-        log.debug("Received PoPP token from popp service: {}", poppTokenFromService);
-        poppTokenRepository.put(terminalId, egkSlotId, attachedCard.getId(), poppTokenFromService);
-
-        return poppTokenFromService;
-      } catch (final Exception e) {
-        final boolean shouldRetry =
-            isRetryablePoppTokenException(e) && attempt < POPP_TOKEN_MAX_ATTEMPTS;
-        if (shouldRetry) {
-          log.warn(
-              "Transient PoPP token error for card {} on attempt {}/{}. Retrying immediately.",
-              attachedCard.getId(),
-              attempt,
-              POPP_TOKEN_MAX_ATTEMPTS,
-              e);
-          continue;
-        }
-
-        log.error(
-            "Error on waiting for completing of PoppTokenSession with card {} after {} attempt(s)",
-            attachedCard.getId(),
-            attempt,
-            e);
-        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
-      }
-    }
-
-    throw new ResponseStatusException(
-        HttpStatus.INTERNAL_SERVER_ERROR, "Could not retrieve PoPP token");
-  }
-
-  private boolean isRetryablePoppTokenException(final Throwable throwable) {
-    Throwable current = throwable;
-    while (current != null) {
-      if (current instanceof WebClientRequestException) {
-        return true;
-      }
-      if (current instanceof WebClientResponseException responseException
-          && responseException.getStatusCode().is5xxServerError()) {
-        return true;
-      }
-
-      final String message = current.getMessage();
-      if (message != null
-          && (message.contains(POPP_WEBSOCKET_NOT_CONNECTED)
-              || message.contains(POPP_PREMATURE_CLOSE))) {
-        return true;
-      }
-
-      current = current.getCause();
-    }
-    return false;
-  }
+  // vsdm handling
 
   protected ResponseEntity<String> requestVsd(
       final String terminal,
       final int egkSlotId,
       final AttachedCard attachedCard,
-      final String poppToken,
+      final PoppToken poppToken,
       final String ifNoneMatch,
       final boolean isFhirXml,
       final String profileVersion) {
@@ -274,11 +219,11 @@ public class VsdmClientService {
     try {
       final String traceId = MDC.get("traceId");
       final ZetaSdkClientAdapter.RequestParameters requestParameters =
-          new ZetaSdkClientAdapter.RequestParameters(traceId, poppToken, isFhirXml, ifNoneMatch);
+          new ZetaSdkClientAdapter.RequestParameters(
+              traceId, poppToken.value(), isFhirXml, ifNoneMatch);
       final String baseUrl = "vsdservice/v1/vsdmbundle";
       final String url =
           profileVersion != null ? baseUrl + "?profileVersion=" + profileVersion : baseUrl;
-
       final ZetaSdkClientAdapter.Response responseFromServer =
           vsdmZetaClient.httpGet(url, requestParameters);
 
@@ -404,15 +349,6 @@ public class VsdmClientService {
             .build();
 
     return fhirService.encodeResponse(truncatedDataBundle, EncodingType.JSON);
-  }
-
-  private String loadMockPoppToken(final VsdmClientConfig config, final AttachedCard attachedCard) {
-    try {
-      final EgkInfo egkInfo = cardTerminalService.getEgkInfo(attachedCard);
-      return mockPoppTokenService.requestPoppToken(config, egkInfo.getIknr(), egkInfo.getKvnr());
-    } catch (final CardTerminalException cardEx) {
-      return null;
-    }
   }
 
   private HttpHeaders copyApplicableHeaders(

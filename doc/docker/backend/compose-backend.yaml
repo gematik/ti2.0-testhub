@@ -9,6 +9,7 @@ include:
 services:
   otel-collector:
     image: otel/opentelemetry-collector-contrib
+    pull_policy: if_not_present
     env_file:
       - path: ../.env
         required: true
@@ -26,6 +27,7 @@ services:
 
   prometheus:
     image: prom/prometheus
+    pull_policy: if_not_present
     env_file:
       - path: ../.env
         required: true
@@ -44,6 +46,7 @@ services:
 
   grafana:
     image: grafana/grafana
+    pull_policy: if_not_present
     env_file:
       - path: ../.env
         required: true
