@@ -5,7 +5,7 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>3.8.0</version>
+    <version>3.9.0</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>
@@ -35,11 +35,12 @@
         <version.maven.surefire>3.5.5</version.maven.surefire>
         <version.maven.failsafe>3.5.5</version.maven.failsafe>
         <version.maven.jacoco>0.8.14</version.maven.jacoco>
-        <version.tiger>4.3.2</version.tiger>
+        <version.spring-boot-maven-plugin>3.3.7</version.spring-boot-maven-plugin>
+        <version.tiger>4.4.0</version.tiger>
         <version.tiger-cloud-extension>10.0.18</version.tiger-cloud-extension>
         <version.serenity>5.3.11</version.serenity>
-        <version.gem.testdata>1.0.10</version.gem.testdata>
-        <version.gem.bbriccs>0.10.0</version.gem.bbriccs>
+        <version.gem.bbriccs>0.11.0</version.gem.bbriccs>
+        <version.gem.testdata>1.1.0</version.gem.testdata>
         <version.pact.consumer>4.7.1</version.pact.consumer>
         <version.gatling.highcharts>3.13.5</version.gatling.highcharts>
         <version.license-maven-plugin>2.7.1</version.license-maven-plugin>
@@ -406,6 +407,11 @@
                             <arg>-parameters</arg>
                         </compilerArgs>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${version.spring-boot-maven-plugin}</version>
                 </plugin>
             </plugins>
         </pluginManagement>

@@ -39,7 +39,6 @@ import io.restassured.http.Method;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
@@ -170,7 +169,6 @@ public class StepsHashdb {
       executeCommandWithContingentWait(
           () ->
               givenDefaultSpec().body(eContentPayload).request(Method.POST, URL_HASH_DB_IMPORT_RU));
-      writeJobIdsToFile(findeJobIdsInResponseOrEmpty());
 
     } catch (final IOException e) {
       throw new RuntimeException(
@@ -185,22 +183,5 @@ public class StepsHashdb {
     return expectRequests(".*/api/v1/hash-db/import")
         .nextResponse()
         .readValuesAtPath("$.body.jobId");
-  }
-
-  private void writeJobIdsToFile(final List<String> jobIds) {
-    final Path path = Path.of("jobIds.txt");
-    jobIds.forEach(
-        jobId -> {
-          try {
-            Files.write(
-                path,
-                (jobId + System.lineSeparator()).getBytes(),
-                StandardOpenOption.CREATE,
-                StandardOpenOption.APPEND);
-          } catch (final IOException e) {
-            throw new RuntimeException(
-                "Error while writing the following jobid to jobIds.txt: " + jobId, e);
-          }
-        });
   }
 }

@@ -22,12 +22,10 @@
  * by gematik, find details in the "Readme" file.
  * #L%
  */
-package de.gematik.ti20.simsvc.client.service;
+package de.gematik.ti20.simsvc.client.service.popp;
 
 import de.gematik.ti20.client.card.card.AttachedCard;
 import de.gematik.ti20.simsvc.client.config.PoppClientConfig;
-import de.gematik.ti20.simsvc.client.service.dto.PoppClientRequest;
-import de.gematik.ti20.simsvc.client.service.dto.PoppClientResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;

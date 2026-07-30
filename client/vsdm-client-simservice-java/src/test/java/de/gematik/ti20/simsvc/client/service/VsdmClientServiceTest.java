@@ -41,6 +41,8 @@ import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
 import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
+import de.gematik.ti20.simsvc.client.service.popp.PoppClientAdapter;
+import de.gematik.ti20.simsvc.client.service.popp.PoppToken;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
 import io.ktor.client.plugins.ServerResponseException;
 import java.util.Arrays;
@@ -78,7 +80,7 @@ class VsdmClientServiceTest {
   private final String virtualCard = "virtualCard";
 
   private final String cardId = "card1";
-  private final String poppToken = "token123";
+  private final PoppToken poppToken = new PoppToken("token123");
   private final String profileVersion = "1.0";
 
   @BeforeEach
@@ -131,14 +133,17 @@ class VsdmClientServiceTest {
   }
 
   @Nested
-  class PoppToken {
+  class PoppTokenHandling {
 
     @Test
     void testRequestPoppToken_FromRepository() throws Exception {
       String expectedToken = "cached-token";
       when(mockPoppTokenRepository.get(terminalId, egkSlotId, "card1")).thenReturn(expectedToken);
 
-      String result = vsdmClientService.requestPoppToken(terminalId, egkSlotId, mockEgkCard, null);
+      String result =
+          vsdmClientService
+              .requestPoppToken(null, terminalId, egkSlotId, mockEgkCard, null)
+              .value();
 
       assertEquals(expectedToken, result);
       verify(mockPoppTokenRepository).get(terminalId, egkSlotId, "card1");
@@ -153,7 +158,10 @@ class VsdmClientServiceTest {
 
       when(mockPoppClientAdapter.getPoppToken(any(), any())).thenReturn(expectedToken);
 
-      String result = vsdmClientService.requestPoppToken(terminalId, egkSlotId, mockEgkCard, null);
+      String result =
+          vsdmClientService
+              .requestPoppToken(null, terminalId, egkSlotId, mockEgkCard, null)
+              .value();
 
       assertEquals(expectedToken, result);
       verify(mockPoppClientAdapter).getPoppToken(eq(mockEgkCard), eq(null));
@@ -167,7 +175,10 @@ class VsdmClientServiceTest {
           .thenThrow(new RuntimeException("Websocket client is not connected"))
           .thenReturn("service-token");
 
-      String result = vsdmClientService.requestPoppToken(terminalId, egkSlotId, mockEgkCard, null);
+      String result =
+          vsdmClientService
+              .requestPoppToken(null, terminalId, egkSlotId, mockEgkCard, null)
+              .value();
 
       assertEquals("service-token", result);
       verify(mockPoppClientAdapter, times(2)).getPoppToken(eq(mockEgkCard), eq(null));
@@ -183,7 +194,9 @@ class VsdmClientServiceTest {
       ResponseStatusException exception =
           assertThrows(
               ResponseStatusException.class,
-              () -> vsdmClientService.requestPoppToken(terminalId, egkSlotId, mockEgkCard, null));
+              () ->
+                  vsdmClientService.requestPoppToken(
+                      null, terminalId, egkSlotId, mockEgkCard, null));
 
       assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
       verify(mockPoppClientAdapter, times(1)).getPoppToken(eq(mockEgkCard), eq(null));
@@ -231,7 +244,9 @@ class VsdmClientServiceTest {
             .thenReturn(expectedToken);
 
         String result =
-            vsdmClientService.requestPoppToken(terminalId, egkSlotId, mockEgkCard, null);
+            vsdmClientService
+                .requestPoppToken(null, terminalId, egkSlotId, mockEgkCard, null)
+                .value();
 
         assertEquals(expectedToken, result);
 
@@ -349,7 +364,7 @@ class VsdmClientServiceTest {
 
         ResponseEntity<String> response =
             vsdmClientService.requestVsd(
-                terminalId, egkSlotId, mockEgkCard, "token123", "etag123", false, profileVersion);
+                terminalId, egkSlotId, mockEgkCard, poppToken, "etag123", false, profileVersion);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -366,7 +381,7 @@ class VsdmClientServiceTest {
 
         ResponseEntity<String> response =
             vsdmClientService.requestVsd(
-                "terminalId", egkSlotId, mockEgkCard, "token123", "etag123", false, profileVersion);
+                "terminalId", egkSlotId, mockEgkCard, poppToken, "etag123", false, profileVersion);
 
         assertNotNull(response);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());

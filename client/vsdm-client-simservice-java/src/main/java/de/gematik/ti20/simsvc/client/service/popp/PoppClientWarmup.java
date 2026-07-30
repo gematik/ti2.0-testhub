@@ -22,7 +22,7 @@
  * by gematik, find details in the "Readme" file.
  * #L%
  */
-package de.gematik.ti20.simsvc.client.service;
+package de.gematik.ti20.simsvc.client.service.popp;
 
 import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
 import lombok.RequiredArgsConstructor;

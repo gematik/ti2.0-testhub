@@ -115,13 +115,11 @@ public class Steps {
   public void dieEmpfangenenAPDUsSindKorrekt() {
 
     switch (communicationType) {
-      case CONTACT_STANDARD:
-      case CONTACT_VIRTUAL:
+      case CONTACT_STANDARD, CONTACT_VIRTUAL:
         ApduValidator.validateApdusforStdKT();
         break;
 
-      case CONTACTLESS_STANDARD:
-      case CONTACTLESS_VIRTIAL:
+      case CONTACTLESS_STANDARD, CONTACTLESS_VIRTUAL:
         ApduValidator.validateApdusforStdKTContactless();
         break;
 
@@ -155,7 +153,8 @@ public class Steps {
     JwksValidator.validateSignedJwks();
   }
 
-  @Dann("erhält das Primärsystem den Status ERROR vom PoPP-Service mit Message {string}")
+  @Dann(
+      "erhält das Primärsystem den Status ERROR vom PoPP-Service mit Message {tigerResolvedString}")
   public void validatePoppError(final String errorMessage) {
     PoppTokenValidator.validatePoppTokenforBasicErrorResponse();
     PoppTokenValidator.validatePoppTokenforInvalidCaErrorResponse(errorMessage);

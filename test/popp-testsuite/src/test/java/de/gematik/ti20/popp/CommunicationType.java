@@ -38,7 +38,7 @@ public enum CommunicationType {
   CONTACT_CONNECTOR("contact-connector", "eH-KT", "kontaktbehaftet"),
   CONTACTLESS_CONNECTOR("contactless-connector", "eH-KT", "kontaktlos"), // Annahme
   CONTACT_VIRTUAL("contact-virtual", "virtuell", "kontaktbehaftet"),
-  CONTACTLESS_VIRTIAL("contactless-virtual", "virtuell", "kontaktlos");
+  CONTACTLESS_VIRTUAL("contactless-virtual", "virtuell", "kontaktlos");
 
   private final String value;
   private final String readerType;

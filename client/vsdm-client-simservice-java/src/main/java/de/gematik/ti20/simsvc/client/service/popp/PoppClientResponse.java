@@ -22,19 +22,23 @@
  * by gematik, find details in the "Readme" file.
  * #L%
  */
-package de.gematik.ti20.simsvc.client.service.dto;
+package de.gematik.ti20.simsvc.client.service.popp;
 
-public enum PoppClientResponseStatus {
-  OK("OK"),
-  ERROR("ERROR");
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-  private final String status;
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public record PoppClientResponse(
+    PoppClientResponseStatus status, String token, String errorMessage) {
 
-  PoppClientResponseStatus(String status) {
-    this.status = status;
+  public static PoppClientResponse ok() {
+    return new PoppClientResponse(PoppClientResponseStatus.OK, null, null);
   }
 
-  public String getStatus() {
-    return status;
+  public static PoppClientResponse ok(String token) {
+    return new PoppClientResponse(PoppClientResponseStatus.OK, token, null);
+  }
+
+  public static PoppClientResponse error(String errorMessage) {
+    return new PoppClientResponse(PoppClientResponseStatus.ERROR, null, errorMessage);
   }
 }

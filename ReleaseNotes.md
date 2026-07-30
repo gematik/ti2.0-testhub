@@ -2,6 +2,13 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.9.0
+
+### Changes
+
+- TESTHUB-165: refactor retrieval of popp tokens
+- various bugfixes and dependency updates
+
 ## Release 3.8.0
 
 ### Update Notes
@@ -16,11 +23,11 @@ between services without us having to touch Docker networks.
 ### Changes
 
 - TESTHUB-178: simplify Tiger proxy configuration by introducing Canopy DNS server
-- TESTHUB-190: Update PoPP dependencies to 2.7.0 
-- TESTHUB-194: (vsdm) Update ZETA client to 1.2.5 
+- TESTHUB-190: Update PoPP dependencies to 2.7.0
+- TESTHUB-194: (vsdm) Update ZETA client to 1.2.5
 - Dependency Updates:
-  - gatling-maven-plugin from 4.21.5 to 4.21.8
-  - logback:logback-core from 1.5.32 to 1.5.38
+    - gatling-maven-plugin from 4.21.5 to 4.21.8
+    - logback:logback-core from 1.5.32 to 1.5.38
 
 ## Release 3.7.0
 
@@ -34,6 +41,7 @@ between services without us having to touch Docker networks.
 ### Changes
 
 - TESTHUB-112: add documentation about how to use podman
+- TESTHUB-165: refactor retrieval of popp tokens
 - TESTHUB-169: update BDE messages and resolve placeholder values in vsdm-testsuite
 - TESTHUB-175: add documentation about testing configuration with .env files
 - TESTHUB-181: update Popp components to use Zeta 1.2.x

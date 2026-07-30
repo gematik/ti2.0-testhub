@@ -25,17 +25,17 @@
 package de.gematik.ti20.simsvc.client.config;
 
 import de.gematik.ti20.client.card.terminal.CardTerminalService;
-import de.gematik.ti20.simsvc.client.service.PoppClientAdapter;
+import de.gematik.ti20.simsvc.client.service.popp.PoppClientAdapter;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Slf4j
-@Component
+@Configuration
 @ConfigurationProperties(prefix = "popp")
 @Getter
 @Setter
@@ -72,7 +72,7 @@ public class PoppConfig {
   }
 
   @Bean
-  WebClient webClient(WebClient.Builder builder) {
-    return builder.build();
+  WebClient webClient() {
+    return WebClient.create();
   }
 }

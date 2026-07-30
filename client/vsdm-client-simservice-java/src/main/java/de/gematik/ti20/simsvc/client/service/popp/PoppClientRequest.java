@@ -22,7 +22,7 @@
  * by gematik, find details in the "Readme" file.
  * #L%
  */
-package de.gematik.ti20.simsvc.client.service.dto;
+package de.gematik.ti20.simsvc.client.service.popp;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

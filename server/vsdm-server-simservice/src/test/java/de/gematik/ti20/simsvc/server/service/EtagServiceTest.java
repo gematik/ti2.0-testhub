@@ -47,7 +47,7 @@ class EtagServiceTest {
 
     etagService.addEtagHeader(kvnr, encodedResponse, headers);
 
-    assertTrue(headers.containsKey(EtagService.HEADER_NAME));
+    assertTrue(headers.containsHeader(EtagService.HEADER_NAME));
     assertNotNull(headers.getFirst(EtagService.HEADER_NAME));
     assertFalse(headers.getFirst(EtagService.HEADER_NAME).isEmpty());
   }
@@ -60,7 +60,7 @@ class EtagServiceTest {
 
     etagService.addEtagHeader(kvnr, encodedResponse, headers);
 
-    assertFalse(headers.containsKey(EtagService.HEADER_NAME));
+    assertFalse(headers.containsHeader(EtagService.HEADER_NAME));
   }
 
   @Test
@@ -70,7 +70,7 @@ class EtagServiceTest {
 
     etagService.addEtagHeader(kvnr, null, headers);
 
-    assertFalse(headers.containsKey(EtagService.HEADER_NAME));
+    assertFalse(headers.containsHeader(EtagService.HEADER_NAME));
   }
 
   @Test
@@ -80,7 +80,7 @@ class EtagServiceTest {
 
     etagService.addEtagHeader("", encodedResponse, headers);
 
-    assertFalse(headers.containsKey(EtagService.HEADER_NAME));
+    assertFalse(headers.containsHeader(EtagService.HEADER_NAME));
   }
 
   @Test
@@ -90,7 +90,7 @@ class EtagServiceTest {
 
     etagService.addEtagHeader(null, encodedResponse, headers);
 
-    assertFalse(headers.containsKey(EtagService.HEADER_NAME));
+    assertFalse(headers.containsHeader(EtagService.HEADER_NAME));
   }
 
   @Test
