@@ -33,6 +33,7 @@ public class SimulationConfigBean {
   private Url url;
   private Ramp ramp;
   private boolean randomReadVsd;
+  private int zetaPoolCapacity;
   private TestData testData;
 
   @Data
@@ -49,7 +50,6 @@ public class SimulationConfigBean {
     @Data
     public static class Server {
       private String vsdm;
-      private String htu;
     }
   }
 
@@ -84,5 +84,6 @@ public class SimulationConfigBean {
     private String poppTokens;
     private String smcbSlots;
     private String egkSlots;
+    private String profileVersion;
   }
 }

@@ -80,7 +80,7 @@ public enum ErrorCase {
       500,
       "SERVICE_INTERNAL_SERVER_ERROR",
       "Ein unerwarteter interner Fehler ist aufgetreten."),
-  MISSING_HEADER_USERINFO("79206", 400, "MISSING_HEADER_USERINFO", "Header ZETA-User-Info fehlt. "),
+  MISSING_HEADER_USERINFO("79206", 400, "MISSING_HEADER_USERINFO", "Header ZETA-User-Info fehlt."),
   MISSING_HEADER_POPP("79207", 400, "MISSING_HEADER_POPP", "Header ZETA-PoPP-Token-Content fehlt."),
   ERROR_HEADER_USERINFO(
       "79401",

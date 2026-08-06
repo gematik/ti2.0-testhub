@@ -1,22 +1,8 @@
-zeta:
-  env: "popp-rudev"
-  server:
-    popp:
-      url: https://popp.dev.poppservice.de
-    poppClient:
-      url: http://127.0.0.1:8081
-    poppTokenGenerator:
-      url: http://127.0.0.1:9500
-    pdp:
-      tokenUrl: https://popp.dev.poppservice.de/auth/realms/zeta-guard/protocol/openid-connect/token
-      issuer: https://popp.dev.poppservice.de/auth/realms/zeta-guard
-      realmUrl: https://popp.dev.poppservice.de/auth/realms/zeta-guard
-      dcrUrl: https://popp.dev.poppservice.de/auth/realms/zeta-guard/clients-registrations/openid-connect
-      jwksUrl: https://popp.dev.poppservice.de/auth/realms/zeta-guard/protocol/openid-connect/certs
-      nonceUrl: https://popp.dev.poppservice.de/auth/realms/zeta-guard/zeta-guard-nonce
-      smcbAudience: https://popp.dev.poppservice.de/auth/
-      clientAssertionAud: https://popp.dev.poppservice.de/auth/realms/zeta-guard/protocol/openid-connect/token
-    pep:
-      url: https://popp.dev.poppservice.de
-    opa:
-      baseUrl: http://127.0.0.1:2401
+tigerProxy:
+  trafficEndpoints:
+    - "http://${ports.host}:${ports.remoteTigerProxyAdminPort}"
+  activateRbelParsingFor:
+    - websocket
+    - x509
+
+

@@ -1,0 +1,20 @@
+tigerProxy:
+  trafficEndpoints:
+    - "http://${ports.host}:${ports.remoteTigerProxyAdminPort}"
+  activateRbelParsingFor:
+    - websocket
+    - x509
+
+zeta:
+  server:
+    pdp:
+      tokenUrl: "http://${ports.host}:${ports.poppPdpPort}/auth/realms/zeta-guard/protocol/openid-connect/token"
+      dcrUrl: "http://${ports.host}:${ports.poppPdpPort}/clients-registrations/openid-connect"
+      issuer: "https://${ports.host}:${ports.vsdmIngressPort}/auth/realms/zeta-guard"
+      realmUrl: "http://${ports.host}:${ports.poppPdpPort}/auth/realms/zeta-guard"
+      jwksUrl: "http://${ports.host}:${ports.poppPdpPort}/protocol/openid-connect/certs"
+      nonceUrl: "http://${ports.host}:${ports.poppPdpPort}/zeta-guard-nonce"
+      smcbAudience: "https://${ports.host}:${ports.vsdmIngressPort}/auth/realms/zeta-guard/protocol/openid-connect/token"
+      clientAssertionAud: "https://${ports.host}:${ports.vsdmIngressPort}/auth/realms/zeta-guard/protocol/openid-connect/token"
+    pep:
+      url: "http://${ports.host}:${ports.poppPepPort}"

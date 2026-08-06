@@ -27,6 +27,7 @@ package de.gematik.ti20.client.card.terminal;
 import de.gematik.ti20.client.card.card.AttachedCard;
 import de.gematik.ti20.client.card.card.CardConnection;
 import de.gematik.ti20.client.card.terminal.simsvc.EgkInfo;
+import de.gematik.ti20.client.card.terminal.simsvc.SmcbInfo;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +76,10 @@ public abstract class CardTerminal {
   public abstract List<? extends AttachedCard> getAttachedCards() throws CardTerminalException;
 
   public EgkInfo getEgkInfo(final AttachedCard attachedCard) throws CardTerminalException {
+    throw new CardTerminalException("getEgkInfo not implemented");
+  }
+
+  public SmcbInfo getSmcbInfo(final AttachedCard attachedCard) throws CardTerminalException {
     throw new CardTerminalException("getEgkInfo not implemented");
   }
 

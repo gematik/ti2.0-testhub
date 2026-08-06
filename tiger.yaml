@@ -36,3 +36,4 @@ additionalConfigurationFiles:
   - filename: tiger/paths.yaml
   - filename: tiger/tiger-${env|default}.yaml
     baseKey: tiger
+  - filename: tiger/zeta-${env|environments}.yaml

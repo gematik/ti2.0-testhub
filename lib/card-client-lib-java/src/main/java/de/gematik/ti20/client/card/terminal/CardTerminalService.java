@@ -25,6 +25,7 @@
 package de.gematik.ti20.client.card.terminal;
 
 import de.gematik.ti20.client.card.card.AttachedCard;
+import de.gematik.ti20.client.card.card.CardType;
 import de.gematik.ti20.client.card.config.CardTerminalConnectionConfig;
 import de.gematik.ti20.client.card.config.ConnectorConnectionConfig;
 import de.gematik.ti20.client.card.config.PcScConnectionConfig;
@@ -33,6 +34,7 @@ import de.gematik.ti20.client.card.terminal.connector.ConnectorCardTerminal;
 import de.gematik.ti20.client.card.terminal.pcsc.PcScCardTerminal;
 import de.gematik.ti20.client.card.terminal.simsvc.EgkInfo;
 import de.gematik.ti20.client.card.terminal.simsvc.SimulatorCardTerminal;
+import de.gematik.ti20.client.card.terminal.simsvc.SmcbInfo;
 import java.util.ArrayList;
 import java.util.List;
 import javax.smartcardio.CardException;
@@ -119,6 +121,15 @@ public class CardTerminalService {
 
   public EgkInfo getEgkInfo(final AttachedCard attachedCard) throws CardTerminalException {
     return attachedCard.getTerminal().getEgkInfo(attachedCard);
+  }
+
+  public SmcbInfo getSmcbInfo() throws CardTerminalException {
+    final AttachedCard attachedCard =
+        getAttachedCards().stream()
+            .filter(card -> card.getType() == CardType.SMC_B)
+            .findFirst()
+            .orElseThrow(() -> new CardTerminalException("No attached SmcB found"));
+    return attachedCard.getTerminal().getSmcbInfo(attachedCard);
   }
 
   /**

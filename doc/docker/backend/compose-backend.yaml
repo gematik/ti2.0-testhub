@@ -5,6 +5,9 @@ include:
     project_directory: .
   - path: ./compose-vsdm-services.yaml
     project_directory: .
+  # TODO: merge into popp-services
+  - path: ./compose-popp-client-erp.yaml
+    project_directory: .
 
 services:
   otel-collector:
@@ -13,7 +16,7 @@ services:
     env_file:
       - path: ../.env
         required: true
-    profiles: [ "full", "ps-only" ]
+    profiles: [ "full", "backend-only", "ps-only" ]
     platform: linux/amd64
     command: [ "--config=/etc/otel-collector-config.yaml" ]
     volumes:

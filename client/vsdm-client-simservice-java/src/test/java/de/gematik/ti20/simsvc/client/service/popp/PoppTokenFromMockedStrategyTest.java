@@ -34,6 +34,7 @@ import de.gematik.ti20.client.card.card.AttachedCard;
 import de.gematik.ti20.client.card.terminal.CardTerminalException;
 import de.gematik.ti20.client.card.terminal.CardTerminalService;
 import de.gematik.ti20.client.card.terminal.simsvc.EgkInfo;
+import de.gematik.ti20.client.card.terminal.simsvc.SmcbInfo;
 import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.service.MockPoppTokenService;
@@ -53,6 +54,7 @@ class PoppTokenFromMockedStrategyTest {
   @Mock private PoppTokenRepository poppTokenRepository;
   @Mock private AttachedCard attachedCard;
   @Mock private EgkInfo egkInfo;
+  @Mock private SmcbInfo smcbInfo;
 
   private PoppTokenFromMockedStrategy strategy;
 
@@ -80,14 +82,21 @@ class PoppTokenFromMockedStrategyTest {
     String cardId = "card-1";
     String iknr = "iknr-1";
     String kvnr = "kvnr-1";
+    String telematikId = "telematik-1";
+    String professionId = "profession-1";
     String mockedToken = "mocked-popp-token";
 
     when(vsdmClientConfig.isUseMockPoppToken()).thenReturn(true);
     when(attachedCard.getId()).thenReturn(cardId);
     when(cardTerminalService.getEgkInfo(attachedCard)).thenReturn(egkInfo);
+    when(cardTerminalService.getSmcbInfo()).thenReturn(smcbInfo);
     when(egkInfo.getIknr()).thenReturn(iknr);
     when(egkInfo.getKvnr()).thenReturn(kvnr);
-    when(mockPoppTokenService.requestPoppToken(vsdmClientConfig, iknr, kvnr))
+    when(smcbInfo.getTelematikId()).thenReturn(telematikId);
+    when(smcbInfo.getProfessionOid()).thenReturn(professionId);
+
+    when(mockPoppTokenService.requestPoppToken(
+            vsdmClientConfig, iknr, kvnr, telematikId, professionId))
         .thenReturn(mockedToken);
 
     Optional<PoppToken> result = strategy.get(terminalId, egkSlotId, attachedCard);

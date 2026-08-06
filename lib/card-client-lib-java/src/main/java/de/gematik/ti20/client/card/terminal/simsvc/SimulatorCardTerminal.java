@@ -76,6 +76,16 @@ public class SimulatorCardTerminal extends CardTerminal {
     }
   }
 
+  @Override
+  public SmcbInfo getSmcbInfo(final AttachedCard attachedCard) throws CardTerminalException {
+    try {
+      return getClient().getSmcbInfo((SimulatorAttachedCard) attachedCard);
+    } catch (IOException e) {
+      log.error("Error getting available cards", e);
+      throw new CardTerminalException(e.getMessage(), e);
+    }
+  }
+
   /** {@inheritDoc} */
   @Override
   public CardConnection connect(final AttachedCard card) throws CardTerminalException {

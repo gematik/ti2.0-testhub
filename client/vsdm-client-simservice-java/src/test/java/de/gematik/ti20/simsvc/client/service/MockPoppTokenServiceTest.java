@@ -58,7 +58,7 @@ class MockPoppTokenServiceTest {
             anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
         .thenReturn(new ResponseEntity<>(json, HttpStatus.OK));
 
-    String token = service.requestPoppToken(mockConfig, "iknr", "kvnr");
+    String token = service.requestPoppToken(mockConfig, "iknr", "kvnr", "actorId", "actorProfId");
 
     assertEquals("the-token-value", token);
   }
@@ -70,6 +70,7 @@ class MockPoppTokenServiceTest {
         .thenReturn(new ResponseEntity<>("not a json", HttpStatus.OK));
 
     assertThrows(
-        RuntimeException.class, () -> service.requestPoppToken(mockConfig, "iknr", "kvnr"));
+        RuntimeException.class,
+        () -> service.requestPoppToken(mockConfig, "iknr", "kvnr", "actorId", "actorProfId"));
   }
 }

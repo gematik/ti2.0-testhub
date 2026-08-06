@@ -37,6 +37,7 @@ import de.gematik.ti20.client.card.terminal.CardTerminalException;
 import de.gematik.ti20.client.card.terminal.CardTerminalService;
 import de.gematik.ti20.client.card.terminal.simsvc.EgkInfo;
 import de.gematik.ti20.client.card.terminal.simsvc.SimulatorAttachedCard;
+import de.gematik.ti20.client.card.terminal.simsvc.SmcbInfo;
 import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
@@ -102,7 +103,8 @@ class VsdmClientServiceTest {
     when(mockCardTerminalService.getAttachedCards()).thenReturn((List) Arrays.asList(mockEgkCard));
 
     mockPoppTokenService = mock(MockPoppTokenService.class);
-    when(mockPoppTokenService.requestPoppToken(vsdmClientConfig, "iknr", "kvnr"))
+    when(mockPoppTokenService.requestPoppToken(
+            vsdmClientConfig, "iknr", "kvnr", "actorId", "actorProfId"))
         .thenReturn("mocked-token");
 
     mockFhirService = mock(FhirService.class);
@@ -239,8 +241,17 @@ class VsdmClientServiceTest {
                     "card",
                     "2012",
                     "true"));
+        when(mockCardTerminalService.getSmcbInfo())
+            .thenReturn(
+                new SmcbInfo(
+                    "telematikId",
+                    "professionOid",
+                    "smcbVersion",
+                    "smcbManufacturer",
+                    "smcbSerialNumber"));
 
-        when(mockPoppTokenService.requestPoppToken(vsdmClientConfig, "iknr", "kvnr"))
+        when(mockPoppTokenService.requestPoppToken(
+                vsdmClientConfig, "iknr", "kvnr", "telematikId", "professionOid"))
             .thenReturn(expectedToken);
 
         String result =

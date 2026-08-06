@@ -22,34 +22,36 @@
  * by gematik, find details in the "Readme" file.
  * #L%
  */
-package de.gematik.ti20.vsdm.test.e2e.steps;
+package de.gematik.ti20.vsdm.test.e2e.abilities;
 
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigBeanFactory;
-import com.typesafe.config.ConfigFactory;
-import java.util.Objects;
+import static io.restassured.RestAssured.given;
 
-public final class TigerConfigProvider {
+import io.restassured.specification.RequestSpecification;
+import net.serenitybdd.screenplay.Ability;
+import net.serenitybdd.screenplay.Actor;
 
-  private TigerConfigProvider() {}
+public class CallPoppClient implements Ability {
 
-  private static TigerConfigBean instance;
+  private final String baseUrl;
 
-  public static synchronized TigerConfigBean getInstance() {
-    if (instance == null) {
-      instance = TigerConfigProvider.load();
-    }
-    return instance;
+  private CallPoppClient(String baseUrl) {
+    this.baseUrl = baseUrl;
   }
 
-  private static TigerConfigBean load() {
-    String config = System.getProperty("config");
+  public static CallPoppClient at(String baseUrl) {
+    return new CallPoppClient(baseUrl);
+  }
 
-    Config root =
-        ConfigFactory.parseResources(Objects.requireNonNullElse(config, "tiger.conf")).resolve();
+  public static CallPoppClient as(Actor actor) {
+    return actor.abilityTo(CallPoppClient.class);
+  }
 
-    Config tiger = root.getConfig("tiger");
+  public RequestSpecification request() {
+    return given().baseUri(baseUrl);
+  }
 
-    return ConfigBeanFactory.create(tiger, TigerConfigBean.class);
+  @Override
+  public String toString() {
+    return "call popp client at " + baseUrl;
   }
 }

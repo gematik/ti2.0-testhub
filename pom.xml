@@ -5,7 +5,7 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>3.9.0</version>
+    <version>3.10.0</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>
@@ -22,6 +22,7 @@
         <module>test/popp-testsuite</module>
         <module>coverage-report</module>
         <module>user-manual</module>
+        <module>test/erp-testsuite</module>
     </modules>
 
     <properties>
@@ -180,12 +181,12 @@
             <dependency>
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk18on</artifactId>
-                <version>1.84</version>
+                <version>1.85</version>
             </dependency>
             <dependency>
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcpkix-jdk18on</artifactId>
-                <version>1.84</version>
+                <version>1.85</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
