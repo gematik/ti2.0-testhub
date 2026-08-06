@@ -166,7 +166,7 @@ public class ZetaPepJwtSteps {
     String resolvedPepUrl = TigerGlobalConfiguration.resolvePlaceholders(pepUrl);
 
     // 1. PoPP-Token erzeugen
-    generatePoppToken(getPoppServerUrl());
+    generatePoppToken(getPoppClientUrl());
     String poppToken = TigerGlobalConfiguration.resolvePlaceholders("${POPP_TOKEN}");
 
     // 2. Access-Token via Token-Exchange vom PDP holen

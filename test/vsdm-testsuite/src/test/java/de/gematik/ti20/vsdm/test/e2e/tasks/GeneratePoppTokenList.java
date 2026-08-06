@@ -29,10 +29,10 @@ import static net.serenitybdd.screenplay.Tasks.instrumented;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.gematik.ti20.vsdm.test.e2e.abilities.CallPoppTokenGenerator;
 import de.gematik.ti20.vsdm.test.e2e.enums.ProofMethod;
+import de.gematik.ti20.vsdm.test.e2e.helper.TigerConfigBean;
+import de.gematik.ti20.vsdm.test.e2e.helper.TigerConfigProvider;
 import de.gematik.ti20.vsdm.test.e2e.models.SmcbCardInfo;
 import de.gematik.ti20.vsdm.test.e2e.models.TokenResults;
-import de.gematik.ti20.vsdm.test.e2e.steps.TigerConfigBean;
-import de.gematik.ti20.vsdm.test.e2e.steps.TigerConfigProvider;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import java.io.BufferedReader;
@@ -99,7 +99,7 @@ public class GeneratePoppTokenList implements Task {
         "insurerId",
         iknr,
         "actorId",
-        "1-SMC-B-Testkarte--883110000168765",
+        smcbCardInfo.getTelematikId(),
         "actorProfessionOid",
         smcbCardInfo.getProfessionOid());
   }

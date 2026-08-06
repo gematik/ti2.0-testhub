@@ -47,10 +47,19 @@ public class MockPoppTokenService {
   private final ObjectMapper mapper = new ObjectMapper();
 
   public String requestPoppToken(
-      final VsdmClientConfig config, final String iknr, final String kvnr) {
-    log.info("requestMockPoppToken for iknr: {}, kvnr: {}", iknr, kvnr);
+      final VsdmClientConfig config,
+      final String iknr,
+      final String kvnr,
+      final String actorId,
+      final String actorProfessionId) {
+    log.info(
+        "requestMockPoppToken for iknr: {}, kvnr: {}, actorId: {}, actorProfessionId: {}",
+        iknr,
+        kvnr,
+        actorId,
+        actorProfessionId);
 
-    final String body = getPoppTokenJsonBody(iknr, kvnr);
+    final String body = getPoppTokenJsonBody(iknr, kvnr, actorId, actorProfessionId);
 
     final HttpHeaders headers = new HttpHeaders();
     headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
@@ -69,7 +78,8 @@ public class MockPoppTokenService {
     return poppToken;
   }
 
-  private String getPoppTokenJsonBody(final String iknr, final String kvnr) {
+  private String getPoppTokenJsonBody(
+      final String iknr, final String kvnr, final String actorId, final String actorProfessionId) {
     final Map<String, List<Map<String, String>>> tokenArgs =
         Map.of(
             "tokenParamsList",
@@ -82,9 +92,9 @@ public class MockPoppTokenService {
                     "insurerId",
                     iknr,
                     "actorId",
-                    "1-SMC-B-Testkarte--883110000168765",
+                    actorId,
                     "actorProfessionOid",
-                    "1.2.276.0.76.4.32")));
+                    actorProfessionId)));
 
     try {
       return mapper.writeValueAsString(tokenArgs);

@@ -3,76 +3,81 @@
 # PoPP Testsuite
 
 Die PoPP Testsuite ist Teil des TI-Testhubs und stellt Ende-zu-Ende-Testfälle im PoPP-Kontext
-bereit. Ziel ist zu prüfen, ob der PoPP-Token konform zur Spezifikation **gemSpec_PoPP** erzeugt
-wird.
+bereit. Ziel ist die Validierung der PoPP-Implementierung hinsichtlich der Anforderungen der
+Spezifikation **gemSpec_PoPP**, einschließlich Token-Erzeugung, Zertifikatsvalidierung und
+HashDB-Import.
 
 ## Einleitung
 
-Aktuell umfasst die Testsuite den Gutfall: das Erzeugen eines PoPP-Tokens gegen die
-PoPP-Beispielimplementierung (separates Projekt, siehe „LINK“).
+Aktuell umfasst die Testsuite Ende-zu-Ende-Tests zur Erzeugung eines PoPP-Tokens gegen die
+PoPP-Beispielimplementierung (separates Projekt, siehe [LINK](https://github.com/gematik/popp-sample-code/blob/main/README.md)).
+Hierbei werden die Varianten mit echter eHealth-Hardware, einem Standardkartenleser,
+sowie den virtuellen Karten des PoPP-Clients unterstützt.
+Zudem sind Negativfälle für Karten mit abgelaufenen oder gesperrten Zertifikaten angelegt.
+Auch diese können mit echter eHealth-Hardware und simulierten Karten ausgeführt werden.
 Weiterhin bietet sie Tests der HashDB-Import-Schnittstelle an.
 Die Testfälle sind mit dem gematik-Testframework **Tiger** umgesetzt. Tiger basiert auf **Cucumber**
 und **Gherkin** und bietet einen Proxy, der den Datenverkehr mitschneidet.
 
-> Hinweis: Derzeit werden ausschließlich Komponenten der PoPP-Beispielimplementierung genutzt;
-> Zeta-Komponenten sind noch nicht integriert.
-
 ## Vorbedingungen
 
-1. PoPP-Beispielimplementierung lokal
-   aufgebaut [siehe README der Beispielimplementierung](https://github.com/gematik/popp-sample-code/blob/main/README.md):
-    - PoPP-Server-DB Docker-Container gestartet
-    - PoPP-Server Docker-Container gestartet
+1. PoPP-Beispielimplementierung lokal aufgebaut
+   [siehe README der Beispielimplementierung](https://github.com/gematik/popp-sample-code/blob/main/README.md)
     - PoPP-Client aus der IDE gestartet
-2. Run Configurations für die Nutzung mit Tiger
-   konfiguriert [siehe Tiger-README](https://github.com/gematik/app-Tiger/blob/master/README.md)
-3. Die von der Testsuite benötigeten p12-Files sind nicht auf github veröffentlicht. Sie werden auf
-   Anfrage von der gematik bereitgestellt.
+
+2. Run Configurations für die Nutzung mit Tiger konfiguriert [siehe Tiger-README](https://github.com/gematik/app-Tiger/blob/master/README.md)
+
+3. Die von der Testsuite benötigten p12-Files sind nicht auf GitHub veröffentlicht. Sie werden auf Anfrage von der gematik bereitgestellt.
+
    Benötigt werden:
     * die unter `TestConstants.java` angegebenen p12-Files
     * die unter `*.feature` verwendeten p12-Files
 
+## Nutzung des Tiger-Proxys
+
+Je nach gewünschter Umgebung ist in der Run Configuration unter Environment Variables die Variable *env* zu setzen.
+
+Der PoPP-Server von Rise steht dabei in drei Instanzen zum Testen zur Verfügung:
+
+```text
+TU:     env=popp-puet-test
+RU:     env=popp-puet-ref
+RU-DEV: env=popp-puet-dev
+```
+
+Durch Setzen der Variable wird der Tiger-Proxy auf die entsprechende Umgebung konfiguriert.
+
+Zusätzlich MUSS die Datei `Hosts.txt` wie folgt editiert werden.
+
+```text
+TU:     127.0.0.1 popp.test.poppservice.de
+RU:     127.0.0.1 popp.ref.poppservice.de
+RU-DEV: 127.0.0.1 popp.dev.poppservice.de
+```
+
 ## PoPP-Token generieren
 
-Nach erfolgreicher Einrichtung kann der Gutfall ausgeführt werden.  
+Nach erfolgreicher Einrichtung kann der Gutfall ausgeführt werden.
+
 Der Testfall lässt sich mit verschiedenen Kombinationen starten. Im Feature
-`src/test/resources/features/e2e/UC_PoPP_1_2a_Valid.feature` werden unter **Examples** die
-gewünschten Varianten konfiguriert. Nicht benötigte Kombinationen können mit `#` auskommentiert
-werden.
+
+`src/test/resources/features/e2e/UC_PoPP_1_2a_Valid.feature`
+
+werden unter **Examples** die gewünschten Varianten konfiguriert. Nicht benötigte Kombinationen können mit `#` auskommentiert werden.
 
 | readerType      | commType          |
 |-----------------|-------------------|
-| "eH-KT"         | "kontaktbehaftet" |
 | "Standardleser" | "kontaktbehaftet" |
 | "virtuell"      | "kontaktbehaftet" |
 
-## Nutzung des Tiger-Proxys
+Alternativ kann der folgende Maven-Befehl im Root-Verzeichnis des Projektes ausgeführt werden:
 
-Der Tiger-Proxy wird in der `tiger.yaml` konfiguriert:
+Beispiel RU-DEV:
 
-```yaml
-tigerProxy:
-  activateRbelParsing: true
-  adminPort: 1300
-  activateRbelParsingFor:
-    - websocket
-  proxyPort: 1200
-  proxyRoutes:
-    # route to PoPP-Server
-    - from: /ws
-      to: https://localhost:8443/ws
-    # route to PoPP-Client
-    - from: /token
-      to: http://localhost:8081/token
-  tls:
-    serverIdentity: src/test/resources/certificates/mykeystore.p12;popp-store
-    masterSecretsFile: wireshark.txt
-    keyFolders:
-      - .
+```bash
+mvn -Denv=popp-puet-dev verify -Dcucumber.filter.tags="@TCID:UC_PoPP_1_2a_Valid"
 ```
 
-> Wichtig: Wird der Tigerproxy genutzt muss in der Beispielimplentierung im PoPP-Client der proxy
-> Port (hier 1200) in der application.yaml für die verbindung zum PoPP-Sever angegenben werden
->```yaml
->   url: wss://localhost:1200/ws
->```
+> Tipp: Immer vorher einmal ins Feature-File schauen und nachsehen, welche Detailvarianten unter *Beispiele* ausgewählt sind.
+
+Testfälle können dem Maven-Befehl nach Belieben mit `or @TCID:UC_Popp_***` hinzugefügt werden.

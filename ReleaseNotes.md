@@ -2,12 +2,26 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.10.0
+
+### Changes
+
+- TESTHUB-185: updated load test scaffolding to work with active ASL channel
+- TESTHUB-198: fix error message for invalid if-none-match header in vsdm-server
+- TESTHUB-199: fix backend-only profile to start all the backend components
+- changed zeta-popp certificates (RSA to ECC migration because of TR-02102-1)
+- Dependency Updates:
+    - org.bouncycastle:bcprov-jdk18on from 1.84 to 1.85
+    - org.bouncycastle:bcpkix-jdk18on from 1.84 to 1.85
+    - ch.qos.logback:logback-core from 1.5.38 to 1.6.0
+- Updated OCSP signers list
+
 ## Release 3.9.0
 
 ### Changes
 
 - TESTHUB-165: refactor retrieval of popp tokens
-- various bugfixes and dependency updates
+- various bugfixes
 
 ## Release 3.8.0
 

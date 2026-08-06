@@ -31,10 +31,10 @@ import io.restassured.response.Response;
 import net.serenitybdd.screenplay.Actor;
 import net.serenitybdd.screenplay.Task;
 
-public class RequestPoppToken implements Task {
+public class DeletePoppTokenFromCache implements Task {
 
-  public static RequestPoppToken fromCache() {
-    return instrumented(RequestPoppToken.class);
+  public static DeletePoppTokenFromCache deleteCache() {
+    return instrumented(DeletePoppTokenFromCache.class);
   }
 
   @Override
@@ -42,15 +42,7 @@ public class RequestPoppToken implements Task {
 
     var api = CallVsdmClient.as(actor);
 
-    Integer egkSlot = actor.recall("egkSlot");
-    String egkId = actor.recall("egkId");
-
-    Response response =
-        api.request()
-            .queryParam("terminalId", "0")
-            .queryParam("slotId", egkSlot)
-            .queryParam("cardId", egkId)
-            .get("/client/test/poppToken");
+    Response response = api.request().delete("/client/test/poppToken");
 
     response.then().statusCode(200);
     actor.remember("lastResponse", response);

@@ -1,0 +1,68 @@
+spring:
+  application:
+    name: ERP TestHubSuite
+  main:
+    banner-mode: CONSOLE
+
+logging:
+  pattern:
+    dateformat: yyyy-MM-dd'T'HH:mm:ss.SSSXXX
+  level:
+    root: warn
+    de:
+      gematik:
+        test: trace
+
+erp:
+  smartcards: "../../no-publish/test-data/erp/smartcards"
+  pharmacies:
+    - name: "Arminius"
+      iccsn: "80276883110000163973"
+    - name: "Ann-Beatrixe"
+      iccsn: "80276001011699802003"  # Arztpraxis SMC-B from ZETA-Testsuite
+  patients:
+    - name: "Alice"
+      iccsn: "80276883110000179858"
+
+  cats:
+    url: "https://ksp.ltuzd.telematik-test/kon9/cats1"
+    terminal-id: "e526d874-e1fb-4b88-b55f-930a5ca7baab"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: rudev
+erp:
+  environment:
+    fdUrl: "https://erp-dev.zentral.erp.splitdns.ti-dienste.de"
+    fdUserAgent: "TestHub-Agent/1.0"
+    idpDiscoveryDocument: "https://idp-ref.zentral.idp.splitdns.ti-dienste.de/.well-known/openid-configuration"
+    idpClientId: "gematikTestPs"
+    idpRedirectUrl: "http://test-ps.gematik.de/erezept"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: ru
+erp:
+  environment:
+    fdUrl: "https://erp-ref.zentral.erp.splitdns.ti-dienste.de"
+    fdUserAgent: "TestHub-Agent/1.0"
+    idpDiscoveryDocument: "https://idp-ref.zentral.idp.splitdns.ti-dienste.de/.well-known/openid-configuration"
+    idpClientId: "gematikTestPs"
+    idpRedirectUrl: "http://test-ps.gematik.de/erezept"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: tu
+erp:
+  environment:
+    fdUrl: "https://erp-test.zentral.erp.splitdns.ti-dienste.de"
+    fdUserAgent: "TestHub-Agent/1.0"
+    idpDiscoveryDocument: "https://idp-test.zentral.idp.splitdns.ti-dienste.de/.well-known/openid-configuration"
+    idpClientId: "gematikTestPs"
+    idpRedirectUrl: "http://test-ps.gematik.de/erezept"

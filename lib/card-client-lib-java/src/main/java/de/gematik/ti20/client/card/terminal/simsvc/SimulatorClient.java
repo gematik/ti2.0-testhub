@@ -119,6 +119,28 @@ public class SimulatorClient {
     }
   }
 
+  public SmcbInfo getSmcbInfo(final SimulatorAttachedCard card) throws IOException {
+    Request request =
+        new Request.Builder().url(baseUrl + "cards/" + card.getId() + "/smc-b-info").get().build();
+
+    log.debug(
+        "Getting SmcbInfo info for card: {} on terminal: {}",
+        card.getId(),
+        card.getTerminal().getName());
+    try (Response response = httpClient.newCall(request).execute()) {
+      if (!response.isSuccessful()) {
+        log.error(
+            "Failed to get Smcb info for card {}. Status code: {}", card.getId(), response.code());
+        throw new IOException("Failed to get EGK info. Status code: " + response.code());
+      }
+
+      String responseBody = response.body().string();
+      log.debug("Received Smcb info: {}", responseBody);
+
+      return objectMapper.readValue(responseBody, SmcbInfo.class);
+    }
+  }
+
   /**
    * Opens a connection to the attached card
    *

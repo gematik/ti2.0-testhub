@@ -1,0 +1,25 @@
+zeta:
+  server:
+    poppClient:
+      url: "http://${ports.host}:${ports.poppClientPort}"
+    poppTokenGenerator:
+      url: "http://${ports.host}:${ports.poppTokenGeneratorPort}"
+    pdp:
+      tokenUrl: "https://popp.dev.poppservice.de/auth/realms/zeta-guard/protocol/openid-connect/token"
+      issuer: "https://popp.dev.poppservice.de/auth/realms/zeta-guard"
+      realmUrl: "https://popp.dev.poppservice.de/auth/realms/zeta-guard"
+      dcrUrl: "https://popp.dev.poppservice.de/auth/realms/zeta-guard/clients-registrations/openid-connect"
+      jwksUrl: "https://popp.dev.poppservice.de/auth/realms/zeta-guard/protocol/openid-connect/certs"
+      nonceUrl: "https://popp.dev.poppservice.de/auth/realms/zeta-guard/zeta-guard-nonce"
+      smcbAudience: "https://popp.dev.poppservice.de/auth/realms/zeta-guard/protocol/openid-connect/token"
+      clientAssertionAud: "https://popp.dev.poppservice.de/auth/realms/zeta-guard/protocol/openid-connect/token"
+    pep:
+      url: "https://popp.dev.poppservice.de"
+  timeouts:
+    httpRequestSeconds: 10
+    healthCheckSeconds: 20
+    healthCheckPollIntervalMs: 250
+    wsConnectionSeconds: 10
+    wsMessageSeconds: 10
+
+zeta_base_url: "popp.dev.poppservice.de"

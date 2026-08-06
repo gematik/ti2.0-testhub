@@ -28,6 +28,7 @@ import de.gematik.ti20.client.card.card.AttachedCard;
 import de.gematik.ti20.client.card.terminal.CardTerminalException;
 import de.gematik.ti20.client.card.terminal.CardTerminalService;
 import de.gematik.ti20.client.card.terminal.simsvc.EgkInfo;
+import de.gematik.ti20.client.card.terminal.simsvc.SmcbInfo;
 import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.service.MockPoppTokenService;
@@ -67,7 +68,14 @@ public class PoppTokenFromMockedStrategy {
   private String loadMockPoppToken(final VsdmClientConfig config, final AttachedCard attachedCard) {
     try {
       final EgkInfo egkInfo = cardTerminalService.getEgkInfo(attachedCard);
-      return mockPoppTokenService.requestPoppToken(config, egkInfo.getIknr(), egkInfo.getKvnr());
+      final SmcbInfo smcbInfo = cardTerminalService.getSmcbInfo();
+
+      return mockPoppTokenService.requestPoppToken(
+          config,
+          egkInfo.getIknr(),
+          egkInfo.getKvnr(),
+          smcbInfo.getTelematikId(),
+          smcbInfo.getProfessionOid());
     } catch (final CardTerminalException cardEx) {
       return null;
     }

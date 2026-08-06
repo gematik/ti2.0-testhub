@@ -11,7 +11,7 @@
 @PRODUKT:VSDM_2_FD
 @PRODUKT:Anb_FD_VSDM
 @PRODUKT:ZETA
-@Ignore
+@local
 
 Funktionalität: Policy Hot-Reload via OPA
 

@@ -4,6 +4,7 @@ include:
   - path: ./backend/compose-backend.yaml
     project_directory: ./backend
 
+
 networks:
   testhub_network:
 
@@ -17,7 +18,7 @@ x-no-proxy-env: &no-proxy-env
 
 # Profiles:
 #   full          - Backend + Tiger-Proxies + Clients (via tiger-proxy) [default]
-#   backend-only  - Backend only (no tiger-proxies, no clients)
+#   backend-only  - Backend only (no clients)
 #   perf          - Backend + Tiger-Proxies + Clients (direct backend access, bypassing proxy)
 #
 # Usage:
@@ -87,7 +88,7 @@ services:
   # /etc/resolv.conf. This ensures Canopy is queried first for all DNS.
   resolv-writer:
     image: alpine:3
-    profiles: [ "ps-only", "full" ]
+    profiles: [ "full", "ps-only" ]
     command: [ "sh", "-c", "getent hosts canopy | awk '{print \"nameserver\", $1}' > /dns/resolv.conf" ]
     networks:
       - testhub_network
@@ -118,7 +119,7 @@ services:
   canopy:
     image: docker.io/gematik1/tiger-canopy-image:4.3.2
     container_name: tiger-canopy
-    profiles: [ "ps-only", "full" ]
+    profiles: [ "full", "ps-only" ]
     platform: linux/amd64
     networks:
       - testhub_network
@@ -189,7 +190,7 @@ services:
       service: vsdm-client-base
     profiles: [ "perf", "ps-only" ]
     environment:
-      - INTERCEPT_STORAGE=true
+      INTERCEPT_STORAGE: ${INTERCEPT_STORAGE:-true}
     networks:
       - testhub_network
     volumes:

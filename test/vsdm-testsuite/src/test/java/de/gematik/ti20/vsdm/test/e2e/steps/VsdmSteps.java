@@ -24,25 +24,19 @@
  */
 package de.gematik.ti20.vsdm.test.e2e.steps;
 
-import static de.gematik.test.tiger.common.config.TigerGlobalConfiguration.resolvePlaceholders;
 import static net.serenitybdd.screenplay.GivenWhenThen.*;
 import static org.hamcrest.Matchers.*;
 
 import de.gematik.test.tiger.lib.TigerDirector;
-import de.gematik.ti20.vsdm.test.e2e.abilities.CallCardClient;
-import de.gematik.ti20.vsdm.test.e2e.abilities.CallPoppTokenGenerator;
-import de.gematik.ti20.vsdm.test.e2e.abilities.CallVsdmClient;
 import de.gematik.ti20.vsdm.test.e2e.enums.Error;
 import de.gematik.ti20.vsdm.test.e2e.models.EgkCardInfo;
 import de.gematik.ti20.vsdm.test.e2e.questions.*;
 import de.gematik.ti20.vsdm.test.e2e.tasks.*;
-import io.cucumber.java.Before;
 import io.cucumber.java.de.Angenommen;
 import io.cucumber.java.de.Dann;
 import io.cucumber.java.de.Und;
 import io.cucumber.java.de.Wenn;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -50,42 +44,13 @@ import java.util.OptionalLong;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.core.Serenity;
-import net.serenitybdd.screenplay.Actor;
-import net.serenitybdd.screenplay.actors.OnStage;
-import net.serenitybdd.screenplay.actors.OnlineCast;
 import org.hl7.fhir.r4.model.Coverage;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.jupiter.api.Assertions;
 
 @Slf4j
-public class VsdmSteps {
-
-  private static final List<Long> answerTimes = new ArrayList<>();
-  private static final TigerConfigBean CFG = TigerConfigProvider.getInstance();
-  private static final String SMCB_CARD_IMAGE_FILE = CFG.getTestData().getSmcbCardImageFile();
-  private static final String EGK_CARD_IMAGE_FILE = CFG.getTestData().getEgkCardImageFile();
-  private static final String VALID_PROFILE_VERSION = "1.0";
-  private static final boolean VSDM_LOAD_TESTING_ACTIVE =
-      Boolean.parseBoolean(
-          Optional.ofNullable(System.getenv("VSDM_LOAD_TESTING_ACTIVE")).orElse("true"));
-
-  private Actor hccs() {
-    return OnStage.theActorInTheSpotlight();
-  }
-
-  @Before
-  public void setTheStage() {
-    OnStage.setTheStage(new OnlineCast());
-    OnStage.theActorCalled("Primärsystem")
-        .can(
-            CallCardClient.at(
-                resolvePlaceholders("http://${ports.host}:${ports.cardTerminalPort}")))
-        .can(CallVsdmClient.at(resolvePlaceholders("http://${ports.host}:${ports.vsdmClientPort}")))
-        .can(
-            CallPoppTokenGenerator.at(
-                resolvePlaceholders("http://${ports.host}:${ports.poppTokenGeneratorPort}")));
-  }
+public class VsdmSteps extends BaseSteps {
 
   @Angenommen("das Primärsystem in der LEI verwendet ein korrekt konfiguriertes Terminal")
   public void givenHccsIsUsingTerminalCorrectly() {
@@ -134,6 +99,15 @@ public class VsdmSteps {
     hccs()
         .attemptsTo(
             RequestVsdFromServer.withEtagAndPoppToken(etag, null, false, VALID_PROFILE_VERSION));
+  }
+
+  @Wenn("das Primärsystem die VSD mit dem validen PoPP-Token vom VSDM Ressource Server abfragt")
+  public void whenClientSystemIsRequestingVsdWithPoppToken() {
+    hccs().attemptsTo(DeletePoppTokenFromCache.deleteCache());
+    hccs()
+        .attemptsTo(
+            RequestVsdFromServer.withEtagAndPoppToken(
+                "0", hccs().recall("poppToken"), false, VALID_PROFILE_VERSION));
   }
 
   @Und("dann sendet der VSDM Ressource Server ein neues E-Tag zum Primärsystem")
@@ -206,25 +180,25 @@ public class VsdmSteps {
 
   @Und("das Primärsystem speichert die aktualisierten VSD in seiner lokalen Datenbank")
   public void andClientSystemIsStoringCurrentVsdLocally() {
-    hccs().attemptsTo(RequestVsdmDataFromCache.readCache());
+    hccs().attemptsTo(RequestVsdFromCache.readCache());
     hccs().should(seeThat(CachedVsdmData.value(), not(emptyOrNullString())));
   }
 
   @Und("das Primärsystem speichert den PoPP-Token in seiner lokalen Datenbank")
   public void andClientSystemIsStoringPoppTokenLocally() {
-    hccs().attemptsTo(RequestPoppToken.fromCache());
+    hccs().attemptsTo(RequestPoppTokenFromCache.fromCache());
     hccs().should(seeThat(CachedPoppToken.value(), not(emptyOrNullString())));
   }
 
   @Und("das Primärsystem speichert die Prüfziffer in seiner lokalen Datenbank")
   public void andClientSystemIsStoringPruefzifferLocally() {
-    hccs().attemptsTo(RequestVsdmDataFromCache.readCache());
+    hccs().attemptsTo(RequestVsdFromCache.readCache());
     hccs().should(seeThat(CachedPruefziffer.value(), not(emptyOrNullString())));
   }
 
   @Und("das Primärsystem speichert das E-Tag in seiner lokalen Datenbank")
   public void andClientSystemIsStoringEtagLocally() {
-    hccs().attemptsTo(RequestVsdmDataFromCache.readCache());
+    hccs().attemptsTo(RequestVsdFromCache.readCache());
     hccs().should(seeThat(CachedEtag.value(), not(emptyOrNullString())));
   }
 

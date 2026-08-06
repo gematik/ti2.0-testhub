@@ -1,6 +1,6 @@
 /*-
  * #%L
- * VSDM 2.0 Testsuite
+ * erp-testsuite
  * %%
  * Copyright (C) 2025 - 2026 gematik GmbH
  * %%
@@ -22,19 +22,22 @@
  * by gematik, find details in the "Readme" file.
  * #L%
  */
-package de.gematik.ti20.vsdm.test.e2e.steps;
 
+package de.gematik.ti20.erp.config;
+
+import java.util.List;
 import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
+/** Binds the {@code erp.actors} list from application.yaml. */
 @Data
-public class TigerConfigBean {
+@Configuration
+@ConfigurationProperties(prefix = "erp")
+public class ErpActorsConfiguration {
 
-  private TestData testData;
+  private List<ErpActorConfiguration> pharmacies;
+  private List<ErpActorConfiguration> patients;
 
-  @Data
-  public static class TestData {
-    private String smcbCardImageFile;
-    private String egkCardImageFile;
-    private String iknrKvnrList;
-  }
+  public record ErpActorConfiguration(String name, String iccsn) {}
 }

@@ -38,43 +38,43 @@ https://popp.dev.poppservice.de/auth/realms/zeta-guard/.well-known/openid-config
 
 Unterstützte Werte:
 
-| `zeta.env` | Bedeutung |
-|---|---|
-| `local` | Lokaler Docker-Mock (PDP/Keycloak und PoPP-Server laufen lokal) |
-| `rudev` | Echter PoPP-Server `popp.dev.poppservice.de` (RU-DEV) — **Default** |
+| `zeta.env`   | Bedeutung |
+|--------------|---|
+| `local`      | Lokaler Docker-Mock (PDP/Keycloak und PoPP-Server laufen lokal) — **Default** |
+| `popp-rudev` | Echter PoPP-Server `popp.dev.poppservice.de` (RU-DEV) |
 
 Umschalten (höchste Priorität zuerst):
 
 ```bash
 # 1. System-Property beim Testlauf
-./mvnw -pl test/zeta-testsuite verify -Dzeta.env=local
+./mvnw -pl test/zeta-testsuite verify -Dzeta.env=popp-rudev
 
 # 2. Umgebungsvariable
-export ZETA_ENV=local
+export ZETA_ENV=popp-rudev
 
-# 3. Default in tiger/defaults.yaml (Schlüssel: zeta.env)
+# 3. Default in tiger/zeta-environments.yaml (Schlüssel: zeta.env)
 ```
 
-Die gesamte Konfiguration liegt zentral in **`tiger/defaults.yaml`**:
+Die gesamte Konfiguration liegt zentral in **`tiger/zeta-environments.yaml`**:
 
 ```yaml
 zeta:
-  env: "${ZETA_ENV|rudev}"          # <-- der einzige Schalter
+  env: "${ZETA_ENV|local}"          # <-- der einzige Schalter
 
   environments:
     local:
-      pepUrl: "http://127.0.0.1:${ports.poppPepPort}"
-      poppClientUrl: "http://127.0.0.1:18081"
-      pdpRealmUrl: "http://127.0.0.1:${ports.poppPdpPort}/auth/realms/zeta-guard"
-      pdpIssuer: "https://vsdm-zeta-ingress/auth/realms/zeta-guard"
-      smcbAudience: "http://127.0.0.1:${ports.poppPdpPort}/auth/"
+      pepUrl: "http://${ports.host}:${ports.poppPepPort}"
+      poppClientUrl: "http://${ports.host}:${ports.poppClientPort}"
+      pdpRealmUrl: "http://${ports.host}:${ports.poppPdpPort}/auth/realms/zeta-guard"
+      pdpIssuer: "https://${ports.host}:${ports.poppZetaIngressPort}/auth/realms/zeta-guard"
+      smcbAudience: "https://popp-zeta-ingress/auth/realms/zeta-guard/protocol/openid-connect/token"
       # ...
-    rudev:
+    popp-rudev:
       pepUrl: "https://popp.dev.poppservice.de"
-      poppClientUrl: "http://127.0.0.1:18081"
+      poppClientUrl: "http://${ports.host}:${ports.poppClientPort}"
       pdpRealmUrl: "https://popp.dev.poppservice.de/auth/realms/zeta-guard"
       pdpIssuer: "https://popp.dev.poppservice.de/auth/realms/zeta-guard"
-      smcbAudience: "https://popp.dev.poppservice.de/auth/"
+      smcbAudience: "https://popp.dev.poppservice.de/auth/realms/zeta-guard/protocol/openid-connect/token"
       # ...
 
   # Abgeleitete Werte – NICHT editieren:
@@ -88,7 +88,7 @@ zeta:
       url: "${zeta.environments.${zeta.env}.pepUrl}"
 ```
 
-Eine **weitere Umgebung** (z. B. `tu`, `staging`) ergänzt man, indem man einen neuen Block unter `zeta.environments` einfügt und `zeta.env` auf dessen Namen setzt — keine Java- oder Feature-Datei muss angefasst werden.
+Eine **weitere Umgebung** (z. B. `tu`, `staging`) ergänzt man, indem man einen neuen Block unter `zeta.environments` in `tiger/zeta-environments.yaml` einfügt und `zeta.env` auf dessen Namen setzt — keine Java- oder Feature-Datei muss angefasst werden.
 
 ### Zugriff aus dem Java-Code
 
@@ -109,7 +109,7 @@ PoPpConfig.poppClientUrl();  // zeta.server.poppClient.url
 PoPpConfig.pepUrl();         // zeta.server.pep.url
 ```
 
-`PoPpConfig` hält selbst **keine** URLs — es liest ausschließlich die `zeta.server.*`-Schlüssel aus `tiger/defaults.yaml`. Damit gibt es eine einzige Quelle der Wahrheit, und Tiger berücksichtigt automatisch System-Properties und Umgebungsvariablen.
+`PoPpConfig` hält selbst **keine** URLs — es liest ausschließlich die `zeta.server.*`-Schlüssel, die aus `tiger/zeta-environments.yaml` abgeleitet werden. Damit gibt es eine einzige Quelle der Wahrheit, und Tiger berücksichtigt automatisch System-Properties und Umgebungsvariablen.
 
 ### Docker-Infrastruktur (separat vom `zeta.env`-Schalter)
 

@@ -154,7 +154,7 @@ public class ZetaPepJwtTestFactory {
   private static final String SMCB_KEY_ALIAS = "alias";
 
   /** TelematikID extracted from the SMC-B certificate (registrationNumber). */
-  private static final String SMCB_TELEMATIK_ID = "1-SMC-B-Testkarte--883110000168765";
+  private static final String SMCB_TELEMATIK_ID = "1-SMC-B-Testkarte--883110000168762";
 
   /** ProfessionOID from the SMC-B certificate. */
   private static final String SMCB_PROFESSION_OID = "1.2.276.0.76.4.50";
@@ -612,7 +612,11 @@ public class ZetaPepJwtTestFactory {
 
     log.debug("Client assertion claims JSON: {}", claims.toJSONObject());
 
-    var header = new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(ecJwk.getKeyID()).build();
+    var header =
+        new JWSHeader.Builder(JWSAlgorithm.ES256)
+            .type(new JOSEObjectType("JWT"))
+            .keyID(ecJwk.getKeyID())
+            .build();
 
     var jwt = new SignedJWT(header, claims);
     jwt.sign(new ECDSASigner(ecJwk));

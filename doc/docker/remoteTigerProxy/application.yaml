@@ -4,6 +4,7 @@ tigerProxy:
   adminPort: 8080
   additionalProxyPorts:
     - 8081
+    - 8082
     - 8443
     - 443
     - 80
@@ -15,11 +16,31 @@ tigerProxy:
         - "vsdm-zeta-ingress"
   activateRbelParsingFor:
     - websocket
+    - erp-vau
   proxyRoutes:
     - from: /
       to: http://popp-client:8081/
       matchForProxyType: false
       hosts:
         - "popp-client"
+    - from: /
+      to: http://popp-client-erp:8081
+      hosts: ["popp-client-erp"]
+      matchForProxyType: false
+
+
+    # route für IdP in RU
+    - from: /
+      to: https://10.31.196.4:443/
+      hosts: ["idp-ref.zentral.idp.splitdns.ti-dienste.de"]
+    # route für eRp RU Fachdienst
+    - from: /
+      to: https://10.31.195.10:443/
+      hosts: ["erp-ref.zentral.erp.splitdns.ti-dienste.de", "erp-ref.app.ti-dienste.de"]
+    # route für eRp RU-DEV Fachdienst
+    - from: /
+      to: http://vauServer:8080
+      hosts: ["erp-dev.zentral.erp.splitdns.ti-dienste.de", "erp-dev.app.ti-dienste.de"]
+
   rewriteHostHeader: false
   honorHostHeaderRouting: true

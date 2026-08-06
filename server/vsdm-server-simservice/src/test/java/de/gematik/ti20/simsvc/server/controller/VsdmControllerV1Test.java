@@ -57,7 +57,7 @@ class VsdmControllerV1Test {
             {
               "subject": "subject",
               "commonName": "commonName",
-              "identifier": "1-SMC-B-Testkarte--883110000168765",
+              "identifier": "1-SMC-B-Testkarte--883110000168762",
               "professionOID": "1.2.276.0.76.4.50"
             }
                 """
@@ -105,8 +105,8 @@ class VsdmControllerV1Test {
         String.format(
             """
                 {
-                    "actorId": "1-SMC-B-Testkarte--883110000168765",
-                    "actorProfessionOid": "1.2.276.0.76.4.32",
+                    "actorId": "1-SMC-B-Testkarte--883110000168762",
+                    "actorProfessionOid": "1.2.276.0.76.4.50",
                     "at": 1773397230,
                     "insurerId": "%1$s",
                     "iss": "https://popp.example.com",
@@ -280,7 +280,7 @@ class VsdmControllerV1Test {
     String poppTokenContentMissingFields =
         """
       {
-          "actorId": "1-SMC-B-Testkarte--883110000168765",
+          "actorId": "1-SMC-B-Testkarte--883110000168762",
           "actorProfessionOid": "1.2.276."
         }
       """;

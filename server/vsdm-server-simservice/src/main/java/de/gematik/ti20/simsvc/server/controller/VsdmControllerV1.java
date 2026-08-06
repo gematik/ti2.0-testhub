@@ -146,8 +146,8 @@ public class VsdmControllerV1 {
       throw new VsdmErrorException(ErrorCase.VSDSERVICE_MISSING_PATIENT_RECORD_VERSION);
     }
     if (!isQuoted(request.getHeader("if-none-match"))) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, ErrorCase.SERVICE_MISSING_OR_INVALID_HEADER.getBdeReference());
+      throw new VsdmErrorException(
+          ErrorCase.SERVICE_MISSING_OR_INVALID_HEADER, Map.of("header", "if-none-match"));
     }
   }
 

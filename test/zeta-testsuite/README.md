@@ -29,17 +29,17 @@ Anschließend stehen u. a. folgende relevanten Endpunkte zur Verfügung (Standar
 ## Testumgebung wählen
 
 Gegen welche Umgebung die Testsuite läuft, wird an **genau einer Stelle** gesteuert: über die
-Variable **`zeta.env`** in `tiger/defaults.yaml`. Alle URLs (PDP-Token-/DCR-/Nonce-/JWKS-Endpunkt,
+Variable **`zeta.env`** in `tiger/zeta-environments.yaml`. Alle URLs (PDP-Token-/DCR-/Nonce-/JWKS-Endpunkt,
 PEP, PoPP-Client, Smoke-Endpoints, `zeta_base_url`) werden automatisch aus dem ausgewählten
 Umgebungs-Block `zeta.environments.<zeta.env>` abgeleitet — es sind **keine** URLs in Java-Klassen
 oder Feature-Dateien hardcodiert.
 
 Unterstützte Werte:
 
-| `zeta.env` | Bedeutung                                                              |
-|------------|-----------------------------------------------------------------------|
-| `local`    | Lokaler Docker-Mock (PDP/Keycloak und PoPP-Server laufen lokal)       |
-| `rudev`    | Echter PoPP-Server `popp.dev.poppservice.de` (RU-DEV) — **Default**   |
+| `zeta.env`   | Bedeutung                                                              |
+|--------------|-------------------------------------------------------------------------|
+| `local`      | Lokaler Docker-Mock (PDP/Keycloak und PoPP-Server laufen lokal) — **Default** |
+| `popp-rudev` | Echter PoPP-Server `popp.dev.poppservice.de` (RU-DEV)                  |
 
 Umschalten (höchste Priorität zuerst):
 
@@ -50,10 +50,10 @@ Umschalten (höchste Priorität zuerst):
 # 2. Umgebungsvariable
 export ZETA_ENV=local
 
-# 3. Default in tiger/defaults.yaml (Schlüssel: zeta.env)
+# 3. Default in tiger/zeta-environments.yaml (Schlüssel: zeta.env)
 ```
 
-**Neue Umgebung ergänzen:** einen weiteren Block unter `zeta.environments` in `tiger/defaults.yaml`
+**Neue Umgebung ergänzen:** einen weiteren Block unter `zeta.environments` in `tiger/zeta-environments.yaml`
 anlegen (z. B. `tu`, `staging`) und `zeta.env` auf dessen Namen setzen. Code muss dafür nicht
 angepasst werden. Aus dem Java-Code werden die abgeleiteten Werte über
 `de.gematik.zeta.config.PoPpConfig` gelesen.

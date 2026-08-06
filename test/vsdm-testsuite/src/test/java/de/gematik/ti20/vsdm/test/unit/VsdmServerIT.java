@@ -89,8 +89,8 @@ class VsdmServerIT {
         String.format(
             """
                                       {
-                                          "actorId": "1-SMC-B-Testkarte--883110000168765",
-                                          "actorProfessionOid": "1.2.276.0.76.4.32",
+                                          "actorId": "1-SMC-B-Testkarte--883110000168762",
+                                          "actorProfessionOid": "1.2.276.0.76.4.50",
                                           "at": 1773397230,
                                           "insurerId": "%1$s",
                                           "iss": "https://popp.example.com",
@@ -472,7 +472,7 @@ class VsdmServerIT {
     final Map bodyMap = objectMapper.readValue(result.responseBody, Map.class);
     assertNotNull(bodyMap);
     assertEquals("MISSING_HEADER_USERINFO", bodyMap.get("error"));
-    assertEquals("Header ZETA-User-Info fehlt. ", bodyMap.get("error_description"));
+    assertEquals("Header ZETA-User-Info fehlt.", bodyMap.get("error_description"));
   }
 
   @Test
@@ -513,6 +513,13 @@ class VsdmServerIT {
             VALID_PROFILE_VERSION);
 
     assertEquals(428, result.response.code());
+    final VsdmOperationOutcome vsdmOperationOutcome = (VsdmOperationOutcome) result.resource;
+    assertNotNull(vsdmOperationOutcome);
+
+    final CodeableConcept cc = vsdmOperationOutcome.getIssue().getFirst().getDetails();
+    assertNotNull(cc);
+    assertEquals(
+        "Der erforderliche Änderungsindikator im Header If-None-Match fehlt.", cc.getText());
   }
 
   @Test
@@ -528,6 +535,13 @@ class VsdmServerIT {
             VALID_PROFILE_VERSION);
 
     assertEquals(400, result.response.code());
+
+    final VsdmOperationOutcome vsdmOperationOutcome = (VsdmOperationOutcome) result.resource;
+    assertNotNull(vsdmOperationOutcome);
+
+    final CodeableConcept cc = vsdmOperationOutcome.getIssue().getFirst().getDetails();
+    assertNotNull(cc);
+    assertEquals("Der erforderliche HTTP-Header if-none-match ist ungültig.", cc.getText());
   }
 
   @Test
