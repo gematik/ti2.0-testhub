@@ -47,10 +47,10 @@ If you want to operate the entire PoPP infrastructure (PoPP Client and Server) e
         environment:
         - POPP_SERVER_URL=wss://example.com/popp/token
 
-5. Ensure the PEP components use the external PoPP server to resolve the public keys for PoPP token validation:
+4. Ensure the PEP components use the external PoPP server to resolve the public keys for PoPP token validation:
 
-  # doc/docker/backend/zeta/vsdm-zeta-pep.conf
-  pep_popp_issuer https://example.com/
+    # doc/docker/backend/zeta/vsdm-zeta-pep.conf
+    pep_popp_issuer https://example.com/
 
 Rebuild and restart services to ensure all configuration values are applied correctly.
 

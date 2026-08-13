@@ -21,12 +21,12 @@ services:
 
   popp-client:
     profiles: [ "full" ]
+    container_name: popp-client
     image: gematik1/popp-client:2.7.0
     env_file:
       - path: ../.env
         required: true
     platform: linux/amd64
-    container_name: popp-client
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - POPP_SERVER_URL=${POPP_SERVER_URL:-wss://popp-zeta-ingress:443/popp/practitioner/api/v1/token-generation-ehc}
@@ -52,15 +52,15 @@ services:
 
   popp-client-perf:
     profiles: [ "ps-only" ]
-    image: gematik1/popp-client:2.6.0
+    container_name: popp-client
+    image: gematik1/popp-client:2.7.0
     env_file:
       - path: ../.env
         required: true
     platform: linux/amd64
-    container_name: popp-client
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-      - POPP_SERVER_URL=${POPP_SERVER_URL:-wss://popp-zeta-ingress:443/ws}
+      - POPP_SERVER_URL=${POPP_SERVER_URL:-wss://popp-zeta-ingress:443/popp/practitioner/api/v1/token-generation-ehc}
       - SPRING_PROFILES_ACTIVE=dev
       - VIRTUAL_CARD_IMAGE_FILE=${VIRTUAL_CARD_IMAGE_PATH:-/data/cards}/${VIRTUAL_CARD_IMAGE_FILE:-egkCardImage.xml}
       - ZETA_AUTHENTICATION_SMB_KEYFILE=/app/smcb_private.p12

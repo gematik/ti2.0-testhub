@@ -2,6 +2,22 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.11.0
+
+### Update Notes
+
+We removed the `INTERCEPT_STORAGE` configuration that was used to store token information. This
+configuration was meant to be used for load tests, but since we have to use ASL it is not possible
+anymore to create tokens on the fly. To change the storage configuration can have unwanted side
+effects, so we removed the configuration to avoid confusion.
+
+We are still experiencing a regression with ASL decryption in the Tiger Logs.
+
+### Changes
+
+- ANFTI2-731: Mention known issue with test certificates for ASL
+- TESTHUB-206: remove INTERCEPT_STORAGE configuration that cannot be used for load tests anymore
+
 ## Release 3.10.0
 
 ### Changes
@@ -29,10 +45,9 @@
 
 #### Canopy replaces Docker network construct
 
-Previously we used complicated Docker network configurations to get our services
-to use Tiger proxies for traffic recording. To simplify the setup we are now
-using Canopy. Canopy is a DNS server that helps manage the network traffic
-between services without us having to touch Docker networks.
+Previously we used complicated Docker network configurations to get our services to use Tiger
+proxies for traffic recording. To simplify the setup we are now using Canopy. Canopy is a DNS server
+that helps manage the network traffic between services without us having to touch Docker networks.
 
 ### Changes
 
@@ -67,11 +82,10 @@ between services without us having to touch Docker networks.
 
 #### Policy changes for VSDM service
 
-OPA is used to enforce authorization policies. In this version we have added a
-policy to verify that authorization tokens use the scope defined in the VSDM 2.0
-specification: `vsdservice`. Ensure you are updating custom code that uses the
-old `zero:audience` scope. Otherwise, you will see error messages mentioning an
-invalid, unknown or forbidden scope.
+OPA is used to enforce authorization policies. In this version we have added a policy to verify that
+authorization tokens use the scope defined in the VSDM 2.0 specification: `vsdservice`. Ensure you
+are updating custom code that uses the old `zero:audience` scope. Otherwise, you will see error
+messages mentioning an invalid, unknown or forbidden scope.
 
 The PDP (Keycloak) configuration was adjusted too.
 
@@ -89,10 +103,9 @@ The PDP (Keycloak) configuration was adjusted too.
 
 #### ZETA-Guard changes regarding certificate validation
 
-With the version 1.2.0 ZETA-Guard is configured to validate the SMCB certificate
-that is used. In case you want to disable the validation refer to the user
-manual. Error messages regarding invalid certificates can be found in the logs
-of the VSDM PDP container.
+With the version 1.2.0 ZETA-Guard is configured to validate the SMCB certificate that is used. In
+case you want to disable the validation refer to the user manual. Error messages regarding invalid
+certificates can be found in the logs of the VSDM PDP container.
 
 ### Changes
 
@@ -110,7 +123,8 @@ of the VSDM PDP container.
 
 ### Update Notes
 
-For licensing reasons the docker image names were changed. Make sure to remove the old images to avoid confusion.
+For licensing reasons the docker image names were changed. Make sure to remove the old images to
+avoid confusion.
 
 ### Changes
 
@@ -120,7 +134,8 @@ For licensing reasons the docker image names were changed. Make sure to remove t
 - TESTHUB-153: Bump Tiger version to 4.3.0
 - PTVSDM-1605: Publishing VSDM error tests on GitHub
 - PTVSDM-1619: Correcting VSDM coverage assertion
-- PTVSDM-1620: Fix handling of Zeta related error: missing or invalid zeta-popp-token, zeta-user-info
+- PTVSDM-1620: Fix handling of Zeta related error: missing or invalid zeta-popp-token,
+  zeta-user-info
 - PTVSDM-1621: Configure charset for VSDM server responses
 - ZTI-4062: Add performance tests to ZETA Testsuite
 - TESTHUB-18: VSDM Integration Tests in CI
@@ -137,7 +152,8 @@ For licensing reasons the docker image names were changed. Make sure to remove t
 
 ### Changes
 
-- TESTHUB-132: Update Spring Boot to 4.0.6 and introduce spring-boot-dependencies (BOM), several more dependency updates
+- TESTHUB-132: Update Spring Boot to 4.0.6 and introduce spring-boot-dependencies (BOM), several
+  more dependency updates
 - TESTHUB-137: Add Delete endpoint to clear PoppToken-Cache
 
 ## Release 2.5.0
@@ -158,7 +174,8 @@ For licensing reasons the docker image names were changed. Make sure to remove t
 
 ### Changes
 
-- TESTHUB-126: Update VsdmBackgroundLoadSimulation to send load directly to the Zeta guard using access and dpop tokens.
+- TESTHUB-126: Update VsdmBackgroundLoadSimulation to send load directly to the Zeta guard using
+  access and dpop tokens.
 - TESTHUB-127: Update project dependencies to latest versions.
 - PTVSDM-1585: update VSDM2 server implementation with required profileVersion parameter
 
@@ -168,9 +185,9 @@ For licensing reasons the docker image names were changed. Make sure to remove t
 
 #### Support for JSON Card Data in card-terminal-client
 
-This change allows the use of card data in JSON format within the card-terminal-client component instead only the
-premade XML card images.
-Tests can now change the data to any desired value. Examples of valid JSON card data can be found in the
+This change allows the use of card data in JSON format within the card-terminal-client component
+instead only the premade XML card images. Tests can now change the data to any desired value.
+Examples of valid JSON card data can be found in the
 `test/vsdm-testsuite/src/test/resource/data/cards` directory.
 
 ### Changes
@@ -186,9 +203,8 @@ Tests can now change the data to any desired value. Examples of valid JSON card 
 
 #### Upgrade to ZETA 0.5.x (PoPP)
 
-When upgrading your installation you might encounter issues with a database
-migration in the PoPP stack. To fix the issue, delete the ZETA *PoPP* PDP
-database volume:
+When upgrading your installation you might encounter issues with a database migration in the PoPP
+stack. To fix the issue, delete the ZETA *PoPP* PDP database volume:
 
 1. Ensure the relevant containers are stopped
 2. Delete the volume `testhub-local_popp-zeta-postgres-db-data`, e.g.:
@@ -200,32 +216,32 @@ database volume:
 
 The popp-sample-implementation currently only supports the legacy `/jwks.json`
 endpoint. If you haven't changed the default PoPP stack configuration, then
-popp-sample-implementation and popp-token-generator use the same key material
-and popp-token-generator can be used for the `pep_popp_issuer` setting.
+popp-sample-implementation and popp-token-generator use the same key material and
+popp-token-generator can be used for the `pep_popp_issuer` setting.
 
 See *Known Issues* in the user manual.
 
 #### ASL for VSDM
 
-This release enables ASL for the communication of the VSDM components. The
-behavior is activated by default to follow the VSDM specification. Tiger does
-automatically decrypt the traffic when running E2E tests for VSDM. Visit [the
-Testhub user manual](https://gematik.github.io/ti2.0-testhub/) to learn how to
-disable ASL.
+This release enables ASL for the communication of the VSDM components. The behavior is activated by
+default to follow the VSDM specification. Tiger does automatically decrypt the traffic when running
+E2E tests for VSDM. Visit [the Testhub user manual](https://gematik.github.io/ti2.0-testhub/) to
+learn how to disable ASL.
 
 ### Changes
 
 - TESTHUB-26: Enable ASL by default for VSDM ZETA.
 - TESTHUB-96: Update popp-client/popp-server dependencies to use latest version of Zeta (0.5.x).
 - TESTHUB-107: add traffic protocol for E2E tests
-- TESTHUB-111: remove zeta-client-lib. The library is no longer needed as all
-  mocked Zeta components have been removed.
-- TESTHUB-115: Update Tiger to version 4.2.6. See [Tiger Release
-  Notes](https://github.com/gematik/app-Tiger/blob/e3aef5b012a9f65894b19b3b1448837bb98b3a21/ReleaseNotes.md#release-426)
+- TESTHUB-111: remove zeta-client-lib. The library is no longer needed as all mocked Zeta components
+  have been removed.
+- TESTHUB-115: Update Tiger to version 4.2.6.
+  See [Tiger Release Notes](https://github.com/gematik/app-Tiger/blob/e3aef5b012a9f65894b19b3b1448837bb98b3a21/ReleaseNotes.md#release-426)
   for more information.
 - TESTHUB-116: refactor handling of attached card and PoPP token (contributed by
   [@prat023](https://github.com/prat023))
-- ZTI-4187: Add policy hot-reload test verifying that OPA applies policy changes at runtime without restart.
+- ZTI-4187: Add policy hot-reload test verifying that OPA applies policy changes at runtime without
+  restart.
 
 ## Release 2.1.0
 
@@ -233,17 +249,15 @@ disable ASL.
 
 #### Upgrade to ZETA 0.5.x (VSDM)
 
-The ZETA Guard PEP validates PoPP tokens. In order to validate the token's
-signature a public keys is required. The public key is published by the PoPP
-issuer. With 0.5.1 changes have been made to how the public key is retrieved. If
-you are using a custom PoPP implementation you will have to ensure that you
-support the new flow. Refer to the [relevant code in the PEP for more
-information](https://github.com/gematik/zeta-guard-ngx-pep/blob/22888ebecf9019d2102503a8e0761e32f37e12d2/src/jwk_cache.rs#L205).
+The ZETA Guard PEP validates PoPP tokens. In order to validate the token's signature a public keys
+is required. The public key is published by the PoPP issuer. With 0.5.1 changes have been made to
+how the public key is retrieved. If you are using a custom PoPP implementation you will have to
+ensure that you support the new flow. Refer to
+the [relevant code in the PEP for more information](https://github.com/gematik/zeta-guard-ngx-pep/blob/22888ebecf9019d2102503a8e0761e32f37e12d2/src/jwk_cache.rs#L205).
 
-If you are changing the keys in the PoPP sample implementation you will have to
-update the key for the PoPP Token Generator. In order for the new public key to
-work with Testhub components we are using the PoPP Token Generator as PoPP
-issuer until the sample implementation can catch up.
+If you are changing the keys in the PoPP sample implementation you will have to update the key for
+the PoPP Token Generator. In order for the new public key to work with Testhub components we are
+using the PoPP Token Generator as PoPP issuer until the sample implementation can catch up.
 
 Refer to the projects release notes to find out what changed:
 
@@ -255,52 +269,52 @@ Refer to the projects release notes to find out what changed:
 
 - TESTHUB-85: validate all required fields of the UserInfo header. The required fields are defined
   in https://raw.githubusercontent.com/gematik/zeta/refs/heads/main/src/schemas/zeta-user-info.yaml
-- TESTHUB-98: add mock-popp profile which starts only the components required for the PoPP token generator.
-- TESTHUB-101: simplify switching between PoppTokenGenerator and PoppExampleImplementation components.
+- TESTHUB-98: add mock-popp profile which starts only the components required for the PoPP token
+  generator.
+- TESTHUB-101: simplify switching between PoppTokenGenerator and PoppExampleImplementation
+  components.
 - TESTHUB-103: Update VSDM ZETA components to 0.5.x
 - TESTHUB-105: refer to user manual for information about profiles
 - ZTI-4056: add SMC-B token exchange tests for ZETA client
 
 ## Release 2.0.0
 
-This release includes the integration of the Popp Sample Implementation into the
-TestHub. The Popp Sample Implementation is an implementation of a Proof of
-Possession (PoPP) token generator, which can be used for testing and development
-purposes. It provides a simple way to generate PoPP tokens that can be used in
-the TestHub for various test scenarios.
+This release includes the integration of the Popp Sample Implementation into the TestHub. The Popp
+Sample Implementation is an implementation of a Proof of Possession (PoPP) token generator, which
+can be used for testing and development purposes. It provides a simple way to generate PoPP tokens
+that can be used in the TestHub for various test scenarios.
 
-Through configuration the PoPP tokens can also be generated by the
-PoppTokenGenerator as before. Please refer to the user manual(chapter 6) for
-more details on how to use the Popp Example Implementation and how to configure
-the TestHub to use it for PoPP token generation.
+Through configuration the PoPP tokens can also be generated by the PoppTokenGenerator as before.
+Please refer to the user manual (chapter 6) for more details on how to use the Popp Example
+Implementation and how to configure the TestHub to use it for PoPP token generation.
 
 ### Known issues
 
-The ngx_pep (ZETA PEP, version 0.3.0) rejects WebSocket upgrade requests with
-HTTP 403 even when the Access Token and DPoP proof are valid. Regular REST
-requests with the same credentials work correctly (HTTP 200). The WebSocket
-integration test (`popp_websocket_via_pep.feature`) is therefore marked as
+The ngx_pep (ZETA PEP, version 0.3.0) rejects WebSocket upgrade requests with HTTP 403 even when the
+Access Token and DPoP proof are valid. Regular REST requests with the same credentials work
+correctly (HTTP 200). The WebSocket integration test (`popp_websocket_via_pep.feature`) is therefore
+marked as
 `@Ignore` until the issue is resolved in a future ngx_pep release.
 
-It is possible that PoPP token generation will lead to timeouts on systems with
-high load. We are aware and are going to investigate possible solutions.
+It is possible that PoPP token generation will lead to timeouts on systems with high load. We are
+aware and are going to investigate possible solutions.
 
 PoPP token generation with external services is not yet supported in this version.
 
-Gatling performance tests currently have limited utility due to poor performance
-of PoPP token generation.
+Gatling performance tests currently have limited utility due to poor performance of PoPP token
+generation.
 
 ### Changes
 
-- LART-1474: add [popp example
-  implementation](https://github.com/gematik/popp-sample-code). Uses an older
-  ZETA version.
+- LART-1474:
+  add [popp example implementation](https://github.com/gematik/popp-sample-code). Uses an older ZETA
+  version.
 - TESTHUB-53: Replace license plugin by license-maven-plugin
 - ZTI-4099: Added TLS Guard conformance tests to ZETA Testsuite (BSI TR-02102-2)
-- ZTI-4375: migrate ZETA testsuite from mock services to Docker-based
-  ngx_pep + Keycloak PDP. Token creation now uses real OAuth 2.0 Token Exchange
-  with SMC-B authentication and DPoP binding. Updated tests for REST data
-  transfer, header management, client registration and WebSocket communication.
+- ZTI-4375: migrate ZETA testsuite from mock services to Docker-based ngx_pep + Keycloak PDP. Token
+  creation now uses real OAuth 2.0 Token Exchange with SMC-B authentication and DPoP binding.
+  Updated tests for REST data transfer, header management, client registration and WebSocket
+  communication.
 
 ## Release 1.1.15
 
@@ -308,8 +322,8 @@ of PoPP token generation.
 
 #### Upgrade to ZETA 0.4.x
 
-When upgrading your installation you will encounter issues with a database
-migration. To fix the issue, delete the ZETA PDP database volume:
+When upgrading your installation you will encounter issues with a database migration. To fix the
+issue, delete the ZETA PDP database volume:
 
 1. Ensure the relevant containers are stopped
 2. Delete the volume `testhub-local_postgres_data`, e.g.:
@@ -355,7 +369,8 @@ docker compose -f doc/docker/compose-local.yaml --profile backend-only up -d  # 
 
 ### Changes
 
-- TESTHUB-64: Add Docker Compose profiles for performance testing (`full`, `perf`, `backend-only`)
+- TESTHUB-64: Add Docker Compose profiles for performance testing (`full`,
+  `perf`, `backend-only`)
 - TESTHUB-64: Reintroduce Tiger-Proxy into the communication between client and server
 - TESTHUB-62: Add additional troubleshooting tips to the user manual.
 - TESTHUB-81: Allow application/fhir+xml content type
@@ -364,12 +379,12 @@ docker compose -f doc/docker/compose-local.yaml --profile backend-only up -d  # 
 
 ### Changes
 
-- TESTHUB-76: remove empty script files from `doc/bin` and improve documentation
-  with troubleshooting tips.
-- ZTI-4057: Initial client registration in zeta-testsuite: Service Discovery (well-known) and Dynamic Client
-  Registration (POST /register)
-- ZTI-4057: New `/register` mock endpoint in zeta-pdp-server-mockservice with RFC 7591 input validation and error
-  response
+- TESTHUB-76: remove empty script files from `doc/bin` and improve documentation with
+  troubleshooting tips.
+- ZTI-4057: Initial client registration in zeta-testsuite: Service Discovery (well-known) and
+  Dynamic Client Registration (POST /register)
+- ZTI-4057: New `/register` mock endpoint in zeta-pdp-server-mockservice with RFC 7591 input
+  validation and error response
 
 ## Release 1.1.10
 
@@ -377,15 +392,16 @@ docker compose -f doc/docker/compose-local.yaml --profile backend-only up -d  # 
 
 #### Obsolete SMCB Files (TESTHUB-54)
 
-The content of the following files has been moved to environment variables and the files can be removed:
+The content of the following files has been moved to environment variables and the files can be
+removed:
 
 - doc/docker/backend/zeta/smcb-private/smcb_private.alias.txt
 - doc/docker/backend/zeta/smcb-private/smcb_private.pw.txt
 
 #### Removed Bash Script Files (TESTHUB-55)
 
-The Bash script files in `doc/bin/` have been removed. Use regular commands as documented in the `README.md`.
-For example:
+The Bash script files in `doc/bin/` have been removed. Use regular commands as documented in the
+`README.md`. For example:
 
 - `docker-compose-local-restart.sh` can be replaced with
   ```bash
@@ -402,18 +418,17 @@ For example:
 
 ### Changes
 
-- TESTHUB-47: Enable feature flag for client attestation for PEP and tone down
-  log levels. Feature flag will be removed in future versions.
+- TESTHUB-47: Enable feature flag for client attestation for PEP and tone down log levels. Feature
+  flag will be removed in future versions.
 - TESTHUB-50: Introduce JWK endpoint for PoPP server and set `pep_require_popp
   on;`. Should reduce `during jwk cache refresh (popp): error decoding response
   body` errors in PEP.
 - TESTHUB-54: Simplify handling of SMCB-B certificate in configuration
 - TESTHUB-55: Replace shell scripts with direct maven and docker commands
-- TESTHUB-59: Additional troubleshooting steps in the user manual, add 'Getting
-  Help' to README.md
+- TESTHUB-59: Additional troubleshooting steps in the user manual, add 'Getting Help' to README.md
 - TESTHUB-72: Adapt Vsdm-Server implementation to accept PoppToken as Base64 encoded claims
-- ZTI-3856: add ZeTA Testsuite with test cases for WebSocket communication via
-  PEP, client registration and smoke tests
+- ZTI-3856: add ZeTA Testsuite with test cases for WebSocket communication via PEP, client
+  registration and smoke tests
 - ZTI-3904: add PEP header management tests for ZeTA Testsuite
 - ZTI-4055: add websocket test from PoPP via ZETA-PEP
 

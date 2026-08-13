@@ -1,0 +1,30 @@
+zeta:
+  server:
+    popp:
+      url: "http://${ports.host}:8081"
+    poppClient:
+      url: "http://${ports.host}:8081"
+    poppTokenGenerator:
+      url: "wss://popp.dev.poppservice.de:443/popp/practitioner/api/v1/token-generation-ehc"
+    pdp:
+      tokenUrl: "https://vsdm-dev.tk.de/auth/realms/zeta-guard/protocol/openid-connect/token"
+      issuer: "https://vsdm-dev.tk.de/auth/realms/zeta-guard"
+      realmUrl: "https://vsdm-dev.tk.de/auth/realms/zeta-guard"
+      dcrUrl: "https://vsdm-dev.tk.de/auth/realms/zeta-guard/clients-registrations/openid-connect"
+      jwksUrl: "https://vsdm-dev.tk.de/auth/realms/zeta-guard/protocol/openid-connect/certs"
+      nonceUrl: "https://vsdm-dev.tk.de/auth/realms/zeta-guard/zeta-guard-nonce"
+      smcbAudience: "https://vsdm-dev.tk.de/auth/"
+      clientAssertionAud: "https://vsdm-dev.tk.de/auth/realms/zeta-guard/protocol/openid-connect/token"
+      tokenExchangeAudience: "https://vsdm-dev.tk.de/auth/"
+    pep:
+      url: "https://vsdm-dev.tk.de/"
+    opa:
+      baseUrl: "http://${ports.host}:2401"
+  timeouts:
+    httpRequestSeconds: 10
+    healthCheckSeconds: 20
+    healthCheckPollIntervalMs: 250
+    wsConnectionSeconds: 10
+    wsMessageSeconds: 10
+
+zeta_base_url: "popp.dev.poppservice.de"

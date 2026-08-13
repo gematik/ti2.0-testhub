@@ -4,7 +4,6 @@ include:
   - path: ./backend/compose-backend.yaml
     project_directory: ./backend
 
-
 networks:
   testhub_network:
 
@@ -15,16 +14,6 @@ x-no-proxy-env: &no-proxy-env
   http_proxy: ""
   https_proxy: ""
   all_proxy: ""
-
-# Profiles:
-#   full          - Backend + Tiger-Proxies + Clients (via tiger-proxy) [default]
-#   backend-only  - Backend only (no clients)
-#   perf          - Backend + Tiger-Proxies + Clients (direct backend access, bypassing proxy)
-#
-# Usage:
-#   docker compose --profile full up           # full stack (default)
-#   docker compose --profile backend-only up   # backend only
-#   docker compose --profile perf up           # with clients direct (performance testing)
 
 # ==================== Services ====================
 
@@ -72,7 +61,6 @@ services:
     environment:
       <<: *no-proxy-env
       VSDM_USE_MOCK_POPP_TOKEN: ${VSDM_USE_MOCK_POPP_TOKEN:-true}
-      INTERCEPT_STORAGE: ${INTERCEPT_STORAGE:-false}
       POPP_HTTP_URL: http://popp-client:8081/token
       POPP_TOKEN_GENERATOR_URL: http://popp-token-generator:80
       VSDM_RESOURCE_SERVER_URL: ${VSDM_RESOURCE_SERVER_URL:-https://vsdm-zeta-ingress}
@@ -88,7 +76,7 @@ services:
   # /etc/resolv.conf. This ensures Canopy is queried first for all DNS.
   resolv-writer:
     image: alpine:3
-    profiles: [ "full", "ps-only" ]
+    profiles: [ "full" ]
     command: [ "sh", "-c", "getent hosts canopy | awk '{print \"nameserver\", $1}' > /dns/resolv.conf" ]
     networks:
       - testhub_network
@@ -119,7 +107,7 @@ services:
   canopy:
     image: docker.io/gematik1/tiger-canopy-image:4.3.2
     container_name: tiger-canopy
-    profiles: [ "full", "ps-only" ]
+    profiles: [ "full" ]
     platform: linux/amd64
     networks:
       - testhub_network
@@ -189,10 +177,7 @@ services:
     extends:
       service: vsdm-client-base
     profiles: [ "perf", "ps-only" ]
-    environment:
-      INTERCEPT_STORAGE: ${INTERCEPT_STORAGE:-true}
     networks:
       - testhub_network
     volumes:
       - ./backend/zeta/smcb-private/${SMCB_FILE:-smcb_private.p12}:/tmp/zeta/smcb_private.p12:ro
-

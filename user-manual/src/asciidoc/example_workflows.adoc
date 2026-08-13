@@ -20,7 +20,7 @@ curl -X POST 'http://localhost:8000/card/load' \
 
 === Token Exchange (OAuth 2.0 RFC 8693)
 
-.Exchange SMC-B token for ZeTA token
+.Exchange SMC-B token for ZETA token
 ----
 curl -X POST 'http://localhost:9100/token' \
     -H 'Content-Type: application/x-www-form-urlencoded' \

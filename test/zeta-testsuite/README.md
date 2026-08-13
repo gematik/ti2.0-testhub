@@ -144,6 +144,23 @@ Alternativ kann der Befehl ohne Tag-Filter ausgeführt werden, um alle Tests der
   -Dcucumber.filter.tags="not @Ignore" -Dzeta.env=local
 ```
 
+## Testausführung gegen VSDM 2.0
+
+tiger/zeta-vsdm-rudev.yaml enthält die Konfiguration für die Ausführung der ZETA-Tests gegen den echten VSDM 2.0
+Server in der RU-DEV Umgebung. Die Testsuite kann mit dem Tag-Filter `@PRODUKT:VSDM_2_FD` gestartet werden, 
+um nur die Tests auszuführen, die für die Kommunikation mit dem VSDM 2.0 Server relevant sind. 
+Alle anderen Tests werden mit `not @local` ausgeschlossen, da sie nur gegen die lokale Testumgebung laufen. 
+Der Tag `not @Ignore` schließt Tests aus, die aktuell nicht relevant sind oder noch nicht implementiert wurden.   
+
+Vom Root-Verzeichnis (ti2.0-testhub/) aus:
+```bash
+./mvnw -pl test/zeta-testsuite clean verify \
+  -Dskip.inttests=false \
+  -Dcucumber.filter.tags="(@PRODUKT:VSDM_2_FD or @PRODUKT:Anb_FD_VSDM) and not @local and not @Ignore" \
+  -D.env=vsdm-tu
+```
+
+
 ## Hinweise zur Anpassung
 
 * **Timeouts:**

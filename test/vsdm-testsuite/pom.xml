@@ -7,7 +7,7 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.10.0</version>
+        <version>3.11.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -217,10 +217,10 @@
                                 <phase>install</phase>
                                 <configuration>
                                     <polarionUrl>${polarion.url}</polarionUrl>
-                                    <username>${polarion.username}</username>
-                                    <password>${polarion.pat}</password>
+                                    <username>${env.POLARION_CREDENTIALS_USR}</username>
+                                    <password>${env.POLARION_CREDENTIALS_PSW}</password>
                                     <project>${polarion.project}</project>
-                                    <luceneQuery>cfInternalId:UC_VSDM2_*</luceneQuery>
+                                    <luceneQuery>cfInternalId:UC_VSDM2_* UC_GITTI_*</luceneQuery>
                                     <jsonFilePath>${vsdm.testsuite.path}/target/polarion/vsdm2-testcases.json</jsonFilePath>
                                 </configuration>
                                 <goals>
@@ -245,8 +245,8 @@
                                 <id>upload</id>
                                 <phase>post-integration-test</phase>
                                 <configuration>
-                                    <username>${polarion.username}</username>
-                                    <password>${polarion.pat}</password>
+                                    <username>${env.POLARION_CREDENTIALS_USR}</username>
+                                    <password>${env.POLARION_CREDENTIALS_PSW}</password>
                                     <project>${polarion.project}</project>
                                     <testRun>${polarion.testrun}</testRun>
                                     <serenityReportsFolderPath>${vsdm.testsuite.path}/target/site/serenity</serenityReportsFolderPath>
