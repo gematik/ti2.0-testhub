@@ -169,14 +169,14 @@ If Docker is not installed, you can apply a local (not committed) POM override t
 ==== Use `-Pdocker` with Podman image storage
 
 1. Ensure Podman is running:
-
++
 [source,bash]
 ----
 podman machine start
 ----
 
 2. Add `container.cli` in the root POM `pom.xml` (local change only):
-
++
 [source,xml]
 ----
 <properties>
@@ -187,18 +187,18 @@ podman machine start
 
 3. Replace `executable="docker"` with `executable="${container.cli}"` in:
 
-* `pom.xml`
-* `server/vsdm-server-simservice/pom.xml`
+    * `pom.xml`
+    * `server/vsdm-server-simservice/pom.xml`
 
 4. Run the build with Podman:
-
++
 [source,bash]
 ----
 ./mvnw clean install -Pdocker -DskipTests -Dcontainer.cli=podman
 ----
 
 5. Verify that the created image is available in Podman:
-
++
 [source,bash]
 ----
 podman images

@@ -9,16 +9,16 @@ ports:
   cardTerminalPort: 6200
   remoteTigerProxyAdminPort: 6300
   remoteTigerProxyProxyPort: 6350
-  poppTokenGeneratorPort: 9500
-  poppClientPort: 8081
-  poppZetaIngressPort: 11443
-  poppServerPort: 18443
   opaPort: 2401
 
-  poppPepPort: 2101
-  poppPdpPort: 2201
+  poppClientPort: 8081
   poppIngressPort: 2202
   poppOpaPort: 2401
+  poppPdpPort: 2201
+  poppPepPort: 2101
+  poppServerPort: 18443
+  poppTokenGeneratorPort: 9500
+  poppZetaIngressPort: 11443
 
   vsdmPepPort: 9120
   vsdmPdpPort: 9122

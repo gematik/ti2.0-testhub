@@ -527,7 +527,7 @@ class VsdmClientIT {
   }
 
   private static void insertSmcbCard() throws Exception {
-    insertCard("data/cards/smcbCardImage.xml", SMCB_SLOT);
+    insertCard("private/cards/smcbCardImage.xml", SMCB_SLOT);
   }
 
   private static void configureTerminal() throws Exception {

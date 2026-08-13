@@ -1,32 +1,18 @@
 
 == Architecture
 
-The Testhub implements a **Zero Trust Architecture** with multiple layers of services communicating through authenticated channels.
+Testhub combines ZETA components with Telematik Infrastructure components like
+VSDM and PoPP. While the ZETA components are the real software artifacts from
+official channels, their configuration usually references mock certificates.
 
-=== Key Components
+The idea of the setup is to mix and match. Some possible scenarios to use
+Testhub:
 
-The Testhub consists of several interconnected services:
+* combine Testhub's mock implementations with your own VSDM server for testing
+* run the server parts and test your own ZETA client implementation
 
-**Client Services:**
-
-- **VSDM Client SimService** - Simulates VSDM2 client operations
-- **Card Terminal Client SimService** - Simulates electronic health card (eGK) terminal operations
-
-**Server Services:**
-
-- **VSDM Server SimService** - Provides VSDM2 data for testing
-- **PoPP Server MockService** - Simulates Proof of Possession authentication server
-- **ZeTA PDP Server MockService** - Policy Decision Point for Zero Trust Architecture
-- **ZeTA PEP Server MockService** - Policy Enforcement Point proxy service
-
-**Libraries:**
-
-- **Card Client Library** - Reusable card terminal operations
-- **PoPP Client Library** - PoPP authentication client functionality
-- **VSDM FHIR Library** - FHIR resource handling for VSDM
-- **ZeTA Client Library** - ZeTA integration utilities
-
-All components are designed as mock/simulation services for development and testing purposes, **not for production use**.
+NOTE: Testhub is intended for development and testing purposes, **not for
+production use**.
 
 === Component Overview (Stufe 2)
 
@@ -39,26 +25,29 @@ image::images/architecture.png[An architecture diagram of Testhub]
 
 | **Card Terminal Client** |  Simulates electronic health card (eGK, SMC-B, HBA) terminal operations with PACE protocol support
 | **VSDM Client**          | Simulates VSDM2 client operations including data retrieval and PoPP token validation
-| **ZeTA PEP PoPP**        |  Policy Enforcement Point proxy for PoPP validates tokens and forwards requests
-| **ZeTA PDP PoPP**        |  Policy Decision Point for PoPP performs OAuth 2.0 token exchange (RFC 8693)
+| **ZETA PEP PoPP**        |  Policy Enforcement Point proxy for PoPP validates tokens and forwards requests
+| **ZETA PDP PoPP**        |  Policy Decision Point for PoPP performs OAuth 2.0 token exchange (RFC 8693)
 | **PoPP Server**          |  Backend PoPP service generates and validates Proof of Possession tokens
 | **VSDM Server**          |  Backend VSDM service provides VSDM2 data from YAML test fixtures
 | **Tiger Proxy UI**       |  Local Tiger Proxy between PS-Simulation and PoPP and VSDM-Servers
 |===
 
-The services are exposed on different ports to the local environment.
-To access the containers when applicable, use the following script to find the host port mapping:
+The services are exposed on different ports to the local environment. To access
+the containers when applicable, use the following script to find the host port
+mapping:
 
-[listing]
+```bash
 docker ps --format 'table {{.Names}}\t{{.Ports}}'
+```
 
 === References
 
-**ZeTA**
+**ZETA**
 
 * link:https://gemspec.gematik.de/docs/gemSpec/gemSpec_ZETA/latest/[ZETA Specification]
 * link:https://gematik.github.io/zeta/[ZETA SDK User Manual]
-* link:https://github.com/gematik/zeta[ZeTA GitHub Repository]
+* link:https://github.com/gematik/zeta[ZETA GitHub Repository]
+* link:https://gemspec.gematik.de/docs/gemILF/gemILF_ZETA_API/latest/[Implementation Guide ZETA Client]
 
 **PoPP**
 

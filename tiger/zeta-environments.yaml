@@ -22,6 +22,7 @@ zeta:
       # lokal; im local-Modus ist zusätzlich der PDP (Keycloak) lokal gemockt.
       pepUrl: "http://${ports.host}:${ports.poppPepPort}"
       poppClientUrl: "http://${ports.host}:${ports.poppClientPort}"
+      poppTokenGeneratorUrl: "http://${ports.host}:${ports.poppTokenGeneratorPort}"
       pdpRealmUrl: "http://${ports.host}:${ports.poppPdpPort}/auth/realms/zeta-guard"
       pdpIssuer: "https://${ports.host}:${ports.poppZetaIngressPort}/auth/realms/zeta-guard"
       # Audiences müssen exakt gegen die von Keycloak berechnete Token-Endpoint-URL
@@ -40,6 +41,7 @@ zeta:
       # zeigen auf popp.dev.poppservice.de.
       pepUrl: "https://popp.dev.poppservice.de"
       poppClientUrl: "http://${ports.host}:${ports.poppClientPort}"
+      poppTokenGeneratorUrl: "wss://popp.dev.poppservice.de:443/popp/practitioner/api/v1/token-generation-ehc"
       pdpRealmUrl: "https://popp.dev.poppservice.de/auth/realms/zeta-guard"
       pdpIssuer: "https://popp.dev.poppservice.de/auth/realms/zeta-guard"
       smcbAudience: "https://popp.dev.poppservice.de/auth/realms/zeta-guard/protocol/openid-connect/token"
@@ -56,7 +58,7 @@ zeta:
     poppClient:
       url: "${zeta.environments.${zeta.env}.poppClientUrl}"
     poppTokenGenerator:
-      url: "http://${ports.host}:${ports.poppTokenGeneratorPort}"
+      url: "${zeta.environments.${zeta.env}.poppTokenGeneratorUrl}"
     pdp:
       tokenUrl: "${zeta.environments.${zeta.env}.pdpRealmUrl}/protocol/openid-connect/token"
       issuer: "${zeta.environments.${zeta.env}.pdpIssuer}"

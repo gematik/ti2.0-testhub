@@ -22,7 +22,6 @@ zetasdk:
   smcbAlias: ${ZETASDK_SMCB_ALIAS}
   smcbPrivateKeyPassword: ${ZETASDK_SMCB_PRIVATE_KEY_PASSWORD}
   smcbPrivateKeyPath: ${ZETASDK_SMCB_PRIVATE_KEY_PATH}
-  intercept-storage: ${INTERCEPT_STORAGE}
 
 spring:
   ssl:

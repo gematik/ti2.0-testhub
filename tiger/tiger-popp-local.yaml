@@ -4,9 +4,10 @@ tigerProxy:
     - 443
   proxyRoutes:
     - from: /
-      to: http://localhost:18443/
+      to: https://${ports.host}:${ports.poppServerPort}/
       matchForProxyType: false
       hosts:
+        - ${ports.host}:${ports.poppServerPort}
         - popp-server:8443
   activateRbelParsingFor:
     - websocket
@@ -15,4 +16,4 @@ tigerProxy:
     - asn1
 
 kidTokenKey: 4IVYHy721K0rnjZ8_9fnsKofs0eKhGOcqEDVo0RBZFQ
-poppServiceServerUrl: http://popp-server:8443
+poppServiceServerUrl: https://${ports.host}:${ports.poppServerPort}
