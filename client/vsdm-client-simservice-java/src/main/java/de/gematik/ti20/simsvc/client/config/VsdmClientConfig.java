@@ -40,4 +40,6 @@ public class VsdmClientConfig {
 
   private boolean useMockPoppToken;
   private String poppTokenGeneratorUrl;
+
+  private boolean disableServerValidation;
 }

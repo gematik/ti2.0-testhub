@@ -2,6 +2,18 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.12.0
+
+### Changes
+
+- PTVSDM-1690: add preprocessing and use of etags in load tests for VSDM2 server implementation
+- TESTHUB-201: merge popp-clients of erp-testsuite and reuse existing popp-client
+- TESTHUB-210: make server validation configurable for zeta sdk client
+- TESTHUB-221: Update PoPP dependencies to 2.7.1 (contains Zeta Guard 1.2.3 and ZETA SDK 1.2.5)
+- ZTI-4568: Added websocket-upgrade tests for ZETA testsuite
+- ZTI-4335: Added testcase that uses a real connector for popp token retrieval
+- ZTI-4346: Added GIT-TI test for ZETA
+
 ## Release 3.11.0
 
 ### Update Notes
@@ -31,6 +43,7 @@ We are still experiencing a regression with ASL decryption in the Tiger Logs.
     - org.bouncycastle:bcpkix-jdk18on from 1.84 to 1.85
     - ch.qos.logback:logback-core from 1.5.38 to 1.6.0
 - Updated OCSP signers list
+- ZTI-4346: Added GIT-TI test for ZETA
 
 ## Release 3.9.0
 

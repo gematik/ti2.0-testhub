@@ -221,6 +221,46 @@ ZETA_AUTHENTICATION_SMB_KEYFILE=/app/<dateiname>.p12
 
 Die Datei muss im Container unter dem angegebenen Pfad verfügbar sein.
 
+### Alternative: echte SMC-B über einen Konnektor
+
+Statt (oder zusätzlich zu) der Keystore-Datei kann der PoPP-Client eine echte SMC-B über
+einen Konnektor beziehen (siehe [popp-sample-code README, Abschnitt "b) Konnektor"](https://github.com/gematik/popp-sample-code/blob/main/README.md#b-konnektor)).
+
+Der PoPP-Client entscheidet **pro Request** anhand des Felds `communicationType`, welche
+SMC-B-Quelle verwendet wird:
+
+- `contact-standard` / `contactless-standard` → PC/SC-Kartenleser
+- `contact-virtual` / `contactless-virtual` → virtuelle Karte (XML-Image)
+- `contact-connector` / `contactless-connector` → **Konnektor**
+
+Deshalb genügt **ein einziger** `popp-client`-Service (Profil `full`) — Keystore- und
+Konnektor-Konfiguration sind gleichzeitig gesetzt, es muss kein separater Service/Profil
+gestartet werden. Für `contact-connector`/`contactless-connector`-Requests greift die
+Konnektor-Konfiguration, für alle anderen weiterhin die Keystore-Datei.
+
+Konfiguration erfolgt über `connector.*`-Properties bzw. folgende Umgebungsvariablen
+(Defaults im Compose-File müssen für einen echten Konnektor überschrieben werden, z. B. via
+`doc/docker/env-private/.my-own.env`):
+
+```text
+CONNECTOR_END_POINT_URL                 # https://<Konnektor-IP-oder-Host>:<Port>
+CONNECTOR_SECURE_ENABLE                 # TLS zum Konnektor aktivieren
+CONNECTOR_SECURE_HOSTNAME_VALIDATION
+CONNECTOR_SECURE_KEYSTORE / _PASSWORD   # Client-Zertifikat für den Konnektor
+CONNECTOR_SECURE_TRUST_ALL
+CONNECTOR_SECURE_TRUSTSTORE / _PASSWORD # Konnektor-Zertifikat inkl. Kette
+CONTEXT_CLIENT_SYSTEM_ID
+CONTEXT_WORKPLACE_ID
+CONTEXT_MANDANT_ID
+CARD_TERMINAL_ID
+CARD_TERMINAL_SLOT
+```
+
+Keystore/Truststore-Dateien werden aus `doc/docker/backend/zeta/connector/` gemountet (siehe
+README dort). Dort liegen bereits selbstsignierte Platzhalter-Dateien, damit der `full`-Profil-
+Start auch ohne echten Konnektor funktioniert; für einen echten Konnektor müssen diese durch
+das tatsächliche Client-Zertifikat sowie die Konnektor-Zertifikatskette ersetzt werden.
+
 ### PDP / Keycloak Realm
 
 Der lokale PDP wird durch den echten Keycloak-Realm der RU-DEV-Umgebung ersetzt.

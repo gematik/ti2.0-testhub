@@ -53,16 +53,20 @@ public class ErpTestsuiteConfiguration {
   private final CatsConfiguration cats;
   private final SmartcardArchive sca;
 
+  private final String poppClientUrl;
+
   @Autowired
   public ErpTestsuiteConfiguration(
       ErpEnvironmentConfiguration environment,
       ErpActorsConfiguration actors,
       CatsConfiguration cats,
-      @Value("${erp.smartcards}") String smartcardsPath) {
+      @Value("${erp.smartcards}") String smartcardsPath,
+      @Value("${erp.popp-client.url}") String poppClientUrl) {
     this.environment = environment;
     this.actors = actors;
     this.cats = cats;
     this.sca = SmartcardArchive.from(smartcardsPath);
+    this.poppClientUrl = poppClientUrl;
   }
 
   public SmcB getSmcbFor(String name) {
@@ -120,7 +124,7 @@ public class ErpTestsuiteConfiguration {
 
     client
         .config()
-        .defaultBaseUrl("http://popp-client-erp")
+        .defaultBaseUrl(poppClientUrl)
         .setDefaultHeader("Content-Type", ContentType.APPLICATION_JSON.getMimeType())
         .verifySsl(false);
 

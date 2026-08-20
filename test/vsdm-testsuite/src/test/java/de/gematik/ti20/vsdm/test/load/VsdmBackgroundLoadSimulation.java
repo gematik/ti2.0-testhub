@@ -24,16 +24,22 @@
  */
 package de.gematik.ti20.vsdm.test.load;
 
+import static de.gematik.ti20.vsdm.test.load.ZetaDsl.ZetaRequestBuilder;
 import static de.gematik.ti20.vsdm.test.load.ZetaDsl.bodyContains;
+import static de.gematik.ti20.vsdm.test.load.ZetaDsl.bodyEmpty;
 import static de.gematik.ti20.vsdm.test.load.ZetaDsl.status;
 import static de.gematik.ti20.vsdm.test.load.ZetaDsl.zeta;
-import static io.gatling.javaapi.core.CoreDsl.*;
+import static io.gatling.javaapi.core.CoreDsl.exec;
+import static io.gatling.javaapi.core.CoreDsl.rampUsersPerSec;
+import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
 
+import io.gatling.javaapi.core.ChainBuilder;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import lombok.extern.slf4j.Slf4j;
 
 @SuppressWarnings("unused")
@@ -43,24 +49,46 @@ public class VsdmBackgroundLoadSimulation extends BaseSimulation {
   private static final HttpProtocolBuilder httpProtocol =
       http.acceptHeader("application/fhir+json");
 
+  private static final ChainBuilder readVsdWithCachedEtagRequest;
+  private static final ChainBuilder readVsdWithZeroEtagRequest;
   private static final ScenarioBuilder readVsdScenario;
 
   static {
-    System.out.println("URL_SERVER_VSDM " + URL_SERVER_VSDM);
-    System.out.println("ZETA_POOL_CAPACITY " + ZETA_POOL_CAPACITY);
+    log.debug("URL_SERVER_VSDM {}", URL_SERVER_VSDM);
+    log.debug("ZETA_POOL_CAPACITY {}", ZETA_POOL_CAPACITY);
+    log.debug("ZERO_ETAG_REQUEST_PROBABILITY_PERCENT {}", ZERO_ETAG_REQUEST_PROBABILITY_PERCENT);
+
+    readVsdWithCachedEtagRequest = exec(readVsdRequest("ReadVSD w/o Update", "\"#{etag}\"", 304));
+
+    readVsdWithZeroEtagRequest = exec(readVsdRequest("ReadVSD w/ Update", "\"0\"", 200));
 
     readVsdScenario =
         scenario("GET VSD from VSDM Server")
-            .feed(POPP_TOKEN_FEEDER)
-            .exec(
-                zeta("GET VSD from VSDM Server", ZETA_POOL_CAPACITY)
-                    .get(URL_SERVER_VSDM + "/vsdservice/v1/vsdmbundle")
-                    .queryParam("profileVersion", FHIR_PROFILE_VERSION)
-                    .header("PoPP", "#{popp_token}")
-                    .header("if-none-match", "\"0\"")
-                    .header("Accept", "application/fhir+json")
-                    .check(status().is(200))
-                    .check(bodyContains("Bundle")));
+            .feed(POPP_TOKEN_ETAG_FEEDER)
+            .doIfOrElse(
+                session ->
+                    ThreadLocalRandom.current().nextDouble(100.0)
+                        < ZERO_ETAG_REQUEST_PROBABILITY_PERCENT)
+            .then(readVsdWithZeroEtagRequest)
+            .orElse(readVsdWithCachedEtagRequest);
+  }
+
+  private static ZetaRequestBuilder readVsdRequest(
+      String requestName, String ifNoneMatchHeaderValue, int expectedStatus) {
+    ZetaRequestBuilder request =
+        zeta(requestName, ZETA_POOL_CAPACITY)
+            .get(URL_SERVER_VSDM + "/vsdservice/v1/vsdmbundle")
+            .queryParam("profileVersion", FHIR_PROFILE_VERSION)
+            .header("PoPP", "#{popp_token}")
+            .header("if-none-match", ifNoneMatchHeaderValue)
+            .header("Accept", "application/fhir+json")
+            .check(status().is(expectedStatus));
+
+    if (expectedStatus == 200) {
+      return request.check(bodyContains("Bundle"));
+    }
+
+    return request.check(bodyEmpty());
   }
 
   @Override

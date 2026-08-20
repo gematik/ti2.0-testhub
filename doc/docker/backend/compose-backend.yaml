@@ -5,9 +5,6 @@ include:
     project_directory: .
   - path: ./compose-vsdm-services.yaml
     project_directory: .
-  # TODO: merge into popp-services
-  - path: ./compose-popp-client-erp.yaml
-    project_directory: .
 
 services:
   otel-collector:

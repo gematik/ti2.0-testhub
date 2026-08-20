@@ -293,6 +293,25 @@ public class ZetaPepJwtTestFactory {
    */
   public static void doTokenExchangeViaProxy(
       PdpTarget target, String tokenEndpoint, String proxyHost, int proxyPort) {
+    doTokenExchangeViaProxy(target, tokenEndpoint, proxyHost, proxyPort, false);
+  }
+
+  /**
+   * Same as {@link #doTokenExchangeViaProxy(PdpTarget, String, String, int)}, but additionally
+   * allows requesting a refresh token. Per the Keycloak token-exchange spec, setting {@code
+   * requested_token_type=urn:ietf:params:oauth:token-type:refresh_token} makes the token endpoint
+   * return both an {@code access_token} AND a {@code refresh_token} in the response (instead of
+   * just an access token).
+   *
+   * @param requestRefreshToken if {@code true}, sets {@code requested_token_type} to {@code
+   *     urn:ietf:params:oauth:token-type:refresh_token} so the response contains a refresh token
+   */
+  public static void doTokenExchangeViaProxy(
+      PdpTarget target,
+      String tokenEndpoint,
+      String proxyHost,
+      int proxyPort,
+      boolean requestRefreshToken) {
     try {
       // 0. One-time client registration via DCR
       if (!configuredPdps.contains(target)) {
@@ -361,6 +380,16 @@ public class ZetaPepJwtTestFactory {
       // scope=popp is required to pass the RU-DEV OPA policy. An explicit "audience"
       // param makes Keycloak reject earlier with exchange_client/invalid_client, so we omit it.
       form.add("scope", "popp");
+      if (requestRefreshToken) {
+        // Per the OAuth 2.0 Token Exchange spec (RFC 8693, as implemented by Keycloak):
+        // requested_token_type=refresh_token makes the token endpoint return BOTH an
+        // access_token AND a refresh_token in the response (default is access_token only).
+        // Keycloak additionally requires an explicit "audience" for this flow (mirroring what
+        // the VSDM-Client SDK's own token-exchange requests already send) — otherwise it rejects
+        // with "exchange_client: invalid_request".
+        form.add("requested_token_type", "urn:ietf:params:oauth:token-type:refresh_token");
+        form.add("audience", resolveIngressAudience(target));
+      }
 
       HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);
       rt.postForEntity(URI.create(tokenEndpoint), request, String.class);
@@ -369,6 +398,19 @@ public class ZetaPepJwtTestFactory {
     } catch (Exception e) {
       throw new AssertionError("Failed to perform token exchange via proxy: " + e.getMessage(), e);
     }
+  }
+
+  /**
+   * Derives the ZETA-Guard ingress base URL (scheme + host, no path) to be used as the {@code
+   * audience} value for a refresh-token-requesting exchange. Keycloak's "audience" here identifies
+   * the target realm/ingress rather than the concrete token endpoint path — this mirrors the {@code
+   * audience} value the VSDM-Client SDK's own token-exchange requests already send.
+   */
+  private static String resolveIngressAudience(@SuppressWarnings("unused") PdpTarget target) {
+    String clientAssertionAud =
+        TigerGlobalConfiguration.resolvePlaceholders("${zeta.server.pdp.clientAssertionAud}");
+    URI uri = URI.create(clientAssertionAud);
+    return uri.getScheme() + "://" + uri.getAuthority() + "/";
   }
 
   // ---- SMC-B Subject Token (brainpoolP256r1 via BouncyCastle) ----

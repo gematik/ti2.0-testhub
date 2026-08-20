@@ -63,6 +63,7 @@ services:
       VSDM_USE_MOCK_POPP_TOKEN: ${VSDM_USE_MOCK_POPP_TOKEN:-true}
       POPP_HTTP_URL: http://popp-client:8081/token
       POPP_TOKEN_GENERATOR_URL: http://popp-token-generator:80
+      VSDM_DISABLE_SERVER_VALIDATION: ${VSDM_DISABLE_SERVER_VALIDATION:-true}
       VSDM_RESOURCE_SERVER_URL: ${VSDM_RESOURCE_SERVER_URL:-https://vsdm-zeta-ingress}
       OTEL_SERVICE_NAME: vsdm-client
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318

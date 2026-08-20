@@ -54,8 +54,11 @@ export POPP_SERVER_URL=wss://popp.test.poppservice.de/popp/practitioner/api/v1/t
 export CONNECTOR_END_POINT_URL=https://kon9.ksp.ltuzd.telematik-test
 export CONNECTOR_SECURE_KEYSTORE=/mnt/konnektor/kon9_CS1.p12
 export CONNECTOR_SECURE_KEYSTORE_PASSWORD=123456
-export CONNECTOR_SECURE_TRUSTSTORE=/mnt/erpe2e_truststore.p12
+export CONNECTOR_SECURE_TRUSTSTORE=/mnt/konnektor/erpe2e_truststore.p12
 export CONNECTOR_SECURE_TRUSTSTORE_PASSWORD=123456
+export CONNECTOR_SECURE_TRUST_ALL=true
+
+export ZETA_AUTHENTICATION_SMB_KEYFILE=/mnt/smcb_private.p12
 
 export CARD_TERMINAL_ID=e526d874-e1fb-4b88-b55f-930a5ca7baab
 export CONTEXT_CLIENT_SYSTEM_ID=CS1

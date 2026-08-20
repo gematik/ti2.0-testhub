@@ -24,7 +24,8 @@ Funktionalität: PoPP WebSocket-Kommunikation über ZETA-PEP
   # Negativtests: Ungültiges/fehlendes Token → PEP lehnt Handshake ab
 
   Grundlage:
-    Gegeben sei setze Anfrage Timeout für WebSocket Verbindungen auf 10 Sekunden
+    Gegeben sei TGR lösche aufgezeichnete Nachrichten
+    Und setze Anfrage Timeout für WebSocket Verbindungen auf 10 Sekunden
     Und setze Timeout für WebSocket Nachrichten auf 10 Sekunden
     Und deaktiviere HTTP Proxy für WebSocket
 
@@ -33,33 +34,32 @@ Funktionalität: PoPP WebSocket-Kommunikation über ZETA-PEP
   @MODUS:Automatisch
   @TESTSTUFE:3
   @PRIO:1
-  @Ignore @websocket @popp @pep
-  # STATUS: @Ignore — ngx_pep:0.3.0 gibt 403 bei WebSocket-Upgrade trotz gültigem Token+DPoP.
-  # Der PEP rekonstruiert bei Upgrade-Headern vermutlich ws:// statt http:// als Schema,
-  # was den DPoP-htu-Vergleich fehlschlagen lässt. REST-Requests mit denselben Credentials
-  # funktionieren (200 OK). Bug-Ticket: ngx_pep WebSocket-Upgrade 403
-  Szenario: ZETA-PEP erlaubt WebSocket-Upgrade mit gültigem Token — PoPP StandardScenario
-    # Gutfall: Gültiger AccessToken + DPoP-Proof → PEP lässt WebSocket-Upgrade durch
-    # → PoPP-Server antwortet mit StandardScenario (APDU-Kommandos für eGK)
-    Gegeben sei ein gültiger ZETA-PEP AccessToken wird erzeugt
-    Und ein DPoP-Proof für "GET" "http://127.0.0.1:${ports.poppPepPort}/ws" wird erzeugt
-    Und lösche alle WebSocket Handshake Header
-    Und setze WebSocket Handshake Header "Authorization" auf "${ZETA_PEP_AUTHZ}"
-    Und setze WebSocket Handshake Header "DPoP" auf "${ZETA_PEP_DPOP}"
-
-    Wenn eine plain WebSocket Verbindung zu "ws://127.0.0.1:${ports.poppPepPort}/ws" mit den gesetzten Handshake Headern geöffnet wird
-
-    # Start-Nachricht senden (PoPP WebSocket-Protokoll)
-    Wenn eine WebSocket Nachricht gesendet wird:
+  @websocket @popp @pep
+  Szenario: ZETA-PEP erlaubt WebSocket-Upgrade mit gültigem Token — PoPP-Token über PoPP-Client
+    # Gutfall: Der PoPP-Client erzeugt den Access-Token (DCR + Token-Exchange) und den
+    # DPoP-Proof selbst und öffnet die WebSocket-Verbindung zum PoPP-Server über
+    # wss://popp-zeta-ingress/ws → popp-zeta-pep (ZETA-PEP) → popp-server:8443/ws.
+    # D.h. ein erfolgreich erzeugtes PoPP-Token beweist implizit, dass der ZETA-PEP den
+    # WebSocket-Upgrade-Handshake mit einem gültigen Token durchgelassen hat.
+    Wenn TGR sende eine POST Anfrage an "${tiger.popp.client.url}" mit ContentType "application/json" und folgenden mehrzeiligen Daten:
       """
-      {"type":"Start","version":"1.0.0","cardConnectionType":"contact-standard","clientSessionId":"zeta-ws-test-1"}
+      {
+        "communicationType": "contact-virtual",
+        "clientSessionId": "123456",
+        "virtualCard": "IMG_eGK_G21_TU_root6 1.xml"
+      }
       """
+    Dann TGR finde die letzte Anfrage mit dem Pfad "/token"
+    Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "200"
+    Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.body.status" überein mit "OK"
+    Und TGR prüfe aktuelle Antwort enthält Knoten "$.body.token"
 
-    # Server antwortet mit dem ersten StandardScenario (APDU-Kommandos für eGK)
-    Dann wird eine WebSocket Nachricht empfangen
-    Und enthält die letzte WebSocket Nachricht den Text "\"type\":\"StandardScenario\""
-
-    Dann wird die WebSocket Verbindung geschlossen
+    # Expliziter Nachweis des WebSocket-Upgrades über den ZETA-PEP:
+    Und TGR finde die letzte Anfrage mit dem Pfad "/popp/practitioner/api/v1/token-generation-ehc"
+    Und TGR prüfe aktuelle Anfrage stimmt im Knoten "$.header.Upgrade" überein mit "websocket"
+    Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "101"
+    Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.header.Upgrade" überein mit "websocket"
+    Und TGR prüfe aktuelle Antwort enthält Knoten "$.header.ZETA-API-Version"
 
   @TCID:ZETA_WS_HANDSHAKE_WITH_INVALID_AUTH_TOKEN
   @STATUS:Implementiert

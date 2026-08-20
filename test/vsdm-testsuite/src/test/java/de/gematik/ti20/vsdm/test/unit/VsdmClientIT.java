@@ -83,6 +83,7 @@ class VsdmClientIT {
   @BeforeEach
   void beforeEach() throws Exception {
     deletePoppTokenCache();
+    deleteVsdmDataCache();
 
     removeCardFromSlot(EGK_SLOT);
     removeCardFromSlot(SMCB_SLOT);
@@ -91,23 +92,6 @@ class VsdmClientIT {
     insertSmcbCard();
 
     configureTerminal();
-
-    // delete cached popp tokens and vsdm data
-    final Request deletePoppToken =
-        new Request.Builder()
-            .url(resolvePlaceholders(VSDM_CLIENT_URL) + "/client/test/poppToken")
-            .delete()
-            .build();
-    final Response deletePoppTokenResponse = httpClient.newCall(deletePoppToken).execute();
-    assertThat(deletePoppTokenResponse.isSuccessful()).isTrue();
-
-    final Request deleteVsdmData =
-        new Request.Builder()
-            .url(resolvePlaceholders(VSDM_CLIENT_URL) + "/client/test/vsdmData")
-            .delete()
-            .build();
-    final Response deleteVsdmDataResponse = httpClient.newCall(deleteVsdmData).execute();
-    assertThat(deleteVsdmDataResponse.isSuccessful()).isTrue();
   }
 
   @Test
@@ -560,6 +544,19 @@ class VsdmClientIT {
 
     log.info("deletePoppTokenCache: " + deletePoppTokenCacheResponse.code());
     assertTrue(deletePoppTokenCacheResponse.isSuccessful(), "Delete Popp Token cache");
+  }
+
+  private static void deleteVsdmDataCache() throws Exception {
+    final Request deleteVsdmData =
+        new Request.Builder()
+            .url(resolvePlaceholders(VSDM_CLIENT_URL) + "/client/test/vsdmData")
+            .delete()
+            .build();
+
+    final Response deleteVsdmDataResponse = httpClient.newCall(deleteVsdmData).execute();
+
+    log.info("deleteVsdmData: " + deleteVsdmDataResponse.code());
+    assertThat(deleteVsdmDataResponse.isSuccessful()).isTrue();
   }
 
   private static class Result {
