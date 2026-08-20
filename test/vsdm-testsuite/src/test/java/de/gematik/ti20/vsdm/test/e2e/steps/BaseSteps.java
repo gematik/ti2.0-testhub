@@ -41,7 +41,7 @@ public class BaseSteps {
   protected static final String VALID_PROFILE_VERSION = CFG.getTestData().getProfileVersion();
   protected static final boolean VSDM_LOAD_TESTING_ACTIVE =
       Boolean.parseBoolean(
-          Optional.ofNullable(System.getenv("VSDM_LOAD_TESTING_ACTIVE")).orElse("true"));
+          Optional.ofNullable(System.getenv("VSDM_LOAD_TESTING_ACTIVE")).orElse("false"));
 
   protected Actor hccs() {
     return OnStage.theActorInTheSpotlight();

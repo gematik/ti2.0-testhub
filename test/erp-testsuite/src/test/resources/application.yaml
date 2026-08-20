@@ -4,6 +4,10 @@ spring:
   main:
     banner-mode: CONSOLE
 
+springdoc:
+  api-docs:
+    enabled: false
+
 logging:
   pattern:
     dateformat: yyyy-MM-dd'T'HH:mm:ss.SSSXXX
@@ -23,6 +27,9 @@ erp:
   patients:
     - name: "Alice"
       iccsn: "80276883110000179858"
+
+  popp-client:
+    url: "http://popp-client"
 
   cats:
     url: "https://ksp.ltuzd.telematik-test/kon9/cats1"

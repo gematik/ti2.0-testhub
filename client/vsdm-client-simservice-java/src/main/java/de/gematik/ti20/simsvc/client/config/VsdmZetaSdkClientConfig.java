@@ -63,8 +63,6 @@ public class VsdmZetaSdkClientConfig {
 
   @Bean
   public ZetaSdkClient vsdmServiceZetaSdkClient(final VsdmClientConfig vsdmConfig) {
-    boolean disableServerValidation = true;
-
     return ZetaSdk.INSTANCE.build(
         vsdmConfig.getResourceServerUrl(),
         new BuildConfig(
@@ -84,7 +82,7 @@ public class VsdmZetaSdkClientConfig {
             new PlatformProductId.LinuxProductId(
                 PlatformProductId.PLATFORM_LINUX, "jar", "testhub", "latest"),
             new ZetaHttpClientBuilder()
-                .disableServerValidation(disableServerValidation)
+                .disableServerValidation(vsdmConfig.isDisableServerValidation())
                 .logging(LogLevel.ALL),
             null,
             null,

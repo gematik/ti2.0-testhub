@@ -288,3 +288,42 @@ Funktionalität: SMC-B Authentisierung - ZETA-Client Authentisierung mittels SMC
     Und TGR prüfe aktueller Request enthält Knoten "$.body.client_assertion.body.client_statement.posture.attestation_challenge"
     Und TGR prüfe aktueller Request enthält Knoten "$.body.client_assertion.body.client_statement.posture.public_key"
 
+  @TCID:SMCB_AUTH_REAL_KONNEKTOR
+  @STATUS:Implementiert
+  @MODUS:Manuell
+  @TESTSTUFE:2
+  @PRIO:3
+  @Ignore @popp @konnektor
+  # STATUS: @Ignore — benötigt einen echten, erreichbaren Konnektor (SMC-B via Karte,
+  # nicht Keystore). Voraussetzungen zum manuellen Ausführen:
+  #   1. Zertifikate besorgen: entweder eigene, echte Konnektor-Zertifikate unter
+  #      doc/docker/backend/zeta/connector/private/{keystore,truststore}.p12 ablegen
+  #      (siehe doc/docker/backend/zeta/connector/README.md), oder den geteilten
+  #      gematik-Referenz-Testkonnektor unter no-publish/test-data/zeta/connector/
+  #      verwenden.
+  #   2. Env-Datei anlegen/verwenden:
+  #      - eigener Konnektor: doc/docker/env-private/.my-own.env mit
+  #        CONNECTOR_END_POINT_URL=https://<Konnektor-IP>:443 und den zugehörigen
+  #        CONNECTOR_*/CONTEXT_*/CARD_TERMINAL_* Werten anlegen.
+  #      - geteilter Testkonnektor: no-publish/test-data/zeta/connector/.shared-konnektor-kon41.env
+  #        (bereits vorhanden, versioniert) verwenden.
+  #   3. Stack starten (Beispiel mit geteiltem Testkonnektor):
+  #      docker compose -f doc/docker/compose-local.yaml \
+  #        --env-file ./doc/docker/.env \
+  #        --env-file ./no-publish/test-data/zeta/connector/.shared-konnektor-kon41.env \
+  #        --profile full up -d
+  #   4. Diese Szenario-Tag manuell ausführen:
+  #      ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@konnektor' -Dzeta.env=local
+
+  Szenario: PoPP-Client erzeugt PoPP-Token mit gesteckter SMC-B und eGK über echten Konnektor
+    Wenn TGR sende eine POST Anfrage an "${zeta.server.poppClient.url}/token" mit ContentType "application/json" und folgenden mehrzeiligen Daten:
+
+      """
+      {"communicationType":"contact-connector","clientSessionId":"zeta-konnektor-smoketest-1"}
+      """
+
+    Dann TGR finde die letzte Anfrage mit dem Pfad "/token"
+    # Bei Erfolg liefert popp-client ein signiertes PoPP-Token zurück.
+    Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "2.."
+    Und TGR prüfe aktuelle Antwort enthält Knoten "$.body.token"
+

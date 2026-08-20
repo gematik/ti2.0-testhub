@@ -22,7 +22,7 @@ services:
   popp-client:
     profiles: [ "full" ]
     container_name: popp-client
-    image: gematik1/popp-client:2.7.0
+    image: gematik1/popp-client:2.7.1
     env_file:
       - path: ../.env
         required: true
@@ -32,7 +32,27 @@ services:
       - POPP_SERVER_URL=${POPP_SERVER_URL:-wss://popp-zeta-ingress:443/popp/practitioner/api/v1/token-generation-ehc}
       - SPRING_PROFILES_ACTIVE=dev
       - VIRTUAL_CARD_IMAGE_FILE=${VIRTUAL_CARD_IMAGE_PATH:-/data/cards}/${VIRTUAL_CARD_IMAGE_FILE:-egkCardImage.xml}
-      - ZETA_AUTHENTICATION_SMB_KEYFILE=/app/smcb_private.p12
+      - ZETA_AUTHENTICATION_SMB_KEYFILE=${ZETA_AUTHENTICATION_SMB_KEYFILE:-/app/smcb_private.p12}
+      # Konnektor address (event-service endpoint) and terminal context – only used when a
+      # request specifies "communicationType": "contact-connector"/"contactless-connector".
+      # The PoPP-Client selects the SMC-B source (keystore vs. Konnektor) per request, so both
+      # can be configured on the same container at the same time, see
+      # https://github.com/gematik/popp-sample-code/blob/main/README.md#b-konnektor
+      # Override the placeholder defaults below via doc/docker/env-private/.my-own.env to point
+      # at a real Konnektor.
+      - CONNECTOR_END_POINT_URL=${CONNECTOR_END_POINT_URL:-https://<Konnektor-IP-oder-Host>:<Port>}
+      - CONNECTOR_SECURE_ENABLE=${CONNECTOR_SECURE_ENABLE:-true}
+      - CONNECTOR_SECURE_HOSTNAME_VALIDATION=${CONNECTOR_SECURE_HOSTNAME_VALIDATION:-false}
+      - CONNECTOR_SECURE_KEYSTORE=${CONNECTOR_SECURE_KEYSTORE:-/app/connector/keystore.p12}
+      - CONNECTOR_SECURE_KEYSTORE_PASSWORD=${CONNECTOR_SECURE_KEYSTORE_PASSWORD:-changeit}
+      - CONNECTOR_SECURE_TRUST_ALL=${CONNECTOR_SECURE_TRUST_ALL:-false}
+      - CONNECTOR_SECURE_TRUSTSTORE=${CONNECTOR_SECURE_TRUSTSTORE:-/app/connector/truststore.p12}
+      - CONNECTOR_SECURE_TRUSTSTORE_PASSWORD=${CONNECTOR_SECURE_TRUSTSTORE_PASSWORD:-changeit}
+      - CONTEXT_CLIENT_SYSTEM_ID=${CONTEXT_CLIENT_SYSTEM_ID:-C1}
+      - CONTEXT_WORKPLACE_ID=${CONTEXT_WORKPLACE_ID:-W1}
+      - CONTEXT_MANDANT_ID=${CONTEXT_MANDANT_ID:-M1}
+      - CARD_TERMINAL_ID=${CARD_TERMINAL_ID:-}
+      - CARD_TERMINAL_SLOT=${CARD_TERMINAL_SLOT:-}
       # - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5013"
     networks:
       - testhub_network
@@ -41,9 +61,12 @@ services:
       - "${PORT_POPP_CLIENT_MGMT:?PORT_POPP_CLIENT_MGMT missing – set it in doc/docker/.env}:9001"
     volumes:
       - ./zeta/smcb-private/${SMCB_FILE:-smcb_private.p12}:/app/smcb_private.p12:ro
+      - ${CONNECTOR_KEYSTORE_DIR:-./zeta/connector}/${CONNECTOR_KEYSTORE_FILE:-keystore.p12}:/app/connector/keystore.p12:ro
+      - ${CONNECTOR_TRUSTSTORE_DIR:-./zeta/connector}/${CONNECTOR_TRUSTSTORE_FILE:-truststore.p12}:/app/connector/truststore.p12:ro
       - ../../../test/vsdm-testsuite/src/test/resources/data/cards:/data/cards
       - ../dns/resolv.conf:/etc/resolv.conf:ro
       - ../../../test/vsdm-testsuite/src/test/resources/${VIRTUAL_CARD_IMAGE_PATH:-data/cards}:${VIRTUAL_CARD_IMAGE_PATH:-/data/cards}:ro
+      - ../../../no-publish/test-data/erp:/mnt/:ro
     depends_on:
       otel-collector:
         condition: service_started
@@ -53,7 +76,7 @@ services:
   popp-client-perf:
     profiles: [ "ps-only" ]
     container_name: popp-client
-    image: gematik1/popp-client:2.7.0
+    image: gematik1/popp-client:2.7.1
     env_file:
       - path: ../.env
         required: true
@@ -80,7 +103,7 @@ services:
 
   popp-server:
     profiles: [ "full", "backend-only" ]
-    image: gematik1/popp-server:2.7.0
+    image: gematik1/popp-server:2.7.1
     env_file:
       - path: ../.env
         required: true

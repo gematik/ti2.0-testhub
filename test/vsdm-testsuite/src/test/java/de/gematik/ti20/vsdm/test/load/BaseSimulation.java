@@ -44,6 +44,8 @@ public class BaseSimulation extends Simulation {
   protected static final SimulationConfigBean CFG = SimulationConfigProvider.getInstance();
   protected static final boolean RANDOM_READ_VSD = CFG.isRandomReadVsd();
   protected static final int ZETA_POOL_CAPACITY = CFG.getZetaPoolCapacity();
+  protected static final double ZERO_ETAG_REQUEST_PROBABILITY_PERCENT =
+      validatePercentage(CFG.getZeroEtagRequestProbabilityPercent());
 
   // Equal load: cardsPerSec * cardsDurationSecs should be 1000 to insert 1.000 cards
   protected static final int RAMP_USERS_STEADY_NUMBER =
@@ -66,14 +68,26 @@ public class BaseSimulation extends Simulation {
   protected static final String URL_SERVER_VSDM = CFG.getUrl().getServer().getVsdm();
 
   protected static final String POPP_TOKENS = CFG.getTestData().getPoppTokens();
+  protected static final String POPP_TOKEN_ETAGS = CFG.getTestData().getPoppTokenEtags();
   protected static final String SMCB_SLOTS = CFG.getTestData().getSmcbSlots();
   protected static final String EGK_SLOTS = CFG.getTestData().getEgkSlots();
   protected static final String FHIR_PROFILE_VERSION = CFG.getTestData().getProfileVersion();
 
   protected static final FeederBuilder.FileBased<String> POPP_TOKEN_FEEDER =
       csv(POPP_TOKENS).circular();
+  protected static final FeederBuilder.FileBased<String> POPP_TOKEN_ETAG_FEEDER =
+      csv(POPP_TOKEN_ETAGS).circular();
   protected static final FeederBuilder.FileBased<String> SMCB_FEEDER = csv(SMCB_SLOTS).circular();
   protected static final FeederBuilder.FileBased<String> EGK_FEEDER = csv(EGK_SLOTS).circular();
+
+  private static double validatePercentage(double percentage) {
+    if (percentage < 0.0 || percentage > 100.0) {
+      throw new IllegalStateException(
+          "simulation.zeroEtagRequestProbabilityPercent must be between 0 and 100, but was "
+              + percentage);
+    }
+    return percentage;
+  }
 
   @NotNull
   protected static List<OpenInjectionStep> getRandomReadVsdSteps() {

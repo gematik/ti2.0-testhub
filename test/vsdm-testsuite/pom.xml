@@ -7,7 +7,7 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.11.0</version>
+        <version>3.12.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -22,6 +22,8 @@
         <vsdm.testsuite.path>${maven.multiModuleProjectDirectory}/test/vsdm-testsuite</vsdm.testsuite.path>
         <polarion.project>Mainline_OPB1</polarion.project>
         <polarion.testrun>VSDM2_GEMATIK</polarion.testrun>
+        <polarion.auth.username>${polarion.username}</polarion.auth.username>
+        <polarion.auth.password>${polarion.pat}</polarion.auth.password>
     </properties>
 
 
@@ -203,6 +205,19 @@
                 </plugins>
             </build>
         </profile>
+        <!-- Activate on Jenkins: use env vars if POLARION_CREDENTIALS_PSW is present -->
+        <profile>
+            <id>jenkins-build</id>
+            <activation>
+                <property>
+                    <name>env.POLARION_CREDENTIALS_PSW</name>
+                </property>
+            </activation>
+            <properties>
+                <polarion.auth.username>${env.POLARION_CREDENTIALS_USR}</polarion.auth.username>
+                <polarion.auth.password>${env.POLARION_CREDENTIALS_PSW}</polarion.auth.password>
+            </properties>
+        </profile>
         <profile>
             <id>polarion-sync</id>
             <build>
@@ -217,8 +232,8 @@
                                 <phase>install</phase>
                                 <configuration>
                                     <polarionUrl>${polarion.url}</polarionUrl>
-                                    <username>${env.POLARION_CREDENTIALS_USR}</username>
-                                    <password>${env.POLARION_CREDENTIALS_PSW}</password>
+                                    <username>${polarion.auth.username}</username>
+                                    <password>${polarion.auth.password}</password>
                                     <project>${polarion.project}</project>
                                     <luceneQuery>cfInternalId:UC_VSDM2_* UC_GITTI_*</luceneQuery>
                                     <jsonFilePath>${vsdm.testsuite.path}/target/polarion/vsdm2-testcases.json</jsonFilePath>
@@ -230,7 +245,7 @@
                         </executions>
                     </plugin>
                 </plugins>
-            </build>
+            </build>    
         </profile>
         <profile>
             <id>polarion-upload</id>
@@ -245,8 +260,8 @@
                                 <id>upload</id>
                                 <phase>post-integration-test</phase>
                                 <configuration>
-                                    <username>${env.POLARION_CREDENTIALS_USR}</username>
-                                    <password>${env.POLARION_CREDENTIALS_PSW}</password>
+                                    <username>${polarion.auth.username}</username>
+                                    <password>${polarion.auth.password}</password>
                                     <project>${polarion.project}</project>
                                     <testRun>${polarion.testrun}</testRun>
                                     <serenityReportsFolderPath>${vsdm.testsuite.path}/target/site/serenity</serenityReportsFolderPath>

@@ -34,6 +34,7 @@ public class SimulationConfigBean {
   private Ramp ramp;
   private boolean randomReadVsd;
   private int zetaPoolCapacity;
+  private double zeroEtagRequestProbabilityPercent;
   private TestData testData;
 
   @Data
@@ -82,6 +83,7 @@ public class SimulationConfigBean {
   public static class TestData {
     private String iknrKvnrList;
     private String poppTokens;
+    private String poppTokenEtags;
     private String smcbSlots;
     private String egkSlots;
     private String profileVersion;

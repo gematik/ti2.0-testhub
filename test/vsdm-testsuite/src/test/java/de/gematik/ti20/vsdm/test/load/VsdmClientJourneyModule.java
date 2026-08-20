@@ -49,7 +49,7 @@ final class VsdmClientJourneyModule extends BaseSimulation {
         .exec(
             http("PUT SMC-B card")
                 .put(URL_CLIENT_CARD + "/slots/#{smcb_slot}")
-                .body(ElFileBody("data/cards/smcbCardImage.xml"))
+                .body(ElFileBody("private/cards/smcbCardImage.xml"))
                 .asXml()
                 .check(HttpCheckBuilders.status().is(201)))
         .exec(

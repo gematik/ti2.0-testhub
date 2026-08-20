@@ -35,10 +35,14 @@ import de.gematik.zeta.sdk.network.http.client.ZetaHttpClient;
 import de.gematik.zeta.sdk.network.http.client.ZetaHttpClientBuilder;
 import de.gematik.zeta.sdk.storage.SdkStorage;
 import de.gematik.zeta.sdk.storage.StorageConfig;
-import io.gatling.javaapi.core.ChainBuilder;
-import io.gatling.javaapi.core.CoreDsl;
+import io.gatling.commons.stats.KO$;
+import io.gatling.commons.stats.OK$;
+import io.gatling.commons.util.Clock;
+import io.gatling.core.action.Action;
+import io.gatling.core.stats.StatsEngine;
+import io.gatling.core.structure.ScenarioContext;
+import io.gatling.javaapi.core.ActionBuilder;
 import io.gatling.javaapi.core.Session;
-import io.gatling.javaapi.core.exec.Executable;
 import io.ktor.client.plugins.logging.LogLevel;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -61,6 +65,8 @@ import kotlin.coroutines.Continuation;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import scala.Option;
+import scala.Option$;
 
 @Slf4j
 public final class ZetaDsl {
@@ -71,6 +77,7 @@ public final class ZetaDsl {
   private static final String ZETA_REQUEST_NAME_KEY = "zeta_request_name";
   private static final String ZETA_SUCCESS_KEY = "zeta_success";
   private static final String ZETA_DURATION_MS_KEY = "zeta_duration_ms";
+  private static final String ZETA_ERROR_MESSAGE_KEY = "zeta_error_message";
 
   private static int ZETA_POOL_SIZE = 20;
 
@@ -87,6 +94,10 @@ public final class ZetaDsl {
 
   public static ZetaBodyContainsCheckBuilder bodyContains(final String expectedFragment) {
     return new ZetaBodyContainsCheckBuilder(expectedFragment);
+  }
+
+  public static ZetaBodyEmptyCheckBuilder bodyEmpty() {
+    return new ZetaBodyEmptyCheckBuilder();
   }
 
   public static final class ZetaStatusCheckBuilder {
@@ -127,13 +138,19 @@ public final class ZetaDsl {
     }
   }
 
-  public static final class ZetaRequestBuilder implements Executable {
+  public static final class ZetaBodyEmptyCheckBuilder {
+
+    private ZetaBodyEmptyCheckBuilder() {}
+  }
+
+  public static final class ZetaRequestBuilder implements ActionBuilder {
     private final String requestName;
     private String rawUrl;
     private final Map<String, String> headers = new LinkedHashMap<>();
     private final Map<String, String> queryParams = new LinkedHashMap<>();
     private ZetaStatusCheckBuilder statusCheck;
     private ZetaBodyContainsCheckBuilder bodyContainsCheck;
+    private ZetaBodyEmptyCheckBuilder bodyEmptyCheck;
 
     private ZetaRequestBuilder(final String requestName) {
       this.requestName = requestName;
@@ -164,21 +181,24 @@ public final class ZetaDsl {
       return this;
     }
 
+    public ZetaRequestBuilder check(final ZetaBodyEmptyCheckBuilder bodyEmptyCheck) {
+      this.bodyEmptyCheck = bodyEmptyCheck;
+      return this;
+    }
+
     @Override
-    public ChainBuilder toChainBuilder() {
-      return CoreDsl.exec(this::executeWithZetaClient)
-          .exec(
-              CoreDsl.dummy(
-                      session -> {
-                        final String dynamicName = session.getString(ZETA_REQUEST_NAME_KEY);
-                        return dynamicName != null ? dynamicName : requestName;
-                      },
-                      session -> {
-                        final Integer duration = session.getIntegerWrapper(ZETA_DURATION_MS_KEY);
-                        return duration != null ? duration : 0;
-                      })
-                  .withSuccess(
-                      session -> Boolean.TRUE.equals(session.getBooleanWrapper(ZETA_SUCCESS_KEY))));
+    public io.gatling.core.action.builder.ActionBuilder asScala() {
+      return new io.gatling.core.action.builder.ActionBuilder() {
+        @Override
+        public Action build(final ScenarioContext ctx, final Action next) {
+          return new ZetaRequestAction(
+              requestName,
+              ZetaRequestBuilder.this,
+              ctx.coreComponents().statsEngine(),
+              ctx.coreComponents().clock(),
+              next);
+        }
+      };
     }
 
     private Session executeWithZetaClient(final Session session) {
@@ -197,7 +217,7 @@ public final class ZetaDsl {
         final Map<String, String> resolvedHeaders = resolveHeaders(session);
 
         zetaSdkClient = ZetaClientFactory.acquireFor(targetUrl);
-        log.info("Acquired ZetaSdkClient: " + zetaSdkClient.hashCode());
+        log.info("Acquired ZetaSdkClient: {}", zetaSdkClient.hashCode());
 
         try (ZetaHttpClient httpClient =
             zetaSdkClient.httpClient(
@@ -218,42 +238,74 @@ public final class ZetaDsl {
                   .set(ZETA_RESPONSE_BODY_KEY, responseBody)
                   .set(ZETA_REQUEST_NAME_KEY, requestName)
                   .set(ZETA_DURATION_MS_KEY, durationMs)
-                  .set(ZETA_SUCCESS_KEY, actualStatus == 200);
+                  .set(ZETA_SUCCESS_KEY, actualStatus == 200 || actualStatus == 304)
+                  .remove(ZETA_ERROR_MESSAGE_KEY);
 
           if (statusCheck != null && !statusCheck.matches(actualStatus)) {
+            final String errorMessage =
+                "Status check failed: expected="
+                    + statusCheck.expectedDescription()
+                    + ", actual="
+                    + actualStatus;
             log.warn(
                 "Zeta request '{}' failed status check. expected={}, actual={}, url={}",
                 requestName,
                 statusCheck.expectedDescription(),
                 actualStatus,
                 targetUrl);
-            return updatedSession.set(ZETA_SUCCESS_KEY, false).markAsFailed();
+            return updatedSession
+                .set(ZETA_SUCCESS_KEY, false)
+                .set(ZETA_ERROR_MESSAGE_KEY, errorMessage)
+                .markAsFailed();
           }
 
           if (bodyContainsCheck != null
               && !responseBody.contains(bodyContainsCheck.expectedFragment())) {
-            log.warn(
+            final String errorMessage =
+                "Body fragment missing: expected fragment='"
+                    + bodyContainsCheck.expectedFragment()
+                    + "'";
+            log.error(
                 "Zeta request '{}' failed body check. expected fragment='{}', url={}",
                 requestName,
                 bodyContainsCheck.expectedFragment(),
                 targetUrl);
-            return updatedSession.set(ZETA_SUCCESS_KEY, false).markAsFailed();
+            return updatedSession
+                .set(ZETA_SUCCESS_KEY, false)
+                .set(ZETA_ERROR_MESSAGE_KEY, errorMessage)
+                .markAsFailed();
+          }
+
+          if (bodyEmptyCheck != null && !responseBody.isEmpty()) {
+            final String errorMessage = "Body empty check failed: response body was not empty";
+            log.error(
+                "Zeta request '{}' failed body empty check. actual body='{}', url={}",
+                requestName,
+                responseBody,
+                targetUrl);
+            return updatedSession
+                .set(ZETA_SUCCESS_KEY, false)
+                .set(ZETA_ERROR_MESSAGE_KEY, errorMessage)
+                .markAsFailed();
           }
 
           return updatedSession.markAsSucceeded();
         }
       } catch (Exception e) {
         final int durationMs = (int) ((System.nanoTime() - startedAtNanos) / 1_000_000L);
-        log.warn("Zeta request '{}' failed", requestName, e);
+        final String errorMessage =
+            e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+        log.error("Zeta request '{}' failed", requestName, e);
         return session
             .set(ZETA_REQUEST_NAME_KEY, requestName)
             .set(ZETA_DURATION_MS_KEY, durationMs)
             .set(ZETA_SUCCESS_KEY, false)
+            .set(ZETA_ERROR_MESSAGE_KEY, errorMessage)
             .markAsFailed();
       } finally {
         if (zetaSdkClient != null && targetUrl != null) {
           ZetaClientFactory.releaseFor(targetUrl, zetaSdkClient);
-          log.info("Released ZetaSdkClient: " + zetaSdkClient.hashCode());
+          log.info("Released ZetaSdkClient: {}", zetaSdkClient.hashCode());
         }
       }
     }
@@ -284,6 +336,86 @@ public final class ZetaDsl {
 
       final String separator = url.contains("?") ? "&" : "?";
       return url + separator + queryString;
+    }
+  }
+
+  private static final class ZetaRequestAction implements Action {
+    private com.typesafe.scalalogging.Logger logger =
+        com.typesafe.scalalogging.Logger$.MODULE$.apply(ZetaRequestAction.class);
+    private final String fallbackRequestName;
+    private final ZetaRequestBuilder requestBuilder;
+    private final StatsEngine statsEngine;
+    private final Clock clock;
+    private final Action next;
+    private final String name;
+
+    private ZetaRequestAction(
+        final String fallbackRequestName,
+        final ZetaRequestBuilder requestBuilder,
+        final StatsEngine statsEngine,
+        final Clock clock,
+        final Action next) {
+      this.fallbackRequestName = fallbackRequestName;
+      this.requestBuilder = requestBuilder;
+      this.statsEngine = statsEngine;
+      this.clock = clock;
+      this.next = next;
+      this.name = "zeta-" + fallbackRequestName;
+    }
+
+    @Override
+    public String name() {
+      return name;
+    }
+
+    @Override
+    public com.typesafe.scalalogging.Logger logger() {
+      return logger;
+    }
+
+    @Override
+    public void com$typesafe$scalalogging$StrictLogging$_setter_$logger_$eq(
+        final com.typesafe.scalalogging.Logger logger) {
+      this.logger = logger;
+    }
+
+    @Override
+    public void execute(final io.gatling.core.session.Session scalaSession) {
+      final long startedAtMillis = clock.nowMillis();
+      final Session javaSession = new Session(scalaSession);
+      final Session updatedJavaSession = requestBuilder.executeWithZetaClient(javaSession);
+      final io.gatling.core.session.Session updatedScalaSession = updatedJavaSession.asScala();
+      final long endedAtMillis = clock.nowMillis();
+
+      final boolean success =
+          Boolean.TRUE.equals(updatedJavaSession.getBooleanWrapper(ZETA_SUCCESS_KEY));
+      final String resolvedRequestName =
+          Objects.requireNonNullElse(
+              updatedJavaSession.getString(ZETA_REQUEST_NAME_KEY), fallbackRequestName);
+      final Option<String> errorMessage = resolveErrorMessageOption(updatedJavaSession, success);
+
+      statsEngine.logResponse(
+          updatedScalaSession.scenario(),
+          updatedScalaSession.groups(),
+          resolvedRequestName,
+          startedAtMillis,
+          endedAtMillis,
+          success ? OK$.MODULE$ : KO$.MODULE$,
+          Option$.MODULE$.empty(),
+          errorMessage);
+
+      next.$bang(updatedScalaSession.logGroupRequestTimings(startedAtMillis, endedAtMillis));
+    }
+
+    private Option<String> resolveErrorMessageOption(
+        final Session updatedJavaSession, final boolean success) {
+      if (success) {
+        return Option$.MODULE$.empty();
+      }
+      final String message =
+          Objects.requireNonNullElse(
+              updatedJavaSession.getString(ZETA_ERROR_MESSAGE_KEY), "Zeta request failed");
+      return Option.apply(message);
     }
   }
 
@@ -367,15 +499,7 @@ public final class ZetaDsl {
         log.info("Clear ZetaClientPool for '{}'", resourceBase);
         for (ZetaSdkClient client : available) {
           SdkStatus status = ZetaSdkClientExtension.status(client);
-          log.info("Status 1: {}", status);
-
-          ZetaSdkClientExtension.clearRegistration(client);
-          status = ZetaSdkClientExtension.status(client);
-          log.info("Status 2: {}", status);
-
-          ZetaSdkClientExtension.close(client);
-          status = ZetaSdkClientExtension.status(client);
-          log.info("Status 3: {}", status);
+          log.info("Status: {}", status);
         }
       }
     }
@@ -435,7 +559,6 @@ public final class ZetaDsl {
               null));
     }
 
-    // FIXME raku
     private static SubjectTokenProvider tokenProviderFromEnvironment() {
       final String keyPath =
           "doc/docker/backend/zeta/smcb-private/smcb_private.p12"; // readRequired("ZETASDK_SMCB_PRIVATE_KEY_PATH");

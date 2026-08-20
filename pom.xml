@@ -5,7 +5,7 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>3.11.0</version>
+    <version>3.12.0</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>
@@ -42,7 +42,7 @@
         <version.serenity>5.3.11</version.serenity>
         <version.gem.bbriccs>0.11.0</version.gem.bbriccs>
         <version.gem.testdata>1.1.0</version.gem.testdata>
-        <version.pact.consumer>4.7.1</version.pact.consumer>
+        <version.pact.consumer>4.7.5</version.pact.consumer>
         <version.gatling.highcharts>3.13.5</version.gatling.highcharts>
         <version.license-maven-plugin>2.7.1</version.license-maven-plugin>
         <version.maven.format>2.29</version.maven.format>
