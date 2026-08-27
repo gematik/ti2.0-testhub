@@ -25,6 +25,7 @@
 package de.gematik.ti20.vsdm.test.load;
 
 import java.time.Duration;
+import java.util.List;
 import lombok.Data;
 
 @Data
@@ -33,7 +34,7 @@ public class SimulationConfigBean {
   private Url url;
   private Ramp ramp;
   private boolean randomReadVsd;
-  private int zetaPoolCapacity;
+  private ZetaClientPoolConfig zetaSdkPool;
   private double zeroEtagRequestProbabilityPercent;
   private TestData testData;
 
@@ -80,6 +81,12 @@ public class SimulationConfigBean {
   }
 
   @Data
+  public static class ZetaClientPoolConfig {
+    private int capacity;
+    private List<SmcbData> smcbs;
+  }
+
+  @Data
   public static class TestData {
     private String iknrKvnrList;
     private String poppTokens;
@@ -87,5 +94,11 @@ public class SimulationConfigBean {
     private String smcbSlots;
     private String egkSlots;
     private String profileVersion;
+  }
+
+  @Data
+  public static class SmcbData {
+    private String actorId;
+    private String keypath;
   }
 }

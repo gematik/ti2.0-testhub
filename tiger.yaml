@@ -5,6 +5,12 @@ tigerProxy:
     - websocket
     - x509
     - asl
+  # Verkehr des Docker-Tiger-Proxy nachziehen. Gilt fuer alle Suites; nur die
+  # PoPP-Suite toleriert einen fehlenden Endpunkt (siehe tiger-popp.yaml), weil
+  # sie auch ganz ohne Docker-Stack laeuft. VSDM und ZETA brauchen den Stack und
+  # sollen bewusst hart scheitern, wenn er fehlt.
+  trafficEndpoints:
+    - "http://${ports.host}:${ports.remoteTigerProxyAdminPort}"
   keyFolders:
     - ${tiger.rootFolder|.}/test/vsdm-testsuite
     - ${tiger.rootFolder|.}/test/zeta-testsuite/src/test/resources
@@ -12,6 +18,8 @@ tigerProxy:
     - ${tiger.rootFolder|.}/doc/docker/backend/zeta/smcb
 
 lib:
+  # Der Name des Testverzeichnisses (z.B. "popp-testsuite" => "popp") wird automatisch als Profilname verwendet.
+  defaultProfile: "!{ getValue('user.dir').replace(getValue('file.separator'), '/').substring(getValue('user.dir').replace(getValue('file.separator'), '/').lastIndexOf('/') + 1).replace('-testsuite','') }"
   workflowUiPort: ${ports.tigerWorkflowUiPort}
   rbelPathDebugging: false
   activateWorkflowUi: true # Set to false for headless execution (e.g. in CI)
@@ -27,13 +35,14 @@ lib:
 fhir:
   encoded: json
 
-popp.client.url: "http://localhost:8081/token"
-
+# Die Dateiliste ist bewusst statisch: hier stehen nur Dateien, die es immer
+# gibt. Suite-Abhaengiges laeuft ueber `lib.defaultProfile` oben (Tigers eigener
+# Profil-Mechanismus ueberspringt fehlende Dateien still), Umgebungs-
+# Abhaengiges ueber KNOTEN in popp-environments.yaml / vsdm-environments.yaml.
 additionalConfigurationFiles:
-  - filename: tiger/defaults.yaml
   - filename: tiger/ports.yaml
   - filename: tiger/flags.yaml
   - filename: tiger/paths.yaml
-  - filename: tiger/tiger-${env|default}.yaml
-    baseKey: tiger
-  - filename: tiger/zeta-${env|environments}.yaml
+  - filename: tiger/zeta-environments.yaml
+  - filename: tiger/popp-environments.yaml
+  - filename: tiger/vsdm-environments.yaml

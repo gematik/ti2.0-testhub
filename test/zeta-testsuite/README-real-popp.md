@@ -34,14 +34,17 @@ https://popp.dev.poppservice.de/auth/realms/zeta-guard/.well-known/openid-config
 
 ## Umgebung umschalten (zentraler Schalter)
 
-> **TL;DR:** Es gibt **genau eine** Stelle, um die Zielumgebung der Testsuite zu wählen: die Variable **`zeta.env`**. Alle URLs im Test-Framework leiten sich automatisch daraus ab. URLs sind weder in Java noch in den Feature-Dateien hardcodiert.
+> **TL;DR:** Die **Stufe** kommt aus dem zentralen Schalter **`env`** (`local` (Default), `ru-dev`, `ru`, `tu`) und gilt für alle Produkte. Für den ZETA-Flow übersteuert **`zeta.env`** mit einem *vollständigen Blocknamen*, weil hier zwei Achsen zusammenkommen: die Stufe **und** welcher der beiden ZETA-Guards gemeint ist. Alle URLs im Test-Framework leiten sich automatisch daraus ab; URLs sind weder in Java noch in den Feature-Dateien hardcodiert.
 
-Unterstützte Werte:
+Unterstützte Blöcke:
 
 | `zeta.env`   | Bedeutung |
 |--------------|---|
-| `local`      | Lokaler Docker-Mock (PDP/Keycloak und PoPP-Server laufen lokal) — **Default** |
+| `local`      | Lokaler Docker-Mock (PDP/Keycloak und PoPP-Server laufen lokal) — greift bei der Default-Stufe `env=local` |
 | `popp-rudev` | Echter PoPP-Server `popp.dev.poppservice.de` (RU-DEV) |
+| `vsdm-tu`    | Echter VSDM 2.0 Fachdienst `vsdm-test.tk.de` (TU) |
+| `vsdm-rudev` | Echter VSDM 2.0 Fachdienst `vsdm-dev.tk.de` (RU-DEV) |
+| `custom`     | Ad-hoc-Ziel; setzt nur die Domain, siehe unten |
 
 Umschalten (höchste Priorität zuerst):
 
@@ -52,43 +55,67 @@ Umschalten (höchste Priorität zuerst):
 # 2. Umgebungsvariable
 export ZETA_ENV=popp-rudev
 
-# 3. Default in tiger/zeta-environments.yaml (Schlüssel: zeta.env)
+# 3. Ohne zeta.env: die Stufe aus `env` (Default `local` in tiger/flags.yaml)
 ```
 
-Die gesamte Konfiguration liegt zentral in **`tiger/zeta-environments.yaml`**:
+Die gesamte Konfiguration liegt zentral in **`tiger/zeta-environments.yaml`**. Eine Umgebung
+konfiguriert im Normalfall nur die **Domain** — Realm-, Token-, DCR-, JWKS- und Nonce-Pfad stehen
+als Defaults in `tiger/paths.yaml` (`zeta.paths.pdp.*`):
 
 ```yaml
 zeta:
-  env: "${ZETA_ENV|local}"          # <-- der einzige Schalter
-
+  # Kein eigener Default mehr — die Stufe kommt aus `env` (tiger/flags.yaml),
+  # -Dzeta.env / ZETA_ENV uebersteuern sie mit einem vollstaendigen Blocknamen.
   environments:
     local:
+      domain: "http://${ports.host}:${ports.poppPdpPort}"
       pepUrl: "http://${ports.host}:${ports.poppPepPort}"
-      poppClientUrl: "http://${ports.host}:${ports.poppClientPort}"
-      pdpRealmUrl: "http://${ports.host}:${ports.poppPdpPort}/auth/realms/zeta-guard"
-      pdpIssuer: "https://${ports.host}:${ports.poppZetaIngressPort}/auth/realms/zeta-guard"
-      smcbAudience: "https://popp-zeta-ingress/auth/realms/zeta-guard/protocol/openid-connect/token"
+      # Der Issuer kommt beim lokalen Mock vom Ingress (https, anderer Port), nicht vom PDP-Port,
+      # und die Audiences muessen gegen den von Keycloak veroeffentlichten Frontend-Endpunkt
+      # geprueft werden. Solche Ausnahmen stehen explizit im Block:
+      issuer: "https://${ports.host}:${ports.poppZetaIngressPort}${zeta.paths.pdp.realmPath}"
+      smcbAudience: "https://popp-zeta-ingress${zeta.paths.pdp.realmPath}${zeta.paths.pdp.tokenPath}"
       # ...
     popp-rudev:
+      domain: "https://popp.dev.poppservice.de"
       pepUrl: "https://popp.dev.poppservice.de"
-      poppClientUrl: "http://${ports.host}:${ports.poppClientPort}"
-      pdpRealmUrl: "https://popp.dev.poppservice.de/auth/realms/zeta-guard"
-      pdpIssuer: "https://popp.dev.poppservice.de/auth/realms/zeta-guard"
-      smcbAudience: "https://popp.dev.poppservice.de/auth/realms/zeta-guard/protocol/openid-connect/token"
-      # ...
+      # kein issuer/smcbAudience noetig - werden aus der Domain abgeleitet
+    custom:
+      # Leerer Ad-hoc-Block: alles leitet sich aus der Domain ab.
+      domain: "http://${ports.host}:${ports.poppPdpPort}"
 
-  # Abgeleitete Werte – NICHT editieren:
+  # Abgeleitete Werte - NICHT editieren:
   server:
+    domain: "${zeta.environments.${zeta.env|${env}}.domain}"
     pdp:
-      tokenUrl: "${zeta.environments.${zeta.env}.pdpRealmUrl}/protocol/openid-connect/token"
-      issuer:   "${zeta.environments.${zeta.env}.pdpIssuer}"
-      dcrUrl:   "${zeta.environments.${zeta.env}.pdpRealmUrl}/clients-registrations/openid-connect"
-      # ... jwksUrl, nonceUrl, smcbAudience
-    pep:
-      url: "${zeta.environments.${zeta.env}.pepUrl}"
+      realmUrl: "${zeta.server.domain}${zeta.paths.pdp.realmPath}"
+      tokenUrl: "${zeta.server.pdp.realmUrl}${zeta.paths.pdp.tokenPath}"
+      dcrUrl:   "${zeta.server.pdp.realmUrl}${zeta.paths.pdp.dcrPath}"
+      # ... jwksUrl, nonceUrl
+      # Fallen auf die abgeleiteten Werte zurueck, wenn der Block nichts sagt:
+      issuer:       "${zeta.environments.${zeta.env|${env}}.issuer|${zeta.server.pdp.realmUrl}}"
+      smcbAudience: "${zeta.environments.${zeta.env|${env}}.smcbAudience|${zeta.server.pdp.tokenUrl}}"
+    pep.url: "${zeta.environments.${zeta.env|${env}}.pepUrl|${zeta.server.domain}}"
 ```
 
-Eine **weitere Umgebung** (z. B. `tu`, `staging`) ergänzt man, indem man einen neuen Block unter `zeta.environments` in `tiger/zeta-environments.yaml` einfügt und `zeta.env` auf dessen Namen setzt — keine Java- oder Feature-Datei muss angefasst werden.
+**Ein einmaliges Ziel** braucht gar keinen neuen Block — die Domain laesst sich direkt setzen:
+
+```bash
+./mvnw -pl test/zeta-testsuite verify -Dzeta.env=custom -Dzeta.server.domain=https://vsdm-test.tk.de
+```
+
+`-Dzeta.env=custom` ist dabei wichtig: ohne ihn gewinnen die im aktiven Block explizit gesetzten
+Werte (bei `local` z. B. der Ingress-Issuer), und nur die PDP-URLs wuerden umgebogen.
+
+> **Hinweis:** Die Fallback-Kette steht bewusst *inline* im Lookup (`${zeta.env|${env}}`) und
+> **nicht** als YAML-Default `zeta.env: "${env}"`. Ein frueher hier dokumentiertes
+> `"${ZETA_ENV|local}"` funktionierte nicht: Tiger bildet die Umgebungsvariable `ZETA_ENV` auf
+> genau diesen Schluessel ab, der Ausdruck war also selbstbezueglich und blieb unaufgeloest — mit
+> der Folge, dass saemtliche `zeta.server.*`-Werte als literale Platzhalter endeten. Genau diesen
+> Fehlerfall faengt `PoPpConfig` jetzt ab: ein Wert, der noch ein `${` enthaelt, fuehrt zu einer
+> Exception, die die verfuegbaren Bloecke nennt.
+
+Eine **weitere Umgebung** ergänzt man, indem man einen neuen Block unter `zeta.environments` in `tiger/zeta-environments.yaml` einfügt und `zeta.env` auf dessen Namen setzt — keine Java- oder Feature-Datei muss angefasst werden.
 
 ### Zugriff aus dem Java-Code
 
@@ -111,9 +138,9 @@ PoPpConfig.pepUrl();         // zeta.server.pep.url
 
 `PoPpConfig` hält selbst **keine** URLs — es liest ausschließlich die `zeta.server.*`-Schlüssel, die aus `tiger/zeta-environments.yaml` abgeleitet werden. Damit gibt es eine einzige Quelle der Wahrheit, und Tiger berücksichtigt automatisch System-Properties und Umgebungsvariablen.
 
-### Docker-Infrastruktur (separat vom `zeta.env`-Schalter)
+### Docker-Infrastruktur (separat vom `env`/`zeta.env`-Schalter)
 
-Die lokale PEP-/nginx-Infrastruktur in Docker wird **nicht** über `zeta.env` gesteuert, sondern über die Umgebungsvariable `POPP_SERVER_HOST` in der docker-compose-Datei (siehe Abschnitte unten). Beim Wechsel der Zielumgebung müssen daher zusätzlich die Docker-Variablen passend gesetzt werden:
+Die lokale PEP-/nginx-Infrastruktur in Docker wird **nicht** über `env`/`zeta.env` gesteuert, sondern über die Umgebungsvariable `POPP_SERVER_HOST` in der docker-compose-Datei (siehe Abschnitte unten). Beim Wechsel der Zielumgebung müssen daher zusätzlich die Docker-Variablen passend gesetzt werden:
 
 ```text
 doc/docker/backend/compose-popp-services.yaml
@@ -123,13 +150,13 @@ doc/docker/backend/zeta-popp/pep/nginx.conf
   └─ pep_popp_issuer, pep_pdp_issuer
 
 doc/docker/backend/zeta-popp/pep/conf/50-pep.conf.template
-  └─ proxy_pass https://${POPP_SERVER_HOST}/...
+  └─ proxy_pass http://${POPP_SERVER_HOST}/...
 ```
 
 ### Verhalten der Java-Klassen (nun konfigurationsgesteuert)
 
 **ZetaPepJwtTestFactory.java:**
-- DCR-, Token-, JWKS-, Nonce-Endpunkt, Issuer und SMC-B-Audience werden über `PoPpConfig` / `${zeta.server.pdp.*}` aus dem aktiven `zeta.env`-Block gelesen.
+- DCR-, Token-, JWKS-, Nonce-Endpunkt, Issuer und SMC-B-Audience werden über `PoPpConfig` / `${zeta.server.pdp.*}` aus dem aktiven ZETA-Block gelesen.
 - Token Exchange Scope: `popp` (ohne `audience`-Parameter).
 - Logik: Dynamische Client Registration (DCR) statt vordefinierter Test-Clients.
 
@@ -163,7 +190,7 @@ POPP_SERVER_HOST=popp.dev.poppservice.de:443
 Im PEP-Template wird dieser Host per HTTPS verwendet:
 
 ```nginx
-proxy_pass https://${POPP_SERVER_HOST}/ws;
+proxy_pass http://${POPP_SERVER_HOST}/ws;
 proxy_pass https://${POPP_SERVER_HOST}/;
 ```
 
@@ -268,13 +295,13 @@ Der lokale PDP wird durch den echten Keycloak-Realm der RU-DEV-Umgebung ersetzt.
 Betroffene Dateien:
 
 ```text
-tiger/defaults.yaml
+tiger/zeta-environments.yaml
 doc/docker/backend/zeta-popp/pep/nginx.conf
 test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaPepJwtTestFactory.java
 test/zeta-testsuite/src/test/java/de/gematik/zeta/steps/SmcbTokenExchangeSteps.java
 ```
 
-In `tiger/defaults.yaml` werden Token-Endpoint und Issuer gesetzt:
+In `tiger/zeta-environments.yaml` werden Token-Endpoint und Issuer gesetzt:
 
 ```yaml
 pdp.tokenUrl: https://popp.dev.poppservice.de/auth/realms/zeta-guard/protocol/openid-connect/token
@@ -336,7 +363,7 @@ Betroffene Dateien:
 ```text
 test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaPepJwtTestFactory.java
 test/zeta-testsuite/src/test/java/de/gematik/zeta/steps/SmcbTokenExchangeSteps.java
-tiger/defaults.yaml
+tiger/zeta-environments.yaml
 ```
 
 Der Token-Endpoint lautet:
@@ -378,11 +405,11 @@ Die Testsuite spricht nicht direkt den WebSocket-Endpunkt des echten PoPP-Server
 Betroffene Dateien:
 
 ```text
-tiger/defaults.yaml
+tiger/zeta-environments.yaml
 test/zeta-testsuite/src/test/java/de/gematik/zeta/steps/ZetaPepJwtSteps.java
 ```
 
-In `tiger/defaults.yaml` wird die lokale PoPP-Client-URL gesetzt:
+In `tiger/zeta-environments.yaml` wird die lokale PoPP-Client-URL gesetzt:
 
 ```yaml
 zeta.server.poppClient.url: http://127.0.0.1:18081
@@ -428,7 +455,7 @@ Die Service-Discovery-Tests müssen gegen die echten Discovery-Endpunkte laufen.
 Betroffene Dateien:
 
 ```text
-tiger/defaults.yaml
+tiger/zeta-environments.yaml
 test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaPepJwtTestFactory.java
 ```
 
@@ -493,7 +520,7 @@ Für die Ausführung gegen den echten PoPP-Server werden folgende Dateien angepa
 doc/docker/backend/zeta-popp/pep/nginx.conf
 doc/docker/backend/zeta-popp/pep/conf/50-pep.conf.template
 doc/docker/backend/compose-popp-services.yaml
-tiger/defaults.yaml
+tiger/zeta-environments.yaml
 test/zeta-testsuite/src/test/java/de/gematik/zeta/config/PoPpConfig.java
 test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaPepJwtTestFactory.java
 test/zeta-testsuite/src/test/java/de/gematik/zeta/steps/ZetaPepJwtSteps.java
@@ -532,7 +559,7 @@ Die Proxy-Ziele werden von HTTP auf HTTPS umgestellt:
 
 ```diff
 - proxy_pass http://${POPP_SERVER_HOST}/ws;
-+ proxy_pass https://${POPP_SERVER_HOST}/ws;
++ proxy_pass http://${POPP_SERVER_HOST}/ws;
 
 - proxy_pass http://${POPP_SERVER_HOST}/;
 + proxy_pass https://${POPP_SERVER_HOST}/;
@@ -584,16 +611,16 @@ ZETA_AUTHENTICATION_SMB_KEYFILE=/app/<dateiname>.p12
 Datei:
 
 ```text
-tiger/defaults.yaml
+tiger/zeta-environments.yaml
 ```
 
-Die Token-/Issuer-/PoPP-Client-URLs werden **nicht mehr direkt** editiert, sondern automatisch aus dem aktiven `zeta.environments.<zeta.env>`-Block abgeleitet. Zum Umschalten auf RU-DEV genügt:
+Die Token-/Issuer-/PoPP-Client-URLs werden **nicht mehr direkt** editiert, sondern automatisch aus dem aktiven Block unter `zeta.environments` abgeleitet. Zum Umschalten auf RU-DEV genügt:
 
 ```bash
-./mvnw -pl test/zeta-testsuite verify -Dzeta.env=rudev
+./mvnw -pl test/zeta-testsuite verify -Dzeta.env=popp-rudev
 ```
 
-(`rudev` ist bereits der Default.) Für den lokalen Mock entsprechend `-Dzeta.env=local`. Siehe Abschnitt [Umgebung umschalten (zentraler Schalter)](#umgebung-umschalten-zentraler-schalter).
+(Die Default-Stufe ist `local`, also der lokale Mock; ohne `-Dzeta.env` greift der Block `local`.) Siehe Abschnitt [Umgebung umschalten (zentraler Schalter)](#umgebung-umschalten-zentraler-schalter).
 
 ### ZetaPepJwtTestFactory
 
@@ -687,11 +714,11 @@ Alle ZETA-Tests ohne `@Ignore` (gegen RU-DEV, Default):
 
 ```bash
 ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false \
-  -Dzeta.env=rudev \
+  -Dzeta.env=popp-rudev \
   -Dcucumber.filter.tags="@PRODUKT:ZETA and not @Ignore"
 ```
 
-Gegen den lokalen Docker-Mock stattdessen `-Dzeta.env=local` setzen.
+Gegen den lokalen Docker-Mock stattdessen `-Dzeta.env` weglassen (Default-Stufe `local`).
 
 Ein einzelner Testlauf kann alternativ über spezifische Cucumber-Tags oder Testklassen eingeschränkt werden.
 
@@ -728,7 +755,7 @@ git checkout -- \
   doc/docker/backend/zeta-popp/pep/nginx.conf \
   doc/docker/backend/zeta-popp/pep/conf/50-pep.conf.template \
   doc/docker/backend/compose-popp-services.yaml \
-  tiger/defaults.yaml \
+  tiger/zeta-environments.yaml \
   test/zeta-testsuite/src/test/java/de/gematik/zeta/steps/ZetaPepJwtSteps.java \
   test/zeta-testsuite/src/test/java/de/gematik/zeta/steps/SmcbTokenExchangeSteps.java \
   test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaPepJwtTestFactory.java

@@ -43,7 +43,7 @@ public class BaseSimulation extends Simulation {
   private static final String OID_PRAXIS_ARZT = "1.2.276.0.76.4.50";
   protected static final SimulationConfigBean CFG = SimulationConfigProvider.getInstance();
   protected static final boolean RANDOM_READ_VSD = CFG.isRandomReadVsd();
-  protected static final int ZETA_POOL_CAPACITY = CFG.getZetaPoolCapacity();
+  protected static final int ZETA_POOL_CAPACITY = CFG.getZetaSdkPool().getCapacity();
   protected static final double ZERO_ETAG_REQUEST_PROBABILITY_PERCENT =
       validatePercentage(CFG.getZeroEtagRequestProbabilityPercent());
 

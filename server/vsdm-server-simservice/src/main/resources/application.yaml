@@ -17,7 +17,7 @@ vsdm:
   invalid-kvnr-prefix: X4
   unknown-kvnr-prefix: X9
   valid-profile-version-mapping:
-    1.0: 1.0.0
+    1.1: 1.1.0
 
 spring:
   servlet:

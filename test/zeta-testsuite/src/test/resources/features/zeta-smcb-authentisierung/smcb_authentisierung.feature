@@ -1,6 +1,6 @@
 #language:de
 # Befehl zum Ausführen der Tests:
-# ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@smcb_authentisierung and not @Ignore' -Dzeta.env=local
+# ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@smcb_authentisierung and not @Ignore'
 #
 # Hinweis: Diese Tests weisen die SMC-B-Authentisierung des ZETA-Clients nach.
 # Ein echtes, per SMC-B-Zertifikat signiertes subject_token wird erzeugt und zusammen
@@ -313,7 +313,7 @@ Funktionalität: SMC-B Authentisierung - ZETA-Client Authentisierung mittels SMC
   #        --env-file ./no-publish/test-data/zeta/connector/.shared-konnektor-kon41.env \
   #        --profile full up -d
   #   4. Diese Szenario-Tag manuell ausführen:
-  #      ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@konnektor' -Dzeta.env=local
+  #      ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@konnektor'
 
   Szenario: PoPP-Client erzeugt PoPP-Token mit gesteckter SMC-B und eGK über echten Konnektor
     Wenn TGR sende eine POST Anfrage an "${zeta.server.poppClient.url}/token" mit ContentType "application/json" und folgenden mehrzeiligen Daten:

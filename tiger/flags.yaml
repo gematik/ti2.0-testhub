@@ -1,4 +1,23 @@
-env: default
+# ============================================================================
+#  ZENTRALE STUFE
+# ============================================================================
+#  `env` benennt die Stufe und gilt fuer PoPP, VSDM und ZETA gleichermassen:
+#     -Denv=local | ru-dev | ru | tu
+#
+#  Einzelne Produkte weichen bei Bedarf davon ab:
+#     -Dpopp.env=<stufe>       nur der PoPP-Proxy   (tiger/popp-environments.yaml)
+#     -Dvsdm.env=<stufe>       nur die VSDM-URLs    (tiger/vsdm-environments.yaml)
+#     -Dzeta.env=<blockname>   nur der ZETA-Flow    (tiger/zeta-environments.yaml)
+#
+#  Bei ZETA ist die Uebersteuerung ein vollstaendiger Blockname (z.B. vsdm-tu),
+#  weil dort zwei Achsen zusammenkommen: die Stufe UND welcher der beiden
+#  ZETA-Guards gemeint ist (popp-zeta-* oder vsdm-zeta-* im Docker-Stack).
+#
+#  Die Testsuite-Topologie haengt dagegen am Tiger-Profil, das aus dem Modul-
+#  verzeichnis abgeleitet wird (lib.defaultProfile in tiger.yaml).
+# ============================================================================
+env: local
+
 vsdm:
   loadTesting:
     active: false # default is false – disables load testing dialogs

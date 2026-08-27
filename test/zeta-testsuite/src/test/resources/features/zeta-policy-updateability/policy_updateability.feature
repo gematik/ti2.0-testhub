@@ -1,6 +1,6 @@
 #language:de
 # Befehl zum Ausführen der Tests (vom Root-Verzeichnis ti2.0-testhub/):
-# ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@policy_updateability' -Dzeta.env=local
+# ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@policy_updateability'
 #
 # @Ignore: Nutzt die LOKALE OPA Policy-Admin-API (PUT /v1/policies/). Die echte
 # RU-DEV-OPA bietet keinen von uns nutzbaren Admin-Zugang → beim Lauf gegen echte

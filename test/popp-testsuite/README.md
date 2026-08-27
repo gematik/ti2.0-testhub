@@ -40,12 +40,24 @@ Je nach gewünschter Umgebung ist in der Run Configuration unter Environment Var
 Der PoPP-Server von Rise steht dabei in drei Instanzen zum Testen zur Verfügung:
 
 ```text
-TU:     env=popp-puet-test
-RU:     env=popp-puet-ref
-RU-DEV: env=popp-puet-dev
+lokal:  env=local  (Default, nichts setzen)
+TU:     env=tu
+RU:     env=ru
+RU-DEV: env=ru-dev
 ```
 
 Durch Setzen der Variable wird der Tiger-Proxy auf die entsprechende Umgebung konfiguriert.
+
+Zwei Achsen, bewusst getrennt:
+
+* **Welche Suite laeuft** bestimmt die Proxy-Topologie (Port 443, asn1-Parser, Route).
+  Sie steckt in `tiger-popp.yaml` und wird automatisch geladen, weil Maven und die IDE
+  im Modulverzeichnis `test/popp-testsuite` arbeiten — kein Schalter noetig.
+* **Wohin gezeigt wird** bestimmt `env` ueber die Knoten in `tiger/popp-environments.yaml`.
+  `env` benennt die Stufe und gilt fuer alle Produkte (PoPP, VSDM, ZETA); soll nur der
+  PoPP-Proxy abweichen, uebersteuert `-Dpopp.env=<stufe>`. Eine neue Stufe ist ein
+  weiterer Block unter `popp.environments`; nur `host`, ggf. `ip` und `kidTokenKey`
+  weichen ab, alles Weitere kommt aus `popp.common`.
 
 Zusätzlich MUSS die Datei `Hosts.txt` wie folgt editiert werden.
 
@@ -75,7 +87,7 @@ Alternativ kann der folgende Maven-Befehl im Root-Verzeichnis des Projektes ausg
 Beispiel RU-DEV:
 
 ```bash
-mvn -Denv=popp-puet-dev verify -Dcucumber.filter.tags="@TCID:UC_PoPP_1_2a_Valid"
+mvn -Denv=ru-dev verify -Dcucumber.filter.tags="@TCID:UC_PoPP_1_2a_Valid"
 ```
 
 > Tipp: Immer vorher einmal ins Feature-File schauen und nachsehen, welche Detailvarianten unter *Beispiele* ausgewählt sind.

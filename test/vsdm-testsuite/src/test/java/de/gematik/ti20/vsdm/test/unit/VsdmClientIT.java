@@ -53,7 +53,7 @@ class VsdmClientIT {
   private static final Integer TERMINAL_ID = 1;
   private static final Integer EGK_SLOT = 1;
   private static final Integer SMCB_SLOT = 2;
-  private static final String PROFILE_VERSION = "1.0";
+  private static final String PROFILE_VERSION = "1.1";
 
   private static final String VSDM_ENDPOINT =
       VSDM_CLIENT_URL

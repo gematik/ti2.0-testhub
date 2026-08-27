@@ -102,8 +102,8 @@ Die E2E-Tests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis ge
 
 ## ERROR-Tests
 
-Die Testsuite beinhaltet aktuell sieben ERROR-Testfälle, welche bestimmte Fehlersituationen durch die Verwendung von
-manipulierten Popp-Token auslösen. Hierzu ist es erforderlich, dass der Popp-Token-Generator (kurz: PTG) gestartet ist.
+Die Testsuite beinhaltet aktuell acht ERROR-Testfälle, welche bestimmte Fehlersituationen auslösen. Sieben davon
+verwenden manipulierte Popp-Token; hierzu ist es erforderlich, dass der Popp-Token-Generator (kurz: PTG) gestartet ist.
 Die folgenden Error-Codes werden getestet:
 
 * 79010 - VSDSERVICE_INVALID_IK
@@ -113,6 +113,10 @@ Die folgenden Error-Codes werden getestet:
 * 79014 - VSDSERVICE_MISSING_PATIENT_RECORD_VERSION
 * 79015 - VSDSERVICE_INVALID_PROFILE_VERSION
 * 79016 - VSDSERVICE_MISSING_PROFILE_VERSION
+
+Der achte Testfall (`features/zeta/UC_VSDM2_RVSD_ERROR_FORBIDDEN.feature`) prüft keinen dieser Error-Codes, sondern
+die Abweisung durch den ZETA-Guard (HTTP 403, "PoPP error: InvalidToken"). Er trägt ebenfalls `@TYPE:ERROR` und läuft
+daher mit.
 
 Die ERROR-Tests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
@@ -200,9 +204,16 @@ Die Simulation kann mittels Maven und folgender Kommandozeile im Projekt-Root-Ve
 
 ### Konfiguration der Simulationen
 
-Die Lastverteilung ist aktuell in der Datei "simulation.conf" so konfiguriert, dass diese eine zufällige Last im Bereich
-von 95 und 105 Aufrufen über einen Zeitraum von 100 Sekunden versendet. Wird der Parameter "randomReadVsd" in dieser Datei
-auf den Wert "false" gesetzt, werden stattdessen konstant 100 Aufrufe über einen Zeitraum von 100 Sekunden gesendet.
+Die Simulation wird in der Datei "simulation.conf" konfiguriert. Dort ist eine Liste von SMCBs mit der jeweiligen
+`actorId` hinterlegt. Für jede `actorId` wird mit `create_popptokens.sh` ein eigener Satz PoPP-Tokens vorab erzeugt.
+Anschließend werden mit `create_etags.sh` die zugehörigen `etags` erzeugt und die einzelnen CSV-Dateien mit `paste`
+zusammengeführt.
+
+Beispiel:
+
+```
+paste -d ',' popp_tokens_tk_test_1.csv popp_tokens_tk_test_2.csv popp_tokens_tk_test_3.csv etags_tk_test.csv > popp_tokens_etags_tk_test.csv
+```
 
 Der Anwender kann auch eine eigene Konfigurationsdatei, welche sich im Resource-Ordner befinden sollte, definieren. Die
 eigene Datei muss sich jedoch strukturell an der Datei "simulation.conf" orientieren. Für eine Datei mit dem Pfad

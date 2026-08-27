@@ -1,6 +1,6 @@
 #language:de
 # Befehl zum Ausführen der Tests:
-# ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@client_registrierung and not @Ignore' -Dzeta.env=local
+# ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@client_registrierung and not @Ignore'
 @PRODUKT:ZT_Cluster
 @PRODUKT:PoPP_Service
 @PRODUKT:Anb_PoPP_Service

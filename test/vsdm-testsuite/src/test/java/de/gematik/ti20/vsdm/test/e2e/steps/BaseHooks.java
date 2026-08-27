@@ -41,16 +41,16 @@ public class BaseHooks {
   public void setTheStage() {
     OnStage.setTheStage(new OnlineCast());
 
+    // Die Basis-URLs kommen aus dem aktiven Block in tiger/vsdm-environments.yaml,
+    // ausgewaehlt ueber die Stufe -Denv=<name> bzw. -Dvsdm.env=<name>, wenn nur
+    // VSDM abweichen soll. Unbekannte Werte fallen dort automatisch auf
+    // `vsdm.common` zurueck. Einzelne Ports lassen sich weiterhin per
+    // -Dports.<name>=... uebersteuern.
     OnStage.theActorCalled("Primärsystem")
-        .can(
-            CallPoppTokenGenerator.at(
-                resolvePlaceholders("http://${ports.host}:${ports.poppTokenGeneratorPort}")))
-        .can(
-            CallCardClient.at(
-                resolvePlaceholders("http://${ports.host}:${ports.cardTerminalPort}")))
-        .can(CallPoppClient.at(resolvePlaceholders("http://${ports.host}:${ports.poppClientPort}")))
-        .can(
-            CallVsdmClient.at(resolvePlaceholders("http://${ports.host}:${ports.vsdmClientPort}")));
+        .can(CallPoppTokenGenerator.at(resolvePlaceholders("${vsdm.server.poppTokenGeneratorUrl}")))
+        .can(CallCardClient.at(resolvePlaceholders("${vsdm.server.cardTerminalUrl}")))
+        .can(CallPoppClient.at(resolvePlaceholders("${vsdm.server.poppClientUrl}")))
+        .can(CallVsdmClient.at(resolvePlaceholders("${vsdm.server.clientUrl}")));
   }
 
   @After(order = 100)

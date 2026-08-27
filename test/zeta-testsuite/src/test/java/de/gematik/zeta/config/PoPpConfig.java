@@ -31,16 +31,18 @@ import lombok.extern.slf4j.Slf4j;
  * Zentraler, typisierter Zugriff auf alle PoPP-/PDP-Endpunkte der Testsuite.
  *
  * <p>Die Klasse hält selbst KEINE URLs vor. Sie liest ausschließlich die in {@code
- * tiger/defaults.yaml} definierten Schlüssel ({@code zeta.server.*}), die dort wiederum aus dem
- * zentralen Umgebungs-Schalter {@code zeta.env} abgeleitet werden. Welche Umgebung aktiv ist (z.B.
- * {@code local} oder {@code rudev}), wird damit an genau einer Stelle gesteuert und gilt für alle
- * Konsumenten gleichermaßen.
+ * tiger/zeta-environments.yaml} definierten Schlüssel ({@code zeta.server.*}), die dort wiederum
+ * aus dem aktiven Umgebungs-Block abgeleitet werden. Welche Umgebung aktiv ist, wird damit an genau
+ * einer Stelle gesteuert und gilt für alle Konsumenten gleichermaßen.
  *
- * <p>Umschalten der Umgebung:
+ * <p>Die Stufe kommt aus dem zentralen Schalter {@code env}, der für alle Produkte gilt. Bei ZETA
+ * übersteuert {@code zeta.env} mit einem vollständigen Blocknamen, weil hier zwei Achsen
+ * zusammenkommen: die Stufe UND welcher der beiden ZETA-Guards gemeint ist:
  *
  * <pre>
- *   -Dzeta.env=local        (System-Property)
- *   export ZETA_ENV=local   (Umgebungsvariable)
+ *   -Denv=local             (Stufe, Default — trifft den Block `local`)
+ *   -Dzeta.env=vsdm-tu      (System-Property, übersteuert nur ZETA)
+ *   export ZETA_ENV=vsdm-tu (Umgebungsvariable)
  * </pre>
  *
  * <p>Alle Getter lösen die Werte <b>lazy</b> auf, damit der Schalter auch dann greift, wenn die
@@ -130,14 +132,38 @@ public final class PoPpConfig {
       throw new IllegalStateException(
           "PoPpConfig: Konfigurationsschlüssel '"
               + key
-              + "' ist nicht gesetzt. Prüfe tiger/defaults.yaml und zeta.env.");
+              + "' ist nicht gesetzt. Prüfe tiger/zeta-environments.yaml, env und zeta.env.");
+    }
+    // Tiger laesst einen Platzhalter, dessen Block es nicht gibt, still als Literal stehen,
+    // statt zu scheitern. Genau das passiert bei einer Stufe ohne ZETA-Block (z.B. -Denv=tu
+    // ohne -Dzeta.env) und wuerde sonst erst als unverstaendlicher HTTP-Fehler auffallen.
+    if (value.contains("${")) {
+      throw new IllegalStateException(
+          "PoPpConfig: '"
+              + key
+              + "' liess sich nicht aufloesen und ergab '"
+              + value
+              + "'. Fuer "
+              + activeEnvDescription()
+              + " gibt es keinen ZETA-Block. Verfuegbar sind: local, popp-rudev, vsdm-tu,"
+              + " vsdm-rudev, custom — waehle einen davon mit -Dzeta.env=<blockname>.");
     }
     return value;
   }
 
+  /** Beschreibt, welcher Block gerade gesucht wird — fuer Fehlermeldungen und Logging. */
+  private static String activeEnvDescription() {
+    // readString(key) wirft, wenn der Schluessel fehlt — und `zeta.env` fehlt im Normalfall,
+    // weil die Stufe dann aus `env` kommt. Deshalb hier die Variante mit Default.
+    String zetaEnv = TigerGlobalConfiguration.readString("zeta.env", "");
+    return zetaEnv.isBlank()
+        ? "env=" + TigerGlobalConfiguration.readString("env", "<nicht gesetzt>")
+        : "zeta.env=" + zetaEnv;
+  }
+
   /** Loggt die aktuell aufgelöste Konfiguration (Debug-Hilfe). */
   public static void logConfiguration() {
-    log.info("========== PoPpConfig (zeta.env={}) ==========", resolve("zeta.env"));
+    log.info("========== PoPpConfig ({}) ==========", activeEnvDescription());
     log.info("PDP Realm URL : {}", realmUrl());
     log.info("Token Endpoint: {}", tokenUrl());
     log.info("Issuer        : {}", issuer());

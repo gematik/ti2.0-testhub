@@ -54,6 +54,7 @@ services:
       - CARD_TERMINAL_ID=${CARD_TERMINAL_ID:-}
       - CARD_TERMINAL_SLOT=${CARD_TERMINAL_SLOT:-}
       # - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5013"
+      - JAVA_TOOL_OPTIONS=${POPP_JAVA_TOOL_OPTIONS:-}
     networks:
       - testhub_network
     ports:
@@ -64,7 +65,12 @@ services:
       - ${CONNECTOR_KEYSTORE_DIR:-./zeta/connector}/${CONNECTOR_KEYSTORE_FILE:-keystore.p12}:/app/connector/keystore.p12:ro
       - ${CONNECTOR_TRUSTSTORE_DIR:-./zeta/connector}/${CONNECTOR_TRUSTSTORE_FILE:-truststore.p12}:/app/connector/truststore.p12:ro
       - ../../../test/vsdm-testsuite/src/test/resources/data/cards:/data/cards
-      - ../dns/resolv.conf:/etc/resolv.conf:ro
+      - type: volume
+        source: dns-config
+        target: /etc/resolv.conf
+        read_only: true
+        volume:
+          subpath: resolv.conf
       - ../../../test/vsdm-testsuite/src/test/resources/${VIRTUAL_CARD_IMAGE_PATH:-data/cards}:${VIRTUAL_CARD_IMAGE_PATH:-/data/cards}:ro
       - ../../../no-publish/test-data/erp:/mnt/:ro
     depends_on:
@@ -188,7 +194,7 @@ services:
 
   popp-zeta-pdp:
     profiles: [ "full", "backend-only" ]
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:1.2.1
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:1.2.3
     env_file:
       - path: ../.env
         required: true
@@ -267,7 +273,7 @@ services:
   popp-zeta-pdp-opa:
     profiles: [ "full", "backend-only" ]
     container_name: popp-zeta-pdp-opa
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/opa:1.16.2-static
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/opa:1.18.2-static
     env_file:
       - path: ../.env
         required: true

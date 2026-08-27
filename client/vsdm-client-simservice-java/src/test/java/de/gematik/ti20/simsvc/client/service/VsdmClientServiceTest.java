@@ -82,7 +82,7 @@ class VsdmClientServiceTest {
 
   private final String cardId = "card1";
   private final PoppToken poppToken = new PoppToken("token123");
-  private final String profileVersion = "1.0";
+  private final String profileVersion = "1.1";
 
   @BeforeEach
   void setUp() throws Exception {

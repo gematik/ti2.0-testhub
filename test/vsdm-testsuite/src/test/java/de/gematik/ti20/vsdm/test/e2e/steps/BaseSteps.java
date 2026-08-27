@@ -39,9 +39,9 @@ public class BaseSteps {
   protected static final String SMCB_CARD_IMAGE_FILE = CFG.getTestData().getSmcbCardImageFile();
   protected static final String EGK_CARD_IMAGE_FILE = CFG.getTestData().getEgkCardImageFile();
   protected static final String VALID_PROFILE_VERSION = CFG.getTestData().getProfileVersion();
-  protected static final boolean VSDM_LOAD_TESTING_ACTIVE =
+  protected static final boolean SHOW_BACKGROUND_LOAD_DIALOG =
       Boolean.parseBoolean(
-          Optional.ofNullable(System.getenv("VSDM_LOAD_TESTING_ACTIVE")).orElse("false"));
+          Optional.ofNullable(System.getenv("SHOW_BACKGROUND_LOAD_DIALOG")).orElse("false"));
 
   protected Actor hccs() {
     return OnStage.theActorInTheSpotlight();

@@ -1,0 +1,72 @@
+# ============================================================================
+#  PoPP-UMGEBUNGEN  (WOHIN gezeigt wird)
+# ============================================================================
+#  Die Stufe kommt aus dem zentralen Schalter `env` (tiger/flags.yaml):
+#     -Denv=ru-dev            gilt fuer alle Produkte
+#     -Dpopp.env=ru-dev       uebersteuert nur PoPP
+#     export POPP_ENV=ru-dev  dasselbe als Umgebungsvariable
+#
+#  Ausgewaehlt wird ein KNOTEN, keine Datei — ein unbekannter Wert (und die
+#  Default-Stufe `local`) faellt auf `popp.common` zurueck statt einen Fehler
+#  auszuloesen.
+#
+#  Verfuegbare Stufen:
+#     local   = lokaler popp-server aus doc/docker (kein Block noetig)
+#     ru-dev  = popp.dev.poppservice.de
+#     ru      = popp.ref.poppservice.de
+#     tu      = popp.test.poppservice.de
+#
+#  NICHT hier: die Proxy-Topologie (Port 443, asn1-Parser). Die haengt an der
+#  Testsuite, nicht an der Umgebung, und steht deshalb in tiger-popp.yaml.
+#
+#  Neue Stufe ergaenzen: einen weiteren Block unter `popp.environments`
+#  anlegen und nur setzen, was von `popp.common` abweicht:
+#    host          Hostname (mit Port, falls nicht 443), unter dem der PoPP-
+#                  Service angesprochen wird
+#    ip            nur noetig, wenn `host` per /etc/hosts auf 127.0.0.1 zeigt:
+#                  die echte Gegenstelle, an die der lokale Proxy weiterleitet
+#    kidTokenKey   erwarteter `kid` im PoPP-Token
+# ============================================================================
+popp:
+  # ---- Gemeinsame Werte ----------------------------------------------------
+  common:
+    # Defaults: der lokale popp-server aus doc/docker.
+    host: "${ports.host}:${ports.poppServerPort}"
+    kidTokenKey: 4IVYHy721K0rnjZ8_9fnsKofs0eKhGOcqEDVo0RBZFQ
+  puet:
+    # Von allen PU/ET-Umgebungen des PoPP-Dienstes geteilt – nur einmal
+    # gepflegt. `puet` ist der Name des PoPP-Dienstes selbst, keine Stufe.
+    kidTokenKey: "0012005900010001"
+
+  # ---- Stufen (hier neue Umgebungen ergaenzen) -----------------------------
+  # `local` braucht keinen Block: die Stufe erbt alles aus `popp.common`.
+  environments:
+    ru-dev:
+      host: popp.dev.poppservice.de
+      ip: 213.95.83.151
+      kidTokenKey: "${popp.puet.kidTokenKey}"
+
+    ru:
+      host: popp.ref.poppservice.de
+      ip: 213.95.83.149
+      kidTokenKey: "${popp.puet.kidTokenKey}"
+
+    tu:
+      host: popp.test.poppservice.de
+      ip: 213.95.83.150
+      kidTokenKey: "${popp.puet.kidTokenKey}"
+
+  # ---- Abgeleitete Werte ---------------------------------------------------
+  # Lookup-Kette: `popp.env` (produktspezifisch) vor `env` (global), sonst
+  # `popp.common`.
+  server:
+    host: "${popp.environments.${popp.env|${env}}.host|${popp.common.host}}"
+    url: "https://${popp.server.host}"
+    kidTokenKey: "${popp.environments.${popp.env|${env}}.kidTokenKey|${popp.common.kidTokenKey}}"
+  route:
+    # Ziel des Proxys: die echte IP, wo /etc/hosts den Hostnamen umbiegt,
+    # sonst der Host selbst.
+    to: "https://${popp.environments.${popp.env|${env}}.ip|${popp.server.host}}"
+  client:
+    # Endpunkt des lokalen PoPP-Clients aus doc/docker
+    tokenUrl: "http://${ports.host}:${ports.poppClientPort}/token"

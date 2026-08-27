@@ -2,6 +2,12 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.13.0
+
+- TESTHUB-202: update FHIR schema to match latest version of VSDM2 specification 1.1.0
+- TESTHUB-205: allow for multiple SMCB certificates in the VSDM2 load tests
+- TESTHUB-208: avoid writing resolv.conf in the host system
+
 ## Release 3.12.0
 
 ### Changes

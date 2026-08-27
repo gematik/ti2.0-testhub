@@ -55,6 +55,10 @@ This project has the following folders:
 |
 | FHIR resource handling for VSDM
 
+| └─ rbel-fluent-api/
+|
+| Fluent assertion API wrapping Tiger's RBel library, used by all test suites
+
 | **test/**
 | Test suites
 | Integration and end-to-end tests
@@ -70,6 +74,14 @@ This project has the following folders:
 | └─ zeta-testsuite/
 |
 | Zeta workflow test suite
+
+| └─ erp-testsuite/
+|
+| E-Rezept test suite (Spring profiles, not Tiger-based)
+
+| **tiger/**
+| Shared Tiger configuration
+| Ports, paths, feature flags and the per-product environment registries. See <<_test_environment_selection>>.
 
 | **doc/**
 | Documentation and scripts
@@ -90,4 +102,12 @@ This project has the following folders:
 | **jenkinsfiles/**
 | CI/CD pipelines
 | Jenkins pipeline definitions
+
+| **coverage-report/**
+| Aggregated coverage
+| Jacoco report across all modules
+
+| **user-manual/**
+| This manual
+| AsciiDoc sources published to gematik.github.io/ti2.0-testhub
 |===

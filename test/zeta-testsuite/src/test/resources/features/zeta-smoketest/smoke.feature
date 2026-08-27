@@ -1,6 +1,6 @@
 #language:de
 # Befehl zum ausführen des Tests:
-# ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@smoke' -Dzeta.env=local
+# ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@smoke'
 @PRODUKT:ZT_Cluster
 @PRODUKT:PoPP_Service
 @PRODUKT:Anb_PoPP_Service
@@ -22,11 +22,14 @@ Funktionalität: Smoke Tests mit PoPP und VSDM2
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "200"
     Und gebe die Antwortzeit vom aktuellen Nachrichtenpaar aus
 
+  # Ressource = Basis-URL der Komponente + Well-known-Pfad, Pfad = derselbe
+  # Well-known-Pfad. Beides kommt aus tiger/paths.yaml, damit Port und Pfad
+  # nur an einer Stelle gepflegt werden.
   Beispiele:
-    | Ressource                              | Pfad                                    | #Ressource         |
-    | ${smoke.endpoints.poppZetaPdp.url}     | ${smoke.endpoints.poppZetaPdp.path}     | #PoPP ZeTA PDP     |
-    | ${smoke.endpoints.poppZetaPep.url}     | ${smoke.endpoints.poppZetaPep.path}     | #PoPP ZeTA PEP     |
-    | ${smoke.endpoints.poppZetaIngress.url} | ${smoke.endpoints.poppZetaIngress.path} | #PoPP ZETA Ingress |
-    | ${smoke.endpoints.vsdmZetaPdp.url}     | ${smoke.endpoints.vsdmZetaPdp.path}     | #VSDM ZETA PDP     |
-    | ${smoke.endpoints.vsdmZetaPep.url}     | ${smoke.endpoints.vsdmZetaPep.path}     | #VSDM ZETA PEP     |
-    | ${smoke.endpoints.vsdmZetaIngress.url} | ${smoke.endpoints.vsdmZetaIngress.path} | #VSDM ZeTA Ingress |
+    | Ressource                                                                                       | Pfad                                                                | #Ressource         |
+    | ${zeta.paths.popp.pdp.baseUrl}${zeta.paths.pdp.realmPath}${zeta.paths.wellKnown.openidConfiguration} | ${zeta.paths.pdp.realmPath}${zeta.paths.wellKnown.openidConfiguration} | #PoPP ZeTA PDP     |
+    | ${zeta.paths.popp.pep.baseUrl}${zeta.paths.wellKnown.oauthProtectedResource}                    | ${zeta.paths.wellKnown.oauthProtectedResource}                      | #PoPP ZeTA PEP     |
+    | ${zeta.paths.popp.ingress.baseUrl}${zeta.paths.wellKnown.oauthProtectedResource}                | ${zeta.paths.wellKnown.oauthProtectedResource}                      | #PoPP ZETA Ingress |
+    | ${zeta.paths.vsdm.pdp.baseUrl}${zeta.paths.pdp.realmPath}${zeta.paths.wellKnown.openidConfiguration} | ${zeta.paths.pdp.realmPath}${zeta.paths.wellKnown.openidConfiguration} | #VSDM ZETA PDP     |
+    | ${zeta.paths.vsdm.pep.baseUrl}${zeta.paths.wellKnown.oauthProtectedResource}                    | ${zeta.paths.wellKnown.oauthProtectedResource}                      | #VSDM ZETA PEP     |
+    | ${zeta.paths.vsdm.ingress.baseUrl}${zeta.paths.wellKnown.oauthProtectedResource}                | ${zeta.paths.wellKnown.oauthProtectedResource}                      | #VSDM ZeTA Ingress |

@@ -25,16 +25,8 @@
 package de.gematik.ti20.vsdm.test.load;
 
 import de.gematik.zeta.sdk.*;
-import de.gematik.zeta.sdk.attestation.model.AttestationConfig;
-import de.gematik.zeta.sdk.attestation.model.PlatformProductId;
-import de.gematik.zeta.sdk.authentication.AuthConfig;
-import de.gematik.zeta.sdk.authentication.SubjectTokenProvider;
-import de.gematik.zeta.sdk.authentication.smb.SmbTokenProvider;
 import de.gematik.zeta.sdk.network.http.client.HttpClientExtension;
 import de.gematik.zeta.sdk.network.http.client.ZetaHttpClient;
-import de.gematik.zeta.sdk.network.http.client.ZetaHttpClientBuilder;
-import de.gematik.zeta.sdk.storage.SdkStorage;
-import de.gematik.zeta.sdk.storage.StorageConfig;
 import io.gatling.commons.stats.KO$;
 import io.gatling.commons.stats.OK$;
 import io.gatling.commons.util.Clock;
@@ -43,28 +35,19 @@ import io.gatling.core.stats.StatsEngine;
 import io.gatling.core.structure.ScenarioContext;
 import io.gatling.javaapi.core.ActionBuilder;
 import io.gatling.javaapi.core.Session;
-import io.ktor.client.plugins.logging.LogLevel;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import kotlin.Unit;
-import kotlin.coroutines.Continuation;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import scala.Option;
 import scala.Option$;
 
@@ -78,13 +61,22 @@ public final class ZetaDsl {
   private static final String ZETA_SUCCESS_KEY = "zeta_success";
   private static final String ZETA_DURATION_MS_KEY = "zeta_duration_ms";
   private static final String ZETA_ERROR_MESSAGE_KEY = "zeta_error_message";
-
-  private static int ZETA_POOL_SIZE = 20;
+  private static final String ACTOR_ID_KEY = "actorId";
 
   private ZetaDsl() {}
 
-  public static ZetaRequestBuilder zeta(final String requestName, final int zetaPoolSize) {
-    ZetaDsl.ZETA_POOL_SIZE = zetaPoolSize;
+  public static void configureZetaClientPool(
+      final SimulationConfigBean.ZetaClientPoolConfig zetaClientPoolConfig) {
+    Objects.requireNonNull(zetaClientPoolConfig, "zetaClientPoolConfig");
+    configureZetaClientPool(zetaClientPoolConfig.getCapacity(), zetaClientPoolConfig.getSmcbs());
+  }
+
+  public static void configureZetaClientPool(
+      final int poolSize, final List<SimulationConfigBean.SmcbData> smcbs) {
+    ZetaClientFactory.configure(poolSize, smcbs);
+  }
+
+  public static ZetaRequestBuilder zeta(final String requestName) {
     return new ZetaRequestBuilder(requestName);
   }
 
@@ -205,6 +197,7 @@ public final class ZetaDsl {
       final long startedAtNanos = System.nanoTime();
       ZetaSdkClient zetaSdkClient = null;
       String targetUrl = null;
+      String actorId = null;
       try {
         if (rawUrl == null) {
           throw new IllegalStateException(
@@ -216,8 +209,13 @@ public final class ZetaDsl {
 
         final Map<String, String> resolvedHeaders = resolveHeaders(session);
 
-        zetaSdkClient = ZetaClientFactory.acquireFor(targetUrl);
-        log.info("Acquired ZetaSdkClient: {}", zetaSdkClient.hashCode());
+        actorId = resolveActorId(session);
+        zetaSdkClient = ZetaClientFactory.acquireFor(targetUrl, actorId);
+        log.info(
+            "Acquired ZetaSdkClient for actorId '{}': {} ({})",
+            actorId,
+            zetaSdkClient.hashCode(),
+            ZetaSdkClientExtension.status(zetaSdkClient));
 
         try (ZetaHttpClient httpClient =
             zetaSdkClient.httpClient(
@@ -304,8 +302,9 @@ public final class ZetaDsl {
             .markAsFailed();
       } finally {
         if (zetaSdkClient != null && targetUrl != null) {
-          ZetaClientFactory.releaseFor(targetUrl, zetaSdkClient);
-          log.info("Released ZetaSdkClient: {}", zetaSdkClient.hashCode());
+          ZetaClientFactory.releaseFor(targetUrl, actorId, zetaSdkClient);
+          log.info(
+              "Released ZetaSdkClient for actorId '{}': {}", actorId, zetaSdkClient.hashCode());
         }
       }
     }
@@ -432,19 +431,33 @@ public final class ZetaDsl {
     return resolved.toString();
   }
 
-  static final class ZetaClientFactory {
-    private static final String SCOPE = "vsdservice";
+  private static String resolveActorId(final Session session) {
+    final String actorId = session.getString(ACTOR_ID_KEY);
+    if (actorId == null || actorId.isBlank()) {
+      throw new IllegalStateException("Missing actorId in session");
+    }
+    return actorId;
+  }
 
+  static final class ZetaClientFactory {
     private static final Map<String, ZetaClientPool> POOLS_BY_RESOURCE = new ConcurrentHashMap<>();
+    private static volatile ZetaClientPoolConfiguration configuration = loadDefaultConfiguration();
 
     private ZetaClientFactory() {}
 
-    static ZetaSdkClient acquireFor(final String targetUrl) throws InterruptedException {
-      return poolFor(targetUrl).acquire();
+    static synchronized void configure(
+        final int capacity, final List<SimulationConfigBean.SmcbData> smcbs) {
+      configuration = new ZetaClientPoolConfiguration(capacity, smcbs);
     }
 
-    static void releaseFor(final String targetUrl, final ZetaSdkClient client) {
-      poolFor(targetUrl).release(client);
+    static ZetaSdkClient acquireFor(final String targetUrl, final String actorId)
+        throws InterruptedException {
+      return poolFor(targetUrl).acquire(actorId);
+    }
+
+    static void releaseFor(
+        final String targetUrl, final String actorId, final ZetaSdkClient client) {
+      poolFor(targetUrl).release(actorId, client);
     }
 
     static void shutdown() {
@@ -453,135 +466,43 @@ public final class ZetaDsl {
     }
 
     private static ZetaClientPool poolFor(final String resourceBase) {
-      return POOLS_BY_RESOURCE.computeIfAbsent(resourceBase, ZetaClientPool::new);
-    }
-
-    static final class ZetaClientPool {
-      private final String resourceBase;
-      private final int capacity;
-      private final BlockingQueue<ZetaSdkClient> available = new LinkedBlockingQueue<>();
-      private final AtomicInteger created = new AtomicInteger(0);
-
-      ZetaClientPool(final String resourceBase) {
-        this.resourceBase = resourceBase;
-        this.capacity = ZetaDsl.ZETA_POOL_SIZE;
-        log.info("ZetaClientPool created for '{}' with capacity {}", resourceBase, capacity);
-      }
-
-      ZetaSdkClient acquire() throws InterruptedException {
-        final ZetaSdkClient existing = available.poll();
-        if (existing != null) {
-          return existing;
-        }
-
-        int current;
-        do {
-          current = created.get();
-          if (current >= capacity) {
-            log.debug(
-                "ZetaClientPool for '{}' exhausted (capacity={}), waiting for available client",
-                resourceBase,
-                capacity);
-            return available.take();
-          }
-        } while (!created.compareAndSet(current, current + 1));
-
-        log.debug(
-            "ZetaClientPool for '{}': creating client {}/{}", resourceBase, current + 1, capacity);
-        return createClient(resourceBase);
-      }
-
-      void release(final ZetaSdkClient client) {
-        available.offer(client);
-      }
-
-      void cleanup() {
-        log.info("Clear ZetaClientPool for '{}'", resourceBase);
-        for (ZetaSdkClient client : available) {
-          SdkStatus status = ZetaSdkClientExtension.status(client);
-          log.info("Status: {}", status);
-        }
-      }
-    }
-
-    private static ZetaSdkClient createClient(final String resourceBase) {
-      return ZetaSdk.INSTANCE.build(
+      final ZetaClientPoolConfiguration currentConfiguration = configuration;
+      return POOLS_BY_RESOURCE.computeIfAbsent(
           resourceBase,
-          new BuildConfig(
-              "demo-client",
-              "0.2.0",
-              "sdk-client",
-              new StorageConfig.Custom(
-                  new SdkStorage() {
-                    private HashMap<String, String> cache = new HashMap<>();
-
-                    @Override
-                    public @Nullable Object put(
-                        @NonNull String s,
-                        @NonNull String s1,
-                        @NonNull Continuation<? super Unit> continuation) {
-                      cache.put(s, s1);
-                      return continuation;
-                    }
-
-                    @Override
-                    public @Nullable Object get(
-                        @NonNull String s, @NonNull Continuation<? super String> continuation) {
-                      return cache.get(s);
-                    }
-
-                    @Override
-                    public @Nullable Object remove(
-                        @NonNull String s, @NonNull Continuation<? super Unit> continuation) {
-                      return cache.remove(s);
-                    }
-
-                    @Override
-                    public @Nullable Object clear(
-                        @NonNull Continuation<? super Unit> continuation) {
-                      cache.clear();
-                      return continuation;
-                    }
-                  }),
-              new TpmConfig() {},
-              new AuthConfig(
-                  List.of(SCOPE),
-                  30L,
-                  false,
-                  tokenProviderFromEnvironment(),
-                  AttestationConfig.software(),
-                  ""),
-              new PlatformProductId.LinuxProductId(
-                  PlatformProductId.PLATFORM_LINUX, "jar", "testhub", "latest"),
-              new ZetaHttpClientBuilder().disableServerValidation(true).logging(LogLevel.ALL),
-              null,
-              null,
-              null));
+          key ->
+              new ZetaClientPool(
+                  key, currentConfiguration.capacity(), currentConfiguration.smcbs()));
     }
 
-    private static SubjectTokenProvider tokenProviderFromEnvironment() {
-      final String keyPath =
-          "doc/docker/backend/zeta/smcb-private/smcb_private.p12"; // readRequired("ZETASDK_SMCB_PRIVATE_KEY_PATH");
-      final String alias = "alias"; // readRequired("ZETASDK_SMCB_ALIAS");
-      final String password = "00"; // readRequired("ZETASDK_SMCB_PRIVATE_KEY_PASSWORD");
-
-      final Path privateKeyPath = Path.of(keyPath);
-      if (!Files.exists(privateKeyPath) || !Files.isRegularFile(privateKeyPath)) {
-        throw new IllegalStateException("SMCB private key file does not exist: " + keyPath);
-      }
-      if (!Files.isReadable(privateKeyPath)) {
-        throw new IllegalStateException("SMCB private key file is not readable: " + keyPath);
-      }
-
-      return new SmbTokenProvider(new SmbTokenProvider.Credentials(keyPath, alias, password, ""));
+    private static ZetaClientPoolConfiguration loadDefaultConfiguration() {
+      final SimulationConfigBean.ZetaClientPoolConfig zetaSdkPool =
+          SimulationConfigProvider.getInstance().getZetaSdkPool();
+      return new ZetaClientPoolConfiguration(zetaSdkPool.getCapacity(), zetaSdkPool.getSmcbs());
     }
 
-    private static String readRequired(final String key) {
-      final String value = System.getenv(key);
-      if (value == null || value.isBlank()) {
-        throw new IllegalStateException("Missing required environment variable: " + key);
+    private static final class ZetaClientPoolConfiguration {
+      private final int capacity;
+      private final List<SimulationConfigBean.SmcbData> smcbs;
+
+      private ZetaClientPoolConfiguration(
+          final int capacity, final List<SimulationConfigBean.SmcbData> smcbs) {
+        if (capacity <= 0) {
+          throw new IllegalArgumentException("zetaSdkPool.capacity must be greater than 0");
+        }
+        this.capacity = capacity;
+        this.smcbs = List.copyOf(Objects.requireNonNull(smcbs, "smcbs"));
+        if (this.smcbs.isEmpty()) {
+          throw new IllegalArgumentException("zetaSdkPool.smcbs must not be empty");
+        }
       }
-      return value;
+
+      private int capacity() {
+        return capacity;
+      }
+
+      private List<SimulationConfigBean.SmcbData> smcbs() {
+        return smcbs;
+      }
     }
   }
 }

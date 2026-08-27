@@ -7,7 +7,7 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.12.0</version>
+        <version>3.13.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -150,7 +150,10 @@
                     <jvmArgs>
                         <jvmArg>-Dtiger.testenv.cfgfile=${maven.multiModuleProjectDirectory}/tiger.yaml</jvmArg>
                         <jvmArg>-Dtiger.rootfolder=${maven.multiModuleProjectDirectory}</jvmArg>
-                        <jvmArg>-Denv=perf</jvmArg>
+                        <!-- Kein Profil-Schalter noetig: das Tiger-Profil wird aus dem
+                             Modulverzeichnis abgeleitet (-> `vsdm`), siehe lib.defaultProfile
+                             in tiger.yaml. Die Gatling-Simulationen initialisieren Tiger
+                             ohnehin nicht. -->
                     </jvmArgs>
                 </configuration>                    <!-- Enterprise Cloud (https://cloud.gatling.io/) configuration reference: https://docs.gatling.io/reference/integrations/build-tools/maven-plugin/#running-your-simulations-on-gatling-enterprise-cloud -->
             </plugin>

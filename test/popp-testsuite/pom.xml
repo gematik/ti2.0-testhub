@@ -8,7 +8,7 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.12.0</version>
+        <version>3.13.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -150,6 +150,13 @@
                         <include>**/Driver*IT.java</include>
                     </includes>
                     <skipITs>${skip.inttests}</skipITs>
+                    <!-- Die Root-tiger.yaml explizit festnageln (wie in zeta-/vsdm-testsuite).
+                         Ohne das sucht Tiger sie ausgehend vom Arbeitsverzeichnis nach oben,
+                         was den Lauf vom CWD abhaengig macht. -->
+                    <environmentVariables>
+                        <TIGER_TESTENV_CFGFILE>${maven.multiModuleProjectDirectory}/tiger.yaml</TIGER_TESTENV_CFGFILE>
+                        <TIGER_ROOTFOLDER>${maven.multiModuleProjectDirectory}</TIGER_ROOTFOLDER>
+                    </environmentVariables>
                 </configuration>
             </plugin>
         </plugins>
