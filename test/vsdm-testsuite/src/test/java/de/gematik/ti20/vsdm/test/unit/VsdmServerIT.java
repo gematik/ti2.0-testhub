@@ -51,6 +51,7 @@ class VsdmServerIT {
           + System.getProperty("ports.host", "localhost")
           + ":"
           + System.getProperty("ports.vsdmServerPort", "9130");
+
   private static final String VSDM_ENDPOINT = VSDM_SERVER_URL + "/vsdservice/v1/vsdmbundle";
 
   // KVNR from egk image: X110639491
@@ -73,7 +74,7 @@ class VsdmServerIT {
   private static final String ACCEPT_JSON = "application/fhir+json";
   private static final String ACCEPT_XML = "application/fhir+xml";
 
-  private static final String VALID_PROFILE_VERSION = "1.0";
+  private static final String VALID_PROFILE_VERSION = "1.1";
 
   private static OkHttpClient httpClient;
   private static FhirCodec fhirCodec;

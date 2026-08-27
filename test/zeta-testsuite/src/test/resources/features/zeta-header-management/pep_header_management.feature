@@ -1,6 +1,6 @@
 #language:de
 # Befehl zum Ausführen der Tests (vom Root-Verzeichnis ti2.0-testhub/):
-# ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@pep_header_management' -Dzeta.env=local
+# ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@pep_header_management'
 @PRODUKT:ZT_Cluster
 @PRODUKT:PoPP_Service
 @PRODUKT:Anb_PoPP_Service

@@ -1,0 +1,21 @@
+tigerProxy:
+  # Achtung, Tiger-Eigenheit: der Name ist invertiert. (Fix kommt)
+  failOnOfflineTrafficEndpoints: true
+  # Begrenzt, wie lange ein Lauf ohne Docker-Stack wartet, bevor er weitermacht.
+  connectionTimeoutInSeconds: 3
+
+  additionalProxyPorts:
+    - 443
+  activateRbelParsingFor:
+    - websocket
+    - x509
+    - asl
+    - asn1
+  proxyRoutes:
+    - from: /
+      to: "${popp.route.to}"
+      matchForProxyType: false
+      hosts:
+        - "${popp.server.host}"
+        # Docker-interner Name des lokalen popp-server.
+        - "popp-server:8443"

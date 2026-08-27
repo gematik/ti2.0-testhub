@@ -1,0 +1,47 @@
+# ============================================================================
+#  VSDM-CLIENT-/SERVER-UMGEBUNGEN
+# ============================================================================
+#  Die Stufe kommt aus dem zentralen Schalter `env` (tiger/flags.yaml):
+#     -Denv=tu                gilt fuer alle Produkte
+#     -Dvsdm.env=tu           uebersteuert nur VSDM
+#     export VSDM_ENV=tu      dasselbe als Umgebungsvariable
+#
+#  Ausgewaehlt wird ein KNOTEN, keine Datei — ein unbekannter Wert (und die
+#  Default-Stufe `local`) faellt auf `vsdm.common` zurueck statt einen Fehler
+#  auszuloesen.
+#
+#  Verfuegbare Stufen:
+#     local = lokaler Docker-Stack aus doc/docker (kein Block noetig)
+#
+#  Hinweis: die Auswahl der Testdaten (Kartenimages, IKNR/KVNR-Feeder) laeuft
+#  weiterhin ueber -Dconfig=<name>.conf (HOCON, siehe
+#  test/vsdm-testsuite/src/test/resources/tiger.conf) und ist bewusst von der
+#  Stufenauswahl getrennt.
+# ============================================================================
+vsdm:
+  # ---- Gemeinsame Werte ----------------------------------------------------
+  common:
+    # Defaults: der lokale Docker-Stack aus doc/docker.
+    cardTerminalUrl: "http://${ports.host}:${ports.cardTerminalPort}"
+    clientUrl: "http://${ports.host}:${ports.vsdmClientPort}"
+    poppClientUrl: "http://${ports.host}:${ports.poppClientPort}"
+    poppTokenGeneratorUrl: "http://${ports.host}:${ports.poppTokenGeneratorPort}"
+
+  # ---- Stufen (hier neue Umgebungen ergaenzen) -----------------------------
+  # Aktuell weicht keine Stufe von `vsdm.common` ab, deshalb steht hier noch
+  # kein Block. Neue Stufe ergaenzen (nur die abweichenden Schluessel setzen,
+  # der Rest kommt aus `vsdm.common`):
+  #
+  #   environments:
+  #     tu:
+  #       clientUrl: "https://vsdm-test.tk.de"
+
+  # ---- Abgeleitete Werte ---------------------------------------------------
+  # Lookup-Kette: `vsdm.env` (produktspezifisch) vor `env` (global), sonst
+  # `vsdm.common`. Diese Schluessel liest BaseHooks beim Aufbau der
+  # Screenplay-Abilities.
+  server:
+    cardTerminalUrl: "${vsdm.environments.${vsdm.env|${env}}.cardTerminalUrl|${vsdm.common.cardTerminalUrl}}"
+    clientUrl: "${vsdm.environments.${vsdm.env|${env}}.clientUrl|${vsdm.common.clientUrl}}"
+    poppClientUrl: "${vsdm.environments.${vsdm.env|${env}}.poppClientUrl|${vsdm.common.poppClientUrl}}"
+    poppTokenGeneratorUrl: "${vsdm.environments.${vsdm.env|${env}}.poppTokenGeneratorUrl|${vsdm.common.poppTokenGeneratorUrl}}"

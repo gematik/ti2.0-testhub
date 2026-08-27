@@ -42,7 +42,7 @@ public final class JwksValidator {
         .hasValueAtPathEqualTo("$.body.body.sub", POPP_SERVICE_BASE_URL)
         .hasValueAtPathEqualTo(
             "$.body.body.keys.0.kid",
-            TigerGlobalConfiguration.resolvePlaceholders("${tiger.kidTokenKey}"))
+            TigerGlobalConfiguration.resolvePlaceholders("${popp.server.kidTokenKey}"))
         .extractChildWithPath("$.body.signature.isValid")
         .hasValueEqualTo(Boolean.TRUE);
   }

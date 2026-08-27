@@ -121,8 +121,8 @@ public class ZetaPepJwtTestFactory {
   public enum PdpTarget {
     /**
      * Aktiv konfiguriertes PDP-Ziel. Alle URLs werden aus der zentralen Konfiguration (siehe {@link
-     * PoPpConfig} bzw. {@code zeta.env} in {@code tiger/defaults.yaml}) gelesen, nicht mehr hier
-     * hardcodiert.
+     * PoPpConfig} bzw. {@code zeta.env} in {@code tiger/zeta-environments.yaml}) gelesen, nicht
+     * mehr hier hardcodiert.
      */
     POPP("${zeta.server.pdp.tokenUrl}");
 

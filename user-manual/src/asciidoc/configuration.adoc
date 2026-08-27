@@ -213,6 +213,106 @@ docker compose -f doc/docker/compose-local.yaml --profile backend-only up -d
 docker compose -f doc/docker/compose-local.yaml --profile full --profile perf --profile backend-only down -v
 ----
 
+[#_test_environment_selection]
+=== Selecting the Test Environment
+
+Everything above configures the *services*. This section covers the *test suites*: which backend a
+suite talks to, and how the Tiger proxy is set up for it. Two independent switches are involved,
+and it helps to keep them apart:
+
+[cols="1,2,3"]
+|===
+| Switch | Answers | Mechanism
+
+| Tiger profile
+| *Which suite* is running
+| Derived automatically from the module directory — nothing to type
+
+| `env`
+| *Which stage* every product points at
+| `-Denv=local\|ru-dev\|ru\|tu`, selects a node in each registry under `tiger/`
+
+| `popp.env` / `vsdm.env`
+| Same, but for one product only
+| `-Dpopp.env=<stage>` overrides `env` for PoPP alone; likewise `-Dvsdm.env=<stage>`
+
+| `zeta.env`
+| Where the *ZETA* suite points
+| `-Dzeta.env=<block>`, a full block name in `tiger/zeta-environments.yaml` — see below
+|===
+
+`env` is the one switch that matters: it names the *stage*, and PoPP, VSDM and ZETA all follow it.
+Only where a single product must deviate does the per-product override come in.
+
+ZETA is the exception in one respect: its override takes a *full block name* (`popp-rudev`,
+`vsdm-tu`, `vsdm-rudev`, `custom`) rather than a stage, because two axes meet there — the stage
+*and* which of the two ZETA guards is meant (`popp-zeta-*` or `vsdm-zeta-*` in the docker stack).
+`local` is the only name that is both a stage and a block, which is why the default `env=local`
+reaches ZETA with nothing to type. Running the ZETA suite with `-Denv=ru-dev` or `-Denv=tu`
+therefore needs an explicit `-Dzeta.env=<block>`; `PoPpConfig` aborts with a message listing the
+available blocks otherwise.
+
+==== The Tiger profile is derived, not typed
+
+`tiger.yaml` sets `lib.defaultProfile` to an expression that takes the name of the current working
+directory and strips the `-testsuite` suffix. Maven forks its test JVM with the working directory
+set to the module (`${basedir}`), and IDE run configurations do the same, so:
+
+[source,bash]
+----
+./mvnw -pl test/vsdm-testsuite/ ... verify    # profile "vsdm"
+./mvnw -pl test/popp-testsuite/ ... verify    # profile "popp"
+----
+
+The profile loads `tiger-<name>.yaml` from the repository root *if that file exists*, and is
+skipped silently otherwise. Only `tiger-popp.yaml` currently exists — it adds the extra proxy port
+and the route the PoPP suite needs. Override the derived name with `-DcustomProfile=<name>` if you
+ever need to.
+
+NOTE: Do not use Tiger's `PROFILE` environment variable or `-Dprofile` for this. That variant
+makes a *missing* profile file a hard startup error, whereas `lib.defaultProfile` skips it.
+
+==== Pointing a suite at another environment
+
+[source,bash]
+----
+# PoPP suite against the RU-DEV PoPP service
+./mvnw -pl test/popp-testsuite verify -Dskip.inttests=false -Denv=ru-dev
+
+# ...but keep VSDM local while PoPP goes to RU-DEV
+./mvnw -pl test/vsdm-testsuite verify -Dskip.inttests=false -Denv=local -Dpopp.env=ru-dev
+
+# ZETA suite against the local docker mock (env=local is the default)
+./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false
+
+# ZETA suite against a one-off target, without adding a new block
+./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false \
+  -Dzeta.env=custom -Dzeta.server.domain=https://vsdm-test.tk.de
+----
+
+Adding an environment means adding a *block* to the relevant registry under `tiger/` — never a new
+file, and never a new URL in Java or in a feature file. All three registries are named
+`tiger/<product>-environments.yaml` and share one shape: the selectable blocks live under
+`<product>.environments.<name>`, and the derived keys the suites actually read (`popp.server.*`,
+`vsdm.server.*`, `zeta.server.*`) sit beside them. A block only sets what deviates; an unknown
+`env` value falls back to the shared defaults rather than failing.
+
+IMPORTANT: A placeholder such as `${env}` must never appear in an `additionalConfigurationFiles`
+filename in `tiger.yaml`. That list throws a `TigerConfigurationException` as soon as the resolved
+name is not an existing file, which silently makes whole environments unusable.
+
+==== Selecting VSDM test data
+
+Which card images and IKNR/KVNR feeder a VSDM run uses is a separate concern, configured with
+HOCON rather than through the mechanisms above:
+
+[source,bash]
+----
+./mvnw -pl test/vsdm-testsuite/ verify -Dconfig=private/tk/tiger_tk_test.conf ...
+----
+
+See `test/vsdm-testsuite/HOWTO-TEST.md` for the per-environment `.env`/`.conf` matrix.
+
 === Custom Configuration
 
 To customize service configuration:

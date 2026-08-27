@@ -106,7 +106,7 @@ public class Steps {
 
     httpGlueCode.sendRequestWithMultiLineBody(
         Method.POST,
-        URI.create(TigerGlobalConfiguration.readString("tiger.popp.client.url")),
+        URI.create(TigerGlobalConfiguration.readString("popp.client.tokenUrl")),
         "application/json",
         jsonBody);
   }

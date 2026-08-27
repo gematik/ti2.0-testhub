@@ -1,10 +1,23 @@
 # Base paths used in ZeTA features
 zeta:
   paths:
+    # Protokoll-Konstanten, produktunabhaengig (gelten fuer PoPP wie VSDM).
+    wellKnown:
+      oauthProtectedResource: /.well-known/oauth-protected-resource
+      oauthAuthorizationServer: /.well-known/oauth-authorization-server
+      openidConfiguration: /.well-known/openid-configuration
+    # Realm-relative PDP-Pfade. Zusammen mit `zeta.server.domain` ergeben sie
+    # die vollständigen Keycloak-Endpunkte (siehe tiger/zeta-environments.yaml).
+    # Nur hier pflegen – die Umgebungen konfigurieren ausschliesslich die Domain.
+    pdp:
+      realmPath: /auth/realms/zeta-guard
+      tokenPath: /protocol/openid-connect/token
+      dcrPath: /clients-registrations/openid-connect
+      jwksPath: /protocol/openid-connect/certs
+      noncePath: /zeta-guard-nonce
     guard:
       tokenEndpointPath: /token
       registerEndpointPath: /register
-      wellKnownOAuthProtectedResourcePath: /.well-known/oauth-protected-resource
       actuatorHealthPath: /mocked/actuator/health
     opa:
       decisionPath: /v1/data/zeta/authz/decision
@@ -28,6 +41,14 @@ zeta:
       rest:
         proxyPath: /achelos_testfachdienst/erezept
         pepPath: /achelos_testfachdienst/erezept
+    # ZETA-Guard-Komponenten der PoPP-Seite (lokaler Docker-Stack).
+    popp:
+      ingress:
+        baseUrl: https://${ports.host}:${ports.poppZetaIngressPort}
+      pep:
+        baseUrl: http://${ports.host}:${ports.poppPepPort}
+      pdp:
+        baseUrl: http://${ports.host}:${ports.poppPdpPort}
     vsdm:
       ingress:
         baseUrl: https://${ports.host}:${ports.vsdmIngressPort}
@@ -35,8 +56,6 @@ zeta:
         baseUrl: http://${ports.host}:${ports.vsdmPepPort}
       pdp:
         baseUrl: http://${ports.host}:${ports.vsdmPdpPort}
-      wellKnownOAuthProtectedResourcePath: /.well-known/oauth-protected-resource
-      wellKnownOAuthServerPath: /.well-known/oauth-authorization-server
       registerEndpointPath: /auth/realms/zeta-guard/clients-registrations/openid-connect
       tokenEndpointPath: /auth/realms/zeta-guard/protocol/openid-connect/token
       nonceEndpointPath: /auth/realms/zeta-guard/zeta-guard-nonce

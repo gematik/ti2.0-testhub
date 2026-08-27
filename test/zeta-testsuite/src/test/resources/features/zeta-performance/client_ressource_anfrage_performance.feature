@@ -22,9 +22,9 @@ Funktionalität: ZeTA Komponenten - lokaler Performance-Test
     Und war die p95-Latenz unter 500 ms
 
     Beispiele:
-      | Komponente    | URL                                  |
-      | PoPP ZeTA PEP | ${smoke.endpoints.poppZetaPep.url}   |
-      | PoPP ZeTA PDP | ${smoke.endpoints.poppZetaPdp.url}   |
-      | VSDM ZeTA PEP | ${smoke.endpoints.vsdmZetaPep.url}   |
-      | VSDM ZeTA PDP | ${smoke.endpoints.vsdmZetaPdp.url}   |
+      | Komponente    | URL                                                                                             |
+      | PoPP ZeTA PEP | ${zeta.paths.popp.pep.baseUrl}${zeta.paths.wellKnown.oauthProtectedResource}                    |
+      | PoPP ZeTA PDP | ${zeta.paths.popp.pdp.baseUrl}${zeta.paths.pdp.realmPath}${zeta.paths.wellKnown.openidConfiguration} |
+      | VSDM ZeTA PEP | ${zeta.paths.vsdm.pep.baseUrl}${zeta.paths.wellKnown.oauthProtectedResource}                    |
+      | VSDM ZeTA PDP | ${zeta.paths.vsdm.pdp.baseUrl}${zeta.paths.pdp.realmPath}${zeta.paths.wellKnown.openidConfiguration} |
 

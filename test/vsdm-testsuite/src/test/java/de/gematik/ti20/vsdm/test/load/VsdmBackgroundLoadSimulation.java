@@ -37,6 +37,7 @@ import static io.gatling.javaapi.http.HttpDsl.http;
 import io.gatling.javaapi.core.ChainBuilder;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.ScenarioBuilder;
+import io.gatling.javaapi.core.Session;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -52,8 +53,11 @@ public class VsdmBackgroundLoadSimulation extends BaseSimulation {
   private static final ChainBuilder readVsdWithCachedEtagRequest;
   private static final ChainBuilder readVsdWithZeroEtagRequest;
   private static final ScenarioBuilder readVsdScenario;
+  private static final List<SimulationConfigBean.SmcbData> SMCBS =
+      List.copyOf(CFG.getZetaSdkPool().getSmcbs());
 
   static {
+    ZetaDsl.configureZetaClientPool(CFG.getZetaSdkPool());
     log.debug("URL_SERVER_VSDM {}", URL_SERVER_VSDM);
     log.debug("ZETA_POOL_CAPACITY {}", ZETA_POOL_CAPACITY);
     log.debug("ZERO_ETAG_REQUEST_PROBABILITY_PERCENT {}", ZERO_ETAG_REQUEST_PROBABILITY_PERCENT);
@@ -65,6 +69,7 @@ public class VsdmBackgroundLoadSimulation extends BaseSimulation {
     readVsdScenario =
         scenario("GET VSD from VSDM Server")
             .feed(POPP_TOKEN_ETAG_FEEDER)
+            .exec(VsdmBackgroundLoadSimulation::selectSmcbAndToken)
             .doIfOrElse(
                 session ->
                     ThreadLocalRandom.current().nextDouble(100.0)
@@ -76,10 +81,10 @@ public class VsdmBackgroundLoadSimulation extends BaseSimulation {
   private static ZetaRequestBuilder readVsdRequest(
       String requestName, String ifNoneMatchHeaderValue, int expectedStatus) {
     ZetaRequestBuilder request =
-        zeta(requestName, ZETA_POOL_CAPACITY)
+        zeta(requestName)
             .get(URL_SERVER_VSDM + "/vsdservice/v1/vsdmbundle")
             .queryParam("profileVersion", FHIR_PROFILE_VERSION)
-            .header("PoPP", "#{popp_token}")
+            .header("PoPP", "#{selected_popp_token}")
             .header("if-none-match", ifNoneMatchHeaderValue)
             .header("Accept", "application/fhir+json")
             .check(status().is(expectedStatus));
@@ -94,6 +99,22 @@ public class VsdmBackgroundLoadSimulation extends BaseSimulation {
   @Override
   public void after() {
     ZetaDsl.ZetaClientFactory.shutdown();
+  }
+
+  private static Session selectSmcbAndToken(final Session session) {
+    if (SMCBS.isEmpty()) {
+      throw new IllegalStateException("No smcbs configured for VSDM load simulation");
+    }
+
+    final SimulationConfigBean.SmcbData smcb =
+        SMCBS.get(ThreadLocalRandom.current().nextInt(SMCBS.size()));
+    final String actorId = smcb.getActorId();
+    final String poppToken = session.getString(actorId);
+    if (poppToken == null || poppToken.isBlank()) {
+      throw new IllegalStateException("Missing PoPP token for actorId " + actorId);
+    }
+
+    return session.set("actorId", actorId).set("selected_popp_token", poppToken);
   }
 
   {

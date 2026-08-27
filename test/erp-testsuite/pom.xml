@@ -4,7 +4,7 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.12.0</version>
+        <version>3.13.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -35,20 +35,22 @@
             <artifactId>logback-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>de.gematik.test</groupId>
-            <artifactId>tiger-test-lib</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.junit.vintage</groupId>
-                    <artifactId>junit-vintage-engine</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
         </dependency>
 
         <dependency>
             <groupId>de.gematik.test.erezept</groupId>
             <artifactId>erp-client</artifactId>
-            <version>1.6.0</version>
+            <version>1.7.1</version>
           <exclusions>
             <exclusion>
               <!-- TH has it's own BC version, so we exclude the one from erp-client -->

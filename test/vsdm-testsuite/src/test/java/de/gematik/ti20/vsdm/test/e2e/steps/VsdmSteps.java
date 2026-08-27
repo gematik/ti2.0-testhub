@@ -84,7 +84,7 @@ public class VsdmSteps extends BaseSteps {
 
   @Angenommen("der Fachdienst VSDM 2.0 wird mit {int} Aufrufen pro Sekunde unter Last gesetzt")
   public void givenTheVsdmServiceIsProcessingCallsPerSecond(int callsPerSecond) {
-    if (VSDM_LOAD_TESTING_ACTIVE) {
+    if (SHOW_BACKGROUND_LOAD_DIALOG) {
       TigerDirector.pauseExecution(
           String.format(
               "Bitte senden Sie jetzt eine Hintergrundlast von durchschnittlich %d Aufrufen pro Sekunde an den Fachdienst VSDM 2.0.",
@@ -160,7 +160,7 @@ public class VsdmSteps extends BaseSteps {
     String result =
         String.format("Der VSDM 2.0 Fachdienst antwortete in %d Millisekunden.", answerTime);
 
-    if (VSDM_LOAD_TESTING_ACTIVE) {
+    if (SHOW_BACKGROUND_LOAD_DIALOG) {
       TigerDirector.pauseExecution(result);
     }
     log.info(result);
@@ -248,7 +248,7 @@ public class VsdmSteps extends BaseSteps {
             """,
             min.orElse(0L), max.orElse(0L), avg.orElse(0D), answerTimesSize);
 
-    if (VSDM_LOAD_TESTING_ACTIVE) {
+    if (SHOW_BACKGROUND_LOAD_DIALOG) {
       TigerDirector.pauseExecution(result);
     }
     log.info(result);

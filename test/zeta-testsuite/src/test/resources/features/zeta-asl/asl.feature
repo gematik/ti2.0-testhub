@@ -1,6 +1,6 @@
 #language:de
 # Befehl zum Ausführen der Tests (vom Root-Verzeichnis ti2.0-testhub/):
-# ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@asl' -Dzeta.env=local
+# ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@asl'
 #
 # VORAUSSETZUNG: TestHub im Profil "full":
 #   docker compose -f doc/docker/compose-local.yaml --profile full up -d

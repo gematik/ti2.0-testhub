@@ -1,6 +1,6 @@
 #language:de
 # Befehl zum Ausführen der WebSocket-Tests (vom Root-Verzeichnis ti2.0-testhub/):
-# ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@websocket' -Dzeta.env=local
+# ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@websocket'
 @PRODUKT:ZT_Cluster
 @PRODUKT:PoPP_Service
 @PRODUKT:Anb_PoPP_Service
@@ -41,7 +41,7 @@ Funktionalität: PoPP WebSocket-Kommunikation über ZETA-PEP
     # wss://popp-zeta-ingress/ws → popp-zeta-pep (ZETA-PEP) → popp-server:8443/ws.
     # D.h. ein erfolgreich erzeugtes PoPP-Token beweist implizit, dass der ZETA-PEP den
     # WebSocket-Upgrade-Handshake mit einem gültigen Token durchgelassen hat.
-    Wenn TGR sende eine POST Anfrage an "${tiger.popp.client.url}" mit ContentType "application/json" und folgenden mehrzeiligen Daten:
+    Wenn TGR sende eine POST Anfrage an "${popp.client.tokenUrl}" mit ContentType "application/json" und folgenden mehrzeiligen Daten:
       """
       {
         "communicationType": "contact-virtual",

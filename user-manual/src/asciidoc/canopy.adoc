@@ -1,0 +1,111 @@
+== Canopy-Integration - KPI-Übersicht (Vorher/Nachher)
+
+[cols="1,2,2,3"]
+|===
+| KPI | Vorher | Nachher | Quelle / Nachweis
+
+| Startup-Zeit
+| *Keine signifikante Unterscheidung*
+| *Keine signifikante Unterscheidung*
+| Die Startup-Zeit wird primär durch langsam startende Container (keycloak) begrenzt; Tiger-Proxy-Reduktion hat keine messbaren Auswirkungen
+
+| Anzahl notwendiger Infrastruktur-Komponenten (Tiger-Proxies)
+| *2* (`docker-tiger-proxy`, `ti-connect-tiger-proxy`)
+| *1* (`docker-tiger-proxy`; Canopy als DNS-Steuerung)
+| `doc/docker/compose-local.yaml`, Löschung `doc/docker/tiConnectTigerProxy/*`
+
+| Aufwand zur Integration neuer Mocks/FDs
+| *Gesamtaufwand: ~gleich* (Tiger-Proxies müssen konfiguriert werden)
+| *Gesamtaufwand: ~gleich* (Canopy und Tiger-Proxy müssen konfiguriert werden)
+| Tiger-Proxy-Konfiguration deutlich vereinfacht: Nur noch eine Datei (`remoteTigerProxy/application.yaml`) statt zweier aufeinander abgestimmter Proxy-Konfigurationen
+
+| Anzahl manueller Routing-/DNS-Konfigurationen
+| *2 Proxy-Konfigurationsdateien* (`remoteTigerProxy/application.yaml`, `tiConnectTigerProxy/application.yaml`)
+| *1 zentrale Canopy-Konfiguration* (in `compose-local.yaml`)
+| `remoteTigerProxy/application.yaml` und `tiConnectTigerProxy/application.yaml` vor/nach `f38123ba`; Canopy `proxiedHosts` zentral gepflegt
+|===
+
+=== Optimierung: Startup-Zeit Analyse
+
+==== Hintergrund
+
+Die Canopy-Lösung reduziert die Anzahl der zu startenden Tiger-Proxies von 2 auf 1. Eine Optimierung der Container-Startup-Zeiten war daher nicht explizites Ziel dieser Integration.
+
+==== Feststellung
+
+*Es gibt keinen bedeutenden Unterschied in der Gesamtstartup-Zeit zwischen der alten und der neuen Lösung.*
+
+Der Grund liegt darin, dass die Startup-Dauer nicht durch die Tiger-Proxies bestimmt wird, sondern durch die **langsam startenden keycloak-Container**. Diese Container sind in beiden Lösungen identisch und nehmen den Großteil der Startup-Zeit in Anspruch.
+
+Die Reduktion eines Tiger-Proxy-Containers führt daher nicht zu einer messbaren Verkürzung der Gesamtstartup-Zeit.
+
+==== Mehrwert trotz gleicher Startup-Zeit
+
+* *Ressourceneffizienz*: Ein Container weniger bedeutet reduzierten RAM- und CPU-Overhead auch während des Betriebs.
+* *Wartungsfreundlichkeit*: Weniger Infrastrukturkomponenten bedeutet weniger Fehlerquellen und Troubleshooting-Oberflächen reduziert die Komplexität der lokalen Umgebung.
+
+=== Umgesetzte Optimierung 1: Proxy- und Netzwerk-Konsolidierung
+
+==== Ausgangssituation
+
+* Zwei Tiger-Proxies waren aktiv (`docker-tiger-proxy` und `ti-connect-tiger-proxy`).
+* Es wurden zwei Docker-Netzwerke (`testhub_client`, `testhub_backend`) betrieben.
+* `remoteTigerProxy/application.yaml` enthielt eine `forwardToProxy`-Kette zum zweiten Proxy.
+
+==== Durchgeführte Optimierung
+
+* Zusammenführung auf ein gemeinsames Netzwerk (`testhub_network`).
+* Entfernung des zweiten Proxies inklusive dessen Konfiguration (`doc/docker/tiConnectTigerProxy/application.yaml` gelöscht).
+* Entfernung der Forwarding-Kette im `remoteTigerProxy`.
+
+==== Messbares Ergebnis (Vorher/Nachher)
+
+* Infrastruktur-Komponenten (Tiger-Proxies): *2 → 1*.
+* Netzwerkkonstrukt: *2 Netzwerke → 1 Netzwerk*.
+
+==== Erreichter Mehrwert für Nutzer und Betrieb
+
+* Weniger bewegliche Teile im lokalen und CI-Betrieb.
+* Reduzierter Konfigurations- und Fehlerraum bei Proxy-/Netzwerkproblemen.
+
+=== Umgesetzte Optimierung 2: Canopy als zentrale Routing- und Service-Discovery-Komponente
+
+==== Ausgangssituation
+
+* DNS-/Routing-Steuerung erfolgte implizit über Docker-Netzwerk-Aliase und Proxy-Verkettung.
+* Routing-relevante Hostnamen waren nicht in einer zentralen, expliziten Liste gepflegt.
+
+==== Durchgeführte Optimierung
+
+* Einführung eines Canopy-Containers (`tiger-canopy`) in `compose-local.yaml`.
+* Zentrale Pflege der zu proxyenden Ziele über `canopy.proxiedHosts`.
+* Tiger-Proxy-Anbindung über `tigerProxyUrl`.
+
+==== Messbares Ergebnis (Vorher/Nachher)
+
+* Zentrale Routingliste: *vorher nicht vorhanden → nachher vorhanden* (`proxiedHosts`).
+
+==== Erreichter Mehrwert für Nutzer und Betrieb
+
+* Routing-Entscheidungen sind zentral sichtbar und nachvollziehbar.
+* Neue Ziele (Mocks/FDs) können an einer Stelle ergänzt werden statt verteilt über Netzwerk-/Proxy-Workarounds.
+
+=== Umgesetzte Optimierung 3: DNS-Steuerung für lokale Ausführung
+
+==== Ausgangssituation
+
+* Docker-eigene DNS-Priorisierung verhinderte eine verlässliche Erzwingung von Canopy als primäre DNS-Quelle.
+
+==== Durchgeführte Optimierung
+
+* Einführung eines Resolver-Schritts (`resolv-writer`), der nach Canopy-Start eine `resolv.conf` mit Canopy-Nameserver erzeugt.
+* Relevante Clients hängen von diesem Schritt ab und verwenden die erzeugte `resolv.conf`.
+
+==== Messbares Ergebnis (Vorher/Nachher)
+
+* DNS-Steuerungsmechanismus: *nicht vorhanden → vorhanden*.
+
+==== Erreichter Mehrwert für Nutzer und Betrieb
+
+* Reproduzierbareres DNS-Verhalten in lokalen Ausführungen.
+* Weniger manuelle Eingriffe bei der Inbetriebnahme der Testumgebung.

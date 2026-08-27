@@ -64,7 +64,7 @@ public class TestConstants {
       "src/test/resources/hashDbPayloads/";
 
   public static final String POPP_SERVICE_BASE_URL =
-      TigerGlobalConfiguration.resolvePlaceholders("${tiger.poppServiceServerUrl}");
+      TigerGlobalConfiguration.resolvePlaceholders("${popp.server.url}");
   public static final String URL_HASH_DB_IMPORT_RU = POPP_SERVICE_BASE_URL + HASH_DB_IMPORT_PATH;
   public static final String POPP_ENTITY_STATEMENT = POPP_SERVICE_BASE_URL + ENTITY_STATEMENT_PATH;
 }

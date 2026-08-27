@@ -1,6 +1,6 @@
 #language:de
 # Befehl zum Ausführen des Tests:
-# ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@TLS_Guard' -Dzeta.env=local
+# ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@TLS_Guard'
 @PRODUKT:ZETA @TLS_Guard
 
 Funktionalität: TLS-Konformität ZETA Guard
