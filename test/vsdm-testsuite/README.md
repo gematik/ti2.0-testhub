@@ -136,17 +136,17 @@ Testfälle:
 * UC_VSDM2_RVSD_PERF_MULTI_WITH_UPDATE.feature
 * UC_VSDM2_RVSD_PERF_MULTI_WITHOUT_UPDATE.feature
 
-> **HINWEIS**
-> Die Lasttests erwarten eine geeignete Hintergrundlast, welche mit der Gatling-Simulation 'VsdmBackgroundLoadSimulation'
-> erzeugt werden kann. Wenn die Umgebungsvariable 'vsdm.loadtesting.active=true' gesetzt ist, wird die Ausführung der
-> Lasttests pausiert und der Anwender zum Starten der Hintergrundlast aufgefordert. D.h. die automatische wird zu einer
-> halbautomatischen Testausführung.
-
 Die Lasttests können mit folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
 ```
 ./mvnw -pl test/vsdm-testsuite/ verify -Dcucumber.filter.tags="@TYPE:PERF" -Dskip.inttests=false
 ```
+
+> [!NOTE]
+> Die Lasttests erwarten eine geeignete Hintergrundlast, welche mit der Gatling-Simulation 'VsdmBackgroundLoadSimulation'
+> erzeugt werden kann. Wenn die Umgebungsvariable 'SHOW_BACKGROUND_LOAD_DIALOG=true' gesetzt ist, wird die Ausführung der
+> Lasttests pausiert und der Anwender zum Starten der Hintergrundlast aufgefordert. D.h. die automatische wird zu einer
+> halbautomatischen Testausführung.
 
 ### Konfiguration der Tiger-Tests (E2E, ERROR, PERF)
 
@@ -157,50 +157,24 @@ strukturell an der Datei "tiger.conf" orientieren. Für eine Datei mit dem Pfad 
 sähe der Parameter zur Angabe der Konfiguration dann wie folgt aus:
 
 ```
--Dconfig=my-own-tiger.conf
+-Dconfig=src/test/resources/my-own-tiger.conf
 ```
 
 ## Lasttest-Simulationen
 
 Die VSDM 2.0 Testsuite enthält mehrere Lasttest-Simulationen basierend auf Gatling, welche sich im Ablauf unterscheiden
-und für unterschiedliche Zwecke einsetzbar sind.
+und für unterschiedliche Zwecke einsetzbar sind. Die wichtigste Simulation ist die `VsdmBackgroundLoadSimulation`, 
+welche die Hintergrundlast für die Lasttests erzeugt.
 
-> **HINWEIS**
-> Für Performance-Tests empfiehlt sich das `perf` Profil, da hierbei die Clients direkt mit dem Backend kommunizieren
-> und sämtliche Tiger-Proxies umgangen werden:
+### VsdmBackgroundLoadSimulation
 
-> ```
-> docker compose -f doc/docker/compose-local.yaml --profile perf up -d
-> ```
-
-### VsdmClientJourneySimulation.java
-
-Diese Simulation simuliert den kompletten Ablauf vom Einstecken der Karten, über die Erlangung des Versorgungskontextes
-bis hin zur Abfrage der VSD vom Fachdienst VSDM 2.0 und kann im Projekt-Root-Verzeichnis wie folgt gestartet werden:
-
-```
-./mvnw -pl test/vsdm-testsuite/ gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmClientJourneySimulation
-```
-
-> **HINWEIS**
-> Durch die aktuelle Integration weiterer Tiger-Komponenten, welche die Client-Simulationen starten und mehrere
-> Proxies in den Datenverkehr einschleusen, ist die Lauffähigkeit der Lastsimulation "VsdmClientJourneySimulation"
-> beeinträchtigt. Es wird empfohlen, die Last entsprechend zu reduzieren. Siehe "Konfiguration der Simulation".
-
-### VsdmBackgroundLoadSimulation.java
-
-Diese Simulation verwendet die, von der GeneratePoppTokenSimulation erzeugte, Liste aus Popp-Token, fragt die VSD vom
-VsdmServerSimulator ab und wird in Verbindung mit den Lasttests zur Generierung der Hintergrundlast eingesetzt.
+Die VsdmBackgroundLoadSimulation verwendet eine Liste vorgenerierter Popp-Token und ETag und fragt die VSD vom
+VsdmServer ab. Sie wird in Verbindung mit den Lasttests zur Generierung der Hintergrundlast eingesetzt.
 Die Simulation kann mittels Maven und folgender Kommandozeile im Projekt-Root-Verzeichnis gestartet werden:
 
 ```
 ./mvnw -pl test/vsdm-testsuite/ gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmBackgroundLoadSimulation
 ```
-
-> **HINWEIS**
-> Der Standardwert für den Access-Token beträgt 300 Sekunden, sodass der ZETA Guard nach dieser Zeitspanne nicht mit 200
-> OK, sondern mit 401 UNAUTHORIZED antworten würde. Die Gültigkeitsdauer (TTL) des Access-Tokens lässt sich in der Datei
-> "doc/docker/backend/zeta/policies/authz.rego" jedoch erhöhen.
 
 ### Konfiguration der Simulationen
 
@@ -215,10 +189,11 @@ Beispiel:
 paste -d ',' popp_tokens_tk_test_1.csv popp_tokens_tk_test_2.csv popp_tokens_tk_test_3.csv etags_tk_test.csv > popp_tokens_etags_tk_test.csv
 ```
 
-Der Anwender kann auch eine eigene Konfigurationsdatei, welche sich im Resource-Ordner befinden sollte, definieren. Die
-eigene Datei muss sich jedoch strukturell an der Datei "simulation.conf" orientieren. Für eine Datei mit dem Pfad
-"src/test/resources/my-own-simulation.conf" sähe der Parameter zur Angabe der Konfiguration dann wie folgt aus:
+> [!NOTE]
+> Der Anwender kann auch eine eigene Konfigurationsdatei, welche sich im Resource-Ordner befinden sollte, definieren. Die
+> eigene Datei muss sich jedoch strukturell an der Datei "simulation.conf" orientieren. Für eine Datei mit dem Pfad
+> "src/test/resources/my-own-simulation.conf" sähe der Parameter zur Angabe der Konfiguration dann wie folgt aus:
 
 ```
--Dconfig=my-own-simulation.conf
+-Dconfig=src/test/resources/my-own-simulation.conf
 ```

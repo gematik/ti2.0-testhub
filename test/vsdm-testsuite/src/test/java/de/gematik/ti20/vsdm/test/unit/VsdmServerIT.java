@@ -167,7 +167,7 @@ class VsdmServerIT {
             .findFirst()
             .orElse(null);
     assertNotNull(coverage);
-    System.out.println("Coverage Payor Display: " + coverage.getPayor().getFirst().getDisplay());
+    log.debug("Coverage Payor Display: " + coverage.getPayor().getFirst().getDisplay());
     assertTrue(
         coverage
             .getPayor()
@@ -225,7 +225,7 @@ class VsdmServerIT {
             .findFirst()
             .orElse(null);
     assertNotNull(coverage);
-    System.out.println("Coverage Payor Display: " + coverage.getPayor().getFirst().getDisplay());
+    log.debug("Coverage Payor Display: " + coverage.getPayor().getFirst().getDisplay());
     assertTrue(
         coverage
             .getPayor()
@@ -281,7 +281,7 @@ class VsdmServerIT {
             .orElse(null);
 
     assertNotNull(coverage);
-    System.out.println("Coverage Payor Display: " + coverage.getPayor().getFirst().getDisplay());
+    log.debug("Coverage Payor Display: " + coverage.getPayor().getFirst().getDisplay());
     assertTrue(
         coverage
             .getPayor()
@@ -687,7 +687,7 @@ class VsdmServerIT {
 
     final Request readVsd = readVsdBuilder.build();
 
-    System.out.println(readVsd.url());
+    log.debug(readVsd.url().toString());
 
     final Response readVsdResponse = httpClient.newCall(readVsd).execute();
 

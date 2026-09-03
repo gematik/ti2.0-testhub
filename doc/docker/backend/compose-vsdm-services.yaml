@@ -48,7 +48,7 @@ services:
       - testhub_network
 
   vsdm-zeta-pep:
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:1.2.0
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:1.3.0
     env_file:
       - path: ../.env
         required: true
@@ -72,7 +72,7 @@ services:
       - testhub_network
 
   vsdm-zeta-pdp:
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:1.2.3
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:1.3.1
     env_file:
       - path: ../.env
         required: true
@@ -100,19 +100,26 @@ services:
       KC_HTTP_PORT: 80
       KC_HTTP_RELATIVE_PATH: /auth
       KC_LOG_LEVEL: INFO
+      KC_METRICS_ENABLED: false
       KC_PROXY_HEADERS: xforwarded
       KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_DECISION_PATH: "/v1/data/zeta/authz/decision"
       KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_OPA_BASE_URL: http://vsdm-zeta-pdp-opa:8181
       KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_OPA_ENABLED: true
+      KC_TELEMETRY_ENDPOINT: http://otel-collector:4318
+      KC_TELEMETRY_LOGS_ENABLED: true
+      KC_TELEMETRY_RESOURCE_ATTRIBUTES: "service.version=1.3.1"
+      KC_TELEMETRY_SERVICE_NAME: "vsdm-zeta-pdp"
+      KC_TRACING_ENABLED: true
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
       # KEYCLOAK_FRONTEND_URL: https://127.0.0.1:9119/auth
       # KEYCLOAK_FRONTEND_URL: https://vsdm-zeta-ingress/auth
       OCSP_KEYSTORE_LOCATION: /var/trust-data/ocsp-signers.p12
-      OCSP_KEYSTORE_PASSWORD: no_secret_for_trust_only
+      OCSP_KEYSTORE_PASSWORD: "changeit"
       PROXY_ADDRESS_FORWARDING: true
       SMCB_HASHING_PEPPER: "-085c1245-dc0d-4d39-95b4-97496bec6182"
-      SMCB_KEYSTORE_LOCATION: /opt/keycloak/conf/smcb/truststore.p12
+      SMCB_KEYSTORE_LOCATION: /var/trust-data/smcb-trust-roots.p12
+      SMCB_KEYSTORE_META_LOCATION: /var/trust-data/smcb-trust-roots-meta.json
       SMCB_KEYSTORE_PASSWORD: "changeit"
       TPM_KEYSTORE_LOCATION: /opt/keycloak/conf/tpm/tpm-certificates.p12
       TPM_KEYSTORE_PASSWORD: "O3Bdel9P5+cOgzIGANkOPEzBQM3V"
@@ -125,6 +132,8 @@ services:
       - ./zeta/smcb:/opt/keycloak/conf/smcb
       - ./zeta/tpm/:/opt/keycloak/conf/tpm
       - ./zeta/ocsp-signers.p12:/var/trust-data/ocsp-signers.p12:ro
+      - ./zeta/smcb-trust-roots.p12:/var/trust-data/smcb-trust-roots.p12:ro
+      - ./zeta/smcb-trust-roots-meta.json:/var/trust-data/smcb-trust-roots-meta.json:ro
       # Routes vsdm-zeta-pdp's traffic to vsdm-zeta-pdp-opa through docker-tiger-proxy so that
       # the OPA decision request/response can be manipulated via the remote TigerProxy admin API
       # (see zeta-client-policy/client_policy.feature, TigerProxyManipulationsSteps).
@@ -168,7 +177,7 @@ services:
       - testhub_network
 
   vsdm-zeta-pdp-opa:
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/opa:1.18.2-static
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/opa:1.19.0-static
     env_file:
       - path: ../.env
         required: true

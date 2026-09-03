@@ -32,8 +32,6 @@ import static org.mockito.Mockito.*;
 import de.gematik.ti20.simsvc.client.model.card.CardImage;
 import de.gematik.ti20.simsvc.client.model.card.CardType;
 import de.gematik.ti20.simsvc.client.model.dto.CardInfoDto;
-import de.gematik.ti20.simsvc.client.model.dto.TransmitRequestDto;
-import de.gematik.ti20.simsvc.client.model.dto.TransmitResponseDto;
 import de.gematik.ti20.simsvc.client.service.CardImageParser;
 import de.gematik.ti20.simsvc.client.service.CardImageService;
 import de.gematik.ti20.simsvc.client.service.SlotManager;
@@ -225,58 +223,5 @@ class SlotControllerTest {
     ResponseStatusException ex =
         assertThrows(ResponseStatusException.class, () -> controller.removeCard(1));
     assertEquals(HttpStatusCode.valueOf(HttpStatus.NOT_FOUND.value()), ex.getStatusCode());
-  }
-
-  @Test
-  void transmitToCardInSlot_success() {
-    when(slotManager.isValidSlotId(0)).thenReturn(true);
-    when(slotManager.isCardPresent(0)).thenReturn(true);
-    CardImage card = mock(CardImage.class);
-    when(slotManager.getCardInSlot(0)).thenReturn(card);
-    when(card.getId()).thenReturn("id3");
-    TransmitRequestDto req = new TransmitRequestDto();
-    req.setCommand("00A40400");
-    TransmitResponseDto resp = new TransmitResponseDto("9000", "9000", "OK", "9000");
-    when(slotManager.transmitCommand(0, "00A40400")).thenReturn(resp);
-
-    ResponseEntity<TransmitResponseDto> response = controller.transmitToCardInSlot(0, req);
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(resp, response.getBody());
-  }
-
-  @Test
-  void transmitToCardInSlot_slotNotFound_throws() {
-    when(slotManager.isValidSlotId(2)).thenReturn(false);
-    TransmitRequestDto req = new TransmitRequestDto();
-    req.setCommand("00A40400");
-    ResponseStatusException ex =
-        assertThrows(ResponseStatusException.class, () -> controller.transmitToCardInSlot(2, req));
-    assertEquals(HttpStatusCode.valueOf(HttpStatus.NOT_FOUND.value()), ex.getStatusCode());
-  }
-
-  @Test
-  void transmitToCardInSlot_noCardPresent_throws() {
-    when(slotManager.isValidSlotId(1)).thenReturn(true);
-    when(slotManager.isCardPresent(1)).thenReturn(false);
-    TransmitRequestDto req = new TransmitRequestDto();
-    req.setCommand("00A40400");
-    ResponseStatusException ex =
-        assertThrows(ResponseStatusException.class, () -> controller.transmitToCardInSlot(1, req));
-    assertEquals(HttpStatusCode.valueOf(HttpStatus.NOT_FOUND.value()), ex.getStatusCode());
-  }
-
-  @Test
-  void transmitToCardInSlot_transmitFails_throwsBadRequest() {
-    when(slotManager.isValidSlotId(0)).thenReturn(true);
-    when(slotManager.isCardPresent(0)).thenReturn(true);
-    CardImage card = mock(CardImage.class);
-    when(slotManager.getCardInSlot(0)).thenReturn(card);
-    when(card.getId()).thenReturn("id3");
-    when(slotManager.transmitCommand(0, "BAD")).thenThrow(new RuntimeException("fail"));
-    TransmitRequestDto req = new TransmitRequestDto();
-    req.setCommand("BAD");
-    ResponseStatusException ex =
-        assertThrows(ResponseStatusException.class, () -> controller.transmitToCardInSlot(0, req));
-    assertEquals(HttpStatusCode.valueOf(HttpStatus.BAD_REQUEST.value()), ex.getStatusCode());
   }
 }

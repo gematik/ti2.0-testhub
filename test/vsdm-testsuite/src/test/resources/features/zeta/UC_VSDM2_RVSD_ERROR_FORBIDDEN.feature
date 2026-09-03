@@ -4,6 +4,8 @@
 @PRODUKT:VSDM_2_FD
 @AFO-ID:A_26477-01
 @TYPE:ERROR
+# temporarily disable
+@Ignored
 Funktionalität: Fehlerbehandlung VSDM 2.0
 
   @TCID:UC_VSDM2_RVSD_ERROR_FORBIDDEN

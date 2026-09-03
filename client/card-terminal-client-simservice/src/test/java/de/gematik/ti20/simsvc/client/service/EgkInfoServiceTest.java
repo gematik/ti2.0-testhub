@@ -26,8 +26,8 @@ package de.gematik.ti20.simsvc.client.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import de.gematik.ti20.simsvc.client.dto.EgkInfoDto;
 import de.gematik.ti20.simsvc.client.model.card.CardImage;
+import de.gematik.ti20.simsvc.client.model.dto.EgkInfoDto;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;

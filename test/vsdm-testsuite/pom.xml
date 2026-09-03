@@ -7,7 +7,7 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.13.0</version>
+        <version>3.14.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -19,7 +19,9 @@
 
     <properties>
         <skip.inttests>true</skip.inttests>
-        <vsdm.testsuite.path>${maven.multiModuleProjectDirectory}/test/vsdm-testsuite</vsdm.testsuite.path>
+        <vsdm.testsuite.path>${maven.multiModuleProjectDirectory}/test/vsdm-testsuite
+        </vsdm.testsuite.path>
+        <gatling.maven-plugin.version>4.21.11</gatling.maven-plugin.version>
         <polarion.project>Mainline_OPB1</polarion.project>
         <polarion.testrun>VSDM2_GEMATIK</polarion.testrun>
         <polarion.auth.username>${polarion.username}</polarion.auth.username>
@@ -145,10 +147,12 @@
             <plugin>
                 <groupId>io.gatling</groupId>
                 <artifactId>gatling-maven-plugin</artifactId>
-                <version>4.21.10</version>
+                <version>${gatling.maven-plugin.version}</version>
                 <configuration>
                     <jvmArgs>
-                        <jvmArg>-Dtiger.testenv.cfgfile=${maven.multiModuleProjectDirectory}/tiger.yaml</jvmArg>
+                        <jvmArg>
+                            -Dtiger.testenv.cfgfile=${maven.multiModuleProjectDirectory}/tiger.yaml
+                        </jvmArg>
                         <jvmArg>-Dtiger.rootfolder=${maven.multiModuleProjectDirectory}</jvmArg>
                         <!-- Kein Profil-Schalter noetig: das Tiger-Profil wird aus dem
                              Modulverzeichnis abgeleitet (-> `vsdm`), siehe lib.defaultProfile
@@ -175,7 +179,8 @@
                 </executions>
                 <configuration>
                     <environmentVariables>
-                        <TIGER_TESTENV_CFGFILE>${maven.multiModuleProjectDirectory}/tiger.yaml</TIGER_TESTENV_CFGFILE>
+                        <TIGER_TESTENV_CFGFILE>${maven.multiModuleProjectDirectory}/tiger.yaml
+                        </TIGER_TESTENV_CFGFILE>
                         <TIGER_ROOTFOLDER>${maven.multiModuleProjectDirectory}</TIGER_ROOTFOLDER>
                     </environmentVariables>
                 </configuration>
@@ -195,9 +200,13 @@
                         <executions>
                             <execution>
                                 <configuration>
-                                    <pathToBddFiles>${vsdm.testsuite.path}/src/test/resources/features</pathToBddFiles>
+                                    <pathToBddFiles>
+                                        ${vsdm.testsuite.path}/src/test/resources/features
+                                    </pathToBddFiles>
                                     <fileExtension>.feature</fileExtension>
-                                    <destinationFilePath>${vsdm.testsuite.path}/target/polarion/vsdm2-testcases.json</destinationFilePath>
+                                    <destinationFilePath>
+                                        ${vsdm.testsuite.path}/target/polarion/vsdm2-testcases.json
+                                    </destinationFilePath>
                                 </configuration>
                                 <goals>
                                     <goal>parse-bdd</goal>
@@ -239,7 +248,9 @@
                                     <password>${polarion.auth.password}</password>
                                     <project>${polarion.project}</project>
                                     <luceneQuery>cfInternalId:UC_VSDM2_* UC_GITTI_*</luceneQuery>
-                                    <jsonFilePath>${vsdm.testsuite.path}/target/polarion/vsdm2-testcases.json</jsonFilePath>
+                                    <jsonFilePath>
+                                        ${vsdm.testsuite.path}/target/polarion/vsdm2-testcases.json
+                                    </jsonFilePath>
                                 </configuration>
                                 <goals>
                                     <goal>sync-testcases</goal>
@@ -248,7 +259,7 @@
                         </executions>
                     </plugin>
                 </plugins>
-            </build>    
+            </build>
         </profile>
         <profile>
             <id>polarion-upload</id>
@@ -267,7 +278,9 @@
                                     <password>${polarion.auth.password}</password>
                                     <project>${polarion.project}</project>
                                     <testRun>${polarion.testrun}</testRun>
-                                    <serenityReportsFolderPath>${vsdm.testsuite.path}/target/site/serenity</serenityReportsFolderPath>
+                                    <serenityReportsFolderPath>
+                                        ${vsdm.testsuite.path}/target/site/serenity
+                                    </serenityReportsFolderPath>
                                 </configuration>
                                 <goals>
                                     <goal>upload-testresults</goal>

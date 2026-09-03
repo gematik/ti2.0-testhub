@@ -407,7 +407,7 @@ class VsdmClientIT {
     assertTrue(cardHandleResponse.isSuccessful());
     final String cardHandleBody = cardHandleResponse.body().string();
 
-    System.out.println(cardHandleBody);
+    log.info(cardHandleBody);
     final String cardId =
         cardHandleBody.substring(
             cardHandleBody.indexOf("card-"), cardHandleBody.indexOf("card-") + 18);
@@ -455,7 +455,7 @@ class VsdmClientIT {
     final String readTruncatedDataBody = readTruncatedDataResponse.body().string();
 
     assertNotNull(readTruncatedDataBody);
-    System.out.println(readTruncatedDataBody);
+    log.info(readTruncatedDataBody);
     assertFalse(readTruncatedDataBody.isEmpty());
   }
 

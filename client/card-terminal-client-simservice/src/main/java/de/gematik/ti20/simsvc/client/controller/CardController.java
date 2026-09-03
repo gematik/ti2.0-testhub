@@ -24,18 +24,12 @@
  */
 package de.gematik.ti20.simsvc.client.controller;
 
-import de.gematik.ti20.simsvc.client.dto.EgkInfoDto;
 import de.gematik.ti20.simsvc.client.model.card.CardImage;
-import de.gematik.ti20.simsvc.client.model.card.CardType;
 import de.gematik.ti20.simsvc.client.model.dto.CardHandleDto;
-import de.gematik.ti20.simsvc.client.model.dto.ConnectionPropertiesDto;
-import de.gematik.ti20.simsvc.client.model.dto.SignRequestDto;
-import de.gematik.ti20.simsvc.client.model.dto.SignResponseDto;
+import de.gematik.ti20.simsvc.client.model.dto.EgkInfoDto;
 import de.gematik.ti20.simsvc.client.model.dto.SmcBInfoDto;
-import de.gematik.ti20.simsvc.client.model.dto.TransmitResponseDto;
 import de.gematik.ti20.simsvc.client.service.CardManager;
 import de.gematik.ti20.simsvc.client.service.EgkInfoService;
-import de.gematik.ti20.simsvc.client.service.SignatureService;
 import de.gematik.ti20.simsvc.client.service.SmcBInfoService;
 import java.util.HashMap;
 import java.util.List;
@@ -46,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 /**
  * REST controller for card operations. Provides endpoints for listing cards, establishing
@@ -59,7 +52,6 @@ public class CardController {
   private static final Logger logger = LoggerFactory.getLogger(CardController.class);
 
   private final CardManager cardManager;
-  private final SignatureService signatureService;
   private final SmcBInfoService smcBInfoService;
   private final EgkInfoService egkInfoService;
 
@@ -67,17 +59,12 @@ public class CardController {
    * Constructor for CardController.
    *
    * @param cardManager Service to manage cards and connections
-   * @param signatureService Service for signing operations
    * @param smcBInfoService Service for SMC-B information extraction
    */
   @Autowired
   public CardController(
-      CardManager cardManager,
-      SignatureService signatureService,
-      SmcBInfoService smcBInfoService,
-      EgkInfoService egkInfoService) {
+      CardManager cardManager, SmcBInfoService smcBInfoService, EgkInfoService egkInfoService) {
     this.cardManager = cardManager;
-    this.signatureService = signatureService;
     this.smcBInfoService = smcBInfoService;
     this.egkInfoService = egkInfoService;
   }
@@ -94,209 +81,6 @@ public class CardController {
   }
 
   /**
-   * Establish a virtual connection to a card.
-   *
-   * @param cardHandle Card handle identifier
-   * @return Connection properties
-   */
-  @GetMapping("/{cardHandle}")
-  public ResponseEntity<ConnectionPropertiesDto> connect(@PathVariable String cardHandle) {
-    // GlobalExceptionHandler wird die Fehlerbehandlung übernehmen
-    ConnectionPropertiesDto properties = cardManager.connectToCard(cardHandle);
-    return ResponseEntity.ok(properties);
-  }
-
-  /**
-   * Transmit an APDU command to a connected card.
-   *
-   * @param cardHandle Card handle identifier
-   * @param request Transmit request containing APDU command
-   * @return Response containing APDU response
-   */
-  @PostMapping("/{cardHandle}/transmit")
-  public ResponseEntity<TransmitResponseDto> transmit(
-      @PathVariable String cardHandle, @RequestBody Map<String, String> requestBody) {
-
-    try {
-      String command = requestBody.get("command");
-      if (command == null) {
-        throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST, "Missing 'command' field in request");
-      }
-
-      String normalizedCommand = command.replaceAll("\\s+", "").toUpperCase();
-
-      // Direct handling for 0xF0EE cert-info command
-      if ("F0EE000000".equals(normalizedCommand)) {
-        try {
-          CardImage card = cardManager.findCardByHandle(cardHandle);
-          if (card == null) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Card not found for handle: " + cardHandle);
-          }
-
-          // Route to appropriate cert-info based on card type
-          Object certInfo;
-          String certData;
-
-          if (card.getCardType() == CardType.EGK) {
-            EgkInfoDto egkInfo = egkInfoService.extractEgkInfo(card);
-            certData =
-                String.format(
-                    "cardType:%s|KVNR:%s|IKNR:%s|NAME:%s|FIRST_NAME:%s|LAST_NAME:%s",
-                    egkInfo.getCardType(),
-                    egkInfo.getKvnr(),
-                    egkInfo.getIknr(),
-                    egkInfo.getPatientName(),
-                    egkInfo.getFirstName(),
-                    egkInfo.getLastName());
-          } else {
-            // SMC-B and other card types
-            SmcBInfoDto smcBInfo = smcBInfoService.extractSmcBInfo(cardHandle);
-            certData =
-                String.format(
-                    "cardType:%s|TELEMATIK_ID:%s|PROFESSION_OID:%s|HOLDER:%s|ORG:%s",
-                    smcBInfo.getCardType(),
-                    smcBInfo.getTelematikId(),
-                    smcBInfo.getProfessionOid(),
-                    smcBInfo.getHolderName(),
-                    smcBInfo.getOrganizationName());
-          }
-
-          byte[] dataBytes = certData.getBytes("UTF-8");
-          String dataHex =
-              org.apache.commons.codec.binary.Hex.encodeHexString(dataBytes).toUpperCase();
-          String responseHex = dataHex + "9000";
-
-          TransmitResponseDto response =
-              new TransmitResponseDto(responseHex, "9000", "Success", dataHex);
-          return ResponseEntity.ok(response);
-        } catch (Exception certError) {
-          logger.error(
-              "Error processing F0EE command for card {}: {}", cardHandle, certError.getMessage());
-          // Provide a fallback response with error information for debugging
-          String fallbackData = "cardType:ERROR|STATUS:CERT_INFO_EXTRACTION_FAILED";
-          try {
-            byte[] dataBytes = fallbackData.getBytes("UTF-8");
-            String dataHex =
-                org.apache.commons.codec.binary.Hex.encodeHexString(dataBytes).toUpperCase();
-            String responseHex = dataHex + "9000";
-
-            TransmitResponseDto response =
-                new TransmitResponseDto(
-                    responseHex,
-                    "9000",
-                    "Error in cert-info processing: " + certError.getMessage(),
-                    dataHex);
-            return ResponseEntity.ok(response);
-          } catch (Exception fallbackError) {
-            throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Complete cert-info processing failure: " + certError.getMessage());
-          }
-        }
-      }
-
-      // Direct handling for 0x80EE EGK-Info command (legacy support)
-      if ("80EE000000".equals(normalizedCommand)) {
-        try {
-          CardImage card = cardManager.findCardByHandle(cardHandle);
-          if (card == null) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Card not found for handle: " + cardHandle);
-          }
-
-          EgkInfoDto egkInfo = egkInfoService.extractEgkInfo(card);
-          String egkData =
-              String.format(
-                  "KVNR:%s|IKNR:%s|NAME:%s",
-                  egkInfo.getKvnr(), egkInfo.getIknr(), egkInfo.getPatientName());
-
-          byte[] dataBytes = egkData.getBytes("UTF-8");
-          String dataHex =
-              org.apache.commons.codec.binary.Hex.encodeHexString(dataBytes).toUpperCase();
-          String responseHex = dataHex + "9000";
-
-          TransmitResponseDto response =
-              new TransmitResponseDto(responseHex, "9000", "Success", dataHex);
-          return ResponseEntity.ok(response);
-        } catch (Exception egkError) {
-          logger.error(
-              "Error processing 80EE command for card {}: {}", cardHandle, egkError.getMessage());
-          // Provide a fallback response with error information for debugging
-          String fallbackData = "KVNR:ERROR_PROCESSING|IKNR:ERROR|NAME:EGK Info Extraction Failed";
-          try {
-            byte[] dataBytes = fallbackData.getBytes("UTF-8");
-            String dataHex =
-                org.apache.commons.codec.binary.Hex.encodeHexString(dataBytes).toUpperCase();
-            String responseHex = dataHex + "9000";
-
-            TransmitResponseDto response =
-                new TransmitResponseDto(
-                    responseHex,
-                    "9000",
-                    "Error in EGK processing: " + egkError.getMessage(),
-                    dataHex);
-            return ResponseEntity.ok(response);
-          } catch (Exception fallbackError) {
-            throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Complete EGK processing failure: " + egkError.getMessage());
-          }
-        }
-      }
-
-      // Normal APDU processing for other commands
-      TransmitResponseDto response = cardManager.transmitCommand(cardHandle, command);
-      return ResponseEntity.ok(response);
-
-    } catch (final ResponseStatusException e) {
-      throw e;
-    } catch (final Exception e) {
-      throw new ResponseStatusException(
-          HttpStatus.INTERNAL_SERVER_ERROR, "APDU transmission failed: " + e.getMessage());
-    }
-  }
-
-  /**
-   * Sign data with the card's certificate.
-   *
-   * @param cardHandle Card handle identifier
-   * @param request Sign request containing data to sign and options
-   * @return Response containing signature
-   */
-  @PostMapping("/{cardHandle}/sign")
-  public ResponseEntity<SignResponseDto> sign(
-      @PathVariable String cardHandle, @RequestBody SignRequestDto request) {
-    try {
-      SignResponseDto response = signatureService.signData(cardHandle, request);
-      return ResponseEntity.ok(response);
-    } catch (IllegalArgumentException e) {
-      if (e.getMessage().contains("SHA1") || e.getMessage().contains("deprecated")) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-      }
-      throw new ResponseStatusException(
-          HttpStatus.NOT_FOUND, "Card not found or not connected: " + cardHandle);
-    } catch (Exception e) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Signing failed: " + e.getMessage());
-    }
-  }
-
-  /**
-   * Close a virtual connection to a card.
-   *
-   * @param cardHandle Card handle identifier
-   * @return Empty response
-   */
-  @DeleteMapping("/{cardHandle}")
-  public ResponseEntity<Void> disconnect(@PathVariable String cardHandle) {
-    // GlobalExceptionHandler wird die Fehlerbehandlung übernehmen
-    cardManager.disconnectCard(cardHandle);
-    return ResponseEntity.noContent().build();
-  }
-
-  /**
    * Get SMC-B card information including Telematik-ID and ProfessionOID.
    *
    * @param cardHandle Card handle
@@ -306,27 +90,6 @@ public class CardController {
   public ResponseEntity<SmcBInfoDto> getSmcBInfo(@PathVariable String cardHandle) {
     SmcBInfoDto smcBInfo = smcBInfoService.extractSmcBInfo(cardHandle);
     return ResponseEntity.ok(smcBInfo);
-  }
-
-  /**
-   * Get certificate from card.
-   *
-   * @param cardHandle Card handle
-   * @param request Certificate request containing key type
-   * @return Certificate data
-   */
-  @PostMapping("/{cardHandle}/certificate")
-  public ResponseEntity<Map<String, String>> getCertificate(
-      @PathVariable String cardHandle, @RequestBody Map<String, String> request) {
-    try {
-      String keyType = request.getOrDefault("keyType", "AUT");
-      Map<String, String> response = signatureService.getCertificate(cardHandle, keyType);
-      return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      Map<String, String> errorResponse = new HashMap<>();
-      errorResponse.put("error", "Certificate retrieval failed: " + e.getMessage());
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-    }
   }
 
   /**

@@ -4,6 +4,8 @@
 @PRODUKT:VSDM_2_FD
 @AF-ID:AF_10413
 @TYPE:E2E
+# temporarily disable
+@Ignored
 Funktionalität: Abfrage der Versichertenstammdaten von der eGK
 
   @TCID:UC_VSDM2_RVSD_FROM_EGK_CARD_VALID

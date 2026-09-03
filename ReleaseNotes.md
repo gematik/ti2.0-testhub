@@ -2,11 +2,31 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.14.0
+
+### Update Notes
+
+This release contains the update of the VSDM Zeta components to version 1.3.0. The Zeta SDK is
+backward compatible and works with previous versions of the Zeta Guard. However, the Zeta SDK client
+currently shows a regression where invalid PoPP tokens cause an error. For this reason, the
+corresponding tests have been temporarily commented out.
+
+### Changes
+
+- PTVSDM-1692: add negative testcase to verify VSDM2 policy
+- TESTHUB-228: (VSDM) update Zeta components to release 1.3.0
+- TESTHUB-229: changed policies to a denylist instead of an allowlist
+
 ## Release 3.13.0
+
+### Changes
 
 - TESTHUB-202: update FHIR schema to match latest version of VSDM2 specification 1.1.0
 - TESTHUB-205: allow for multiple SMCB certificates in the VSDM2 load tests
 - TESTHUB-208: avoid writing resolv.conf in the host system
+- TESTHUB-209: unify Tiger configuration across testsuites
+- ZTI-4578: added negative testcase for client registration
+- misc dependency updates
 
 ## Release 3.12.0
 

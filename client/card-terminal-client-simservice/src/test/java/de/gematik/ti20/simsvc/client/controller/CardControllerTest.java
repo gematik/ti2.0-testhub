@@ -33,14 +33,11 @@ import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.server.ResponseStatusException;
 
 class CardControllerTest {
 
   private CardManager cardManager;
-  private SignatureService signatureService;
   private SmcBInfoService smcBInfoService;
   private EgkInfoService egkInfoService;
   private CardController controller;
@@ -48,10 +45,9 @@ class CardControllerTest {
   @BeforeEach
   void setUp() {
     cardManager = mock(CardManager.class);
-    signatureService = mock(SignatureService.class);
     smcBInfoService = mock(SmcBInfoService.class);
     egkInfoService = mock(EgkInfoService.class);
-    controller = new CardController(cardManager, signatureService, smcBInfoService, egkInfoService);
+    controller = new CardController(cardManager, smcBInfoService, egkInfoService);
   }
 
   @Test
@@ -68,64 +64,6 @@ class CardControllerTest {
   }
 
   @Test
-  void connect_returnsConnectionProperties() {
-    ConnectionPropertiesDto props = new ConnectionPropertiesDto();
-    when(cardManager.connectToCard("handle")).thenReturn(props);
-
-    ResponseEntity<ConnectionPropertiesDto> response = controller.connect("handle");
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(props, response.getBody());
-  }
-
-  @Test
-  void transmit_normalCommand_delegatesToCardManager() {
-    Map<String, String> req = Map.of("command", "00A40400");
-    TransmitResponseDto transmitResponse = new TransmitResponseDto("9000", "9000", "OK", "9000");
-    when(cardManager.transmitCommand("handle", "00A40400")).thenReturn(transmitResponse);
-
-    ResponseEntity<TransmitResponseDto> response = controller.transmit("handle", req);
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(transmitResponse, response.getBody());
-  }
-
-  @Test
-  void transmit_missingCommand_throwsBadRequest() {
-    Map<String, String> req = new HashMap<>();
-    ResponseStatusException ex =
-        assertThrows(ResponseStatusException.class, () -> controller.transmit("h", req));
-    assertEquals(HttpStatusCode.valueOf(HttpStatus.BAD_REQUEST.value()), ex.getStatusCode());
-  }
-
-  @Test
-  void sign_success() throws Exception {
-    SignRequestDto req = new SignRequestDto();
-    SignResponseDto resp = new SignResponseDto();
-    when(signatureService.signData("h", req)).thenReturn(resp);
-
-    ResponseEntity<SignResponseDto> response = controller.sign("h", req);
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(resp, response.getBody());
-  }
-
-  @Test
-  void sign_illegalArgumentExceptionWithSHA1_returnsBadRequest() throws Exception {
-    SignRequestDto req = new SignRequestDto();
-    when(signatureService.signData(any(), any()))
-        .thenThrow(new IllegalArgumentException("SHA1 not allowed"));
-
-    ResponseStatusException ex =
-        assertThrows(ResponseStatusException.class, () -> controller.sign("h", req));
-    assertEquals(HttpStatusCode.valueOf(HttpStatus.BAD_REQUEST.value()), ex.getStatusCode());
-  }
-
-  @Test
-  void disconnect_callsCardManager() {
-    ResponseEntity<Void> response = controller.disconnect("h");
-    verify(cardManager).disconnectCard("h");
-    assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-  }
-
-  @Test
   void getSmcBInfo_returnsInfo() {
     SmcBInfoDto info = new SmcBInfoDto();
     when(smcBInfoService.extractSmcBInfo("h")).thenReturn(info);
@@ -133,27 +71,6 @@ class CardControllerTest {
     ResponseEntity<SmcBInfoDto> response = controller.getSmcBInfo("h");
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(info, response.getBody());
-  }
-
-  @Test
-  void getCertificate_success() throws Exception {
-    Map<String, String> req = Map.of("keyType", "AUT");
-    Map<String, String> cert = Map.of("cert", "data");
-    when(signatureService.getCertificate("h", "AUT")).thenReturn(cert);
-
-    ResponseEntity<Map<String, String>> response = controller.getCertificate("h", req);
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(cert, response.getBody());
-  }
-
-  @Test
-  void getCertificate_exception_returnsBadRequest() throws Exception {
-    Map<String, String> req = Map.of();
-    when(signatureService.getCertificate(any(), any())).thenThrow(new RuntimeException("fail"));
-
-    ResponseEntity<Map<String, String>> response = controller.getCertificate("h", req);
-    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertTrue(response.getBody().get("error").contains("Certificate retrieval failed"));
   }
 
   @Test

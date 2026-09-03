@@ -22,7 +22,7 @@
  * by gematik, find details in the "Readme" file.
  * #L%
  */
-package de.gematik.ti20.simsvc.client.dto;
+package de.gematik.ti20.simsvc.client.model.dto;
 
 import static org.junit.jupiter.api.Assertions.*;
 

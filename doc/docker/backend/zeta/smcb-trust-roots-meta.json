@@ -1,0 +1,142 @@
+[
+  {
+    "friendlyName": "CN=ACHELOS.SMCB-CA20 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=achelos GmbH NOT-VALID,C=DE",
+    "tspName": "achelos GmbH"
+  },
+  {
+    "friendlyName": "CN=ACHELOS.SMCB-CA21 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=achelos GmbH NOT-VALID,C=DE",
+    "tspName": "achelos GmbH"
+  },
+  {
+    "friendlyName": "CN=MESIG.SMCB-CA1 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=medisign GmbH NOT-VALID,C=DE",
+    "tspName": "medisign"
+  },
+  {
+    "friendlyName": "CN=MESIG.SMCB-CA10 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=medisign GmbH NOT-VALID,C=DE",
+    "tspName": "medisign"
+  },
+  {
+    "friendlyName": "CN=MESIG.SMCB-CA25 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=medisign GmbH NOT-VALID,C=DE",
+    "tspName": "medisign"
+  },
+  {
+    "friendlyName": "CN=MESIG.SMCB-CA35 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=medisign GmbH NOT-VALID,C=DE",
+    "tspName": "medisign"
+  },
+  {
+    "friendlyName": "CN=ATOS.SMCB-CA8 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=Atos Information Technology GmbH NOT-VALID,C=DE",
+    "tspName": "Atos Information Technology GmbH"
+  },
+  {
+    "friendlyName": "CN=ATOS.SMCB-CA3 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=Atos Information Technology GmbH NOT-VALID,C=DE",
+    "tspName": "Atos Information Technology GmbH"
+  },
+  {
+    "friendlyName": "CN=ATOS.SMCB-CA6 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=Atos Information Technology GmbH NOT-VALID,C=DE",
+    "tspName": "Atos Information Technology GmbH"
+  },
+  {
+    "friendlyName": "CN=ATOS.SMCB-CA4 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=Atos Information Technology GmbH NOT-VALID,C=DE",
+    "tspName": "Atos Information Technology GmbH"
+  },
+  {
+    "friendlyName": "CN=ATOS.SMCB-CA5 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=Atos Information Technology GmbH NOT-VALID,C=DE",
+    "tspName": "Atos Information Technology GmbH"
+  },
+  {
+    "friendlyName": "CN=ATOS.SMCB-CA7 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=Eviden Germany GmbH NOT-VALID,C=DE",
+    "tspName": "Atos Information Technology GmbH"
+  },
+  {
+    "friendlyName": "CN=D-Trust.SMCB-CA33 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=D-Trust GmbH NOT-VALID,C=DE",
+    "tspName": "D-TRUST"
+  },
+  {
+    "friendlyName": "CN=D-Trust.SMCB-CA34 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=D-Trust GmbH NOT-VALID,C=DE",
+    "tspName": "D-TRUST"
+  },
+  {
+    "friendlyName": "CN=D-Trust.SMCB-CA7 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=D-Trust GmbH NOT-VALID,C=DE",
+    "tspName": "D-TRUST"
+  },
+  {
+    "friendlyName": "CN=D-Trust.SMCB-CA32 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=D-Trust GmbH NOT-VALID,C=DE",
+    "tspName": "D-TRUST"
+  },
+  {
+    "friendlyName": "CN=D-Trust.SMCB-CA31 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=D-Trust GmbH NOT-VALID,C=DE",
+    "tspName": "D-TRUST"
+  },
+  {
+    "friendlyName": "CN=D-Trust.SMCB-CA2 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=D-Trust GmbH NOT-VALID,C=DE",
+    "tspName": "D-TRUST"
+  },
+  {
+    "friendlyName": "CN=D-Trust.SMCB-CA3 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=D-Trust GmbH NOT-VALID,C=DE",
+    "tspName": "D-TRUST"
+  },
+  {
+    "friendlyName": "CN=D-Trust.SMCB-CA6 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=D-Trust GmbH NOT-VALID,C=DE",
+    "tspName": "D-TRUST"
+  },
+  {
+    "friendlyName": "CN=D-Trust.SMCB-CA5 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=D-Trust GmbH NOT-VALID,C=DE",
+    "tspName": "D-TRUST"
+  },
+  {
+    "friendlyName": "CN=D-Trust.SMCB-CA1 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=gematik GmbH NOT-VALID,C=DE",
+    "tspName": "D-TRUST"
+  },
+  {
+    "friendlyName": "CN=TSYSI.SMCB-CA5 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=T-Systems International GmbH NOT-VALID,C=DE",
+    "tspName": "T-TeleSec"
+  },
+  {
+    "friendlyName": "CN=TSYSI.SMCB-CA3 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=T-Systems International GmbH - G2 Los 3 NOT-VALID,C=DE",
+    "tspName": "T-TeleSec"
+  },
+  {
+    "friendlyName": "CN=TSYSI.SMCB-CA4 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=Deutsche Telekom Security GmbH - G2 Los 3 NOT-VALID,C=DE",
+    "tspName": "T-TeleSec"
+  },
+  {
+    "friendlyName": "CN=TSYSI.SMCB-CA2 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=T-Systems International GmbH - G2 Los 3 NOT-VALID,C=DE",
+    "tspName": "T-TeleSec"
+  },
+  {
+    "friendlyName": "CN=TSYSI.SMCB-CA1 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=T-Systems International GmbH - G2 Los 3 NOT-VALID,C=DE",
+    "tspName": "T-TeleSec"
+  },
+  {
+    "friendlyName": "CN=GEM.SMCB-CA92 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=gematik GmbH NOT-VALID,C=DE",
+    "tspName": "gematik"
+  },
+  {
+    "friendlyName": "CN=GEM.SMCB-CA24 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=gematik GmbH NOT-VALID,C=DE",
+    "tspName": "gematik"
+  },
+  {
+    "friendlyName": "CN=GEM.SMCB-CA9 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=gematik GmbH NOT-VALID,C=DE",
+    "tspName": "gematik"
+  },
+  {
+    "friendlyName": "CN=GEM.SMCB-CA51 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=gematik GmbH NOT-VALID,C=DE",
+    "tspName": "gematik"
+  },
+  {
+    "friendlyName": "CN=GEM.SMCB-CA41 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=gematik GmbH NOT-VALID,C=DE",
+    "tspName": "gematik"
+  },
+  {
+    "friendlyName": "CN=GEM.SMCB-CA44 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=gematik NOT-VALID,C=DE",
+    "tspName": "gematik"
+  },
+  {
+    "friendlyName": "CN=GEM.SMCB-CA57 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=gematik NOT-VALID,C=DE",
+    "tspName": "gematik"
+  },
+  {
+    "friendlyName": "CN=GEM.SMCB-CA91 TEST-ONLY,OU=Institution des Gesundheitswesens-CA der Telematikinfrastruktur,O=gematik GmbH NOT-VALID,C=DE",
+    "tspName": "gematik"
+  }
+]
