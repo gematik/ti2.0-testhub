@@ -25,11 +25,9 @@
 package de.gematik.ti20.simsvc.client.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.gematik.ti20.simsvc.client.dto.EgkInfoDto;
 import de.gematik.ti20.simsvc.client.model.card.CardImage;
 import de.gematik.ti20.simsvc.client.model.dto.CardInfoDto;
-import de.gematik.ti20.simsvc.client.model.dto.TransmitRequestDto;
-import de.gematik.ti20.simsvc.client.model.dto.TransmitResponseDto;
+import de.gematik.ti20.simsvc.client.model.dto.EgkInfoDto;
 import de.gematik.ti20.simsvc.client.service.CardImageParser;
 import de.gematik.ti20.simsvc.client.service.CardImageService;
 import de.gematik.ti20.simsvc.client.service.SlotManager;
@@ -175,35 +173,6 @@ public class SlotController {
 
     slotManager.removeCard(slotId);
     return ResponseEntity.noContent().build();
-  }
-
-  /**
-   * Transmit an APDU command to the card in a specific slot.
-   *
-   * @param slotId Slot identifier
-   * @param request TransmitRequestDto containing the APDU command
-   * @return Response containing APDU response
-   */
-  @PostMapping(value = "/{slotId}/transmit")
-  public ResponseEntity<TransmitResponseDto> transmitToCardInSlot(
-      @PathVariable int slotId, @RequestBody TransmitRequestDto request) {
-
-    if (!slotManager.isValidSlotId(slotId)) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Slot not found: " + slotId);
-    }
-
-    if (!slotManager.isCardPresent(slotId)) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No card present in slot: " + slotId);
-    }
-
-    try {
-      // Forward to the card manager's transmit method
-      TransmitResponseDto response = slotManager.transmitCommand(slotId, request.getCommand());
-      return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Transmit failed: " + e.getMessage());
-    }
   }
 
   /**

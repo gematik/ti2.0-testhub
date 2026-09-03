@@ -24,20 +24,13 @@
  */
 package de.gematik.ti20.simsvc.client.service;
 
-import de.gematik.ti20.simsvc.client.model.apdu.ApduCommand;
-import de.gematik.ti20.simsvc.client.model.apdu.ApduResponse;
 import de.gematik.ti20.simsvc.client.model.card.CardImage;
 import de.gematik.ti20.simsvc.client.model.dto.CardHandleDto;
-import de.gematik.ti20.simsvc.client.model.dto.ConnectionPropertiesDto;
-import de.gematik.ti20.simsvc.client.model.dto.TransmitResponseDto;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.commons.codec.binary.Hex;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,22 +38,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class CardManager {
 
-  private static final Logger logger = LoggerFactory.getLogger(CardManager.class);
-
   private final SlotManager slotManager;
-  private final ApduProcessor apduProcessor;
   private final Map<String, CardConnection> connections;
 
   /**
    * Constructor for CardManager.
    *
    * @param slotManager Service to manage slots
-   * @param apduProcessor APDU processor service
    */
   @Autowired
-  public CardManager(SlotManager slotManager, ApduProcessor apduProcessor) {
+  public CardManager(SlotManager slotManager) {
     this.slotManager = slotManager;
-    this.apduProcessor = apduProcessor;
     this.connections = new ConcurrentHashMap<>();
   }
 
@@ -85,129 +73,6 @@ public class CardManager {
     }
 
     return cardHandles;
-  }
-
-  /**
-   * Establish a virtual connection to a card.
-   *
-   * @param cardHandle Card handle identifier
-   * @return Connection properties
-   */
-  public ConnectionPropertiesDto connectToCard(String cardHandle) {
-    // Check if the card handle is valid
-    CardImage card = findCardByHandle(cardHandle);
-    if (card == null) {
-      throw new de.gematik.ti20.simsvc.client.exception.CardNotFoundException(cardHandle);
-    }
-
-    // Allow multiple non-exclusive connections to the same card
-    // If already connected, return existing connection properties
-    if (!connections.containsKey(cardHandle)) {
-      // Find the slot ID for this card
-      int slotId = findSlotIdForCard(card);
-      // Create a new connection only if one doesn't exist
-      CardConnection connection = new CardConnection(card, slotId);
-      connections.put(cardHandle, connection);
-    }
-
-    // Get the ATR (Answer to Reset)
-    String atr = getAtrForCard(card);
-
-    // Return connection properties
-    return new ConnectionPropertiesDto(
-        cardHandle,
-        atr,
-        "T=1", // Default protocol
-        false // Not exclusive by default
-        );
-  }
-
-  /**
-   * Transmit an APDU command to a connected card.
-   *
-   * @param cardHandle Card handle identifier
-   * @param commandHex APDU command as a hex string
-   * @return Response containing APDU response
-   */
-  public TransmitResponseDto transmitCommand(String cardHandle, String commandHex) {
-    logger.debug("Transmitting APDU command: {} for card: {}", commandHex, cardHandle);
-
-    try {
-      logger.debug("Processing APDU command: {} for card: {}", commandHex, cardHandle);
-
-      // Check if the card is connected
-      CardConnection connection = connections.get(cardHandle);
-      if (connection == null) {
-        logger.error("Card not connected: {}", cardHandle);
-        throw new de.gematik.ti20.simsvc.client.exception.CardNotConnectedException(cardHandle);
-      }
-
-      logger.debug("Card connection found for handle: {}", cardHandle);
-
-      // Parse the command with error handling
-      ApduCommand command;
-      try {
-        command = ApduCommand.fromHex(commandHex);
-        logger.debug(
-            "Successfully parsed APDU command: CLA={}, INS={}, P1={}, P2={}, Le={}",
-            String.format("%02X", command.getCla()),
-            String.format("%02X", command.getIns()),
-            String.format("%02X", command.getP1()),
-            String.format("%02X", command.getP2()),
-            command.getLe());
-      } catch (Exception parseError) {
-        logger.error("Failed to parse APDU command '{}': {}", commandHex, parseError.getMessage());
-        throw new IllegalArgumentException(
-            "Invalid APDU command format: " + parseError.getMessage());
-      }
-
-      // Process the command using the ApduProcessor
-      ApduResponse response;
-      try {
-        response = apduProcessor.processCommand(connection.getCard(), command);
-        logger.debug("APDU response received: SW={}", response.getStatusWordHex());
-      } catch (Exception processError) {
-        logger.error("Failed to process APDU command: {}", processError.getMessage(), processError);
-        throw new RuntimeException("APDU processing failed: " + processError.getMessage());
-      }
-
-      // Convert the response to hex strings
-      String responseHex = response.toHex();
-      String statusWordHex = response.getStatusWordHex();
-      String responseData = "";
-
-      if (response.getData() != null && response.getData().length > 0) {
-        responseData = Hex.encodeHexString(response.getData()).toUpperCase();
-        logger.debug("Response data length: {} bytes", response.getData().length);
-      }
-
-      // Create the response DTO
-      TransmitResponseDto result =
-          new TransmitResponseDto(
-              responseHex, statusWordHex, response.getStatusMessage(), responseData);
-
-      logger.debug("Successfully created transmit response");
-      return result;
-
-    } catch (Exception e) {
-      logger.error("Error during APDU transmission for card {}: {}", cardHandle, e.getMessage(), e);
-      throw e; // Re-throw to let GlobalExceptionHandler handle it
-    }
-  }
-
-  /**
-   * Close a virtual connection to a card.
-   *
-   * @param cardHandle Card handle identifier
-   */
-  public void disconnectCard(String cardHandle) {
-    // Check if the card is connected
-    if (!connections.containsKey(cardHandle)) {
-      throw new de.gematik.ti20.simsvc.client.exception.CardNotConnectedException(cardHandle);
-    }
-
-    // Remove the connection
-    connections.remove(cardHandle);
   }
 
   /**
@@ -262,27 +127,6 @@ public class CardManager {
     }
 
     return UUID.randomUUID().toString();
-  }
-
-  /**
-   * Get the ATR (Answer to Reset) for a card.
-   *
-   * @param card Card image
-   * @return ATR as a hex string
-   */
-  private String getAtrForCard(CardImage card) {
-    // In a real implementation, this would extract the ATR from the card data
-    // For now, return a simulated ATR based on card type
-    switch (card.getCardType()) {
-      case EGK:
-        return "3B8F80018031C0730F0161FF0143C103000300300400";
-      case HBA:
-        return "3B9F0080318065B0870401625F0104C03F0073CF";
-      case HPIC:
-        return "3B9F0080318065B0880401625F0104C03F0073CF";
-      default:
-        return "3B0000"; // Default ATR
-    }
   }
 
   /** Inner class representing a connection to a card. */

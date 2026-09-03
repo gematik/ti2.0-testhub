@@ -10,7 +10,8 @@ HashDB-Import.
 ## Einleitung
 
 Aktuell umfasst die Testsuite Ende-zu-Ende-Tests zur Erzeugung eines PoPP-Tokens gegen die
-PoPP-Beispielimplementierung (separates Projekt, siehe [LINK](https://github.com/gematik/popp-sample-code/blob/main/README.md)).
+PoPP-Beispielimplementierung (separates Projekt,
+siehe [LINK](https://github.com/gematik/popp-sample-code/blob/main/README.md)).
 Hierbei werden die Varianten mit echter eHealth-Hardware, einem Standardkartenleser,
 sowie den virtuellen Karten des PoPP-Clients unterstützt.
 Zudem sind Negativfälle für Karten mit abgelaufenen oder gesperrten Zertifikaten angelegt.
@@ -25,17 +26,30 @@ und **Gherkin** und bietet einen Proxy, der den Datenverkehr mitschneidet.
    [siehe README der Beispielimplementierung](https://github.com/gematik/popp-sample-code/blob/main/README.md)
     - PoPP-Client aus der IDE gestartet
 
-2. Run Configurations für die Nutzung mit Tiger konfiguriert [siehe Tiger-README](https://github.com/gematik/app-Tiger/blob/master/README.md)
+2. Run Configurations für die Nutzung mit Tiger
+   konfiguriert [siehe Tiger-README](https://github.com/gematik/app-Tiger/blob/master/README.md)
 
-3. Die von der Testsuite benötigten p12-Files sind nicht auf GitHub veröffentlicht. Sie werden auf Anfrage von der gematik bereitgestellt.
+3. Die von der Testsuite benötigten p12-Files sind nicht auf GitHub veröffentlicht. Sie werden auf
+   Anfrage von der gematik bereitgestellt.
 
    Benötigt werden:
-    * die unter `TestConstants.java` angegebenen p12-Files
-    * die unter `*.feature` verwendeten p12-Files
+    * die unter `*.feature` verwendeten SMC-B-.p12-Files
+    * die unter `*.feature` verwendeten eGK Images
+    * die unter `*.feature` verwendeten TSP-eGK-.p12-Files
+
+   Die TSP-eGK-.p12-Files müssen unter `no-publish/test-data/p12/popp-testsuite` in dem
+   TI20-Testhub-Projekt abgelegt werden. Dateiname und Pfad müssen passen.
+
+   Die SMC-Bs und eGKs müssen in der PoPP-Beispielimplementierung hinterlegt werden. Die Inhalte (
+   KVNRs, Telematik-IDs, etc) in
+   `src/test/java/de/gematik/ti20/popp/EgkType.java` und
+   `src/test/java/de/gematik/ti20/popp/SmcbType.java` müssen entsprechend den Inhalten der
+   Zertifikate bzw. Images angepasst werden.
 
 ## Nutzung des Tiger-Proxys
 
-Je nach gewünschter Umgebung ist in der Run Configuration unter Environment Variables die Variable *env* zu setzen.
+Je nach gewünschter Umgebung ist in der Run Configuration unter Environment Variables die Variable
+*env* zu setzen.
 
 Der PoPP-Server von Rise steht dabei in drei Instanzen zum Testen zur Verfügung:
 
@@ -75,7 +89,8 @@ Der Testfall lässt sich mit verschiedenen Kombinationen starten. Im Feature
 
 `src/test/resources/features/e2e/UC_PoPP_1_2a_Valid.feature`
 
-werden unter **Examples** die gewünschten Varianten konfiguriert. Nicht benötigte Kombinationen können mit `#` auskommentiert werden.
+werden unter **Examples** die gewünschten Varianten konfiguriert. Nicht benötigte Kombinationen
+können mit `#` auskommentiert werden.
 
 | readerType      | commType          |
 |-----------------|-------------------|
@@ -90,6 +105,7 @@ Beispiel RU-DEV:
 mvn -Denv=ru-dev verify -Dcucumber.filter.tags="@TCID:UC_PoPP_1_2a_Valid"
 ```
 
-> Tipp: Immer vorher einmal ins Feature-File schauen und nachsehen, welche Detailvarianten unter *Beispiele* ausgewählt sind.
+> Tipp: Immer vorher einmal ins Feature-File schauen und nachsehen, welche Detailvarianten unter
+*Beispiele* ausgewählt sind.
 
 Testfälle können dem Maven-Befehl nach Belieben mit `or @TCID:UC_Popp_***` hinzugefügt werden.

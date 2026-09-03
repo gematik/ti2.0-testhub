@@ -51,34 +51,39 @@ reasons[msg] if {
 }
 
 profession_oid_is_allowed if {
-	# 1.2.276.0.76.4.50 = "Betriebsstätte Arzt" - reale professionOID der SMC-B-Testkarte
-	allowed_profession_oid_set := {"1.2.276.0.76.4.50"}
-	input.user_info.professionOID in allowed_profession_oid_set
+	# Deny-List statt Allow-List: nur den eindeutig synthetischen, im Negativ-Test
+	# manipulierten Wert ablehnen. So bleibt die Policy für echte SMC-B-Karten mit
+	# beliebiger realer professionOID durchlässig (siehe zeta-client-policy/client_policy.feature).
+	denied_profession_oid_set := {"1.2.276.0.76.4.999"}
+	not input.user_info.professionOID in denied_profession_oid_set
 }
 
 audience_is_allowed if {
-	# reale Audience des VSDM-Fachdienstes (vsdm-zeta-ingress)
-	allowed_audience_set := {"https://vsdm-zeta-ingress/"}
+	# Deny-List statt Allow-List (siehe profession_oid_is_allowed): nur die im
+	# Negativ-Test manipulierte, eindeutig ungültige Audience ablehnen.
+	denied_audience_set := {"https://evil.example.com/api"}
 	requested_audience_set := {a | a := input.authorization_request.audience[_]}
-	count(requested_audience_set) > 0
-	requested_audience_set - allowed_audience_set == set()
+	requested_audience_set & denied_audience_set == set()
 }
 
 product_id_is_allowed if {
-	# reale product_id des VSDM-Testclients (vsdm-client-simservice-java)
-	allowed_product_id_set := {"demo-client"}
-	input.client_registration_data.product_id in allowed_product_id_set
+	# Deny-List statt Allow-List (siehe profession_oid_is_allowed): nur die im
+	# Negativ-Test manipulierte, eindeutig ungültige product_id ablehnen.
+	denied_product_id_set := {"unknown-client"}
+	not input.client_registration_data.product_id in denied_product_id_set
 }
 
 product_version_is_allowed if {
-	# reale product_version des VSDM-Testclients (vsdm-client-simservice-java)
-	allowed_product_version_set := {"0.2.0"}
-	input.client_registration_data.product_version in allowed_product_version_set
+	# Deny-List statt Allow-List (siehe profession_oid_is_allowed): nur die im
+	# Negativ-Test manipulierte, eindeutig ungültige product_version ablehnen.
+	denied_product_version_set := {"99.99.99"}
+	not input.client_registration_data.product_version in denied_product_version_set
 }
 
 scopes_are_allowed if {
-	allowed_scope_set := {"vsdservice"}
+	# Deny-List statt Allow-List (siehe profession_oid_is_allowed): nur den im
+	# Negativ-Test manipulierten, eindeutig ungültigen Scope ablehnen.
+	denied_scope_set := {"invalid_scope_xyz"}
 	requested_scope_set := {s | s := input.authorization_request.scopes[_]}
-	count(requested_scope_set) > 0
-	requested_scope_set - allowed_scope_set == set()
+	requested_scope_set & denied_scope_set == set()
 }

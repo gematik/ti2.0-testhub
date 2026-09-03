@@ -7,7 +7,7 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.13.0</version>
+        <version>3.14.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -46,10 +46,6 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>de.gematik.ti20.client</groupId>
-            <artifactId>card-client-lib</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -145,9 +141,11 @@
                                         <!-- calculate the repository root here so we can invoke docker build with
                                         the repository root as build context. We need that build context to include
                                         the public test data. -->
-                                        <property name="repository.root" location="${project.basedir}/../../"/>
+                                        <property name="repository.root"
+                                                  location="${project.basedir}/../../"/>
                                         <echo>####### Building '${image.docker.tag}'</echo>
-                                        <exec executable="docker" dir="${repository.root}" failonerror="true">
+                                        <exec executable="docker" dir="${repository.root}"
+                                              failonerror="true">
                                             <arg value="build"/>
                                             <arg value="--no-cache"/>
                                             <arg value="--tag"/>

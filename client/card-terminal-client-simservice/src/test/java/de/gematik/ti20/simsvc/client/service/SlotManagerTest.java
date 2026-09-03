@@ -27,24 +27,19 @@ package de.gematik.ti20.simsvc.client.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import de.gematik.ti20.simsvc.client.model.apdu.ApduCommand;
-import de.gematik.ti20.simsvc.client.model.apdu.ApduResponse;
 import de.gematik.ti20.simsvc.client.model.card.CardImage;
-import de.gematik.ti20.simsvc.client.model.dto.TransmitResponseDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class SlotManagerTest {
 
   private SlotManager slotManager;
-  private ApduProcessor apduProcessor;
   private CardImage card;
 
   @BeforeEach
   void setUp() {
-    apduProcessor = mock(ApduProcessor.class);
     card = mock(CardImage.class);
-    slotManager = new SlotManager(4, apduProcessor);
+    slotManager = new SlotManager(4);
   }
 
   @Test
@@ -151,84 +146,6 @@ class SlotManagerTest {
   }
 
   @Test
-  void testTransmitCommand_Success() {
-    slotManager.insertCard(0, card);
-
-    ApduResponse response = mock(ApduResponse.class);
-    when(response.toHex()).thenReturn("6100");
-    when(response.getSw1()).thenReturn((byte) 0x61);
-    when(response.getSw2()).thenReturn((byte) 0x00);
-
-    when(apduProcessor.processCommand(eq(card), any(ApduCommand.class))).thenReturn(response);
-
-    TransmitResponseDto result = slotManager.transmitCommand(0, "00A40000");
-
-    assertNotNull(result);
-    assertEquals("00A40000", result.getResponse());
-    assertEquals("6100", result.getStatusWord());
-    assertEquals("6100", result.getStatusMessage());
-  }
-
-  @Test
-  void testTransmitCommand_InvalidSlot() {
-    IllegalArgumentException exception =
-        assertThrows(
-            IllegalArgumentException.class, () -> slotManager.transmitCommand(-1, "00A40000"));
-    assertEquals("Invalid slot ID: -1", exception.getMessage());
-
-    exception =
-        assertThrows(
-            IllegalArgumentException.class, () -> slotManager.transmitCommand(4, "00A40000"));
-    assertEquals("Invalid slot ID: 4", exception.getMessage());
-  }
-
-  @Test
-  void testTransmitCommand_NoCardPresent() {
-    IllegalArgumentException exception =
-        assertThrows(
-            IllegalArgumentException.class, () -> slotManager.transmitCommand(0, "00A40000"));
-    assertEquals("No card present in slot: 0", exception.getMessage());
-  }
-
-  @Test
-  void testTransmitCommand_ProcessingReturnsNull() {
-    slotManager.insertCard(0, card);
-    when(apduProcessor.processCommand(eq(card), any(ApduCommand.class))).thenReturn(null);
-
-    IllegalStateException exception =
-        assertThrows(IllegalStateException.class, () -> slotManager.transmitCommand(0, "00A40000"));
-    assertEquals("Error processing command: Command processing failed", exception.getMessage());
-  }
-
-  @Test
-  void testTransmitCommand_ProcessingThrowsException() {
-    slotManager.insertCard(0, card);
-    when(apduProcessor.processCommand(eq(card), any(ApduCommand.class)))
-        .thenThrow(new RuntimeException("Processing error"));
-
-    IllegalStateException exception =
-        assertThrows(IllegalStateException.class, () -> slotManager.transmitCommand(0, "00A40000"));
-    assertTrue(exception.getMessage().contains("Error processing command"));
-    assertTrue(exception.getMessage().contains("Processing error"));
-  }
-
-  @Test
-  void testTransmitCommand_StatusWordFormatting() {
-    slotManager.insertCard(0, card);
-
-    ApduResponse response = mock(ApduResponse.class);
-    when(response.toHex()).thenReturn("9000");
-    when(response.getSw1()).thenReturn((byte) 0x90);
-    when(response.getSw2()).thenReturn((byte) 0x00);
-
-    when(apduProcessor.processCommand(eq(card), any(ApduCommand.class))).thenReturn(response);
-
-    TransmitResponseDto result = slotManager.transmitCommand(0, "00A40000");
-
-    assertEquals("9000", result.getStatusWord());
-  }
-
-  @Test
   void testMultipleSlots() {
     CardImage card1 = mock(CardImage.class);
     CardImage card2 = mock(CardImage.class);
@@ -250,7 +167,7 @@ class SlotManagerTest {
 
   @Test
   void testConstructorWithDifferentSlotCount() {
-    SlotManager customSlotManager = new SlotManager(2, apduProcessor);
+    SlotManager customSlotManager = new SlotManager(2);
 
     assertEquals(2, customSlotManager.getSlotCount());
     assertTrue(customSlotManager.isValidSlotId(0));

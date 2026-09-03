@@ -24,10 +24,7 @@
  */
 package de.gematik.ti20.simsvc.client.service;
 
-import de.gematik.ti20.simsvc.client.model.apdu.ApduCommand;
-import de.gematik.ti20.simsvc.client.model.apdu.ApduResponse;
 import de.gematik.ti20.simsvc.client.model.card.CardImage;
-import de.gematik.ti20.simsvc.client.model.dto.TransmitResponseDto;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,20 +37,16 @@ public class SlotManager {
 
   private final int slotCount;
   private final Map<Integer, CardImage> slots;
-  private final ApduProcessor apduProcessor;
 
   /**
    * Constructor for SlotManager.
    *
    * @param slotCount Number of slots to manage from configuration
-   * @param apduProcessor Processor for APDU commands
    */
   @Autowired
-  public SlotManager(
-      @Value("${card.terminal.slots:4}") int slotCount, ApduProcessor apduProcessor) {
+  public SlotManager(@Value("${card.terminal.slots:4}") int slotCount) {
     this.slotCount = slotCount;
     this.slots = new HashMap<>();
-    this.apduProcessor = apduProcessor;
   }
 
   /**
@@ -127,47 +120,5 @@ public class SlotManager {
 
     slots.remove(slotId);
     return true;
-  }
-
-  /**
-   * Transmit an APDU command to a card in a slot.
-   *
-   * @param slotId Slot ID
-   * @param commandHex APDU command in hexadecimal format
-   * @return APDU response wrapped in a TransmitResponseDto
-   * @throws IllegalArgumentException if slot is invalid or card is not present
-   * @throws IllegalStateException if command processing fails
-   */
-  public TransmitResponseDto transmitCommand(int slotId, String commandHex) {
-    if (!isValidSlotId(slotId)) {
-      throw new IllegalArgumentException("Invalid slot ID: " + slotId);
-    }
-
-    if (!isCardPresent(slotId)) {
-      throw new IllegalArgumentException("No card present in slot: " + slotId);
-    }
-
-    CardImage card = getCardInSlot(slotId);
-
-    try {
-      // Parse the command
-      ApduCommand command = ApduCommand.fromHex(commandHex);
-
-      // Process the command
-      ApduResponse response = apduProcessor.processCommand(card, command);
-
-      if (response == null) {
-        throw new IllegalStateException("Command processing failed");
-      }
-
-      // Create response
-      String responseHex = response.toHex();
-      String statusWord = String.format("%02X%02X", response.getSw1(), response.getSw2());
-
-      // Create and return the response DTO
-      return new TransmitResponseDto(commandHex, responseHex, statusWord, "OK");
-    } catch (Exception e) {
-      throw new IllegalStateException("Error processing command: " + e.getMessage(), e);
-    }
   }
 }

@@ -24,10 +24,10 @@
  */
 package de.gematik.ti20.simsvc.client.service;
 
-import de.gematik.ti20.simsvc.client.dto.EgkInfoDto;
 import de.gematik.ti20.simsvc.client.model.card.Application;
 import de.gematik.ti20.simsvc.client.model.card.CardImage;
 import de.gematik.ti20.simsvc.client.model.card.FileData;
+import de.gematik.ti20.simsvc.client.model.dto.EgkInfoDto;
 import de.gematik.ti20.simsvc.client.service.helper.VsdDataParser;
 import java.io.ByteArrayInputStream;
 import java.util.List;
