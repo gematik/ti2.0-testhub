@@ -143,13 +143,18 @@ All configuration parameters for the project can be set in the `application.yaml
 
 Specific to the application, you can configure the following properties:
 
-| Name                       | Description                                                       |
-|:---------------------------|-------------------------------------------------------------------|
-| popp.http.url              | URL of the HTTP endpoint of a PoppServer providing the popp token |
-| popp.ws.url                | URL of the WS endpoint of a PoppServer providing the popp token   |
-| vsdm.resourceServerUrl     | URL of the VSDM server providing the data                         |
-| vsdm.useMockPoppToken      | If true, the PoppTokenGenerator is used to create mocked tokens   |
-| vsdm.poppTokenGeneratorURL | URL of the PoppTokenGenerator (only needed for mocked tokens)     |
+| Name                       | Description                                                                                 |
+|:---------------------------|---------------------------------------------------------------------------------------------|
+| popp.http.url              | URL of the HTTP endpoint of a PoppServer providing the popp token                           |
+| popp.ws.url                | URL of the WS endpoint of a PoppServer providing the popp token                             |
+| vsdm.resourceServerUrl     | URL of the VSDM server providing the data                                                   |
+| vsdm.useMockPoppToken      | If true, the PoppTokenGenerator is used to create mocked tokens                             |
+| vsdm.poppTokenGeneratorURL | URL of the PoppTokenGenerator (only needed for mocked tokens)                               |
+| INTERCEPT_STORAGE          | Enables/disables the in-memory storage interception of the Zeta SDK. When set to `true`, intercepted storage entries are kept in memory and can be inspected via `/client/test/zetaData`. |
+
+`INTERCEPT_STORAGE` is mapped to the Spring property `zetasdk.intercept-storage` in `application.yaml`.
+This is primarily intended for debugging and inspection of the Zeta SDK storage layer and should usually
+be disabled for load-test scenarios.
 
 An example configuration is provided in the `application-local.yaml` file.
 To use this configuration, you can specify the `spring.profiles.active=local` property when starting the server.
@@ -166,6 +171,7 @@ The server exposes the following endpoints:
 | GET /client/test/vsdmData   | Test endpoint (non-spec) to inspect the VsdData cached in the client for the specified card   |
 | GET /client/test/poppToken  | Test endpoint (non-spec) to inspect the PoppToken cached in the client for the specified card |
 | GET /client/test/readEgk    | Test endpoint (non-spec) to inspect the (truncated) Vsd data stored on the specified card     |
+| GET /client/test/zetaData   | Test endpoint (non-spec) to inspect the in-memory storage cache used by the Zeta SDK when `INTERCEPT_STORAGE=true` |
 | GET /service/status         | Returns the status of the server.                                                             |
 
 ## Examples
@@ -247,6 +253,16 @@ curl -X 'GET' \
 ```
 
 Returns the truncated Vsd data stored on the specified card.
+
+```
+curl -X 'GET' \
+  'http://localhost:8220/client/test/zetaData' \
+  -H 'accept: application/json'
+```
+
+Returns the in-memory storage entries captured by the Zeta SDK while `INTERCEPT_STORAGE=true` is active.
+This endpoint is intended for debugging and inspection of intercepted Zeta SDK data. With the flag set
+`false` or left unset, the returned map may be empty.
 
 ```
 curl -X 'DELETE' \

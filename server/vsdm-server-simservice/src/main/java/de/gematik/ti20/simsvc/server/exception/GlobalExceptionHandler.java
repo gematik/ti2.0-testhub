@@ -45,7 +45,6 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(ResponseStatusException.class)
   public ResponseEntity<String> handleResponseStatusException(final ResponseStatusException ex) {
-
     final ErrorCase errorCase = ErrorCase.getByBdeReference(ex.getReason());
     if (errorCase != null) {
       return ResponseEntity.status(errorCase.getHttpCode())
@@ -61,14 +60,24 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(VsdmErrorException.class)
   public ResponseEntity<String> handleVsdmErrorException(final VsdmErrorException ex) {
     final ErrorCase errorCase = ex.getErrorCase();
+    final EncodingType encodingType =
+        ex.getEncodingType() != null && ex.getEncodingType().contains("xml")
+            ? EncodingType.XML
+            : EncodingType.JSON;
+    final MediaType contentType =
+        encodingType == EncodingType.XML
+            ? new MediaType("application", "fhir+xml", StandardCharsets.UTF_8)
+            : new MediaType("application", "fhir+json", StandardCharsets.UTF_8);
     if (errorCase != null) {
       return ResponseEntity.status(errorCase.getHttpCode())
-          .contentType(new MediaType("application", "fhir+json", StandardCharsets.UTF_8))
-          .body(operationOutcome(errorCase, ex.getValues()));
+          .contentType(contentType)
+          .body(operationOutcome(errorCase, ex.getValues(), encodingType));
     } else {
       return ResponseEntity.status(500)
-          .contentType(new MediaType("application", "fhir+json", StandardCharsets.UTF_8))
-          .body(operationOutcome(ErrorCase.SERVICE_INTERNAL_SERVER_ERROR, ex.getValues()));
+          .contentType(contentType)
+          .body(
+              operationOutcome(
+                  ErrorCase.SERVICE_INTERNAL_SERVER_ERROR, ex.getValues(), encodingType));
     }
   }
 
@@ -87,6 +96,13 @@ public class GlobalExceptionHandler {
   }
 
   private String operationOutcome(final ErrorCase errorCase, final Map<String, String> values) {
+    return operationOutcome(errorCase, values, EncodingType.JSON);
+  }
+
+  private String operationOutcome(
+      final ErrorCase errorCase,
+      final Map<String, String> values,
+      final EncodingType encodingType) {
     final VsdmOperationOutcome vsdmOperationOutcome =
         VsdmOperationOutcomeBuilder.create()
             .withCode(errorCase.getBdeCode())
@@ -94,7 +110,7 @@ public class GlobalExceptionHandler {
             .withReference(errorCase.getBdeReference())
             .build();
 
-    return FhirCodec.forR4().andDummyValidator().encode(vsdmOperationOutcome, EncodingType.JSON);
+    return FhirCodec.forR4().andDummyValidator().encode(vsdmOperationOutcome, encodingType);
   }
 
   private static final Pattern PLACEHOLDER = Pattern.compile("\\[([^\\[\\]]+)]");

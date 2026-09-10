@@ -45,7 +45,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.server.ResponseStatusException;
 
 @ExtendWith(MockitoExtension.class)
 class VsdmControllerV1Test {
@@ -479,13 +478,13 @@ class VsdmControllerV1Test {
 
     when(request.getHeader("if-none-match")).thenReturn(etag);
 
-    ResponseStatusException exception =
+    VsdmErrorException exception =
         assertThrows(
-            ResponseStatusException.class,
+            VsdmErrorException.class,
             () -> vsdmController.vsdmbundle(poppTokenContentCoded, userInfo, etag, null, request));
 
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
-    assertEquals("VSDSERVICE_MISSING_PROFILE_VERSION", exception.getReason());
+    assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getErrorCase().getHttpCode());
+    assertEquals(ErrorCase.VSDSERVICE_MISSING_PROFILE_VERSION, exception.getErrorCase());
   }
 
   @Test

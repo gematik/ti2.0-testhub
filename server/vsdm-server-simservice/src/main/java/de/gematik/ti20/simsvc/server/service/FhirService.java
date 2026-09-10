@@ -50,17 +50,18 @@ public class FhirService extends CodecServiceR4 {
     return parseString(getBodyString(request), request.getHeader("content-type"), expectedClass);
   }
 
-  public Resource parseString(String body, String contentType) {
+  public Resource parseString(final String body, final String contentType) {
     // validate(body);
     return codec.decode(body, EncodingType.fromString(contentType));
   }
 
-  public <T extends Resource> T parseString(String body, String contentType, Class<T> cls) {
+  public <T extends Resource> T parseString(
+      final String body, final String contentType, final Class<T> cls) {
     // validate(body);
     return codec.decode(cls, body, EncodingType.fromString(contentType));
   }
 
-  private String getBodyString(HttpServletRequest request) {
+  private String getBodyString(final HttpServletRequest request) {
     StringBuilder requestBody = new StringBuilder();
     try (BufferedReader reader = request.getReader()) {
       String line;
@@ -74,7 +75,7 @@ public class FhirService extends CodecServiceR4 {
     return requestBody.toString();
   }
 
-  public void validate(String body) {
+  public void validate(final String body) {
     if (!codec.isValid(body)) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid FHIR resource: " + body);
     }

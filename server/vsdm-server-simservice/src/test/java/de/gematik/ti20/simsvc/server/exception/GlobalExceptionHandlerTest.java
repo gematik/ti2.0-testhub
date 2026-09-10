@@ -77,7 +77,8 @@ class GlobalExceptionHandlerTest {
   @Test
   void thatVsdmErrorIsMappedWithStatusAndInterpolation() {
     final VsdmErrorException ex =
-        new VsdmErrorException(ErrorCase.VSDSERVICE_INVALID_IK, Map.of("ik", "A123456789"));
+        new VsdmErrorException(
+            ErrorCase.VSDSERVICE_INVALID_IK, Map.of("ik", "A123456789"), "application/fhir+json");
 
     final ResponseEntity<String> response = globalExceptionHandler.handleVsdmErrorException(ex);
 
@@ -85,15 +86,45 @@ class GlobalExceptionHandlerTest {
     assertThat(response.getBody()).contains("VSDSERVICE_INVALID_IK");
     assertThat(response.getBody()).contains("A123456789");
     assertThat(response.getBody()).doesNotContain("[ik]");
+    assertThat(response.getBody()).contains("{\"resourceType\":\"OperationOutcome\"");
+  }
+
+  @Test
+  void thatVsdmErrorIsMappedWithStatusAndInterpolationXml() {
+    final VsdmErrorException ex =
+        new VsdmErrorException(
+            ErrorCase.VSDSERVICE_INVALID_IK, Map.of("ik", "A123456789"), "application/fhir+xml");
+
+    final ResponseEntity<String> response = globalExceptionHandler.handleVsdmErrorException(ex);
+
+    assertThat(response.getStatusCode().value()).isEqualTo(400);
+    assertThat(response.getBody()).contains("VSDSERVICE_INVALID_IK");
+    assertThat(response.getBody()).contains("A123456789");
+    assertThat(response.getBody()).doesNotContain("[ik]");
+    assertThat(response.getBody()).contains("<OperationOutcome xmlns=\"http://hl7.org/fhir\">");
   }
 
   @Test
   void thatVsdmErrorWithoutErrorCaseFallsBackToInternalServerError() {
-    final VsdmErrorException ex = new VsdmErrorException(null, Map.of("ik", "A123456789"));
+    final VsdmErrorException ex =
+        new VsdmErrorException(null, Map.of("ik", "A123456789"), "application/fhir+json");
 
     final ResponseEntity<String> response = globalExceptionHandler.handleVsdmErrorException(ex);
 
     assertThat(response.getStatusCode().value()).isEqualTo(500);
     assertThat(response.getBody()).contains("SERVICE_INTERNAL_SERVER_ERROR");
+    assertThat(response.getBody()).contains("{\"resourceType\":\"OperationOutcome\"");
+  }
+
+  @Test
+  void thatVsdmErrorWithoutErrorCaseFallsBackToInternalServerErrorXml() {
+    final VsdmErrorException ex =
+        new VsdmErrorException(null, Map.of("ik", "A123456789"), "application/fhir+xml");
+
+    final ResponseEntity<String> response = globalExceptionHandler.handleVsdmErrorException(ex);
+
+    assertThat(response.getStatusCode().value()).isEqualTo(500);
+    assertThat(response.getBody()).contains("SERVICE_INTERNAL_SERVER_ERROR");
+    assertThat(response.getBody()).contains("<OperationOutcome xmlns=\"http://hl7.org/fhir\">");
   }
 }

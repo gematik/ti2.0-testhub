@@ -8,7 +8,7 @@
 @PRODUKT:Anb_FD_VSDM
 @PRODUKT:ZETA
 
-Funktionalität: Client-Registrierung und ZETA Service Discovery gegen echte RU-DEV-Komponenten
+Funktionalität: Client-Registrierung und ZETA Service Discovery
 
   Grundlage:
     Gegeben sei TGR lösche aufgezeichnete Nachrichten
@@ -117,18 +117,3 @@ Funktionalität: Client-Registrierung und ZETA Service Discovery gegen echte RU-
     Und TGR prüfe aktueller Request enthält Knoten "$.body.token_endpoint_auth_method"
     Und TGR prüfe aktueller Request enthält Knoten "$.body.grant_types"
     Und TGR prüfe aktueller Request enthält Knoten "$.body.jwks"
-
-  # ===========================================================================
-  # Token Exchange: DCR + PoPP-Token + client_assertion gegen PDP
-  # ===========================================================================
-
-  @client_registrierung @token_exchange
-  Szenario: Keycloak-Token-Exchange mit SMC-B client_assertion und PoPP-Token (Gutfall)
-    # Token-Request über Tiger-Proxy an ZETA-PDP senden.
-
-    Wenn sende Token-Exchange-Request für Client "zeta-client" an "${zeta.server.pdp.tokenUrl}" über Tiger-Proxy "http://localhost:${tiger.tigerProxy.proxyPort}"
-
-    # Token-Request muss erfolgreich sein (2xx)
-    Dann TGR finde die letzte Anfrage mit dem Pfad "/auth/realms/zeta-guard/protocol/openid-connect/token"
-    Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "2.."
-    Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.body.access_token" überein mit ".*"

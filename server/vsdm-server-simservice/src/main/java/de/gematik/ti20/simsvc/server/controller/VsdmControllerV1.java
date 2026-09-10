@@ -104,17 +104,17 @@ public class VsdmControllerV1 {
 
     final HttpHeaders responseHeaders = new HttpHeaders();
 
-    final PoppTokenContent poppTokenContent = parsePoppTokenContent(poppTokenContentCoded);
+    final String accept = request.getHeader(HttpHeaders.ACCEPT);
+    final PoppTokenContent poppTokenContent = parsePoppTokenContent(poppTokenContentCoded, accept);
     final String kvnr = poppTokenContent.getPatientId();
 
     if (Strings.isNullOrEmpty(profileVersion)) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "VSDSERVICE_MISSING_PROFILE_VERSION");
+      throw new VsdmErrorException(ErrorCase.VSDSERVICE_MISSING_PROFILE_VERSION, accept);
     }
 
     if (!vsdmConfig.getValidProfileVersionMapping().containsKey(profileVersion)) {
       throw new VsdmErrorException(
-          ErrorCase.VSDSERVICE_INVALID_PROFILE_VERSION, Map.of("version", profileVersion));
+          ErrorCase.VSDSERVICE_INVALID_PROFILE_VERSION, Map.of("version", profileVersion), accept);
     }
 
     if (etagService.checkEtag(kvnr, ifNoneMatch)) {
@@ -143,11 +143,14 @@ public class VsdmControllerV1 {
       throw new ZetaErrorException(ErrorCase.MISSING_HEADER_USERINFO);
     }
     if (request.getHeader("if-none-match") == null) {
-      throw new VsdmErrorException(ErrorCase.VSDSERVICE_MISSING_PATIENT_RECORD_VERSION);
+      throw new VsdmErrorException(
+          ErrorCase.VSDSERVICE_MISSING_PATIENT_RECORD_VERSION, request.getHeader("Accept"));
     }
     if (!isQuoted(request.getHeader("if-none-match"))) {
       throw new VsdmErrorException(
-          ErrorCase.SERVICE_MISSING_OR_INVALID_HEADER, Map.of("header", "if-none-match"));
+          ErrorCase.SERVICE_MISSING_OR_INVALID_HEADER,
+          Map.of("header", "if-none-match"),
+          request.getHeader("Accept"));
     }
   }
 
@@ -155,7 +158,7 @@ public class VsdmControllerV1 {
     return s != null && s.length() >= 2 && s.startsWith("\"") && s.endsWith("\"");
   }
 
-  private String checkAndGetKvnr(final JsonNode claims) {
+  private String checkAndGetKvnr(final JsonNode claims, final String accept) {
     final String kvnr = claims.path("patientId").asText(null);
     final String iknr = claims.path("insurerId").asText(null);
     if (kvnr == null) {
@@ -166,18 +169,18 @@ public class VsdmControllerV1 {
               .replaceAll("<header>", "zeta-popp-token-content"));
     }
     if (!VALID_KVNR_PATTERN.matcher(kvnr).matches()) {
-      throw new VsdmErrorException(ErrorCase.VSDSERVICE_INVALID_KVNR, Map.of("kvnr", kvnr));
+      throw new VsdmErrorException(ErrorCase.VSDSERVICE_INVALID_KVNR, Map.of("kvnr", kvnr), accept);
     }
 
     if (kvnr.startsWith(vsdmConfig.getUnknownKvnrPrefix())) {
       throw new VsdmErrorException(
-          ErrorCase.VSDSERVICE_UNKNOWN_KVNR, Map.of("kvnr", kvnr, "ik", iknr));
+          ErrorCase.VSDSERVICE_UNKNOWN_KVNR, Map.of("kvnr", kvnr, "ik", iknr), accept);
     }
 
     return kvnr;
   }
 
-  private String checkAndGetIknr(final JsonNode claims) {
+  private String checkAndGetIknr(final JsonNode claims, final String accept) {
     final String iknr = claims.path("insurerId").asText(null);
     if (iknr == null) {
       throw new ResponseStatusException(
@@ -187,23 +190,24 @@ public class VsdmControllerV1 {
               .replaceAll("<header>", "zeta-popp-token-content"));
     }
     if (!VALID_IKNR_PATTERN.matcher(iknr).matches()) {
-      throw new VsdmErrorException(ErrorCase.VSDSERVICE_INVALID_IK, Map.of("ik", iknr));
+      throw new VsdmErrorException(ErrorCase.VSDSERVICE_INVALID_IK, Map.of("ik", iknr), accept);
     }
     if (!iknr.equals(vsdmConfig.getIknr())) {
-      throw new VsdmErrorException(ErrorCase.VSDSERVICE_UNKNOWN_IK, Map.of("ik", iknr));
+      throw new VsdmErrorException(ErrorCase.VSDSERVICE_UNKNOWN_IK, Map.of("ik", iknr), accept);
     }
 
     return iknr;
   }
 
-  private PoppTokenContent parsePoppTokenContent(final String poppTokenContent) {
+  private PoppTokenContent parsePoppTokenContent(
+      final String poppTokenContent, final String accept) {
     try {
       final byte[] decoded = Base64.getDecoder().decode(poppTokenContent);
       final String json = new String(decoded, StandardCharsets.UTF_8);
       final JsonNode root = OBJECT_MAPPER.readTree(json);
 
-      final String insurerId = checkAndGetIknr(root);
-      final String patientId = checkAndGetKvnr(root);
+      final String insurerId = checkAndGetIknr(root, accept);
+      final String patientId = checkAndGetKvnr(root, accept);
 
       return new PoppTokenContent(insurerId, patientId);
     } catch (final ResponseStatusException | VsdmErrorException e) {
