@@ -29,7 +29,6 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import de.gematik.ti20.simsvc.server.exception.ZetaErrorException;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +40,7 @@ class UserInfoValidationServiceTest {
   private UserInfoValidationService userInfoValidationService;
 
   @BeforeEach
-  void setUp() throws IOException {
+  void setUp() {
     userInfoValidationService = new UserInfoValidationService();
     userInfoValidationService.init();
   }

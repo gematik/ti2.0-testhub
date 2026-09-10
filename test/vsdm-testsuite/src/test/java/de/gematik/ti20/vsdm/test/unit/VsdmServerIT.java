@@ -247,8 +247,8 @@ class VsdmServerIT {
             VALID_PROFILE_VERSION);
 
     assertEquals(200, result.response.code());
-    assertNotNull(result.response.body());
-    assertNotEquals("", result.response.body());
+    assertNotNull(result.responseBody);
+    assertNotEquals("", result.responseBody);
 
     final VsdmBundle vsdmBundle = (VsdmBundle) result.resource;
     assertNotNull(vsdmBundle);
@@ -340,8 +340,9 @@ class VsdmServerIT {
 
     assertEquals("application/fhir+json;charset=UTF-8", result.response.header("Content-Type"));
     assertEquals(400, result.response.code());
-    assertNotNull(result.response.body());
-    assertNotEquals("", result.response.body());
+    assertNotNull(result.responseBody);
+    assertNotEquals("", result.responseBody);
+    assertTrue(result.responseBody.contains("{\"resourceType\":\"OperationOutcome\""));
 
     final VsdmOperationOutcome vsdmOperationOutcome = (VsdmOperationOutcome) result.resource;
     assertNotNull(vsdmOperationOutcome);
@@ -370,7 +371,8 @@ class VsdmServerIT {
     assertEquals("application/fhir+json;charset=UTF-8", result.response.header("Content-Type"));
     assertEquals(400, result.response.code());
     assertNotNull(result.response.body());
-    assertNotEquals("", result.response.body());
+    assertNotEquals("", result.responseBody);
+    assertTrue(result.responseBody.contains("{\"resourceType\":\"OperationOutcome\""));
 
     final VsdmOperationOutcome vsdmOperationOutcome = (VsdmOperationOutcome) result.resource;
     assertNotNull(vsdmOperationOutcome);
@@ -398,7 +400,8 @@ class VsdmServerIT {
     assertEquals("application/fhir+json;charset=UTF-8", result.response.header("Content-Type"));
     assertEquals(400, result.response.code());
     assertNotNull(result.response.body());
-    assertNotEquals("", result.response.body());
+    assertNotEquals("", result.responseBody);
+    assertTrue(result.responseBody.contains("{\"resourceType\":\"OperationOutcome\""));
 
     final VsdmOperationOutcome vsdmOperationOutcome = (VsdmOperationOutcome) result.resource;
     assertNotNull(vsdmOperationOutcome);
@@ -419,7 +422,7 @@ class VsdmServerIT {
             null, null, MOCK_USER_INFO, VALID_IF_NONE_MATCH, ACCEPT_JSON, VALID_PROFILE_VERSION);
 
     assertEquals(400, result.response.code());
-    assertNotNull(result.response.body());
+    assertNotEquals("", result.responseBody);
 
     assertEquals("Proxy", result.response.header("ZETA-Cause"));
 
@@ -443,7 +446,7 @@ class VsdmServerIT {
             VALID_PROFILE_VERSION);
 
     assertEquals(400, result.response.code());
-    assertNotNull(result.response.body());
+    assertNotEquals("", result.responseBody);
 
     assertEquals("Proxy", result.response.header("ZETA-Cause"));
 
@@ -465,7 +468,7 @@ class VsdmServerIT {
     assertNotNull(result.response.body());
 
     assertEquals(400, result.response.code());
-    assertNotNull(result.response.body());
+    assertNotEquals("", result.responseBody);
 
     assertEquals("Proxy", result.response.header("ZETA-Cause"));
 
@@ -489,7 +492,7 @@ class VsdmServerIT {
             VALID_PROFILE_VERSION);
 
     assertEquals(400, result.response.code());
-    assertNotNull(result.response.body());
+    assertNotEquals("", result.responseBody);
 
     assertEquals("Proxy", result.response.header("ZETA-Cause"));
 
@@ -514,6 +517,9 @@ class VsdmServerIT {
             VALID_PROFILE_VERSION);
 
     assertEquals(428, result.response.code());
+    assertNotEquals("", result.responseBody);
+    assertTrue(result.responseBody.contains("{\"resourceType\":\"OperationOutcome\""));
+
     final VsdmOperationOutcome vsdmOperationOutcome = (VsdmOperationOutcome) result.resource;
     assertNotNull(vsdmOperationOutcome);
 
@@ -536,6 +542,8 @@ class VsdmServerIT {
             VALID_PROFILE_VERSION);
 
     assertEquals(400, result.response.code());
+    assertNotEquals("", result.responseBody);
+    assertTrue(result.responseBody.contains("{\"resourceType\":\"OperationOutcome\""));
 
     final VsdmOperationOutcome vsdmOperationOutcome = (VsdmOperationOutcome) result.resource;
     assertNotNull(vsdmOperationOutcome);
@@ -604,7 +612,7 @@ class VsdmServerIT {
             null);
 
     assertEquals(400, result.response.code());
-    assertNotNull(result.response.body());
+    assertNotNull(result.responseBody);
 
     assertNotNull(result.resource);
 
@@ -629,7 +637,7 @@ class VsdmServerIT {
             "unknown");
 
     assertEquals(400, result.response.code());
-    assertNotNull(result.response.body());
+    assertNotNull(result.responseBody);
 
     assertNotNull(result.resource);
 
@@ -640,6 +648,37 @@ class VsdmServerIT {
     assertNotNull(cc);
     assertEquals(
         "Die vom Clientsystem angefragte Profilversion 'unknown' wird nicht unterstützt.",
+        cc.getText());
+  }
+
+  @Test
+  @Order(19)
+  void testXMLOperationOutcome() throws Exception {
+    final Result result =
+        callOnce(
+            VsdmOperationOutcome.class,
+            MOCK_POPP_TOKEN_UNKNOWN_KVNR,
+            MOCK_USER_INFO,
+            VALID_IF_NONE_MATCH,
+            ACCEPT_XML,
+            VALID_PROFILE_VERSION);
+
+    assertEquals("application/fhir+xml" + ";charset=UTF-8", result.response.header("Content-Type"));
+    assertEquals(400, result.response.code());
+    assertNotNull(result.responseBody);
+    assertNotEquals("", result.responseBody);
+
+    assertTrue(result.responseBody.contains("<OperationOutcome xmlns=\"http://hl7.org/fhir\">"));
+
+    final VsdmOperationOutcome vsdmOperationOutcome = (VsdmOperationOutcome) result.resource;
+    assertNotNull(vsdmOperationOutcome);
+
+    final CodeableConcept cc = vsdmOperationOutcome.getIssue().getFirst().getDetails();
+    assertNotNull(cc);
+
+    assertEquals("VSDSERVICE_INVALID_KVNR", cc.getCoding().getFirst().getCode());
+    assertEquals(
+        "Krankenversichertennummer 'X9110639492' aus dem PoPP-Token weist Formatfehler auf.",
         cc.getText());
   }
 

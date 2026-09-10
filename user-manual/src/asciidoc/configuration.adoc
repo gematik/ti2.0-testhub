@@ -308,7 +308,7 @@ HOCON rather than through the mechanisms above:
 
 [source,bash]
 ----
-./mvnw -pl test/vsdm-testsuite/ verify -Dconfig=private/tk/tiger_tk_test.conf ...
+./mvnw -pl test/vsdm-testsuite/ verify -Dconfig=private/tk/tiger_tk_tu.conf ...
 ----
 
 See `test/vsdm-testsuite/HOWTO-TEST.md` for the per-environment `.env`/`.conf` matrix.

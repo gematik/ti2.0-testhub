@@ -109,3 +109,17 @@ mvn -Denv=ru-dev verify -Dcucumber.filter.tags="@TCID:UC_PoPP_1_2a_Valid"
 *Beispiele* ausgewählt sind.
 
 Testfälle können dem Maven-Befehl nach Belieben mit `or @TCID:UC_Popp_***` hinzugefügt werden.
+
+# E-Rezept Testfall
+
+Ein E2E-Use-Case für das Einstellen und Einlösen eines E-Rezepts für die TU wurde implementiert.
+
+Zur Ausführung müssen folgende Properties entweder in der `pom.xml` gesetzt oder beim Start als VM-Options/Maven-Parameter (`-Dpopp.primSys.apikey=<API_KEY>`) übergeben werden:
+
+```xml
+<properties>
+    <popp.primSys.apikey>replace_me</popp.primSys.apikey>
+    <popp.primSys.DocId>replace_me</popp.primSys.DocId>
+    <popp.primSys.PharmId>replace_me</popp.primSys.PharmId>
+</properties>
+```

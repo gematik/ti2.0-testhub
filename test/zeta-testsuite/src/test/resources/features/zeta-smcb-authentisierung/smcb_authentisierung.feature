@@ -16,7 +16,7 @@ Funktionalität: SMC-B Authentisierung - ZETA-Client Authentisierung mittels SMC
   Diese Tests sollen nachweisen,
   dass der ZETA-Client sich korrekt mittels SMC-B-Zertifikat authentisiert,
   indem ein echtes SMC-B-signiertes subject_token erzeugt und der
-  Token-Exchange-Flow gegen den PDP-Mock geprüft wird.
+  Token-Exchange-Flow gegen den PDP geprüft wird.
 
   Grundlage:
     Gegeben sei TGR lösche aufgezeichnete Nachrichten

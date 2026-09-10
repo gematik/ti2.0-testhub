@@ -1,6 +1,6 @@
 /*-
  * #%L
- * VSDM Server Simservice
+ * VSDM 2.0 Testsuite
  * %%
  * Copyright (C) 2025 - 2026 gematik GmbH
  * %%
@@ -22,25 +22,27 @@
  * by gematik, find details in the "Readme" file.
  * #L%
  */
-package de.gematik.ti20.simsvc.server.exception;
+package de.gematik.ti20.vsdm.test.e2e.questions;
 
-import java.util.Map;
-import lombok.Getter;
+import io.restassured.response.Response;
+import net.serenitybdd.screenplay.Actor;
+import net.serenitybdd.screenplay.Question;
 
-@Getter
-public class VsdmErrorException extends RuntimeException {
-  private final ErrorCase errorCase;
-  private final Map<String, String> values;
-  private final String encodingType;
+public class LastResponseHeader implements Question<String> {
 
-  public VsdmErrorException(final ErrorCase errorCase, final String encodingType) {
-    this(errorCase, Map.of(), encodingType);
+  private final String headerName;
+
+  private LastResponseHeader(String headerName) {
+    this.headerName = headerName;
   }
 
-  public VsdmErrorException(
-      final ErrorCase errorCase, final Map<String, String> values, final String encodingType) {
-    this.errorCase = errorCase;
-    this.values = values;
-    this.encodingType = encodingType;
+  public static LastResponseHeader named(String headerName) {
+    return new LastResponseHeader(headerName);
+  }
+
+  @Override
+  public String answeredBy(Actor actor) {
+    Response response = actor.recall("lastResponse");
+    return response.getHeader(headerName);
   }
 }

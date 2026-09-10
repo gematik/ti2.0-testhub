@@ -1,6 +1,6 @@
 /*-
  * #%L
- * VSDM Server Simservice
+ * PoPP Testsuite
  * %%
  * Copyright (C) 2025 - 2026 gematik GmbH
  * %%
@@ -22,25 +22,23 @@
  * by gematik, find details in the "Readme" file.
  * #L%
  */
-package de.gematik.ti20.simsvc.server.exception;
+package de.gematik.ti20.popp;
 
-import java.util.Map;
-import lombok.Getter;
+import io.cucumber.java.de.Und;
 
-@Getter
-public class VsdmErrorException extends RuntimeException {
-  private final ErrorCase errorCase;
-  private final Map<String, String> values;
-  private final String encodingType;
+public class StepsERezept {
 
-  public VsdmErrorException(final ErrorCase errorCase, final String encodingType) {
-    this(errorCase, Map.of(), encodingType);
+  ERezeptService eRezeptService = new ERezeptService();
+
+  @Und("stelle ein E-Rezept für folgende eGK ein: {string}")
+  public void prescribeForKvnr(String eGK) {
+    eRezeptService.getRestServerInformation();
+    String kvnr = EgkType.valueOf(eGK).getKvnr();
+    eRezeptService.prescribeForKvnr(kvnr);
   }
 
-  public VsdmErrorException(
-      final ErrorCase errorCase, final Map<String, String> values, final String encodingType) {
-    this.errorCase = errorCase;
-    this.values = values;
-    this.encodingType = encodingType;
+  @Und("löse das E-Rezept mit PoPP-Token ein")
+  public void loeseERezeptMitPoppTokenEin() {
+    eRezeptService.getPrescriptionsByPoppToken();
   }
 }

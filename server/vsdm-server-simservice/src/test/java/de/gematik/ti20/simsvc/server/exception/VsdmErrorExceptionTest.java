@@ -36,7 +36,7 @@ class VsdmErrorExceptionTest {
     final ErrorCase errorCase = ErrorCase.VSDSERVICE_INVALID_IK;
     final Map<String, String> values = Map.of("ik", "123456789");
 
-    final VsdmErrorException exception = new VsdmErrorException(errorCase, values);
+    final VsdmErrorException exception = new VsdmErrorException(errorCase, values, "json");
 
     assertThat(exception.getErrorCase()).isEqualTo(errorCase);
     assertThat(exception.getValues()).isEqualTo(values);
@@ -45,7 +45,7 @@ class VsdmErrorExceptionTest {
   @Test
   void thatItIsRuntimeExceptionAndHasNoMessageByDefault() {
     final VsdmErrorException exception =
-        new VsdmErrorException(ErrorCase.SERVICE_INTERNAL_SERVER_ERROR, Map.of());
+        new VsdmErrorException(ErrorCase.SERVICE_INTERNAL_SERVER_ERROR, Map.of(), "json");
 
     assertThat(exception).isInstanceOf(RuntimeException.class);
     assertThat(exception.getMessage()).isNull();

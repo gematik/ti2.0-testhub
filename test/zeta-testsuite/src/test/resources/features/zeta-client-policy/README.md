@@ -1,14 +1,16 @@
-# ZETA Client-Registrierungs-Policy (Policy-Ablehnungen)
+# ZETA Client-Registrierungs-Policy (Policy-Ablehnungen und -Erlaubnis)
 
 ## Beschreibung
 Dieser Test prüft, dass der ZeTA-PDP (Keycloak) eine Client-Registrierung
-ablehnt, wenn die von OPA (Open Policy Agent) getroffene Autorisierungs-
-entscheidung `allow: false` liefert, und dass diese Ablehnung als HTTP 403
-(`access_denied` / `policy_denied`) bis zum VSDM-Client durchgereicht wird.
+anhand der von OPA (Open Policy Agent) getroffenen Autorisierungsentscheidung
+korrekt behandelt: sowohl den Ablehnungsfall (`allow: false` → HTTP 403,
+`access_denied` / `policy_denied`, durchgereicht bis zum VSDM-Client) als
+auch den Erlaubnisfall (`allow: true` → Registrierung/Token werden erteilt,
+die Anfrage dringt bis zum ASL-Handshake mit dem PEP durch).
 
 Im Gegensatz zu `zeta-policy-updateability` (das OPA isoliert testet) prüft
 dieser Test den **vollständigen Flow** VSDM-Client → PDP (Keycloak) → OPA →
-Ablehnung, mit einer echten, frisch ausgewerteten OPA-Entscheidung.
+Entscheidung, mit einer echten, frisch ausgewerteten OPA-Entscheidung.
 
 ## Mechanismus
 Die TigerProxy-`trafficEndpoints`-Relais-Funktion vom Remote-TigerProxy
@@ -108,24 +110,34 @@ Keycloak-Admin-API gelöscht und der `vsdm-client`-Container neu gestartet
         │                 │                  │                     │                      │
 ```
 
+Im Positivfall (`@policy_erlaubnis`) läuft derselbe Ablauf (Schritte 1-8),
+die Manipulation setzt das jeweilige Feld dabei aber auf seinen ECHTEN,
+gültigen Wert. OPA wertet die Policy dann mit `allow=true` aus (Schritt 9),
+der PDP erteilt Registrierung/Token (Schritt 10) und die Anfrage dringt bis
+zum ASL-Handshake mit dem PEP durch (HTTP 200 statt 403 in Schritt 11).
 
-## Getestete Ablehnungsgründe
-Als `Szenariogrundriss` mit je einer manipulierten OPA-Input-Größe pro
+## Getestete Ablehnungs- bzw. Erlaubnisgründe
+Je als `Szenariogrundriss` mit einer manipulierten OPA-Input-Größe pro
 Beispielzeile (siehe `authz.rego`):
-- ungültige `professionOID`
-- ungültiger `scope`
-- ungültige `audience`
-- ungültige `product_id`
-- ungültige `product_version`
+- `professionOID`
+- `scope`
+- `audience`
+- `product_id`
+- `product_version`
+
+`@policy_ablehnungen` manipuliert jedes Feld auf einen eindeutig ungültigen
+(Deny-Listen-)Wert, `@policy_erlaubnis` auf den jeweils echten, gültigen Wert.
 
 ## Implementierung
 - **Policy**: `doc/docker/backend/zeta/policies/authz.rego` – je eine
-  `*_is_allowed`-Regel pro geprüftem Feld, mit Allow-Liste des jeweils
-  echten Werts (regressionssicher: echter Traffic wird weiterhin erlaubt).
+  `*_is_allowed`-Regel pro geprüftem Feld, als Deny-Liste umgesetzt (nur die
+  synthetischen, im Negativ-Test verwendeten Werte werden geblockt). So bleibt
+  die Policy für beliebige echte Werte (z. B. andere SMC-B-professionOIDs)
+  durchlässig, statt nur den einen in diesem Test verwendeten Realwert zu
+  erlauben.
 - **Steps**: `PolicyRejectionSteps.java` (PDP-Registrierung zurücksetzen),
   `TigerProxyManipulationsSteps.java` (Manipulation auf Remote-Proxy
   registrieren), `CardTerminalSteps.java` (Kartenterminal/Karten laden).
-- **Testdaten**: `tiger/testdata.yaml` (`testdata.policy_rejection.*`).
 
 ## Voraussetzungen
 - Docker-Compose-Stack muss laufen: `docker compose -f doc/docker/compose-local.yaml --profile full up -d`
@@ -133,12 +145,13 @@ Beispielzeile (siehe `authz.rego`):
   `docker restart vsdm-client` in `PolicyRejectionSteps`).
 
 ## Hinweis (`@local`)
-Dieses Szenario nutzt Docker-spezifische Mechanismen (Keycloak-Admin-API,
+Diese Szenarien nutzen Docker-spezifische Mechanismen (Keycloak-Admin-API,
 `docker restart`, Remote-TigerProxy-Manipulation), die gegen echte/RU-DEV-
-Infrastruktur nicht existieren. Es ist deshalb mit `@local` markiert und
-läuft nur gegen den lokalen Docker-Compose-Stack.
+Infrastruktur nicht existieren. Sie sind deshalb mit `@local` markiert und
+laufen nur gegen den lokalen Docker-Compose-Stack.
 
 ## Ausführung
 ```bash
 ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@policy_ablehnungen and not @Ignore' -Dzeta.env=local
+./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@policy_erlaubnis and not @Ignore' -Dzeta.env=local
 ```

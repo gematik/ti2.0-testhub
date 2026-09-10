@@ -2,6 +2,16 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.15.0
+
+### Changes
+
+- TESTHUB-236: add back zetaData endpoint to expose cached data of the ZetaSdkClient
+- TESTHUB-242: fix XML serialization of OperationOutcome
+- ZTI-4876: Added positive testcases to verify policy integration
+- PTVSDM-1705: Added testcases of content-type for VsdmBundle and VsdmOperationOutcome
+- TKK-3940: Added E-Rezept Testcase
+
 ## Release 3.14.0
 
 ### Update Notes

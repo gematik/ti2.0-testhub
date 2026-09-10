@@ -30,6 +30,8 @@ import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
 import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
 import de.gematik.ti20.simsvc.client.service.VsdmClientService;
+import de.gematik.ti20.simsvc.client.util.StorageInterceptor;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -50,14 +52,18 @@ public class TestController {
 
   private final VsdmClientService vsdmClientService;
 
+  private final StorageInterceptor storageInterceptor;
+
   @Autowired
   public TestController(
       final PoppTokenRepository poppTokenRepository,
       final VsdmDataRepository vsdmDataRepository,
-      final VsdmClientService vsdmClientService) {
+      final VsdmClientService vsdmClientService,
+      final StorageInterceptor storageInterceptor) {
     this.poppTokenRepository = poppTokenRepository;
     this.vsdmDataRepository = vsdmDataRepository;
     this.vsdmClientService = vsdmClientService;
+    this.storageInterceptor = storageInterceptor;
   }
 
   @GetMapping("/poppToken")
@@ -112,5 +118,12 @@ public class TestController {
     }
 
     return ResponseEntity.ok(egkData);
+  }
+
+  @GetMapping("/zetaData")
+  public ResponseEntity<Map<String, String>> readZetaData() {
+    log.info("readZetaData called, InterceptStorage is {}", System.getenv("INTERCEPT_STORAGE"));
+
+    return ResponseEntity.ok(storageInterceptor.getCache());
   }
 }

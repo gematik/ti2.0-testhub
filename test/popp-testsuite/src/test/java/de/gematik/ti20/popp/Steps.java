@@ -24,6 +24,7 @@
  */
 package de.gematik.ti20.popp;
 
+import static de.gematik.ti20.popp.ERezeptService.POPP_TOKEN;
 import static de.gematik.ti20.popp.data.TestConstants.POPP_ENTITY_STATEMENT;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,6 +35,7 @@ import de.gematik.ti20.popp.validation.ApduValidator;
 import de.gematik.ti20.popp.validation.EntityStatementValidator;
 import de.gematik.ti20.popp.validation.JwksValidator;
 import de.gematik.ti20.popp.validation.PoppTokenValidator;
+import de.gematik.ti20.rbel.fluent.RbelFluentApi;
 import io.cucumber.java.de.Angenommen;
 import io.cucumber.java.de.Dann;
 import io.cucumber.java.de.Und;
@@ -49,11 +51,6 @@ public class Steps {
   private CommunicationType communicationType;
 
   public Steps() {}
-
-  @Angenommen("das Primärsystem hat einen gültigen Access- und Refresh-Token vom ZETA Guard")
-  public void primaersystem_hat_token() {
-    // Access Token mit SMC-B
-  }
 
   @Wenn("das Primärsystem den PoPP-Token vom PoPP-Service abfragt")
   public void psRequestsPoppToken() {
@@ -104,11 +101,15 @@ public class Steps {
 
     final String jsonBody = json.toString();
 
+    String url = TigerGlobalConfiguration.readString("popp.client.tokenUrl");
     httpGlueCode.sendRequestWithMultiLineBody(
-        Method.POST,
-        URI.create(TigerGlobalConfiguration.readString("popp.client.tokenUrl")),
-        "application/json",
-        jsonBody);
+        Method.POST, URI.create(url), "application/json", jsonBody);
+
+    POPP_TOKEN.putValue(
+        RbelFluentApi.expectRequests(".*/token")
+            .nextResponse()
+            .elementAtPath("$.body.token")
+            .getRawStringContent());
   }
 
   @Und("die empfangenen APDUs sind korrekt")

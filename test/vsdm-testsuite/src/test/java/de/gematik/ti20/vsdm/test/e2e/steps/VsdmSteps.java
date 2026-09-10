@@ -101,6 +101,22 @@ public class VsdmSteps extends BaseSteps {
             RequestVsdFromServer.withEtagAndPoppToken(etag, null, false, VALID_PROFILE_VERSION));
   }
 
+  @Wenn("das Primärsystem die VSD mit dem Accept-Header {string} vom VSDM Ressource Server abfragt")
+  public void whenClientSystemIsRequestingVsdWithAcceptHeaderFhirXml(String acceptHeader) {
+    hccs().attemptsTo(DeleteVsdmDataFromCache.deleteCache());
+    if (acceptHeader.equals("application/fhir+xml")) {
+      hccs()
+          .attemptsTo(
+              RequestVsdFromServer.withEtagAndPoppToken(
+                  "\"0\"", null, true, VALID_PROFILE_VERSION));
+    } else if (acceptHeader.equals("application/fhir+json")) {
+      hccs()
+          .attemptsTo(
+              RequestVsdFromServer.withEtagAndPoppToken(
+                  "\"0\"", null, false, VALID_PROFILE_VERSION));
+    }
+  }
+
   @Wenn("das Primärsystem die VSD mit dem validen PoPP-Token vom VSDM Ressource Server abfragt")
   public void whenClientSystemIsRequestingVsdWithPoppToken() {
     hccs().attemptsTo(DeletePoppTokenFromCache.deleteCache());
@@ -130,6 +146,12 @@ public class VsdmSteps extends BaseSteps {
     hccs().should(seeThat(LastPatient.value(), is(notNullValue())));
     hccs().should(seeThat(LastOrganization.value(), is(notNullValue())));
     hccs().should(seeThat(LastCoverage.value(), is(notNullValue())));
+  }
+
+  @Dann(
+      "sendet der VSDM Ressource Server die aktualisierten VSD mit dem Content-Type {string} zum Primärsystem")
+  public void thenVsdmRessourceServerIsSendingVsdWithContentType(String contentType) {
+    hccs().should(seeThat(LastResponseHeader.named("Content-Type"), containsString(contentType)));
   }
 
   @Und("die aktualisierten VSD enthalten das VsdmBundle mit den korrekten Patientendaten")
@@ -297,8 +319,6 @@ public class VsdmSteps extends BaseSteps {
 
   @Wenn("das Primärsystem die VSD mit einer unbekannten FHIR Profile Version {string} abfragt")
   public void whenClientSystemIsRequestingVsdWithUnknownProfileVersion(String profileVersion) {
-    EgkCardInfo egk = hccs().recall("egkCardInfo");
-    egk.setIknr("109500969");
     hccs().attemptsTo(GeneratePoppToken.now());
     hccs()
         .attemptsTo(
@@ -308,13 +328,29 @@ public class VsdmSteps extends BaseSteps {
 
   @Wenn("das Primärsystem die VSD mit einer fehlenden FHIR Profile Version abfragt")
   public void whenClientSystemIsRequestingVsdWithMissingProfileVersion() {
-    EgkCardInfo egk = hccs().recall("egkCardInfo");
-    egk.setIknr("109500969");
     hccs().attemptsTo(GeneratePoppToken.now());
     hccs()
         .attemptsTo(
             RequestVsdFromServer.withEtagAndPoppToken(
                 "\"0\"", hccs().recall("poppToken"), false, null));
+  }
+
+  @Wenn(
+      "das Primärsystem die VSD mit einer fehlenden FHIR Profile Version und dem Accept-Header {string} abfragt")
+  public void whenClientSystemIsRequestingVsdWithMissingProfileVersionAndAcceptHeader(
+      String acceptHeader) {
+    hccs().attemptsTo(GeneratePoppToken.now());
+    if (acceptHeader.equals("application/fhir+xml")) {
+      hccs()
+          .attemptsTo(
+              RequestVsdFromServer.withEtagAndPoppToken(
+                  "\"0\"", hccs().recall("poppToken"), true, null));
+    } else if (acceptHeader.equals("application/fhir+json")) {
+      hccs()
+          .attemptsTo(
+              RequestVsdFromServer.withEtagAndPoppToken(
+                  "\"0\"", hccs().recall("poppToken"), false, null));
+    }
   }
 
   @Wenn(
@@ -372,6 +408,13 @@ public class VsdmSteps extends BaseSteps {
     hccs().should(seeThat(LastOperationOutcome.value(), is(notNullValue())));
     hccs().should(seeThat(LastOperationOutcome.code(), is(errorCode)));
     hccs().should(seeThat(LastOperationOutcome.text(), is(Error.valueOf(errorCode).getValue())));
+  }
+
+  @Dann(
+      "antwortet der VSDM Ressource Server mit dem Fehlercode {int} und dem Content-Type {string}")
+  public void thenVsdmAnswersWithErrorCodeAndContentType(Integer httpCode, String contentType) {
+    hccs().should(seeThat(LastStatusCode.value(), is(httpCode)));
+    hccs().should(seeThat(LastResponseHeader.named("Content-Type"), containsString(contentType)));
   }
 
   @Dann(
