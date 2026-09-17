@@ -1,7 +1,6 @@
 [
   {
     "name": "Slot #{egk_slot}",
-    "type": "SIMSVC",
-    "url":  "ws://card-terminal-client"
+    "url": "ws://card-terminal-client"
   }
 ]

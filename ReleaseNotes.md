@@ -2,10 +2,24 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.16.0
+
+### Update Notes
+
+When accessing the PoPP server from the PoPP client, occasional spurious exceptions may occur. The cause is likely that
+the WebSocket connection cannot be reused correctly. However, the PoPP client implementation is robust enough that
+access still works despite this issue. We are currently investigating the error.
+
+### Changes
+
+- TESTHUB-246: remove card-client-lib
+- TESTHUB-247: Update PoPP dependencies to 2.8.0
+
 ## Release 3.15.0
 
 ### Changes
 
+- TESTHUB-225: rework card-terminal-client
 - TESTHUB-236: add back zetaData endpoint to expose cached data of the ZetaSdkClient
 - TESTHUB-242: fix XML serialization of OperationOutcome
 - ZTI-4876: Added positive testcases to verify policy integration

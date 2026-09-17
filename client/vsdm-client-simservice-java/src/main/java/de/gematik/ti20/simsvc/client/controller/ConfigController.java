@@ -24,8 +24,8 @@
  */
 package de.gematik.ti20.simsvc.client.controller;
 
-import de.gematik.ti20.client.card.config.CardTerminalConnectionConfig;
-import de.gematik.ti20.simsvc.client.service.VsdmClientService;
+import de.gematik.ti20.simsvc.client.card.CardTerminalConnectionConfig;
+import de.gematik.ti20.simsvc.client.service.CardTerminalService;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,10 +43,10 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/client/config")
 public class ConfigController {
 
-  private final VsdmClientService vsdmClientService;
+  private final CardTerminalService cardTerminalService;
 
-  public ConfigController(@Autowired VsdmClientService vsdmClientService) {
-    this.vsdmClientService = vsdmClientService;
+  public ConfigController(@Autowired final CardTerminalService cardTerminalService) {
+    this.cardTerminalService = cardTerminalService;
   }
 
   @PutMapping("/terminal")
@@ -58,7 +58,7 @@ public class ConfigController {
         terminalConnectionConfigs.stream().map(CardTerminalConnectionConfig::getName).toList());
 
     try {
-      this.vsdmClientService.setTerminalConnectionConfigs(terminalConnectionConfigs);
+      this.cardTerminalService.setTerminalConnectionConfigs(terminalConnectionConfigs);
     } catch (final Exception e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
     }
@@ -69,7 +69,7 @@ public class ConfigController {
   @GetMapping("/terminal")
   public ResponseEntity<List<CardTerminalConnectionConfig>> getTerminalConnectionConfigs() {
     try {
-      return ResponseEntity.ok(this.vsdmClientService.getTerminalConnectionConfigs());
+      return ResponseEntity.ok(this.cardTerminalService.getTerminalConnectionConfigs());
     } catch (final Exception e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
     }

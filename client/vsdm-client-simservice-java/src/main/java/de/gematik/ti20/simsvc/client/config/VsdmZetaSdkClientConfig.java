@@ -62,16 +62,15 @@ public class VsdmZetaSdkClientConfig {
 
   private String smcbPrivateKeyPath;
 
-  private boolean interceptStorage;
-
   @Bean
-  StorageInterceptor storageInterceptor(final VsdmClientConfig vsdmConfig) {
+  StorageInterceptor storageInterceptor() {
     return new StorageInterceptor();
   }
 
   @Bean
-  public StorageConfig storageConfig(final StorageInterceptor storageInterceptor) {
-    if (interceptStorage) {
+  public StorageConfig storageConfig(
+      final StorageInterceptor storageInterceptor, final VsdmClientConfig vsdmConfig) {
+    if (vsdmConfig.isInterceptStorage()) {
       return new StorageConfig.Custom(storageInterceptor);
     } else {
       return new StorageConfig.Default(
@@ -110,16 +109,16 @@ public class VsdmZetaSdkClientConfig {
   private SubjectTokenProvider getTokenProvider() {
     String keyPath = getSmcbPrivateKeyPath();
     if (keyPath == null || keyPath.isBlank()) {
-      throw new RuntimeException(
+      throw new IllegalArgumentException(
           "SMCB private key path is not configured (zetasdk.smcbPrivateKeyPath). Please set the path to the private key file.");
     }
 
     Path p = Paths.get(keyPath);
     if (!Files.exists(p)) {
-      throw new RuntimeException("SMCB private key file does not exist: " + keyPath);
+      throw new IllegalArgumentException("SMCB private key file does not exist: " + keyPath);
     }
     if (!Files.isRegularFile(p) || !Files.isReadable(p)) {
-      throw new RuntimeException("SMCB private key file is not readable: " + keyPath);
+      throw new IllegalArgumentException("SMCB private key file is not readable: " + keyPath);
     }
 
     return new SmbTokenProvider(

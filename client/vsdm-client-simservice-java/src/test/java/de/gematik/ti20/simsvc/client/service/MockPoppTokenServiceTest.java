@@ -28,6 +28,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,13 +66,50 @@ class MockPoppTokenServiceTest {
   }
 
   @Test
-  void requestPoppToken_throwsRuntimeException_onInvalidJson() {
+  void requestPoppToken_returnsTokenFromJsonObjectValue() {
+    String json = "{\"tokenResults\":[{\"value\":\"json-object-token\"}]}";
+    when(mockRestTemplate.exchange(
+            anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+        .thenReturn(new ResponseEntity<>(json, HttpStatus.OK));
+
+    String token = service.requestPoppToken(mockConfig, "iknr", "kvnr", "actorId", "actorProfId");
+
+    assertEquals("{\"value\":\"json-object-token\"}", token);
+  }
+
+  @Test
+  void requestPoppToken_returnsNullWhenTokenResultListIsEmpty() {
+    when(mockRestTemplate.exchange(
+            anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+        .thenReturn(new ResponseEntity<>("{\"tokenResults\":[]}", HttpStatus.OK));
+
+    String token = service.requestPoppToken(mockConfig, "iknr", "kvnr", "actorId", "actorProfId");
+
+    assertNull(token);
+  }
+
+  @Test
+  void requestPoppToken_throwsIllegalArgumentException_onInvalidJson() {
     when(mockRestTemplate.exchange(
             anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
         .thenReturn(new ResponseEntity<>("not a json", HttpStatus.OK));
 
     assertThrows(
-        RuntimeException.class,
+        IllegalArgumentException.class,
         () -> service.requestPoppToken(mockConfig, "iknr", "kvnr", "actorId", "actorProfId"));
+  }
+
+  @Test
+  void getPoppTokenJsonBody_returnsNullWhenJsonSerializationFails() throws Exception {
+    ObjectMapper mapper = mock(ObjectMapper.class);
+    when(mapper.writeValueAsString(any())).thenThrow(new JsonProcessingException("bad json") {});
+    ReflectionTestUtils.setField(service, "mapper", mapper);
+
+    String body =
+        (String)
+            ReflectionTestUtils.invokeMethod(
+                service, "getPoppTokenJsonBody", "iknr", "kvnr", "actorId", "actorProfId");
+
+    assertNull(body);
   }
 }

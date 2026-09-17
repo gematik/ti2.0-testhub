@@ -26,6 +26,10 @@ package de.gematik.ti20.simsvc.client.model.dto;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import de.gematik.ti20.simsvc.client.model.CardImageData;
+import de.gematik.ti20.simsvc.client.model.Slot;
+import de.gematik.ti20.simsvc.client.model.VirtualCardImageData;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class CardHandleDtoTest {
@@ -52,5 +56,19 @@ class CardHandleDtoTest {
     assertEquals("EGK", dto.getCardType());
     assertEquals(1, dto.getSlotId());
     assertEquals("Versichertenkarte", dto.getCardLabel());
+  }
+
+  @Test
+  void testFromSlotCreatesDto() {
+    CardImageData cardImageData = new VirtualCardImageData(Map.of("EF.PD", "dummy"));
+    Slot slot = new Slot(9, cardImageData);
+
+    CardHandleDto dto = CardHandleDto.from(slot);
+
+    assertNotNull(dto);
+    assertEquals(cardImageData.cardId(), dto.getCardHandle());
+    assertEquals("EGK", dto.getCardType());
+    assertEquals(9, dto.getSlotId());
+    assertEquals("EGK", dto.getCardLabel());
   }
 }

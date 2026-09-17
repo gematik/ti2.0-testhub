@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
 
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.15.0</version>
+        <version>3.16.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -66,10 +66,6 @@
         <dependency>
             <groupId>de.gematik.ti20.rbel</groupId>
             <artifactId>rbel-fluent-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>de.gematik.ti20.client</groupId>
-            <artifactId>card-client-lib</artifactId>
         </dependency>
         <dependency>
             <groupId>de.gematik.test</groupId>
@@ -157,7 +153,8 @@
                          Ohne das sucht Tiger sie ausgehend vom Arbeitsverzeichnis nach oben,
                          was den Lauf vom CWD abhaengig macht. -->
                     <environmentVariables>
-                        <TIGER_TESTENV_CFGFILE>${maven.multiModuleProjectDirectory}/tiger.yaml</TIGER_TESTENV_CFGFILE>
+                        <TIGER_TESTENV_CFGFILE>${maven.multiModuleProjectDirectory}/tiger.yaml
+                        </TIGER_TESTENV_CFGFILE>
                         <TIGER_ROOTFOLDER>${maven.multiModuleProjectDirectory}</TIGER_ROOTFOLDER>
                     </environmentVariables>
                 </configuration>

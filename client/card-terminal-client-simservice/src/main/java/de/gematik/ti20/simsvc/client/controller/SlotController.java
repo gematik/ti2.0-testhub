@@ -25,12 +25,12 @@
 package de.gematik.ti20.simsvc.client.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.gematik.ti20.simsvc.client.model.card.CardImage;
+import de.gematik.ti20.simsvc.client.model.CardImageData;
+import de.gematik.ti20.simsvc.client.model.VirtualCardImageData;
 import de.gematik.ti20.simsvc.client.model.dto.CardInfoDto;
 import de.gematik.ti20.simsvc.client.model.dto.EgkInfoDto;
-import de.gematik.ti20.simsvc.client.service.CardImageParser;
-import de.gematik.ti20.simsvc.client.service.CardImageService;
 import de.gematik.ti20.simsvc.client.service.SlotManager;
+import de.gematik.ti20.simsvc.client.service.VirtualCardImageLoader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -49,24 +49,17 @@ import org.springframework.web.server.ResponseStatusException;
 public class SlotController {
 
   private final SlotManager slotManager;
-  private final CardImageParser cardImageParser;
-  private final CardImageService cardImageService;
   private final ObjectMapper objectMapper = new ObjectMapper();
+  private final VirtualCardImageLoader cardImageLoader = new VirtualCardImageLoader();
 
   /**
    * Constructor for SlotController.
    *
    * @param slotManager Service to manage slots
-   * @param cardImageParser Service to parse card images
    */
   @Autowired
-  public SlotController(
-      final SlotManager slotManager,
-      final CardImageParser cardImageParser,
-      final CardImageService cardImageService) {
+  public SlotController(final SlotManager slotManager) {
     this.slotManager = slotManager;
-    this.cardImageParser = cardImageParser;
-    this.cardImageService = cardImageService;
   }
 
   /**
@@ -81,12 +74,12 @@ public class SlotController {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Slot not found: " + slotId);
     }
 
-    CardImage card = slotManager.getCardInSlot(slotId);
+    final CardImageData card = slotManager.getCardInSlot(slotId);
     if (card == null) {
       return ResponseEntity.noContent().build();
     }
 
-    CardInfoDto cardInfo = createCardInfoDto(card, slotId);
+    final CardInfoDto cardInfo = CardInfoDto.from(card, slotId);
     return ResponseEntity.ok(cardInfo);
   }
 
@@ -111,10 +104,10 @@ public class SlotController {
     }
 
     try {
-      CardImage card = cardImageParser.parseCardImage(xmlCardData);
+      final VirtualCardImageData card = cardImageLoader.load(xmlCardData);
       slotManager.insertCard(slotId, card);
 
-      CardInfoDto cardInfo = createCardInfoDto(card, slotId);
+      final CardInfoDto cardInfo = CardInfoDto.from(card, slotId);
       return ResponseEntity.status(HttpStatus.CREATED).body(cardInfo);
     } catch (Exception e) {
       throw new ResponseStatusException(
@@ -143,11 +136,10 @@ public class SlotController {
     }
 
     try {
-      EgkInfoDto egkInfoDto = objectMapper.readValue(jsonCardData, EgkInfoDto.class);
-      CardImage card = cardImageService.createCardImage(egkInfoDto);
-      slotManager.insertCard(slotId, card);
+      final EgkInfoDto egkInfoDto = objectMapper.readValue(jsonCardData, EgkInfoDto.class);
+      slotManager.insertCard(slotId, egkInfoDto);
 
-      CardInfoDto cardInfo = createCardInfoDto(card, slotId);
+      final CardInfoDto cardInfo = CardInfoDto.from(egkInfoDto, slotId);
       return ResponseEntity.status(HttpStatus.CREATED).body(cardInfo);
     } catch (Exception e) {
       throw new ResponseStatusException(
@@ -173,16 +165,5 @@ public class SlotController {
 
     slotManager.removeCard(slotId);
     return ResponseEntity.noContent().build();
-  }
-
-  /**
-   * Helper method to create CardInfoDto from a CardImage.
-   *
-   * @param card CardImage object
-   * @param slotId Slot identifier
-   * @return CardInfoDto containing card information
-   */
-  private CardInfoDto createCardInfoDto(CardImage card, int slotId) {
-    return new CardInfoDto(card.getId(), card.getCardType().name(), slotId, card.getLabel());
   }
 }

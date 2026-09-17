@@ -24,13 +24,13 @@
  */
 package de.gematik.ti20.simsvc.client.service.popp;
 
-import de.gematik.ti20.client.card.card.AttachedCard;
-import de.gematik.ti20.client.card.terminal.CardTerminalException;
-import de.gematik.ti20.client.card.terminal.CardTerminalService;
-import de.gematik.ti20.client.card.terminal.simsvc.EgkInfo;
-import de.gematik.ti20.client.card.terminal.simsvc.SmcbInfo;
+import de.gematik.ti20.simsvc.client.card.AttachedCard;
+import de.gematik.ti20.simsvc.client.card.EgkInfo;
+import de.gematik.ti20.simsvc.client.card.SmcbInfo;
 import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
+import de.gematik.ti20.simsvc.client.exception.CardTerminalException;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
+import de.gematik.ti20.simsvc.client.service.CardTerminalService;
 import de.gematik.ti20.simsvc.client.service.MockPoppTokenService;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -67,17 +67,33 @@ public class PoppTokenFromMockedStrategy {
 
   private String loadMockPoppToken(final VsdmClientConfig config, final AttachedCard attachedCard) {
     try {
-      final EgkInfo egkInfo = cardTerminalService.getEgkInfo(attachedCard);
-      final SmcbInfo smcbInfo = cardTerminalService.getSmcbInfo();
+      final EgkInfo egkInfo =
+          requireNonNull(cardTerminalService.getEgkInfo(attachedCard), "egkInfo");
+      final SmcbInfo smcbInfo = requireNonNull(cardTerminalService.getSmcbInfo(), "smcbInfo");
 
-      return mockPoppTokenService.requestPoppToken(
-          config,
-          egkInfo.getIknr(),
-          egkInfo.getKvnr(),
-          smcbInfo.getTelematikId(),
-          smcbInfo.getProfessionOid());
+      final String iknr = requireNonNull(egkInfo.getIknr(), "egkInfo.iknr");
+      final String kvnr = requireNonNull(egkInfo.getKvnr(), "egkInfo.kvnr");
+      final String telematikId = requireNonNull(smcbInfo.getTelematikId(), "smcbInfo.telematikId");
+      final String professionOid =
+          requireNonNull(smcbInfo.getProfessionOid(), "smcbInfo.professionOid");
+
+      log.info(
+          "Creating mock token for iknr: {}, kvnr: {}, telematikId: {}, professionOid: {}",
+          iknr,
+          kvnr,
+          telematikId,
+          professionOid);
+
+      return mockPoppTokenService.requestPoppToken(config, iknr, kvnr, telematikId, professionOid);
     } catch (final CardTerminalException cardEx) {
       return null;
     }
+  }
+
+  private <T> T requireNonNull(final T value, final String fieldName) {
+    if (value == null) {
+      throw new IllegalArgumentException(fieldName + " must not be null");
+    }
+    return value;
   }
 }

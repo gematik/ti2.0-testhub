@@ -28,7 +28,15 @@ public final class HexUtils {
 
   private HexUtils() {}
 
-  public static String formatHexString(String hexString, boolean insertSpaces) {
+  public static byte[] decodeHexBytes(final String autData) {
+    try {
+      return org.apache.commons.codec.binary.Hex.decodeHex(autData.replaceAll("\\s+", ""));
+    } catch (org.apache.commons.codec.DecoderException e) {
+      return new byte[0];
+    }
+  }
+
+  public static String formatHexString(final String hexString, final boolean insertSpaces) {
     if (hexString == null) {
       return null;
     } else {
@@ -39,7 +47,7 @@ public final class HexUtils {
       }
 
       if (insertSpaces) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < hex.length(); ++i) {
           sb.append(hex.charAt(i));
@@ -55,7 +63,7 @@ public final class HexUtils {
     }
   }
 
-  private static String removeSpaces(String hexString) {
+  private static String removeSpaces(final String hexString) {
     return !hexString.contains(" ") ? hexString : hexString.replace(" ", "");
   }
 }

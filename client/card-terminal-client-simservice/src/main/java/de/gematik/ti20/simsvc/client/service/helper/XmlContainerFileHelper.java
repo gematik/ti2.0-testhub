@@ -29,7 +29,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.commons.io.IOUtils;
+import org.w3c.dom.NodeList;
 
 public final class XmlContainerFileHelper {
 
@@ -45,5 +47,41 @@ public final class XmlContainerFileHelper {
   public static byte[] readDataFromStreamWithRawSizeAndThrowExceptionIfFails(
       InputStream inputStream) throws IOException {
     return IOUtils.toByteArray(inputStream);
+  }
+
+  public static String getFirstTagValueOrNull(String xml, String tagName) throws IOException {
+    try {
+      var factory = DocumentBuilderFactory.newInstance();
+      factory.setNamespaceAware(false);
+      factory.setExpandEntityReferences(false);
+      factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+      var builder = factory.newDocumentBuilder();
+      var document =
+          builder.parse(
+              new ByteArrayInputStream(xml.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+      NodeList nodes = document.getElementsByTagName(tagName);
+      if (nodes.getLength() == 0) {
+        return null;
+      }
+      return nodes.item(0).getTextContent();
+    } catch (Exception e) {
+      throw new IOException("Failed to extract XML tag value for tag: " + tagName, e);
+    }
+  }
+
+  public static String extractCnValueOrNull(String name) {
+    if (name == null) {
+      return null;
+    }
+    int startIndex = name.indexOf("CN=");
+    if (startIndex < 0) {
+      return null;
+    }
+    startIndex += 3;
+    int endIndex = name.indexOf(',', startIndex);
+    if (endIndex < 0) {
+      endIndex = name.length();
+    }
+    return name.substring(startIndex, endIndex).trim();
   }
 }

@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 /** Exception thrown when a requested card is not found. */
 @ResponseStatus(HttpStatus.NOT_FOUND)
-public class CardNotFoundException extends CardException {
+public class CardNotFoundException extends RuntimeException {
 
   private final String cardId;
 
@@ -38,7 +38,7 @@ public class CardNotFoundException extends CardException {
    *
    * @param cardId The ID of the card that was not found
    */
-  public CardNotFoundException(String cardId) {
+  public CardNotFoundException(final String cardId) {
     super("Card not found: " + cardId);
     this.cardId = cardId;
   }

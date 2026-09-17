@@ -3,17 +3,15 @@
 
 @PRODUKT:VSDM_2_FD
 @AFO-ID:A_26477-01
-@TYPE:ERROR
-# temporarily disable
-@Ignored
-Funktionalität: Fehlerbehandlung VSDM 2.0
+@TYPE:ZETA
+Funktionalität: Fehlerbehandlung ZETA Guard
 
   @TCID:UC_VSDM2_RVSD_ERROR_FORBIDDEN
   @STATUS:Implementiert
   @MODUS:Automatisch
   @TESTFALL:Negativ
   @TESTSTUFE:3
-  @PRIO:2
+  @PRIO:3
   @DESCRIPTION
   Szenariogrundriss: Ungültiger PoPP Token
 

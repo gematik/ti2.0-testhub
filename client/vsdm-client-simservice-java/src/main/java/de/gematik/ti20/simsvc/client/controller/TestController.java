@@ -24,11 +24,13 @@
  */
 package de.gematik.ti20.simsvc.client.controller;
 
-import de.gematik.ti20.client.card.card.AttachedCard;
-import de.gematik.ti20.client.card.terminal.CardTerminalException;
+import de.gematik.ti20.simsvc.client.card.AttachedCard;
+import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
+import de.gematik.ti20.simsvc.client.exception.CardTerminalException;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
 import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
+import de.gematik.ti20.simsvc.client.service.CardTerminalService;
 import de.gematik.ti20.simsvc.client.service.VsdmClientService;
 import de.gematik.ti20.simsvc.client.util.StorageInterceptor;
 import java.util.Map;
@@ -51,19 +53,25 @@ public class TestController {
   private final VsdmDataRepository vsdmDataRepository;
 
   private final VsdmClientService vsdmClientService;
+  private final VsdmClientConfig vsdmClientConfig;
 
   private final StorageInterceptor storageInterceptor;
+  private final CardTerminalService cardTerminalService;
 
   @Autowired
   public TestController(
       final PoppTokenRepository poppTokenRepository,
       final VsdmDataRepository vsdmDataRepository,
       final VsdmClientService vsdmClientService,
-      final StorageInterceptor storageInterceptor) {
+      final VsdmClientConfig vsdmClientConfig,
+      final StorageInterceptor storageInterceptor,
+      CardTerminalService cardTerminalService) {
     this.poppTokenRepository = poppTokenRepository;
     this.vsdmDataRepository = vsdmDataRepository;
     this.vsdmClientService = vsdmClientService;
+    this.vsdmClientConfig = vsdmClientConfig;
     this.storageInterceptor = storageInterceptor;
+    this.cardTerminalService = cardTerminalService;
   }
 
   @GetMapping("/poppToken")
@@ -110,7 +118,7 @@ public class TestController {
       throws CardTerminalException {
     log.info("readEgk called with terminalId: {}, egkSlotId: {}", terminalId, egkSlotId);
 
-    final AttachedCard attachedCard = vsdmClientService.getAttachedCard(terminalId, egkSlotId);
+    final AttachedCard attachedCard = cardTerminalService.getAttachedCard(terminalId, egkSlotId);
     final String egkData = vsdmClientService.loadTruncatedDataFromCard(attachedCard);
 
     if (egkData == null) {
@@ -122,7 +130,7 @@ public class TestController {
 
   @GetMapping("/zetaData")
   public ResponseEntity<Map<String, String>> readZetaData() {
-    log.info("readZetaData called, InterceptStorage is {}", System.getenv("INTERCEPT_STORAGE"));
+    log.info("readZetaData called, interceptStorage is {}", vsdmClientConfig.isInterceptStorage());
 
     return ResponseEntity.ok(storageInterceptor.getCache());
   }

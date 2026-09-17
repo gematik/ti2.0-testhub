@@ -25,223 +25,73 @@
 package de.gematik.ti20.simsvc.client.service;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import de.gematik.ti20.simsvc.client.exception.CardNotFoundException;
-import de.gematik.ti20.simsvc.client.model.card.CardImage;
-import de.gematik.ti20.simsvc.client.model.card.CardType;
-import de.gematik.ti20.simsvc.client.model.card.FileData;
+import de.gematik.ti20.simsvc.client.model.VirtualCardImageData;
 import de.gematik.ti20.simsvc.client.model.dto.SmcBInfoDto;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class SmcBInfoServiceTest {
-
-  @Mock private SlotManager slotManager;
-
   private SmcBInfoService smcBInfoService;
+  private VirtualCardImageLoader loader = new VirtualCardImageLoader();
 
   @BeforeEach
   void setUp() {
-    smcBInfoService = new SmcBInfoService(slotManager);
+    smcBInfoService = new SmcBInfoService();
   }
 
   @Test
-  void extractSmcBInfo_whenCardNotFound_throwsCardNotFoundException() {
-    // Given
-    String cardHandle = "unknown-card";
-    when(slotManager.getSlotCount()).thenReturn(2);
-    when(slotManager.isCardPresent(anyInt())).thenReturn(false);
-
-    // When/Then
-    assertThatThrownBy(() -> smcBInfoService.extractSmcBInfo(cardHandle))
-        .isInstanceOf(CardNotFoundException.class)
-        .hasMessageContaining(cardHandle);
-  }
-
-  @Test
-  void extractSmcBInfo_whenCardIsNotSmcB_throwsIllegalArgumentException() {
-    // Given
-    String cardHandle = "egk-card";
-    CardImage card = mock(CardImage.class);
-    when(card.getId()).thenReturn(cardHandle);
-    when(card.getCardType()).thenReturn(CardType.EGK);
-
-    when(slotManager.getSlotCount()).thenReturn(1);
-    when(slotManager.isCardPresent(0)).thenReturn(true);
-    when(slotManager.getCardInSlot(0)).thenReturn(card);
-
-    // When/Then
-    assertThatThrownBy(() -> smcBInfoService.extractSmcBInfo(cardHandle))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("not an SMC-B card");
-  }
-
-  @Test
-  void extractSmcBInfo_whenNoAuthenticDataFound_returnsExtractionError() {
-    // Given
-    String cardHandle = "smcb-no-data";
-    CardImage smcbCard = createMockCard(cardHandle, CardType.HPIC, new ArrayList<>());
-
-    when(slotManager.getSlotCount()).thenReturn(1);
-    when(slotManager.isCardPresent(0)).thenReturn(true);
-    when(slotManager.getCardInSlot(0)).thenReturn(smcbCard);
+  void shouldHandleRealCardImage1() throws Exception {
+    String xml = loadResourceAsString("SMC_B_80276883110000168650_gema5.xml");
+    VirtualCardImageData imageData = loader.load(xml);
 
     // When
-    SmcBInfoDto result = smcBInfoService.extractSmcBInfo(cardHandle);
-
-    // Then
-    assertThat(result).isNotNull();
-    assertThat(result.getTelematikId()).isEqualTo("DATA_EXTRACTION_FAILED");
-    assertThat(result.getProfessionOid()).isEqualTo("DATA_EXTRACTION_FAILED");
-    assertThat(result.getHolderName()).isEqualTo("EXTRACTION_ERROR");
-    assertThat(result.getOrganizationName()).contains("DATA EXTRACTION FAILED");
-  }
-
-  @Test
-  void extractSmcBInfo_whenIncompleteCertificateData_returnsExtractionError() {
-    // Given
-    String cardHandle = "smcb-incomplete";
-    List<FileData> files = new ArrayList<>();
-    FileData fileData = mock(FileData.class);
-    when(fileData.getName()).thenReturn("invalid-cert");
-    when(fileData.getData()).thenReturn("not-a-certificate");
-    files.add(fileData);
-    CardImage smcbCard = createMockCard(cardHandle, CardType.HPIC, files);
-
-    when(slotManager.getSlotCount()).thenReturn(1);
-    when(slotManager.isCardPresent(0)).thenReturn(true);
-    when(slotManager.getCardInSlot(0)).thenReturn(smcbCard);
-
-    // When
-    SmcBInfoDto result = smcBInfoService.extractSmcBInfo(cardHandle);
-
-    // Then
-    assertThat(result).isNotNull();
-    assertThat(result.getTelematikId()).isEqualTo("DATA_EXTRACTION_FAILED");
-  }
-
-  @Test
-  void extractSmcBInfo_withHPCCardType_isRecognizedAsSmcB() {
-    // Given
-    String cardHandle = "hpc-card";
-    CardImage hpcCard = createMockCard(cardHandle, CardType.HPC, new ArrayList<>());
-
-    when(slotManager.getSlotCount()).thenReturn(1);
-    when(slotManager.isCardPresent(0)).thenReturn(true);
-    when(slotManager.getCardInSlot(0)).thenReturn(hpcCard);
-
-    // When
-    SmcBInfoDto result = smcBInfoService.extractSmcBInfo(cardHandle);
-
-    // Then
-    assertThat(result).isNotNull();
-    assertThat(result.getCardType()).isEqualTo(CardType.HPC.toString());
-  }
-
-  @Test
-  void extractSmcBInfo_withSmcBLabel_isRecognizedAsSmcB() {
-    // Given
-    String cardHandle = "smcb-labeled";
-    CardImage card = mock(CardImage.class);
-    when(card.getId()).thenReturn(cardHandle);
-    when(card.getCardType()).thenReturn(CardType.EGK);
-    when(card.getLabel()).thenReturn("SMC-B Test Card");
-    when(card.getAllFiles()).thenReturn(new ArrayList<FileData>());
-
-    when(slotManager.getSlotCount()).thenReturn(1);
-    when(slotManager.isCardPresent(0)).thenReturn(true);
-    when(slotManager.getCardInSlot(0)).thenReturn(card);
-
-    // When
-    SmcBInfoDto result = smcBInfoService.extractSmcBInfo(cardHandle);
-
-    // Then
-    assertThat(result).isNotNull();
-  }
-
-  @Test
-  void extractSmcBInfo_whenCardInSecondSlot_findsCard() {
-    // Given
-    String cardHandle = "smcb-slot2";
-    CardImage smcbCard = createMockCard(cardHandle, CardType.HPIC, new ArrayList<>());
-
-    when(slotManager.getSlotCount()).thenReturn(3);
-    when(slotManager.isCardPresent(0)).thenReturn(false);
-    when(slotManager.isCardPresent(1)).thenReturn(true);
-    when(slotManager.getCardInSlot(1)).thenReturn(smcbCard);
-
-    // When
-    SmcBInfoDto result = smcBInfoService.extractSmcBInfo(cardHandle);
-
-    // Then
-    assertThat(result).isNotNull();
-  }
-
-  @Test
-  void extractSmcBInfo_withNullFileData_handlesGracefully() {
-    // Given
-    String cardHandle = "smcb-null-files";
-    List<FileData> files = new ArrayList<>();
-    files.add(mock(FileData.class));
-    files.add(mock(FileData.class));
-    CardImage smcbCard = createMockCard(cardHandle, CardType.HPIC, files);
-
-    when(slotManager.getSlotCount()).thenReturn(1);
-    when(slotManager.isCardPresent(0)).thenReturn(true);
-    when(slotManager.getCardInSlot(0)).thenReturn(smcbCard);
-
-    // When
-    SmcBInfoDto result = smcBInfoService.extractSmcBInfo(cardHandle);
-
-    // Then
-    assertThat(result).isNotNull();
-  }
-
-  @Test
-  void shouldHandleRealCardImage() throws Exception {
-    // Given
-    final CardImage smcbCard = loadCardImage("SMC_B_80276883110000168650_gema5.xml");
-    final String cardHandle = smcbCard.getId();
-
-    when(slotManager.getSlotCount()).thenReturn(3);
-    when(slotManager.isCardPresent(0)).thenReturn(false);
-    when(slotManager.isCardPresent(1)).thenReturn(true);
-    when(slotManager.getCardInSlot(1)).thenReturn(smcbCard);
-
-    // When
-    SmcBInfoDto result = smcBInfoService.extractSmcBInfo(cardHandle);
+    SmcBInfoDto result = smcBInfoService.extractSmcBInfo(imageData);
 
     assertThat(result).isNotNull();
-    assertThat(result.getCardType()).isEqualTo(CardType.HPIC.toString());
+    assertThat(result.getCardType()).isEqualTo("SMCB");
     assertThat(result.getTelematikId()).isEqualTo("1-SMC-B-Testkarte--883110000168650");
     assertThat(result.getProfessionOid()).isEqualTo("1.2.276.0.76.4.50");
   }
 
-  private CardImage loadCardImage(final String cardImageFilename) throws Exception {
-    final InputStream is =
-        SmcBInfoServiceTest.class.getClassLoader().getResourceAsStream(cardImageFilename);
-    final String xmlString = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-    final CardImage cardImage = new CardImageParser().parseCardImage(xmlString);
+  @Test
+  void shouldHandleRealCardImage2() throws Exception {
+    String xml = loadResourceAsString("SMC_B_80276883110000180834_gema5_INVALID.xml");
+    VirtualCardImageData imageData = loader.load(xml);
 
-    return cardImage;
+    // When
+    SmcBInfoDto result = smcBInfoService.extractSmcBInfo(imageData);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getCardType()).isEqualTo("SMCB");
+    assertThat(result.getHolderName()).isEqualTo("Praxis Maximilian Graf NötherTEST-ONLY");
+    assertThat(result.getOrganizationName()).isEqualTo("Praxis Maximilian Graf NötherNOT-VALID");
+    assertThat(result.getTelematikId()).isEqualTo("1-20.TK--883110000180834");
+    assertThat(result.getProfessionOid()).isEqualTo("1.2.276.0.54.4.9");
   }
 
-  private CardImage createMockCard(String id, CardType type, List<FileData> files) {
-    CardImage card = mock(CardImage.class);
-    when(card.getId()).thenReturn(id);
-    when(card.getCardType()).thenReturn(type);
-    when(card.getAllFiles()).thenReturn(files);
-    return card;
+  @Test
+  void shouldHandleRealCardImage3() throws Exception {
+    String xml = loadResourceAsString("attached_assets/SMC_B_80276883110000168650_gema5.xml");
+    VirtualCardImageData imageData = loader.load(xml);
+
+    // When
+    SmcBInfoDto result = smcBInfoService.extractSmcBInfo(imageData);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getCardType()).isEqualTo("SMCB");
+    assertThat(result.getHolderName()).isEqualTo("Praxis Münchhausen-HohenfelsTEST-ONLY");
+    assertThat(result.getOrganizationName()).isEqualTo("Praxis Münchhausen-HohenfelsNOT-VALID");
+    assertThat(result.getTelematikId()).isEqualTo("1-SMC-B-Testkarte--883110000168650");
+    assertThat(result.getProfessionOid()).isEqualTo("1.2.276.0.76.4.50");
+  }
+
+  private String loadResourceAsString(String resourceName) throws Exception {
+    return Files.readString(Path.of(ClassLoader.getSystemResource(resourceName).toURI()));
   }
 }

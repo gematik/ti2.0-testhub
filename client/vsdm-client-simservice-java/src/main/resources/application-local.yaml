@@ -18,9 +18,9 @@ vsdm:
   use-mock-popp-token: true
   # Port must match PORT_POPP_TOKEN_GENERATOR in doc/docker/.env (default: 9500)
   popp-token-generator-url: http://localhost:${PORT_POPP_TOKEN_GENERATOR:9500}
+  intercept-storage: false
 
 zetasdk:
   smcbAlias: "alias"
   smcbPrivateKeyPassword: "00"
   smcbPrivateKeyPath: "doc/docker/backend/zeta/smcb-private/smcb_private.p12"
-  intercept-storage: true

@@ -24,13 +24,12 @@
  */
 package de.gematik.ti20.simsvc.client.service.popp;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import de.gematik.ti20.client.card.card.AttachedCard;
 import de.gematik.ti20.simsvc.client.config.PoppClientConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,16 +37,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 @ExtendWith(MockitoExtension.class)
 class PoppClientAdapterTest {
 
   @Mock private PoppClientConfig poppClientConfig;
-
   @Mock private WebClient webClient;
-
-  @Mock private AttachedCard attachedCard;
+  @Mock private WebClient.RequestBodyUriSpec requestBodyUriSpec;
+  @Mock private WebClient.RequestBodySpec requestBodySpec;
+  @Mock private WebClient.RequestHeadersSpec requestHeadersSpec;
+  @Mock private WebClient.ResponseSpec responseSpec;
 
   private PoppClientAdapter poppClientAdapter;
 
@@ -62,82 +64,68 @@ class PoppClientAdapterTest {
   }
 
   @Test
-  void testAdapterAccessesPoppClientConfig() {
-    String testUrl = "http://localhost:8080/popp";
+  void shouldRequestPoppTokenWithoutVirtualCard() {
     when(poppClientConfig.getTokenType()).thenReturn(PoppClientConfig.TokenType.CONTACT_CONNECTOR);
-    when(poppClientConfig.getUrlPoppServerHttp(attachedCard)).thenReturn(testUrl);
+    when(poppClientConfig.getUrlPoppServerHttp()).thenReturn("http://localhost:8080/popp");
+    when(webClient.post()).thenReturn(requestBodyUriSpec);
+    when(requestBodyUriSpec.uri("http://localhost:8080/popp")).thenReturn(requestBodySpec);
+    when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+    when(requestBodySpec.bodyValue(any(PoppClientRequest.class))).thenReturn(requestHeadersSpec);
+    when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+    when(responseSpec.bodyToMono(PoppClientResponse.class))
+        .thenReturn(Mono.just(PoppClientResponse.ok("token-123")));
 
-    try {
-      poppClientAdapter.getPoppToken(attachedCard);
-    } catch (Exception e) {
-      // Expected - WebClient is not fully mocked
-    }
+    String token = poppClientAdapter.getPoppToken();
 
-    verify(poppClientConfig, atLeastOnce()).getTokenType();
-    verify(poppClientConfig, atLeastOnce()).getUrlPoppServerHttp(attachedCard);
+    ArgumentCaptor<PoppClientRequest> payloadCaptor =
+        ArgumentCaptor.forClass(PoppClientRequest.class);
+    verify(requestBodySpec).bodyValue(payloadCaptor.capture());
+    assertEquals("token-123", token);
+    assertEquals("contact-connector", payloadCaptor.getValue().communicationType());
+    assertEquals(null, payloadCaptor.getValue().virtualCard());
   }
 
   @Test
-  void testAdapterPassesCardInstanceToConfig() {
-    String testUrl = "http://localhost:8080/popp";
-    when(poppClientConfig.getTokenType())
-        .thenReturn(PoppClientConfig.TokenType.CONTACTLESS_CONNECTOR);
-    when(poppClientConfig.getUrlPoppServerHttp(attachedCard)).thenReturn(testUrl);
-
-    try {
-      poppClientAdapter.getPoppToken(attachedCard);
-    } catch (Exception e) {
-      // Expected
-    }
-
-    ArgumentCaptor<AttachedCard> cardCaptor = ArgumentCaptor.forClass(AttachedCard.class);
-    verify(poppClientConfig, atLeastOnce()).getUrlPoppServerHttp(cardCaptor.capture());
-    assertSame(attachedCard, cardCaptor.getValue());
-  }
-
-  @Test
-  void testAdapterSupportsContactConnectorTokenType() {
-    String testUrl = "http://localhost:8080/popp";
-    when(poppClientConfig.getTokenType()).thenReturn(PoppClientConfig.TokenType.CONTACT_CONNECTOR);
-    when(poppClientConfig.getUrlPoppServerHttp(attachedCard)).thenReturn(testUrl);
-
-    try {
-      poppClientAdapter.getPoppToken(attachedCard);
-    } catch (Exception e) {
-      // Expected
-    }
-
-    verify(poppClientConfig, atLeastOnce()).getTokenType();
-  }
-
-  @Test
-  void testAdapterSupportsContactlessConnectorTokenType() {
-    String testUrl = "http://localhost:8080/popp";
-    when(poppClientConfig.getTokenType())
-        .thenReturn(PoppClientConfig.TokenType.CONTACTLESS_CONNECTOR);
-    when(poppClientConfig.getUrlPoppServerHttp(attachedCard)).thenReturn(testUrl);
-
-    try {
-      poppClientAdapter.getPoppToken(attachedCard);
-    } catch (Exception e) {
-      // Expected
-    }
-
-    verify(poppClientConfig, atLeastOnce()).getTokenType();
-  }
-
-  @Test
-  void testAdapterSupportsContactVirtualTokenType() {
-    String testUrl = "http://localhost:8080/popp";
+  void shouldRequestPoppTokenWithVirtualCard() {
     when(poppClientConfig.getTokenType()).thenReturn(PoppClientConfig.TokenType.CONTACT_VIRTUAL);
-    when(poppClientConfig.getUrlPoppServerHttp(attachedCard)).thenReturn(testUrl);
+    when(poppClientConfig.getUrlPoppServerHttp()).thenReturn("http://localhost:8080/popp");
+    when(webClient.post()).thenReturn(requestBodyUriSpec);
+    when(requestBodyUriSpec.uri("http://localhost:8080/popp")).thenReturn(requestBodySpec);
+    when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+    when(requestBodySpec.bodyValue(any(PoppClientRequest.class))).thenReturn(requestHeadersSpec);
+    when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+    when(responseSpec.bodyToMono(PoppClientResponse.class))
+        .thenReturn(Mono.just(PoppClientResponse.ok("virtual-token")));
 
-    try {
-      poppClientAdapter.getPoppToken(attachedCard);
-    } catch (Exception e) {
-      // Expected
-    }
+    String token = poppClientAdapter.getPoppToken("virtual-card-1");
 
-    verify(poppClientConfig, atLeastOnce()).getTokenType();
+    ArgumentCaptor<PoppClientRequest> payloadCaptor =
+        ArgumentCaptor.forClass(PoppClientRequest.class);
+    verify(requestBodySpec).bodyValue(payloadCaptor.capture());
+    assertEquals("virtual-token", token);
+    assertEquals("contact-virtual", payloadCaptor.getValue().communicationType());
+    assertEquals("virtual-card-1", payloadCaptor.getValue().virtualCard());
+  }
+
+  @Test
+  void shouldSupportContactlessConnectorTokenType() {
+    when(poppClientConfig.getTokenType())
+        .thenReturn(PoppClientConfig.TokenType.CONTACTLESS_CONNECTOR);
+    when(poppClientConfig.getUrlPoppServerHttp()).thenReturn("http://localhost:8080/popp");
+    when(webClient.post()).thenReturn(requestBodyUriSpec);
+    when(requestBodyUriSpec.uri("http://localhost:8080/popp")).thenReturn(requestBodySpec);
+    when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+    when(requestBodySpec.bodyValue(any(PoppClientRequest.class))).thenReturn(requestHeadersSpec);
+    when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+    when(responseSpec.bodyToMono(PoppClientResponse.class))
+        .thenReturn(Mono.just(PoppClientResponse.ok("token-456")));
+
+    String token = poppClientAdapter.getPoppToken();
+
+    ArgumentCaptor<PoppClientRequest> payloadCaptor =
+        ArgumentCaptor.forClass(PoppClientRequest.class);
+    verify(requestBodySpec).bodyValue(payloadCaptor.capture());
+    assertEquals("token-456", token);
+    assertEquals("contactless-connector", payloadCaptor.getValue().communicationType());
   }
 }

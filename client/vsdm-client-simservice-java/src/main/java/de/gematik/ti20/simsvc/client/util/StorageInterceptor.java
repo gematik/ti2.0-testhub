@@ -27,14 +27,15 @@ package de.gematik.ti20.simsvc.client.util;
 import de.gematik.zeta.sdk.storage.SdkStorage;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashMap;
+import java.util.Map;
 import javax.annotation.Nullable;
 import kotlin.Unit;
 import kotlin.coroutines.Continuation;
 
 public class StorageInterceptor implements SdkStorage {
-  private HashMap<String, String> cache = new HashMap<>();
+  private Map<String, String> cache = new HashMap<>();
 
-  public HashMap<String, String> getCache() {
+  public Map<String, String> getCache() {
     return cache;
   }
 

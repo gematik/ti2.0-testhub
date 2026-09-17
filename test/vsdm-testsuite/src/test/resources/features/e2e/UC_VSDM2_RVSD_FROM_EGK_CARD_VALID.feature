@@ -4,8 +4,6 @@
 @PRODUKT:VSDM_2_FD
 @AF-ID:AF_10413
 @TYPE:E2E
-# temporarily disable
-@Ignored
 Funktionalität: Abfrage der Versichertenstammdaten von der eGK
 
   @TCID:UC_VSDM2_RVSD_FROM_EGK_CARD_VALID
@@ -13,7 +11,7 @@ Funktionalität: Abfrage der Versichertenstammdaten von der eGK
   @MODUS:Automatisch
   @TESTFALL:Negativ
   @TESTSTUFE:3
-  @PRIO:1
+  @PRIO:2
   @DESCRIPTION
   Szenariogrundriss: Abfrage der VSD von einer gültigen eGK
 
@@ -26,11 +24,11 @@ Funktionalität: Abfrage der Versichertenstammdaten von der eGK
     Angenommen das Primärsystem in der LEI verwendet ein korrekt konfiguriertes Terminal
     Angenommen das Primärsystem in der LEI verwendet eine SMC-B im Slot <Smcb-Slot>
     Angenommen der Versicherte in der LEI verwendet eine eGK im Slot <Egk-Slot>
-    Wenn das Primärsystem die VSD mit einem ungültigen PoPP-Token vom VSDM Ressource Server abfragt
-    Dann antwortet der ZETA Guard mit dem Fehlercode <Http-Code> und dem Text <Error-Text>
+    Wenn das Primärsystem die VSD mit einer ungültigen KVNR <KVNR> vom VSDM Ressource Server abfragt
+    Dann antwortet der VSDM Ressource Server mit dem Fehlercode <Http-Code> und dem Text <KVNR> <Error-Code>
     Wenn das Primärsystem die VSD direkt von einer gültigen eGK des Versicherten in der LEI abfragt
     Dann werden die VSD von der eGK gelesen und der Versicherte kann versorgt werden
 
     Beispiele:
-      | Smcb-Slot | Egk-Slot | Http-Code | Error-Text                 |
-      | 1         | 2        | 403       | "PoPP error: InvalidToken" |
+      | Smcb-Slot | Egk-Slot | KVNR         | Http-Code | Error-Code                |
+      | 1         | 2        | "WRONG_KVNR" | 400       | "VSDSERVICE_INVALID_KVNR" |

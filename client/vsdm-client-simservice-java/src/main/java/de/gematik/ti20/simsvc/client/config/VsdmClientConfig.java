@@ -42,4 +42,5 @@ public class VsdmClientConfig {
   private String poppTokenGeneratorUrl;
 
   private boolean disableServerValidation;
+  private boolean interceptStorage;
 }

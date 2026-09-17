@@ -57,6 +57,16 @@ class GlobalExceptionHandlerTest {
   }
 
   @Test
+  void testHandleCardNotFoundException() {
+    CardNotFoundException ex = new CardNotFoundException("card-123");
+    ResponseEntity<Map<String, String>> response = handler.handleCardNotFoundException(ex);
+
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertEquals("Card not found", response.getBody().get("error"));
+    assertEquals("No card found for handle: card-123", response.getBody().get("message"));
+  }
+
+  @Test
   void testHandleGenericException() {
     Exception ex = new Exception("Something went wrong");
     ResponseEntity<Map<String, String>> response = handler.handleGenericException(ex);

@@ -48,7 +48,6 @@ public class RequestVsdFromCard implements Task {
         api.request()
             .queryParam("terminalId", "0")
             .queryParam("egkSlotId", egkSlot)
-            .queryParam("profileVersion", "1.0.0")
             .get("/client/test/readEgk");
 
     response.then().statusCode(200);

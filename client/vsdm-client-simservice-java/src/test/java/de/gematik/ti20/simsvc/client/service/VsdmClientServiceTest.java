@@ -25,26 +25,22 @@
 package de.gematik.ti20.simsvc.client.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import de.gematik.bbriccs.fhir.EncodingType;
-import de.gematik.ti20.client.card.card.AttachedCard;
-import de.gematik.ti20.client.card.config.CardTerminalConnectionConfig;
-import de.gematik.ti20.client.card.config.SimulatorConnectionConfig;
-import de.gematik.ti20.client.card.terminal.CardTerminalException;
-import de.gematik.ti20.client.card.terminal.CardTerminalService;
-import de.gematik.ti20.client.card.terminal.simsvc.EgkInfo;
-import de.gematik.ti20.client.card.terminal.simsvc.SimulatorAttachedCard;
-import de.gematik.ti20.client.card.terminal.simsvc.SmcbInfo;
+import de.gematik.ti20.simsvc.client.card.AttachedCard;
+import de.gematik.ti20.simsvc.client.card.EgkInfo;
+import de.gematik.ti20.simsvc.client.card.SmcbInfo;
 import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
+import de.gematik.ti20.simsvc.client.exception.CardTerminalException;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
 import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
 import de.gematik.ti20.simsvc.client.service.popp.PoppClientAdapter;
 import de.gematik.ti20.simsvc.client.service.popp.PoppToken;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
+import io.ktor.client.plugins.ClientRequestException;
 import io.ktor.client.plugins.ServerResponseException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -74,7 +70,7 @@ class VsdmClientServiceTest {
   private VsdmDataRepository mockVsdmDataRepository;
 
   private EgkInfo mockEgkInfo;
-  private SimulatorAttachedCard mockEgkCard;
+  private AttachedCard mockEgkCard;
 
   private final String terminalId = "terminal1";
   private final int egkSlotId = 1;
@@ -94,8 +90,7 @@ class VsdmClientServiceTest {
     mockPoppClientAdapter = mock(PoppClientAdapter.class);
     mockCardTerminalService = mock(CardTerminalService.class);
 
-    mockEgkCard = mock(SimulatorAttachedCard.class);
-    when(mockEgkCard.isEgk()).thenReturn(true);
+    mockEgkCard = mock(AttachedCard.class);
     when(mockEgkCard.getSlotId()).thenReturn(1);
     when(mockEgkCard.getId()).thenReturn("card1");
     mockEgkInfo = mock(EgkInfo.class);
@@ -115,8 +110,7 @@ class VsdmClientServiceTest {
     mockVsdmDataRepository = mock(VsdmDataRepository.class);
     when(mockVsdmDataRepository.get(anyString(), anyInt(), anyString())).thenReturn(null);
 
-    mockEgkCard = mock(SimulatorAttachedCard.class);
-    when(mockEgkCard.isEgk()).thenReturn(true);
+    mockEgkCard = mock(AttachedCard.class);
     when(mockEgkCard.getSlotId()).thenReturn(1);
     when(mockEgkCard.getId()).thenReturn("card1");
 
@@ -138,7 +132,7 @@ class VsdmClientServiceTest {
   class PoppTokenHandling {
 
     @Test
-    void testRequestPoppToken_FromRepository() throws Exception {
+    void testRequestPoppToken_FromRepository() {
       String expectedToken = "cached-token";
       when(mockPoppTokenRepository.get(terminalId, egkSlotId, "card1")).thenReturn(expectedToken);
 
@@ -149,16 +143,16 @@ class VsdmClientServiceTest {
 
       assertEquals(expectedToken, result);
       verify(mockPoppTokenRepository).get(terminalId, egkSlotId, "card1");
-      verify(mockPoppClientAdapter, never()).getPoppToken(any(), any());
+      verify(mockPoppClientAdapter, never()).getPoppToken(any());
     }
 
     @Test
-    void testRequestPoppToken_FromService() throws Exception {
+    void testRequestPoppToken_FromService() {
       String expectedToken = "service-token";
 
       when(mockPoppTokenRepository.get(terminalId, egkSlotId, "card1")).thenReturn(null);
 
-      when(mockPoppClientAdapter.getPoppToken(any(), any())).thenReturn(expectedToken);
+      when(mockPoppClientAdapter.getPoppToken(any())).thenReturn(expectedToken);
 
       String result =
           vsdmClientService
@@ -166,14 +160,14 @@ class VsdmClientServiceTest {
               .value();
 
       assertEquals(expectedToken, result);
-      verify(mockPoppClientAdapter).getPoppToken(eq(mockEgkCard), eq(null));
+      verify(mockPoppClientAdapter).getPoppToken(null);
       verify(mockPoppTokenRepository).put(terminalId, egkSlotId, "card1", expectedToken);
     }
 
     @Test
     void testRequestPoppToken_RetriesTransientPoppFailure() {
       when(mockPoppTokenRepository.get(terminalId, egkSlotId, "card1")).thenReturn(null);
-      when(mockPoppClientAdapter.getPoppToken(any(), any()))
+      when(mockPoppClientAdapter.getPoppToken(any()))
           .thenThrow(new RuntimeException("Websocket client is not connected"))
           .thenReturn("service-token");
 
@@ -183,15 +177,14 @@ class VsdmClientServiceTest {
               .value();
 
       assertEquals("service-token", result);
-      verify(mockPoppClientAdapter, times(2)).getPoppToken(eq(mockEgkCard), eq(null));
+      verify(mockPoppClientAdapter, times(2)).getPoppToken(null);
       verify(mockPoppTokenRepository).put(terminalId, egkSlotId, "card1", "service-token");
     }
 
     @Test
     void testRequestPoppToken_DoesNotRetryNonTransientPoppFailure() {
       when(mockPoppTokenRepository.get(terminalId, egkSlotId, "card1")).thenReturn(null);
-      when(mockPoppClientAdapter.getPoppToken(any(), any()))
-          .thenThrow(new RuntimeException("boom"));
+      when(mockPoppClientAdapter.getPoppToken(any())).thenThrow(new RuntimeException("boom"));
 
       ResponseStatusException exception =
           assertThrows(
@@ -201,7 +194,7 @@ class VsdmClientServiceTest {
                       null, terminalId, egkSlotId, mockEgkCard, null));
 
       assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
-      verify(mockPoppClientAdapter, times(1)).getPoppToken(eq(mockEgkCard), eq(null));
+      verify(mockPoppClientAdapter, times(1)).getPoppToken(null);
       verify(mockPoppTokenRepository, never()).put(anyString(), anyInt(), anyString(), anyString());
     }
 
@@ -229,26 +222,9 @@ class VsdmClientServiceTest {
                 mockZetaSdkAdapter);
 
         when(mockCardTerminalService.getEgkInfo(any()))
-            .thenReturn(
-                new EgkInfo(
-                    "kvnr",
-                    "iknr",
-                    "patient",
-                    "actual-first",
-                    "actual-last",
-                    "2000",
-                    "insurance",
-                    "card",
-                    "2012",
-                    "true"));
+            .thenReturn(new EgkInfo("kvnr", "iknr", "actual-first", "actual-last", "true"));
         when(mockCardTerminalService.getSmcbInfo())
-            .thenReturn(
-                new SmcbInfo(
-                    "telematikId",
-                    "professionOid",
-                    "smcbVersion",
-                    "smcbManufacturer",
-                    "smcbSerialNumber"));
+            .thenReturn(new SmcbInfo("telematikId", "professionOid"));
 
         when(mockPoppTokenService.requestPoppToken(
                 vsdmClientConfig, "iknr", "kvnr", "telematikId", "professionOid"))
@@ -264,6 +240,42 @@ class VsdmClientServiceTest {
         verify(mockPoppTokenRepository, never()).get(any(), any(), any());
         verify(mockPoppClientAdapter, never()).getPoppToken(any());
       }
+    }
+
+    @Test
+    void readUsesInjectedTokenWithoutLoadingAttachedCard() throws InterruptedException {
+      final ZetaSdkClientAdapter.Response mockResponse =
+          new ZetaSdkClientAdapter.Response(
+              HttpStatus.OK, Map.of(), "{\"resourceType\":\"Bundle\"}");
+      when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenReturn(mockResponse);
+
+      final ResponseEntity<String> response =
+          vsdmClientService.read(
+              terminalId, egkSlotId, virtualCard, false, "injected-token", null, profileVersion);
+
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+      assertThat(response.getBody()).isEqualTo("{\"resourceType\":\"Bundle\"}");
+      verify(mockCardTerminalService, never()).getAttachedCard(anyString(), anyInt());
+      ArgumentCaptor<ZetaSdkClientAdapter.RequestParameters> parametersCaptor =
+          ArgumentCaptor.forClass(ZetaSdkClientAdapter.RequestParameters.class);
+      verify(mockZetaSdkAdapter).httpGet(anyString(), parametersCaptor.capture());
+      assertThat(parametersCaptor.getValue().poppToken()).isEqualTo("injected-token");
+    }
+
+    @Test
+    void readLoadsAttachedCardWhenNoInjectedTokenIsProvided() {
+      when(mockCardTerminalService.getAttachedCard(terminalId, egkSlotId)).thenReturn(mockEgkCard);
+      when(mockPoppTokenRepository.get(terminalId, egkSlotId, cardId)).thenReturn("cached-token");
+      when(mockVsdmDataRepository.get(terminalId, egkSlotId, cardId))
+          .thenReturn(new VsdmCachedValue("etag", "pz", "cached-vsd"));
+
+      final ResponseEntity<String> response =
+          vsdmClientService.read(
+              terminalId, egkSlotId, virtualCard, false, null, null, profileVersion);
+
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+      assertThat(response.getBody()).isEqualTo("cached-vsd");
+      verify(mockCardTerminalService).getAttachedCard(terminalId, egkSlotId);
     }
 
     @Nested
@@ -471,63 +483,222 @@ class VsdmClientServiceTest {
         // AND return 304
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_MODIFIED);
       }
-    }
-
-    @Test
-    void testSetTerminalConnectionConfigs() {
-      List<CardTerminalConnectionConfig> configs =
-          List.of(new SimulatorConnectionConfig("Terminal1", "Url1"));
-
-      vsdmClientService.setTerminalConnectionConfigs(configs);
-
-      assertEquals(configs, vsdmClientService.getTerminalConnectionConfigs());
-    }
-
-    @Test
-    void testGetTerminalConnectionConfigs() {
-      List<CardTerminalConnectionConfig> configs = vsdmClientService.getTerminalConnectionConfigs();
-
-      assertNotNull(configs);
-      assertTrue(configs.isEmpty());
-    }
-
-    @Nested
-    class getAttachedCard {
 
       @Test
-      void thatGetAttachedCardWorks() {
-        final AttachedCard attachedCard = vsdmClientService.getAttachedCard("id", 1);
-        assertThat(attachedCard).isNotNull();
+      void that304WithLowercaseHeaderWorksWithoutAttachedCard() throws InterruptedException {
+        when(mockZetaSdkAdapter.httpGet(any(), any()))
+            .thenReturn(
+                new ZetaSdkClientAdapter.Response(
+                    HttpStatus.NOT_MODIFIED,
+                    Map.of(VsdmClientService.HEADER_ETAG, "etag", "vsdm-pz", "lowercase-pz"),
+                    ""));
+
+        final ResponseEntity<String> response =
+            vsdmClientService.requestVsd(
+                terminalId, egkSlotId, null, poppToken, "etag", false, profileVersion);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_MODIFIED);
+        assertThat(response.getHeaders().getETag()).isEqualTo("etag");
+        assertThat(response.getHeaders().getFirst(VsdmClientService.HEADER_VSDM_PZ))
+            .isEqualTo("lowercase-pz");
+        verify(mockVsdmDataRepository, never()).put(anyString(), anyInt(), anyString(), any());
       }
 
       @Test
-      void thatPoppClientExceptionsAreHandled() throws CardTerminalException {
-        when(mockCardTerminalService.getAttachedCards()).thenThrow(new RuntimeException());
-        assertThatExceptionOfType(ResponseStatusException.class)
-            .isThrownBy(() -> vsdmClientService.getAttachedCard("any", 1));
+      void thatRequestVsdWithProvidedTokenDoesNotCacheResponse() throws InterruptedException {
+        final ZetaSdkClientAdapter.Response mockResponse =
+            new ZetaSdkClientAdapter.Response(
+                HttpStatus.OK,
+                Map.of("etag", "etag-1", "vsdm-pz", "pz-1"),
+                "{\"resourceType\":\"Bundle\"}");
+        when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenReturn(mockResponse);
+
+        final ResponseEntity<String> response =
+            vsdmClientService.requestVsd(
+                terminalId, egkSlotId, null, poppToken, null, false, profileVersion);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo("{\"resourceType\":\"Bundle\"}");
+        verify(mockVsdmDataRepository, never()).put(anyString(), anyInt(), anyString(), any());
+      }
+
+      @Test
+      void testRequestVsd_ThrowsWhenResponseBodyIsNull() throws InterruptedException {
+        when(mockVsdmDataRepository.get(terminalId, egkSlotId, cardId)).thenReturn(null);
+        when(mockZetaSdkAdapter.httpGet(anyString(), any()))
+            .thenReturn(
+                new ZetaSdkClientAdapter.Response(
+                    HttpStatus.OK, Map.of("etag", "etag-1", "vsdm-pz", "pz-1"), null));
+
+        ResponseStatusException exception =
+            assertThrows(
+                ResponseStatusException.class,
+                () ->
+                    vsdmClientService.requestVsd(
+                        terminalId,
+                        egkSlotId,
+                        mockEgkCard,
+                        poppToken,
+                        null,
+                        false,
+                        profileVersion));
+
+        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(exception.getReason()).contains("Could not parse valid FHIR response");
+      }
+
+      @Test
+      void testRequestVsd_MapsClientRequestExceptionStatus() throws Exception {
+        ClientRequestException clientRequestException = mock(ClientRequestException.class);
+        io.ktor.client.statement.HttpResponse response =
+            mock(io.ktor.client.statement.HttpResponse.class);
+        io.ktor.http.HttpStatusCode statusCode = mock(io.ktor.http.HttpStatusCode.class);
+        when(clientRequestException.getResponse()).thenReturn(response);
+        when(response.getStatus()).thenReturn(statusCode);
+        when(statusCode.getValue()).thenReturn(400);
+        when(clientRequestException.getMessage()).thenReturn("bad request");
+        when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenThrow(clientRequestException);
+
+        ResponseEntity<String> result =
+            vsdmClientService.requestVsd(
+                terminalId, egkSlotId, null, poppToken, null, false, profileVersion);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(result.getBody()).isEqualTo("bad request");
+      }
+
+      @Test
+      void testRequestVsd_ThrowsOnGenericException() throws InterruptedException {
+        when(mockZetaSdkAdapter.httpGet(anyString(), any()))
+            .thenThrow(new RuntimeException("boom"));
+
+        ResponseStatusException exception =
+            assertThrows(
+                ResponseStatusException.class,
+                () ->
+                    vsdmClientService.requestVsd(
+                        terminalId, egkSlotId, null, poppToken, null, false, profileVersion));
+
+        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(exception.getReason()).isEqualTo("boom");
+      }
+
+      @Test
+      void that304WithoutEtagHeaderThrows() throws InterruptedException {
+        when(mockZetaSdkAdapter.httpGet(anyString(), any()))
+            .thenReturn(
+                new ZetaSdkClientAdapter.Response(
+                    HttpStatus.NOT_MODIFIED, Map.of(VsdmClientService.HEADER_VSDM_PZ, "pz-1"), ""));
+
+        ResponseStatusException exception =
+            assertThrows(
+                ResponseStatusException.class,
+                () ->
+                    vsdmClientService.requestVsd(
+                        terminalId,
+                        egkSlotId,
+                        mockEgkCard,
+                        poppToken,
+                        "etag",
+                        false,
+                        profileVersion));
+
+        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(exception.getReason())
+            .contains("'etag' header must be set by VSDM backend on 304");
+      }
+
+      @Test
+      void thatServerResponseFallbackWithoutAttachedCardThrows() throws InterruptedException {
+        final ServerResponseException serverResponseException = mock(ServerResponseException.class);
+        when(serverResponseException.getMessage()).thenReturn("server down");
+        when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenThrow(serverResponseException);
+
+        ResponseStatusException exception =
+            assertThrows(
+                ResponseStatusException.class,
+                () ->
+                    vsdmClientService.requestVsd(
+                        terminalId, egkSlotId, null, poppToken, "etag", false, profileVersion));
+
+        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(exception.getReason()).isEqualTo("server down");
+      }
+
+      @Test
+      void thatServerResponseFallbackReturnsUnauthorizedWhenCardDataInvalid()
+          throws InterruptedException, CardTerminalException {
+        when(mockCardTerminalService.getEgkInfo(mockEgkCard))
+            .thenReturn(new EgkInfo("kvnr", "iknr", "first", "last", "false"));
+        final ServerResponseException serverResponseException = mock(ServerResponseException.class);
+        when(serverResponseException.getMessage()).thenReturn("server down");
+        when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenThrow(serverResponseException);
+
+        ResponseEntity<String> response =
+            vsdmClientService.requestVsd(
+                terminalId, egkSlotId, mockEgkCard, poppToken, "etag", false, profileVersion);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+      }
+
+      @Test
+      void thatServerResponseFallbackThrowsWhenCardLoadingFails() throws Exception {
+        when(mockCardTerminalService.getEgkInfo(mockEgkCard))
+            .thenThrow(new CardTerminalException("card broken"));
+        final ServerResponseException serverResponseException = mock(ServerResponseException.class);
+        when(serverResponseException.getMessage()).thenReturn("server down");
+        when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenThrow(serverResponseException);
+
+        ResponseStatusException exception =
+            assertThrows(
+                ResponseStatusException.class,
+                () ->
+                    vsdmClientService.requestVsd(
+                        terminalId,
+                        egkSlotId,
+                        mockEgkCard,
+                        poppToken,
+                        "etag",
+                        false,
+                        profileVersion));
+
+        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(exception.getReason()).isEqualTo("server down");
       }
     }
 
     @Test
     void thatLoadTruncatedDataWorks() throws CardTerminalException {
       when(mockCardTerminalService.getEgkInfo(any()))
-          .thenReturn(
-              new EgkInfo(
-                  "actual-kvnr",
-                  "iknr",
-                  "patient",
-                  "actual-first",
-                  "actual-last",
-                  "2000",
-                  "insurance",
-                  "card",
-                  "2012",
-                  "true"));
+          .thenReturn(new EgkInfo("actual-kvnr", "iknr", "actual-first", "actual-last", "true"));
 
       final AttachedCard mock = mock(AttachedCard.class);
 
       vsdmClientService.loadTruncatedDataFromCard(mock);
       verify(mockFhirService, times(1)).encodeResponse(any(), any());
+    }
+
+    @Test
+    void thatLoadTruncatedDataReturnsNullForInvalidEgk() throws CardTerminalException {
+      when(mockCardTerminalService.getEgkInfo(any()))
+          .thenReturn(new EgkInfo("actual-kvnr", "iknr", "actual-first", "actual-last", "false"));
+
+      final String result = vsdmClientService.loadTruncatedDataFromCard(mockEgkCard);
+
+      assertThat(result).isNull();
+      verify(mockFhirService, never()).encodeResponse(any(), any());
+    }
+
+    @Test
+    void thatLoadTruncatedDataEncodesJsonResponse() throws CardTerminalException {
+      when(mockCardTerminalService.getEgkInfo(any()))
+          .thenReturn(new EgkInfo("actual-kvnr", "iknr", "actual-first", "actual-last", "true"));
+      when(mockFhirService.encodeResponse(any(), eq(EncodingType.JSON))).thenReturn("encoded");
+
+      final String result = vsdmClientService.loadTruncatedDataFromCard(mockEgkCard);
+
+      assertThat(result).isEqualTo("encoded");
+      verify(mockFhirService).encodeResponse(any(), eq(EncodingType.JSON));
     }
   }
 }

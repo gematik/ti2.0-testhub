@@ -27,33 +27,32 @@ package de.gematik.ti20.simsvc.client.controller;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import de.gematik.ti20.client.card.config.CardTerminalConnectionConfig;
-import de.gematik.ti20.client.card.config.SimulatorConnectionConfig;
-import de.gematik.ti20.simsvc.client.service.VsdmClientService;
+import de.gematik.ti20.simsvc.client.card.CardTerminalConnectionConfig;
+import de.gematik.ti20.simsvc.client.service.CardTerminalService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ResponseStatusException;
 
 class ConfigControllerTest {
 
-  @Mock private VsdmClientService mockVsdmClientService;
+  private CardTerminalService mockCardTerminalService;
+
   private ConfigController configController;
 
   @BeforeEach
   void setUp() {
-    mockVsdmClientService = mock(VsdmClientService.class);
-    configController = new ConfigController(mockVsdmClientService);
+    mockCardTerminalService = mock(CardTerminalService.class);
+    configController = new ConfigController(mockCardTerminalService);
   }
 
   @Test
   void testSetTerminalConnectionConfigs_Success() {
     List<CardTerminalConnectionConfig> configs =
-        List.of(new SimulatorConnectionConfig("Terminal1", "URL1"));
+        List.of(new CardTerminalConnectionConfig("Terminal1", "URL1"));
 
-    doNothing().when(mockVsdmClientService).setTerminalConnectionConfigs(configs);
+    doNothing().when(mockCardTerminalService).setTerminalConnectionConfigs(configs);
 
     ResponseEntity<String> response = configController.setTerminalConnectionConfigs(configs);
 
@@ -64,10 +63,10 @@ class ConfigControllerTest {
   @Test
   void testSetTerminalConnectionConfigs_Failure() {
     List<CardTerminalConnectionConfig> configs =
-        List.of(new SimulatorConnectionConfig("Terminal1", "URL1"));
+        List.of(new CardTerminalConnectionConfig("Terminal1", "URL1"));
 
     doThrow(new RuntimeException("Invalid Config"))
-        .when(mockVsdmClientService)
+        .when(mockCardTerminalService)
         .setTerminalConnectionConfigs(configs);
 
     ResponseStatusException exception =
@@ -82,9 +81,9 @@ class ConfigControllerTest {
   @Test
   void testGetTerminalConnectionConfigs_Success() {
     List<CardTerminalConnectionConfig> configs =
-        List.of(new SimulatorConnectionConfig("Terminal1", "URL1"));
+        List.of(new CardTerminalConnectionConfig("Terminal1", "URL1"));
 
-    when(mockVsdmClientService.getTerminalConnectionConfigs()).thenReturn(configs);
+    when(mockCardTerminalService.getTerminalConnectionConfigs()).thenReturn(configs);
 
     ResponseEntity<List<CardTerminalConnectionConfig>> response =
         configController.getTerminalConnectionConfigs();
@@ -96,7 +95,7 @@ class ConfigControllerTest {
 
   @Test
   void testGetTerminalConnectionConfigs_Failure() {
-    when(mockVsdmClientService.getTerminalConnectionConfigs())
+    when(mockCardTerminalService.getTerminalConnectionConfigs())
         .thenThrow(new RuntimeException("Fetch Error"));
 
     ResponseStatusException exception =

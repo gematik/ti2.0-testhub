@@ -44,4 +44,14 @@ class GlobalExceptionHandlerTest {
     assertEquals("Internal Server Error", response.getBody().get("error"));
     assertTrue(response.getBody().get("message").contains("Unerwartet"));
   }
+
+  @Test
+  void testHandleCardNotFoundExceptionViaGenericHandler() {
+    Exception ex = new Exception("Card not found: card-123");
+    ResponseEntity<Map<String, String>> response = handler.handleGenericException(ex);
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertEquals("Internal Server Error", response.getBody().get("error"));
+    assertTrue(response.getBody().get("message").contains("Card not found: card-123"));
+  }
 }

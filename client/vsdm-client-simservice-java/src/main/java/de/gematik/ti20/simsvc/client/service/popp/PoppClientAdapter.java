@@ -24,7 +24,6 @@
  */
 package de.gematik.ti20.simsvc.client.service.popp;
 
-import de.gematik.ti20.client.card.card.AttachedCard;
 import de.gematik.ti20.simsvc.client.config.PoppClientConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -42,23 +41,23 @@ public class PoppClientAdapter {
     this.webClient = webClient;
   }
 
-  public String getPoppToken(final AttachedCard attachedCard) {
-    return getPoppToken(attachedCard, null);
+  public String getPoppToken() {
+    return getPoppToken(null);
   }
 
-  public String getPoppToken(final AttachedCard attachedCard, final String virtualCard) {
+  public String getPoppToken(final String virtualCard) {
     log.info(
         "============ Starting PoPP token session for card with tokentype={}, virtualCard={} and URL={}",
         poppClientConfig.getTokenType(),
         virtualCard,
-        poppClientConfig.getUrlPoppServerHttp(attachedCard));
+        poppClientConfig.getUrlPoppServerHttp());
     PoppClientRequest poppRequestPayload =
         new PoppClientRequest(poppClientConfig.getTokenType().getType(), null, virtualCard);
 
     PoppClientResponse response =
         webClient
             .post()
-            .uri(poppClientConfig.getUrlPoppServerHttp(attachedCard))
+            .uri(poppClientConfig.getUrlPoppServerHttp())
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(poppRequestPayload)
             .retrieve()

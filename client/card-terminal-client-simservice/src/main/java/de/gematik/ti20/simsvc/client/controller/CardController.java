@@ -24,20 +24,17 @@
  */
 package de.gematik.ti20.simsvc.client.controller;
 
-import de.gematik.ti20.simsvc.client.model.card.CardImage;
+import de.gematik.ti20.simsvc.client.exception.CardNotFoundException;
+import de.gematik.ti20.simsvc.client.model.CardImageData;
+import de.gematik.ti20.simsvc.client.model.VirtualCardImageData;
 import de.gematik.ti20.simsvc.client.model.dto.CardHandleDto;
 import de.gematik.ti20.simsvc.client.model.dto.EgkInfoDto;
 import de.gematik.ti20.simsvc.client.model.dto.SmcBInfoDto;
-import de.gematik.ti20.simsvc.client.service.CardManager;
 import de.gematik.ti20.simsvc.client.service.EgkInfoService;
+import de.gematik.ti20.simsvc.client.service.SlotManager;
 import de.gematik.ti20.simsvc.client.service.SmcBInfoService;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,22 +46,22 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/cards")
 public class CardController {
 
-  private static final Logger logger = LoggerFactory.getLogger(CardController.class);
-
-  private final CardManager cardManager;
+  private final SlotManager slotManager;
   private final SmcBInfoService smcBInfoService;
   private final EgkInfoService egkInfoService;
 
   /**
    * Constructor for CardController.
    *
-   * @param cardManager Service to manage cards and connections
+   * @param slotManager Service to manage slots
    * @param smcBInfoService Service for SMC-B information extraction
    */
   @Autowired
   public CardController(
-      CardManager cardManager, SmcBInfoService smcBInfoService, EgkInfoService egkInfoService) {
-    this.cardManager = cardManager;
+      final SlotManager slotManager,
+      final SmcBInfoService smcBInfoService,
+      final EgkInfoService egkInfoService) {
+    this.slotManager = slotManager;
     this.smcBInfoService = smcBInfoService;
     this.egkInfoService = egkInfoService;
   }
@@ -76,7 +73,7 @@ public class CardController {
    */
   @GetMapping("/")
   public ResponseEntity<List<CardHandleDto>> listCards() {
-    List<CardHandleDto> cardHandles = cardManager.listAllCards();
+    final List<CardHandleDto> cardHandles = slotManager.listAllCards();
     return ResponseEntity.ok(cardHandles);
   }
 
@@ -87,9 +84,19 @@ public class CardController {
    * @return SMC-B information
    */
   @GetMapping("/{cardHandle}/smc-b-info")
-  public ResponseEntity<SmcBInfoDto> getSmcBInfo(@PathVariable String cardHandle) {
-    SmcBInfoDto smcBInfo = smcBInfoService.extractSmcBInfo(cardHandle);
-    return ResponseEntity.ok(smcBInfo);
+  public ResponseEntity<SmcBInfoDto> getSmcBInfo(@PathVariable final String cardHandle) {
+    // Find the card image for the given handle
+    final CardImageData card = slotManager.findCardByHandle(cardHandle);
+
+    if (card instanceof VirtualCardImageData virtualCardImageData) {
+      final SmcBInfoDto smcBInfoDto = smcBInfoService.extractSmcBInfo(virtualCardImageData);
+
+      if (smcBInfoDto != null) {
+        return ResponseEntity.ok(smcBInfoDto);
+      }
+    }
+
+    throw new CardNotFoundException(cardHandle);
   }
 
   /**
@@ -99,24 +106,19 @@ public class CardController {
    * @return EGK information with real patient data from certificate
    */
   @GetMapping("/{cardHandle}/egk-info")
-  public ResponseEntity<?> getEgkInfo(@PathVariable final String cardHandle) {
-    try {
-      // Find the card image for the given handle
-      final CardImage card = cardManager.findCardByHandle(cardHandle);
-      if (card == null) {
-        Map<String, Object> errorInfo = new HashMap<>();
-        errorInfo.put("error", "Card not found");
-        errorInfo.put("message", "No card found for handle: " + cardHandle);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorInfo);
-      }
+  public ResponseEntity<EgkInfoDto> getEgkInfo(@PathVariable final String cardHandle) {
+    // Find the card image for the given handle
+    final CardImageData card = slotManager.findCardByHandle(cardHandle);
 
-      final EgkInfoDto egkInfo = egkInfoService.extractEgkInfo(card);
-      return ResponseEntity.ok(egkInfo);
-    } catch (Exception e) {
-      Map<String, Object> errorInfo = new HashMap<>();
-      errorInfo.put("error", "Internal Server Error");
-      errorInfo.put("message", "An unexpected error occurred");
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorInfo);
+    if (card instanceof EgkInfoDto egkInfoDto) {
+      return ResponseEntity.ok(egkInfoDto);
+    } else if (card instanceof VirtualCardImageData virtualCardImageData) {
+      final EgkInfoDto egkInfo = egkInfoService.extractEgkInfo(virtualCardImageData);
+      if (egkInfo != null) {
+        return ResponseEntity.ok(egkInfo);
+      }
     }
+
+    throw new CardNotFoundException(cardHandle);
   }
 }

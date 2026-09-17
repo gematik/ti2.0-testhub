@@ -26,7 +26,7 @@ package de.gematik.ti20.simsvc.client.controller;
 
 import jakarta.servlet.*;
 import java.io.IOException;
-import org.apache.commons.lang3.RandomStringUtils;
+import java.util.UUID;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
@@ -38,7 +38,7 @@ public class TraceIdFilter implements Filter {
       final ServletRequest request, final ServletResponse response, final FilterChain chain)
       throws IOException, ServletException {
     try {
-      String traceId = RandomStringUtils.random(10, "0123456789abcdef");
+      final String traceId = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
       MDC.put("traceId", traceId);
 
       chain.doFilter(request, response);
@@ -48,8 +48,12 @@ public class TraceIdFilter implements Filter {
   }
 
   @Override
-  public void init(FilterConfig filterConfig) {}
+  public void init(final FilterConfig filterConfig) {
+    // nothing to init
+  }
 
   @Override
-  public void destroy() {}
+  public void destroy() {
+    // nothing to destroy
+  }
 }

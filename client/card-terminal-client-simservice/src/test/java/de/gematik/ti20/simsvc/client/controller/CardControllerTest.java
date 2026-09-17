@@ -27,9 +27,15 @@ package de.gematik.ti20.simsvc.client.controller;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import de.gematik.ti20.simsvc.client.model.dto.*;
-import de.gematik.ti20.simsvc.client.service.*;
-import java.util.*;
+import de.gematik.ti20.simsvc.client.exception.CardNotFoundException;
+import de.gematik.ti20.simsvc.client.model.VirtualCardImageData;
+import de.gematik.ti20.simsvc.client.model.dto.CardHandleDto;
+import de.gematik.ti20.simsvc.client.model.dto.EgkInfoDto;
+import de.gematik.ti20.simsvc.client.model.dto.SmcBInfoDto;
+import de.gematik.ti20.simsvc.client.service.EgkInfoService;
+import de.gematik.ti20.simsvc.client.service.SlotManager;
+import de.gematik.ti20.simsvc.client.service.SmcBInfoService;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -37,17 +43,17 @@ import org.springframework.http.ResponseEntity;
 
 class CardControllerTest {
 
-  private CardManager cardManager;
+  private SlotManager slotManager;
   private SmcBInfoService smcBInfoService;
   private EgkInfoService egkInfoService;
   private CardController controller;
 
   @BeforeEach
   void setUp() {
-    cardManager = mock(CardManager.class);
+    slotManager = mock(SlotManager.class);
     smcBInfoService = mock(SmcBInfoService.class);
     egkInfoService = mock(EgkInfoService.class);
-    controller = new CardController(cardManager, smcBInfoService, egkInfoService);
+    controller = new CardController(slotManager, smcBInfoService, egkInfoService);
   }
 
   @Test
@@ -56,7 +62,7 @@ class CardControllerTest {
         List.of(
             new CardHandleDto("id1", "EGK", 1, "label1"),
             new CardHandleDto("id2", "EGK", 2, "label2"));
-    when(cardManager.listAllCards()).thenReturn(handles);
+    when(slotManager.listAllCards()).thenReturn(handles);
 
     ResponseEntity<List<CardHandleDto>> response = controller.listCards();
     assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -65,20 +71,39 @@ class CardControllerTest {
 
   @Test
   void getSmcBInfo_returnsInfo() {
-    SmcBInfoDto info = new SmcBInfoDto();
-    when(smcBInfoService.extractSmcBInfo("h")).thenReturn(info);
+    final String cardHandle = "cardHandle";
+    final VirtualCardImageData imageData = mock(VirtualCardImageData.class);
+    final SmcBInfoDto info = new SmcBInfoDto();
+    when(smcBInfoService.extractSmcBInfo(imageData)).thenReturn(info);
+    when(slotManager.findCardByHandle(cardHandle)).thenReturn(imageData);
 
-    ResponseEntity<SmcBInfoDto> response = controller.getSmcBInfo("h");
+    ResponseEntity<SmcBInfoDto> response = controller.getSmcBInfo(cardHandle);
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(info, response.getBody());
+  }
+
+  @Test
+  void getEgkInfo_returnsInfo() {
+    final String cardHandle = "cardHandle";
+    final VirtualCardImageData imageData = mock(VirtualCardImageData.class);
+    final EgkInfoDto info = new EgkInfoDto();
+    when(slotManager.findCardByHandle(cardHandle)).thenReturn(imageData);
+    when(egkInfoService.extractEgkInfo(imageData)).thenReturn(info);
+
+    ResponseEntity<EgkInfoDto> response = controller.getEgkInfo(cardHandle);
+
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(info, response.getBody());
   }
 
   @Test
   void getEgkInfo_cardNotFound_returnsNotFound() {
-    when(cardManager.findCardByHandle("h")).thenReturn(null);
+    final String cardHandle = "cardHandle";
+    when(slotManager.findCardByHandle(cardHandle)).thenReturn(null);
 
-    ResponseEntity<?> response = controller.getEgkInfo("h");
-    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    assertTrue(((Map<?, ?>) response.getBody()).containsKey("error"));
+    CardNotFoundException exception =
+        assertThrows(CardNotFoundException.class, () -> controller.getEgkInfo(cardHandle));
+
+    assertEquals("cardHandle", exception.getCardId());
   }
 }

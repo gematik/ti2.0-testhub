@@ -40,11 +40,17 @@ und **Gherkin** und bietet einen Proxy, der den Datenverkehr mitschneidet.
    Die TSP-eGK-.p12-Files müssen unter `no-publish/test-data/p12/popp-testsuite` in dem
    TI20-Testhub-Projekt abgelegt werden. Dateiname und Pfad müssen passen.
 
-   Die SMC-Bs und eGKs müssen in der PoPP-Beispielimplementierung hinterlegt werden. Die Inhalte (
-   KVNRs, Telematik-IDs, etc) in
+   Die SMC-Bs und eGKs müssen in der PoPP-Beispielimplementierung hinterlegt werden. Die Inhalte
+   (KVNRs, Telematik-IDs, etc) in
    `src/test/java/de/gematik/ti20/popp/EgkType.java` und
    `src/test/java/de/gematik/ti20/popp/SmcbType.java` müssen entsprechend den Inhalten der
    Zertifikate bzw. Images angepasst werden.
+
+4. Die von der Testsuite benötigten signierten Daten für den Import oder das Löschen von Einträgen
+   in die bzw aus der HashDB müssen zu den verwendeten eGK-Images passen. Daher werden sie
+   auf Anfrage ebenfalls von der gematik bereitgestellt. Dazu stellt die gematik einen Ordner
+   `hashDbPayloads` bereit und dieser muss unter `src/test/resources/` abgelegt werden (weil da
+   einige Pfade hardcoded sind).
 
 ## Nutzung des Tiger-Proxys
 
@@ -106,7 +112,7 @@ mvn -Denv=ru-dev verify -Dcucumber.filter.tags="@TCID:UC_PoPP_1_2a_Valid"
 ```
 
 > Tipp: Immer vorher einmal ins Feature-File schauen und nachsehen, welche Detailvarianten unter
-*Beispiele* ausgewählt sind.
+> *Beispiele* ausgewählt sind.
 
 Testfälle können dem Maven-Befehl nach Belieben mit `or @TCID:UC_Popp_***` hinzugefügt werden.
 
@@ -114,12 +120,14 @@ Testfälle können dem Maven-Befehl nach Belieben mit `or @TCID:UC_Popp_***` hin
 
 Ein E2E-Use-Case für das Einstellen und Einlösen eines E-Rezepts für die TU wurde implementiert.
 
-Zur Ausführung müssen folgende Properties entweder in der `pom.xml` gesetzt oder beim Start als VM-Options/Maven-Parameter (`-Dpopp.primSys.apikey=<API_KEY>`) übergeben werden:
+Zur Ausführung müssen folgende Properties entweder in der `pom.xml` gesetzt oder beim Start als
+VM-Options/Maven-Parameter (`-Dpopp.primSys.apikey=<API_KEY>`) übergeben werden:
 
 ```xml
+
 <properties>
-    <popp.primSys.apikey>replace_me</popp.primSys.apikey>
-    <popp.primSys.DocId>replace_me</popp.primSys.DocId>
-    <popp.primSys.PharmId>replace_me</popp.primSys.PharmId>
+  <popp.primSys.apikey>replace_me</popp.primSys.apikey>
+  <popp.primSys.DocId>replace_me</popp.primSys.DocId>
+  <popp.primSys.PharmId>replace_me</popp.primSys.PharmId>
 </properties>
 ```

@@ -24,25 +24,19 @@
  */
 package de.gematik.ti20.simsvc.client.service.helper;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.zip.GZIPInputStream;
-
 public final class ByteUtils {
   private ByteUtils() {}
 
-  public static byte[] getByteArray(String hexString) {
+  public static byte[] getByteArray(final String hexString) {
     if (hexString == null) {
-      return null;
+      return new byte[0];
     } else {
-      String hex = HexUtils.formatHexString(hexString, false);
+      final String hex = HexUtils.formatHexString(hexString, false);
       byte[] result = new byte[hex.length() / 2];
       char[] enc = hex.toCharArray();
 
       for (int i = 0; i < enc.length; i += 2) {
-        StringBuilder curr = new StringBuilder(2);
+        final StringBuilder curr = new StringBuilder(2);
         curr.append(enc[i]).append(enc[i + 1]);
         result[i / 2] = (byte) Integer.parseInt(curr.toString(), 16);
       }
@@ -51,23 +45,7 @@ public final class ByteUtils {
     }
   }
 
-  public static byte[] getByteArray(int value) {
-    if (value == 0) {
-      return new byte[] {0};
-    } else {
-      byte[] array;
-      for (array =
-              new byte[] {
-                (byte) (value >>> 24), (byte) (value >>> 16), (byte) (value >>> 8), (byte) value
-              };
-          array.length > 0 && array[0] == 0;
-          array = subarray(array, 1)) {}
-
-      return array;
-    }
-  }
-
-  public static int getIntValue(byte[] data) {
+  public static int getIntValue(final byte[] data) {
     if (data == null) {
       throw new IllegalArgumentException("Parameter 'data' cannot be null.");
     } else if (data.length != 0 && data.length <= 4) {
@@ -91,33 +69,5 @@ public final class ByteUtils {
       throw new IllegalArgumentException(
           "Incorrect length of parameter 'data' [Expected=1..4,Found=" + data.length + "].");
     }
-  }
-
-  public static byte[] subarray(byte[] array, int fromIndex, int length) {
-    if (array == null) {
-      return null;
-    } else {
-      byte[] tempArray = new byte[length];
-      System.arraycopy(array, fromIndex, tempArray, 0, tempArray.length);
-      return tempArray;
-    }
-  }
-
-  public static byte[] subarray(byte[] array, int fromIndex) {
-    return array == null ? null : subarray(array, fromIndex, array.length - fromIndex);
-  }
-
-  public static byte[] unzipByteArray(byte[] input) throws IOException {
-    GZIPInputStream unzippedStream = new GZIPInputStream(new ByteArrayInputStream(input));
-    BufferedInputStream in = new BufferedInputStream(unzippedStream);
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    byte[] buffer = new byte[1024];
-
-    int length;
-    while ((length = in.read(buffer)) != -1) {
-      out.write(buffer, 0, length);
-    }
-
-    return out.toByteArray();
   }
 }

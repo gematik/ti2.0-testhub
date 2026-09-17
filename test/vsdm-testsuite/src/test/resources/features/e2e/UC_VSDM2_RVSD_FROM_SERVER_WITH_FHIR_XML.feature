@@ -11,9 +11,9 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0
   @MODUS:Automatisch
   @TESTFALL:Positiv
   @TESTSTUFE:3
-  @PRIO:1
+  @PRIO:2
   @DESCRIPTION
-  Szenariogrundriss: Abfrage der VSD mit FHIR-XML
+  Szenariogrundriss: VsdmBundle als FHIR-XML
 
   Dieser Testfall beschreibt den ersten Standard-Anwendungsfall zur Abfrage der VSD vom Fachdienst VSDM 2.0.
   Die eGK des Versicherten wird in ein Kartenterminal der Leistungserbringerinstitution (LEI) eingesteckt.

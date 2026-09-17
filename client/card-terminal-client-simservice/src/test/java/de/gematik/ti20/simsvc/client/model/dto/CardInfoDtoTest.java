@@ -26,6 +26,8 @@ package de.gematik.ti20.simsvc.client.model.dto;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import de.gematik.ti20.simsvc.client.model.VirtualCardImageData;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class CardInfoDtoTest {
@@ -33,12 +35,12 @@ class CardInfoDtoTest {
   @Test
   void testDefaultConstructorAndSetters() {
     CardInfoDto dto = new CardInfoDto();
-    dto.setCardId("ID123");
+    dto.setCardId("card-id");
     dto.setCardType("HBA");
     dto.setSlotId(2);
     dto.setLabel("Arztkarte");
 
-    assertEquals("ID123", dto.getCardId());
+    assertEquals("card-id", dto.getCardId());
     assertEquals("HBA", dto.getCardType());
     assertEquals(2, dto.getSlotId());
     assertEquals("Arztkarte", dto.getLabel());
@@ -46,11 +48,32 @@ class CardInfoDtoTest {
 
   @Test
   void testAllArgsConstructor() {
-    CardInfoDto dto = new CardInfoDto("ID456", "EGK", 1, "Versichertenkarte");
+    CardInfoDto dto = new CardInfoDto("card-id", "EGK", 1, "Versichertenkarte");
 
-    assertEquals("ID456", dto.getCardId());
+    assertEquals("card-id", dto.getCardId());
     assertEquals("EGK", dto.getCardType());
     assertEquals(1, dto.getSlotId());
     assertEquals("Versichertenkarte", dto.getLabel());
+  }
+
+  @Test
+  void testFromCreatesDtoFromVirtualCardAndEgkInfo() {
+    VirtualCardImageData virtualCard = new VirtualCardImageData(Map.of("EF.PD", "data"));
+    CardInfoDto virtualDto = CardInfoDto.from(virtualCard, 7);
+
+    assertNotNull(virtualDto);
+    assertEquals("EGK", virtualDto.getCardType());
+    assertEquals(7, virtualDto.getSlotId());
+    assertEquals("EGK", virtualDto.getLabel());
+
+    EgkInfoDto egkInfo = new EgkInfoDto();
+    egkInfo.setKvnr("X123456789");
+
+    CardInfoDto egkDto = CardInfoDto.from(egkInfo, 3);
+
+    assertNotNull(egkDto);
+    assertEquals("EGK", egkDto.getCardType());
+    assertEquals(3, egkDto.getSlotId());
+    assertEquals("egk-X123456789", egkDto.getLabel());
   }
 }

@@ -24,7 +24,7 @@
  */
 package de.gematik.ti20.simsvc.client.service.popp;
 
-import de.gematik.ti20.client.card.card.AttachedCard;
+import de.gematik.ti20.simsvc.client.card.AttachedCard;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import java.net.HttpURLConnection;
 import java.util.Optional;
@@ -54,7 +54,7 @@ public class PoppTokenFromServiceStrategy {
       final AttachedCard attachedCard,
       final String virtualCard) {
     try {
-      final String poppTokenFromService = poppClientAdapter.getPoppToken(attachedCard, virtualCard);
+      final String poppTokenFromService = poppClientAdapter.getPoppToken(virtualCard);
       log.debug("Received PoPP token from popp service: {}", poppTokenFromService);
       poppTokenRepository.put(terminalId, egkSlotId, attachedCard.getId(), poppTokenFromService);
 
