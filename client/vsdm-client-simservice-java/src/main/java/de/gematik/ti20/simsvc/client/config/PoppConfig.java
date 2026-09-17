@@ -24,7 +24,6 @@
  */
 package de.gematik.ti20.simsvc.client.config;
 
-import de.gematik.ti20.client.card.terminal.CardTerminalService;
 import de.gematik.ti20.simsvc.client.service.popp.PoppClientAdapter;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,7 +39,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Getter
 @Setter
 public class PoppConfig {
-
   private Http http;
   private Ws ws;
   private PoppClientConfig.TokenType tokenType;
@@ -48,27 +46,19 @@ public class PoppConfig {
   @Getter
   @Setter
   public static class Http {
-
     private String url;
   }
 
   @Getter
   @Setter
   public static class Ws {
-
     private String url;
-  }
-
-  @Bean
-  public CardTerminalService getCardTerminalService() {
-    return new CardTerminalService(null);
   }
 
   @Bean
   public PoppClientAdapter poppClientAdapter(final WebClient webClient) {
     return new PoppClientAdapter(
-        new PoppClientConfig(this.tokenType, this.getWs().getUrl(), this.getHttp().getUrl()),
-        webClient);
+        new PoppClientConfig(this.tokenType, this.getHttp().getUrl()), webClient);
   }
 
   @Bean

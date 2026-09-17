@@ -27,18 +27,18 @@ package de.gematik.ti20.simsvc.client.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import de.gematik.ti20.simsvc.client.model.card.CardImage;
+import de.gematik.ti20.simsvc.client.model.VirtualCardImageData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class SlotManagerTest {
 
   private SlotManager slotManager;
-  private CardImage card;
+  private VirtualCardImageData card;
 
   @BeforeEach
   void setUp() {
-    card = mock(CardImage.class);
+    card = mock(VirtualCardImageData.class);
     slotManager = new SlotManager(4);
   }
 
@@ -120,7 +120,7 @@ class SlotManagerTest {
   @Test
   void testInsertCard_SlotAlreadyOccupied() {
     slotManager.insertCard(0, card);
-    CardImage anotherCard = mock(CardImage.class);
+    VirtualCardImageData anotherCard = mock(VirtualCardImageData.class);
 
     assertFalse(slotManager.insertCard(0, anotherCard));
     assertEquals(card, slotManager.getCardInSlot(0));
@@ -147,8 +147,8 @@ class SlotManagerTest {
 
   @Test
   void testMultipleSlots() {
-    CardImage card1 = mock(CardImage.class);
-    CardImage card2 = mock(CardImage.class);
+    VirtualCardImageData card1 = mock(VirtualCardImageData.class);
+    VirtualCardImageData card2 = mock(VirtualCardImageData.class);
 
     assertTrue(slotManager.insertCard(0, card1));
     assertTrue(slotManager.insertCard(1, card2));

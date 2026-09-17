@@ -25,12 +25,13 @@
 package de.gematik.ti20.simsvc.client.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import de.gematik.ti20.simsvc.client.model.CardImageData;
 
 /**
  * DTO for EGK (elektronische Gesundheitskarte) information extracted from real card images.
  * Contains authentic patient data including KVNR, IKNR, and personal information.
  */
-public class EgkInfoDto {
+public class EgkInfoDto implements CardImageData {
 
   @JsonProperty("kvnr")
   private String kvnr;
@@ -145,5 +146,15 @@ public class EgkInfoDto {
 
   public void setValid(Boolean valid) {
     this.valid = valid;
+  }
+
+  @Override
+  public String cardType() {
+    return "EGK";
+  }
+
+  @Override
+  public String cardId() {
+    return "card-" + kvnr;
   }
 }

@@ -364,10 +364,11 @@ class VsdmClientIT {
 
     assertTrue(cardHandleResponse.isSuccessful());
     final String cardHandleBody = cardHandleResponse.body().string();
+    log.info(cardHandleBody);
 
     final String cardId =
         cardHandleBody.substring(
-            cardHandleBody.indexOf("card-"), cardHandleBody.indexOf("card-") + 18);
+            cardHandleBody.indexOf("card-"), cardHandleBody.indexOf("card-") + 15);
 
     final String VSDM_TEST_POPP_TOKEN_URL =
         VSDM_CLIENT_URL
@@ -410,7 +411,7 @@ class VsdmClientIT {
     log.info(cardHandleBody);
     final String cardId =
         cardHandleBody.substring(
-            cardHandleBody.indexOf("card-"), cardHandleBody.indexOf("card-") + 18);
+            cardHandleBody.indexOf("card-"), cardHandleBody.indexOf("card-") + 15);
 
     final String VSDM_TEST_CACHED_DATA_URL =
         VSDM_CLIENT_URL
@@ -456,7 +457,10 @@ class VsdmClientIT {
 
     assertNotNull(readTruncatedDataBody);
     log.info(readTruncatedDataBody);
+
     assertFalse(readTruncatedDataBody.isEmpty());
+    assertTrue(readTruncatedDataBody.contains("{\"resourceType\":\"Bundle\""));
+    assertTrue(readTruncatedDataBody.contains("Kriemhild"));
   }
 
   @Test
@@ -511,7 +515,7 @@ class VsdmClientIT {
   }
 
   private static void insertSmcbCard() throws Exception {
-    insertCard("private/cards/smcbCardImage.xml", SMCB_SLOT);
+    insertCard("private/smcb/smcbCardImage.xml", SMCB_SLOT);
   }
 
   private static void configureTerminal() throws Exception {

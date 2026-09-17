@@ -5,13 +5,12 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>3.15.0</version>
+    <version>3.16.0</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <inceptionYear>2025</inceptionYear>
 
     <modules>
-        <module>lib/card-client-lib-java</module>
         <module>lib/rbel-fluent-api</module>
         <module>lib/vsdm-fhir-lib-java</module>
         <module>client/card-terminal-client-simservice</module>
@@ -50,8 +49,11 @@
         <version.nimbus-jose-jwt>10.9.1</version.nimbus-jose-jwt>
         <version.tyrus-standalone-client>2.2.2</version.tyrus-standalone-client>
         <sonar.coverage.jacoco.xmlReportPaths>
-            ${project.basedir}/coverage-report/target/site/jacoco-aggregate/jacoco.xml
+            ${maven.multiModuleProjectDirectory}/coverage-report/target/site/jacoco-aggregate/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.junit.reportPaths>
+            ${maven.multiModuleProjectDirectory}
+        </sonar.junit.reportPaths>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <skip.unittests>false</skip.unittests>
@@ -85,11 +87,6 @@
             </dependency>
 
             <!-- TI 2.0 Testhub -->
-            <dependency>
-                <groupId>de.gematik.ti20.client</groupId>
-                <artifactId>card-client-lib</artifactId>
-                <version>${project.version}</version>
-            </dependency>
             <dependency>
                 <groupId>de.gematik.ti20.client</groupId>
                 <artifactId>zeta-client-lib</artifactId>
@@ -262,6 +259,14 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${version.maven.surefire}</version>
+                <configuration>
+                    <argLine>${surefireJacocoAgent}</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>${version.maven.failsafe}</version>
                 <executions>
@@ -376,6 +381,12 @@
                                 <fileSets>
                                     <fileSet>
                                         <directory>${project.build.directory}</directory>
+                                        <includes>
+                                            <include>*.exec</include>
+                                        </includes>
+                                    </fileSet>
+                                    <fileSet>
+                                        <directory>${project.build.directory}/coverage-reports</directory>
                                         <includes>
                                             <include>*.exec</include>
                                         </includes>

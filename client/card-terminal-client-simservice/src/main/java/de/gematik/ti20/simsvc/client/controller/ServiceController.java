@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ServiceController {
 
   @GetMapping("/status")
-  public ResponseEntity<?> status() {
+  public ResponseEntity<Void> status() {
 
     return ResponseEntity.ok().build();
   }

@@ -26,46 +26,60 @@ package de.gematik.ti20.simsvc.client.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import de.gematik.ti20.simsvc.client.model.card.CardImage;
+import de.gematik.ti20.simsvc.client.model.VirtualCardImageData;
 import de.gematik.ti20.simsvc.client.model.dto.EgkInfoDto;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
-public class EgkInfoServiceTest {
+class EgkInfoServiceTest {
 
-  private CardImageParser cardImageParser = new CardImageParser();
   private EgkInfoService egkInfoService = new EgkInfoService();
 
-  @Test
-  public void testShouldParseEgk() throws Exception {
-    InputStream is =
-        EgkInfoServiceTest.class.getClassLoader().getResourceAsStream("egkCardImage.xml");
-    String xmlString = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+  private final VirtualCardImageLoader loader = new VirtualCardImageLoader();
 
-    CardImage cardImage = cardImageParser.parseCardImage(xmlString);
-    EgkInfoDto egkInfoDto = egkInfoService.extractEgkInfo(cardImage);
+  @Test
+  void testShouldParseInvalidEgk() throws Exception {
+    String xml = loadResourceAsString("egkCardImageInvalid.xml");
+    VirtualCardImageData imageData = loader.load(xml);
+    EgkInfoDto egkInfoDto = egkInfoService.extractEgkInfo(imageData);
 
     assertEquals("X110639491", egkInfoDto.getKvnr());
-    assertEquals("Kriemhild", egkInfoDto.getFirstName());
+    assertEquals("Kriemhild Amelie Abigail Hannelore", egkInfoDto.getFirstName());
+    assertEquals("19900717", egkInfoDto.getDateOfBirth());
+    assertEquals("Test GKV-SV", egkInfoDto.getInsuranceName());
+    assertEquals(false, egkInfoDto.getValid());
+  }
+
+  @Test
+  void testShouldParseValidEgk1() throws Exception {
+    String xml = loadResourceAsString("egkCardImage.xml");
+    VirtualCardImageData imageData = loader.load(xml);
+    EgkInfoDto egkInfoDto = egkInfoService.extractEgkInfo(imageData);
+
+    assertEquals("X110639491", egkInfoDto.getKvnr());
+    assertEquals("109500969", egkInfoDto.getIknr());
+    assertEquals("Kriemhild Amelie Abigail Hannelore", egkInfoDto.getFirstName());
     assertEquals("19900717", egkInfoDto.getDateOfBirth());
     assertEquals("Test GKV-SV", egkInfoDto.getInsuranceName());
     assertEquals(true, egkInfoDto.getValid());
   }
 
   @Test
-  public void testShouldParseInvalidEgk() throws Exception {
-    InputStream is =
-        EgkInfoServiceTest.class.getClassLoader().getResourceAsStream("egkCardImageInvalid.xml");
-    String xmlString = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-
-    CardImage cardImage = cardImageParser.parseCardImage(xmlString);
-    EgkInfoDto egkInfoDto = egkInfoService.extractEgkInfo(cardImage);
+  void testShouldParseValidEgk2() throws Exception {
+    String xml = loadResourceAsString("attached_assets/EGK_80276883110000168583_gema5.xml");
+    VirtualCardImageData imageData = loader.load(xml);
+    EgkInfoDto egkInfoDto = egkInfoService.extractEgkInfo(imageData);
 
     assertEquals("X110639491", egkInfoDto.getKvnr());
-    assertEquals("Kriemhild", egkInfoDto.getFirstName());
+    assertEquals("109500969", egkInfoDto.getIknr());
+    assertEquals("Kriemhild Amelie Abigail Hannelore", egkInfoDto.getFirstName());
     assertEquals("19900717", egkInfoDto.getDateOfBirth());
     assertEquals("Test GKV-SV", egkInfoDto.getInsuranceName());
-    assertEquals(false, egkInfoDto.getValid());
+    assertEquals(true, egkInfoDto.getValid());
+  }
+
+  private String loadResourceAsString(String resourceName) throws Exception {
+    return Files.readString(Path.of(ClassLoader.getSystemResource(resourceName).toURI()));
   }
 }

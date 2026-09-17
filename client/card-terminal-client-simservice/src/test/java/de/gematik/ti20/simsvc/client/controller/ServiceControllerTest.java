@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-public class ServiceControllerTest {
+class ServiceControllerTest {
 
   private ServiceController serviceController;
 

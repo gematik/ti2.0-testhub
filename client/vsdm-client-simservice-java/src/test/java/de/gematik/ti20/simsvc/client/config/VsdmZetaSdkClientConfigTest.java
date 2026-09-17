@@ -39,7 +39,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-public class VsdmZetaSdkClientConfigTest {
+class VsdmZetaSdkClientConfigTest {
 
   private SubjectTokenProvider invokeGetTokenProvider(VsdmZetaSdkClientConfig cfg)
       throws Exception {
@@ -55,7 +55,7 @@ public class VsdmZetaSdkClientConfigTest {
   }
 
   @Test
-  public void blankPathThrows() {
+  void blankPathThrows() {
     VsdmZetaSdkClientConfig cfg = new VsdmZetaSdkClientConfig();
     RuntimeException ex = assertThrows(RuntimeException.class, () -> invokeGetTokenProvider(cfg));
     assertTrue(
@@ -64,7 +64,7 @@ public class VsdmZetaSdkClientConfigTest {
   }
 
   @Test
-  public void nonExistingFileThrows(@TempDir Path tmpDir) {
+  void nonExistingFileThrows(@TempDir Path tmpDir) {
     VsdmZetaSdkClientConfig cfg = new VsdmZetaSdkClientConfig();
     Path p = tmpDir.resolve("does-not-exist.pem");
     cfg.setSmcbPrivateKeyPath(p.toString());
@@ -76,7 +76,7 @@ public class VsdmZetaSdkClientConfigTest {
   }
 
   @Test
-  public void directoryNotRegularFileThrows(@TempDir Path tmpDir) throws Exception {
+  void directoryNotRegularFileThrows(@TempDir Path tmpDir) throws Exception {
     VsdmZetaSdkClientConfig cfg = new VsdmZetaSdkClientConfig();
     Path dir = Files.createDirectory(tmpDir.resolve("aDir"));
     cfg.setSmcbPrivateKeyPath(dir.toString());
@@ -88,7 +88,7 @@ public class VsdmZetaSdkClientConfigTest {
   }
 
   @Test
-  public void validFileReturnsProvider(@TempDir Path tmpDir) throws Exception {
+  void validFileReturnsProvider(@TempDir Path tmpDir) throws Exception {
     VsdmZetaSdkClientConfig cfg = new VsdmZetaSdkClientConfig();
     Path f = Files.createTempFile(tmpDir, "smcb", ".pem");
     // ensure readable

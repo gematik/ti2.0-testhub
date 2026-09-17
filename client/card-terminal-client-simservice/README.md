@@ -21,29 +21,21 @@
 ## About the Project
 
 The Card Terminal Client Simulator Service (card-terminal-client-simservice) is a Java-based implementation that
-simulates the behavior of a card terminal for testing and development purposes.
-It provides a RESTful API to interact with the simulated card terminal,
-allowing users to perform various operations such as inserting and removing cards, reading card data, and executing APDU
-commands.
+simulates the behavior of a card terminal for testing and development purposes. It provides a RESTful API to interact
+with the simulated card terminal, allowing users to perform various operations such as inserting and removing cards,
+reading card data, and executing APDU commands.
 
 ### Implementation Status
 
 **Implemented Features:**
 
 - ✅ Virtual card slot management (configurable up to 3000 slots)
-- ✅ Multiple card type support: EGK/EHC, HBA/HPC, HPIC, SMC-B
+- ✅ Multiple card type support: EGK/EHC, SMC-B
 - ✅ XML-based card loading and parsing
-- ✅ APDU command transmission and processing
-- ✅ PACE (Password Authenticated Connection Establishment) protocol
-- ✅ Digital signature functionality with modern algorithms (SHA256+)
 - ✅ Certificate extraction and validation
 - ✅ Card data extraction (KVNR, IKNR, patient data from EGK cards)
 - ✅ SMC-B card information retrieval (Telematik-ID, ProfessionOID)
 - ✅ Debug and diagnostic endpoints
-- ✅ Signature protocol service
-- ✅ Card connection management
-- ✅ Cryptographic operations (RSA, ECDSA)
-- ✅ Comprehensive error handling and validation
 
 **Not Implemented / Limitations:**
 
@@ -165,27 +157,21 @@ Specific to the application, you can configure the following properties:
 |:--------------------|-----------------------------------------------------------------------------|
 | card.terminal.slots | Number of (virtual) slots that are available by the simulated card terminal |
 
-An example configuration is provided in the `application-local.yaml` file.
-To use this configuration, you can specify the `spring.profiles.active=local` property when starting the server.
+An example configuration is provided in the `application-local.yaml` file. To use this configuration, you can specify
+the `spring.profiles.active=local` property when starting the server.
 
 ## Endpoints
 
 The server exposes the following endpoints:
 
-| Name                                 | Description                                                                            |
-|:-------------------------------------|----------------------------------------------------------------------------------------|
-| PUT /slots/{slotId}                  | Inserts a card in the specified slot                                                   |
-| DELETE /slots/{slotId}               | Removes the card from the specified slot                                               |
-| GET /slots/{slotId}                  | Returns data of the card in the specified slot                                         |
-| POST /slots/{slotId}/transmit        | Transmit an APDU command to the card in a specific slot.                               |
-| DELETE /cards/{cardHandle}           | Close a virtual connection to a card                                                   |
-| GET /cards/{cardHandle}              | Establish a virtual connection to a card.                                              |
-| GET /cards/{cardHandle}/smc-b-info   | Get SMC-B card information including Telematik-ID and ProfessionOID                    |
-| GET /cards/{cardHandle}/egk-info     | Extract EGK information from the card containing authentic KVNR, IKNR and patient data |
-| GET /cards                           | List all available cards across all slots                                              |
-| POST /cards/{cardHandle}/transmit    | Transmit an APDU command to a connected card                                           |
-| POST /cards/{cardHandle}/sign        | Sign data with the card's certificate                                                  |
-| POST /cards/{cardHandle}/certificate | Get certificate from card                                                              |
+| Name                               | Description                                                                            |
+|:-----------------------------------|----------------------------------------------------------------------------------------|
+| PUT /slots/{slotId}                | Inserts a card in the specified slot                                                   |
+| DELETE /slots/{slotId}             | Removes the card from the specified slot                                               |
+| GET /slots/{slotId}                | Returns data of the card in the specified slot                                         |
+| GET /cards/{cardHandle}/smc-b-info | Get SMC-B card information including Telematik-ID and ProfessionOID                    |
+| GET /cards/{cardHandle}/egk-info   | Extract EGK information from the card containing authentic KVNR, IKNR and patient data |
+| GET /cards                         | List all available cards across all slots                                              |
 
 ## Examples
 
@@ -201,9 +187,8 @@ curl -X 'PUT' \
   -d 'CARD_DATA'
 ```
 
-Inserts a card in the specified slot.
-The card data must be provided in the request body in XML format.
-Examples for card data can be found in the `src/main/resources/cardimages` and `src/test/resources` directories.
+Inserts a card in the specified slot. The card data must be provided in the request body in XML format. Examples for
+card data can be found in the `src/main/resources/cardimages` and `src/test/resources` directories.
 
 #### Remove Card from Slot
 
@@ -213,8 +198,8 @@ curl -X 'DELETE' \
   -H 'accept: */*'
 ```
 
-Removes the card from the specified slot.
-Before a slot can be reused by another card, the slot must be empty, i.e. the currently used card must be removed first.
+Removes the card from the specified slot. Before a slot can be reused by another card, the slot must be empty, i.e. the
+currently used card must be removed first.
 
 #### Get Slot Information
 
@@ -224,46 +209,10 @@ curl -X 'GET' \
   -H 'accept: */*'
 ```
 
-Returns data of the card in the specified slot.
-The returned data includes information such as card type and card handle, which can be used to address the /cards
-endpoints.
-
-#### Transmit APDU to Slot
-
-```bash
-curl -X 'POST' \
-  'http://localhost:8000/slots/1/transmit' \
-  -H 'accept: */*' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "command": "d2 5f af dF 8e f7 fA 5B CD 74 2D 0B ED f3 dB 53 d9 81 7F bc"
-}'
-```
-
-Transmits an APDU command to the card in a specific slot.
-This endpoint can be used by the PoPP server to simulate a connection to a card in a specified slot.
+Returns data of the card in the specified slot. The returned data includes information such as card type and card
+handle, which can be used to address the /cards endpoints.
 
 ### Card Management
-
-#### Establish Card Connection
-
-```bash
-curl -X 'GET' \
-  'http://localhost:8000/cards/card-1760354731986' \
-  -H 'accept: */*'
-```
-
-Establish a virtual connection to a card.
-
-#### Close Card Connection
-
-```bash
-curl -X 'DELETE' \
-  'http://localhost:8000/cards/card-1760354731986' \
-  -H 'accept: */*'
-```
-
-Close a virtual connection to a card.
 
 #### Get SMC-B Information
 
@@ -273,19 +222,8 @@ curl -X 'GET' \
   -H 'accept: */*'
 ```
 
-Get SMC-B card information including Telematik-ID and ProfessionOID.
-The provided cardHandle must be that of an SMC-B card.
-
-#### Get SMC-B Debug Information
-
-```bash
-curl -X 'GET' \
-  'http://localhost:8000/cards/card-1760340780478/smc-b-debug' \
-  -H 'accept: */*'
-```
-
-Get detailed SMC-B debug information.
-The provided cardHandle must be that of an SMC-B card.
+Get SMC-B card information including Telematik-ID and ProfessionOID. The provided cardHandle must be that of an SMC-B
+card.
 
 #### Get EGK Information
 
@@ -295,29 +233,8 @@ curl -X 'GET' \
   -H 'accept: */*'
 ```
 
-Extract EGK information from the card containing authentic KVNR, IKNR and patient data.
-The provided cardHandle must be that of an EGK card.
-
-#### Get Card Debug Information
-
-```bash
-curl -X 'GET' \
-  'http://localhost:8000/cards/card-1760340780478/debug-info' \
-  -H 'accept: */*'
-```
-
-Get debug information for a card.
-
-#### Get Certificate Information
-
-```bash
-curl -X 'GET' \
-  'http://localhost:8000/cards/card-1760340780478/cert-info' \
-  -H 'accept: */*'
-```
-
-Get certificate information for any card type.
-Returns EGK info for EGK cards and SMC-B info for SMC-B cards.
+Extract EGK information from the card containing authentic KVNR, IKNR and patient data. The provided cardHandle must be
+that of an EGK card.
 
 #### List All Cards
 
@@ -329,75 +246,18 @@ curl -X 'GET' \
 
 List all available cards across all slots.
 
-#### Transmit APDU to Card
-
-```bash
-curl -X 'POST' \
-  'http://localhost:8000/cards/card-1760354731986/transmit' \
-  -H 'accept: */*' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "command": "d2 5f af dF 8e f7 fA 5B CD 74 2D 0B ED f3 dB 53 d9 81 7F bc"
-}'
-```
-
-Transmit an APDU command to a connected card.
-This endpoint can be used by the PoPP server to simulate a connection to a card with the specified handle.
-
-#### Sign Data with Card
-
-```bash
-curl -X 'POST' \
-  'http://localhost:8000/cards/card-1760354731986/sign' \
-  -H 'accept: */*' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "data": "data to be signed"
-}'
-```
-
-Sign data with the card's certificate.
-
-#### Get Certificate from Card
-
-```bash
-curl -X 'POST' \
-  'http://localhost:8000/cards/card-1760354731986/certificate' \
-  -H 'accept: */*' \
-  -H 'Content-Type: application/json'
-```
-
-Get certificate information from the card with the specified handle.
-
-#### Load Card from XML
-
-```bash
-curl -X 'POST' \
-  'http://localhost:8000/cards/load' \
-  -H 'accept: */*' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "cardType": "egk",
-  "xmlFile": "file path"
-}'
-```
-
-Load card information from an XML file.
-
 ## Folder Structure
 
 This project has the following folders:
 
-| Folder | Content                               |
-|:-------|---------------------------------------|
-| bin    | scripts relating to the build process |
-| docker | docker file                           |
-| src    | source files of the project           | 
+| Folder | Content                     |
+|:-------|-----------------------------|
+| docker | docker file                 |
+| src    | source files of the project | 
 
 ## Release Notes
 
-See [ReleaseNotes.md](./ReleaseNotes.md) for all information regarding the
-(latest) releases.
+See [ReleaseNotes.md](./ReleaseNotes.md) for all information regarding the (latest) releases.
 
 ## Contributing
 
@@ -407,14 +267,11 @@ If you want to contribute, please check our [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 Copyright 2025 gematik GmbH
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
+License. You may obtain a copy of the License at
 
 http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific
+language governing permissions and limitations under the License.

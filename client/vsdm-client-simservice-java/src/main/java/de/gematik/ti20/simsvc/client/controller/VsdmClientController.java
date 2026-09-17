@@ -42,7 +42,7 @@ public class VsdmClientController {
   }
 
   @GetMapping("/vsd")
-  public ResponseEntity<?> readVsd(
+  public ResponseEntity<String> readVsd(
       @RequestParam final String terminalId,
       @RequestParam final int egkSlotId,
       @RequestParam(required = false) final String virtualCard,
@@ -67,9 +67,9 @@ public class VsdmClientController {
         profileVersion);
   }
 
-  private static String quoteIfNotQuoted(String input) {
+  private static String quoteIfNotQuoted(final String input) {
     if (input == null) {
-      return null; // alternativ: throw new IllegalArgumentException("input must not be null");
+      return null;
     }
 
     if (input.length() >= 2 && input.startsWith("\"") && input.endsWith("\"")) {

@@ -25,18 +25,19 @@
 package de.gematik.ti20.simsvc.client.service.popp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import de.gematik.ti20.client.card.card.AttachedCard;
-import de.gematik.ti20.client.card.terminal.CardTerminalException;
-import de.gematik.ti20.client.card.terminal.CardTerminalService;
-import de.gematik.ti20.client.card.terminal.simsvc.EgkInfo;
-import de.gematik.ti20.client.card.terminal.simsvc.SmcbInfo;
+import de.gematik.ti20.simsvc.client.card.AttachedCard;
+import de.gematik.ti20.simsvc.client.card.EgkInfo;
+import de.gematik.ti20.simsvc.client.card.SmcbInfo;
 import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
+import de.gematik.ti20.simsvc.client.exception.CardTerminalException;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
+import de.gematik.ti20.simsvc.client.service.CardTerminalService;
 import de.gematik.ti20.simsvc.client.service.MockPoppTokenService;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -121,5 +122,27 @@ class PoppTokenFromMockedStrategyTest {
     assertTrue(result.isEmpty());
     verifyNoInteractions(mockPoppTokenService);
     verify(poppTokenRepository).put(terminalId, egkSlotId, cardId, null);
+  }
+
+  @Test
+  void shouldThrowIllegalArgumentExceptionWhenEgkInfoIsNull() throws Exception {
+    when(vsdmClientConfig.isUseMockPoppToken()).thenReturn(true);
+    when(cardTerminalService.getEgkInfo(attachedCard)).thenReturn(null);
+
+    assertThrows(IllegalArgumentException.class, () -> strategy.get("terminal-1", 1, attachedCard));
+    verifyNoInteractions(mockPoppTokenService, poppTokenRepository);
+  }
+
+  @Test
+  void shouldThrowIllegalArgumentExceptionWhenSmcbInfoAttributeIsNull() throws Exception {
+    when(vsdmClientConfig.isUseMockPoppToken()).thenReturn(true);
+    when(cardTerminalService.getEgkInfo(attachedCard)).thenReturn(egkInfo);
+    when(cardTerminalService.getSmcbInfo()).thenReturn(smcbInfo);
+    when(egkInfo.getIknr()).thenReturn("iknr-1");
+    when(egkInfo.getKvnr()).thenReturn("kvnr-1");
+    when(smcbInfo.getTelematikId()).thenReturn(null);
+
+    assertThrows(IllegalArgumentException.class, () -> strategy.get("terminal-1", 1, attachedCard));
+    verifyNoInteractions(mockPoppTokenService, poppTokenRepository);
   }
 }

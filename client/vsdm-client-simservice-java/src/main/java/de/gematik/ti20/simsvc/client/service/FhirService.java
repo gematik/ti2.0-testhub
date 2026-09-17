@@ -30,11 +30,13 @@ import de.gematik.ti20.vsdm.fhir.service.CodecServiceR4;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+@Slf4j
 @Service
 public class FhirService extends CodecServiceR4 {
 
@@ -73,7 +75,7 @@ public class FhirService extends CodecServiceR4 {
 
   public void validate(final String body) {
     ValidationResult result = codec.validate(body);
-    result.getMessages().forEach(System.out::println);
+    result.getMessages().forEach(msg -> log.info(msg.toString()));
 
     if (!codec.isValid(body)) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid FHIR resource: " + body);

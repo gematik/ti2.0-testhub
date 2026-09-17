@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import de.gematik.ti20.client.card.card.AttachedCard;
+import de.gematik.ti20.simsvc.client.card.AttachedCard;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
@@ -68,7 +68,7 @@ class PoppTokenFromServiceStrategyTest {
     String serviceToken = "service-token";
 
     when(attachedCard.getId()).thenReturn(cardId);
-    when(poppClientAdapter.getPoppToken(attachedCard, virtualCard)).thenReturn(serviceToken);
+    when(poppClientAdapter.getPoppToken(virtualCard)).thenReturn(serviceToken);
 
     Optional<PoppToken> result = strategy.get(terminalId, egkSlotId, attachedCard, virtualCard);
 
@@ -84,7 +84,7 @@ class PoppTokenFromServiceStrategyTest {
     String cardId = "card-1";
 
     when(attachedCard.getId()).thenReturn(cardId);
-    when(poppClientAdapter.getPoppToken(attachedCard, null)).thenReturn(null);
+    when(poppClientAdapter.getPoppToken(null)).thenReturn(null);
 
     Optional<PoppToken> result = strategy.get(terminalId, egkSlotId, attachedCard, null);
 
@@ -94,7 +94,7 @@ class PoppTokenFromServiceStrategyTest {
 
   @Test
   void shouldReturnEmptyWhenServiceThrowsRetryableException() {
-    when(poppClientAdapter.getPoppToken(attachedCard, null))
+    when(poppClientAdapter.getPoppToken(null))
         .thenThrow(new RuntimeException("Websocket client is not connected"));
 
     Optional<PoppToken> result = strategy.get("terminal-1", 1, attachedCard, null);
@@ -113,7 +113,7 @@ class PoppTokenFromServiceStrategyTest {
             "".getBytes(StandardCharsets.UTF_8),
             StandardCharsets.UTF_8);
 
-    when(poppClientAdapter.getPoppToken(attachedCard, null)).thenThrow(responseException);
+    when(poppClientAdapter.getPoppToken(null)).thenThrow(responseException);
 
     Optional<PoppToken> result = strategy.get("terminal-1", 1, attachedCard, null);
 
@@ -123,8 +123,7 @@ class PoppTokenFromServiceStrategyTest {
 
   @Test
   void shouldThrowResponseStatusExceptionWhenExceptionIsNotRetryable() {
-    when(poppClientAdapter.getPoppToken(attachedCard, null))
-        .thenThrow(new RuntimeException("boom"));
+    when(poppClientAdapter.getPoppToken(null)).thenThrow(new RuntimeException("boom"));
 
     ResponseStatusException ex =
         assertThrows(

@@ -24,6 +24,9 @@
  */
 package de.gematik.ti20.simsvc.client.model.dto;
 
+import de.gematik.ti20.simsvc.client.model.CardImageData;
+import de.gematik.ti20.simsvc.client.model.VirtualCardImageData;
+
 /** Data Transfer Object (DTO) for card information. Contains basic information about a card. */
 public class CardInfoDto {
 
@@ -38,12 +41,12 @@ public class CardInfoDto {
   /**
    * Constructor with all fields.
    *
-   * @param cardId Card identifier
    * @param cardType Type of the card (e.g., EGK, HBA, HPIC)
    * @param slotId Slot where the card is inserted
    * @param label Human-readable label for the card
    */
-  public CardInfoDto(String cardId, String cardType, int slotId, String label) {
+  public CardInfoDto(
+      final String cardId, final String cardType, final int slotId, final String label) {
     this.cardId = cardId;
     this.cardType = cardType;
     this.slotId = slotId;
@@ -51,20 +54,31 @@ public class CardInfoDto {
   }
 
   /**
-   * Get the card ID.
+   * Helper method to create CardInfoDto from a CardImageData.
    *
-   * @return Card ID
+   * @param card CardImageData object
+   * @param slotId Slot identifier
+   * @return CardInfoDto containing card information
    */
+  public static CardInfoDto from(final CardImageData card, final int slotId) {
+    if (card instanceof VirtualCardImageData virtualCardImageData) {
+      return new CardInfoDto(
+          virtualCardImageData.cardId(),
+          virtualCardImageData.cardType(),
+          slotId,
+          virtualCardImageData.cardType());
+    } else if (card instanceof EgkInfoDto egkInfoDto) {
+      return new CardInfoDto(egkInfoDto.cardId(), "EGK", slotId, "egk-" + egkInfoDto.getKvnr());
+    }
+
+    return null;
+  }
+
   public String getCardId() {
     return cardId;
   }
 
-  /**
-   * Set the card ID.
-   *
-   * @param cardId Card ID
-   */
-  public void setCardId(String cardId) {
+  public void setCardId(final String cardId) {
     this.cardId = cardId;
   }
 

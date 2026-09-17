@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import de.gematik.ti20.client.card.card.AttachedCard;
+import de.gematik.ti20.simsvc.client.card.AttachedCard;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;

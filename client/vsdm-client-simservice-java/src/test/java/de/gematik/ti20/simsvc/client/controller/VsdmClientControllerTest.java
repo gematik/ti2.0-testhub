@@ -55,13 +55,7 @@ class VsdmClientControllerTest {
 
     ResponseEntity<String> mockResponse = ResponseEntity.ok("Success");
     when(mockVsdmClientService.read(
-            eq(terminalId),
-            eq(egkSlotId),
-            eq(null),
-            eq(isFhirXml),
-            eq(null),
-            eq(ifNoneMatch),
-            eq(profileVersion)))
+            terminalId, egkSlotId, null, isFhirXml, null, ifNoneMatch, profileVersion))
         .thenReturn(mockResponse);
 
     ResponseEntity<?> response =
@@ -80,13 +74,7 @@ class VsdmClientControllerTest {
 
     ResponseEntity<String> mockResponse = ResponseEntity.ok("Success");
     when(mockVsdmClientService.read(
-            eq(terminalId),
-            eq(egkSlotId),
-            eq(virtualCard),
-            eq(isFhirXml),
-            eq(null),
-            eq(ifNoneMatch),
-            eq(profileVersion)))
+            terminalId, egkSlotId, virtualCard, isFhirXml, null, ifNoneMatch, profileVersion))
         .thenReturn(mockResponse);
 
     ResponseEntity<?> response =
@@ -101,25 +89,54 @@ class VsdmClientControllerTest {
   @Test
   void testReadVsd_DefaultIsFhirXml() {
     String ifNoneMatch = "\"etag123\"";
-    boolean forceUpdate = false;
 
     ResponseEntity<String> mockResponse = ResponseEntity.ok("Success");
     when(mockVsdmClientService.read(
-            eq(terminalId),
-            eq(egkSlotId),
-            eq(null),
-            eq(false),
-            eq(null),
-            eq(ifNoneMatch),
-            eq(profileVersion)))
+            terminalId, egkSlotId, null, false, null, ifNoneMatch, profileVersion))
         .thenReturn(mockResponse);
 
-    ResponseEntity<?> response =
+    ResponseEntity<String> response =
         vsdmClientController.readVsd(
             terminalId, egkSlotId, null, false, profileVersion, null, ifNoneMatch);
 
     assertNotNull(response);
     assertEquals(200, response.getStatusCode().value());
     assertEquals("Success", response.getBody());
+  }
+
+  @Test
+  void testReadVsd_QuotesUnquotedIfNoneMatch() {
+    String poppToken = "token123";
+    String ifNoneMatch = "etag123";
+    String quotedIfNoneMatch = "\"etag123\"";
+    ResponseEntity<String> mockResponse = ResponseEntity.ok("Quoted");
+
+    when(mockVsdmClientService.read(
+            terminalId, egkSlotId, null, true, poppToken, quotedIfNoneMatch, profileVersion))
+        .thenReturn(mockResponse);
+
+    ResponseEntity<String> response =
+        vsdmClientController.readVsd(
+            terminalId, egkSlotId, null, true, profileVersion, poppToken, ifNoneMatch);
+
+    assertEquals("Quoted", response.getBody());
+    verify(mockVsdmClientService)
+        .read(terminalId, egkSlotId, null, true, poppToken, quotedIfNoneMatch, profileVersion);
+  }
+
+  @Test
+  void testReadVsd_LeavesNullIfNoneMatchUntouched() {
+    ResponseEntity<String> mockResponse = ResponseEntity.ok("NullValue");
+    when(mockVsdmClientService.read(
+            terminalId, egkSlotId, virtualCard, false, "poppToken", null, profileVersion))
+        .thenReturn(mockResponse);
+
+    ResponseEntity<String> response =
+        vsdmClientController.readVsd(
+            terminalId, egkSlotId, virtualCard, false, profileVersion, "poppToken", null);
+
+    assertEquals("NullValue", response.getBody());
+    verify(mockVsdmClientService)
+        .read(terminalId, egkSlotId, virtualCard, false, "poppToken", null, profileVersion);
   }
 }

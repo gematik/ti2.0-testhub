@@ -25,16 +25,12 @@
 package de.gematik.ti20.simsvc.client.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import de.gematik.ti20.simsvc.client.model.card.CardImage;
-import de.gematik.ti20.simsvc.client.model.card.CardType;
+import de.gematik.ti20.simsvc.client.model.VirtualCardImageData;
 import de.gematik.ti20.simsvc.client.model.dto.CardInfoDto;
-import de.gematik.ti20.simsvc.client.service.CardImageParser;
-import de.gematik.ti20.simsvc.client.service.CardImageService;
 import de.gematik.ti20.simsvc.client.service.SlotManager;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -45,30 +41,26 @@ import org.springframework.web.server.ResponseStatusException;
 class SlotControllerTest {
 
   private SlotManager slotManager;
-  private CardImageParser cardImageParser;
-  private CardImageService cardImageService;
   private SlotController controller;
 
   @BeforeEach
   void setUp() {
     slotManager = mock(SlotManager.class);
-    cardImageParser = mock(CardImageParser.class);
-    cardImageService = mock(CardImageService.class);
-    controller = new SlotController(slotManager, cardImageParser, cardImageService);
+    controller = new SlotController(slotManager);
   }
 
   @Test
   void getCardInSlot_returnsCardInfo() {
+    final VirtualCardImageData cardImage = mock(VirtualCardImageData.class);
+    when(cardImage.cardType()).thenReturn("EGK");
+
     when(slotManager.isValidSlotId(1)).thenReturn(true);
-    CardImage card = mock(CardImage.class);
-    when(slotManager.getCardInSlot(1)).thenReturn(card);
-    when(card.getId()).thenReturn("id1");
-    when(card.getCardType()).thenReturn(CardType.EGK);
-    when(card.getLabel()).thenReturn("TestCard");
+    when(slotManager.getCardInSlot(1)).thenReturn(cardImage);
 
     ResponseEntity<CardInfoDto> response = controller.getCardInSlot(1);
+
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals("id1", response.getBody().getCardId());
+    assertEquals("EGK", response.getBody().getLabel());
   }
 
   @Test
@@ -88,19 +80,15 @@ class SlotControllerTest {
   }
 
   @Test
-  void insertCard_success() throws Exception {
+  void insertCard_success() {
     when(slotManager.isValidSlotId(0)).thenReturn(true);
     when(slotManager.isCardPresent(0)).thenReturn(false);
-    CardImage card = mock(CardImage.class);
-    when(cardImageParser.parseCardImage(anyString())).thenReturn(card);
-    when(card.getId()).thenReturn("id2");
-    when(card.getCardType()).thenReturn(CardType.SMCB);
-    when(card.getLabel()).thenReturn("Label");
-    when(slotManager.insertCard(0, card)).thenReturn(true);
+    final VirtualCardImageData cardImage = new VirtualCardImageData(Map.of());
+    when(slotManager.insertCard(0, cardImage)).thenReturn(true);
 
     ResponseEntity<CardInfoDto> response = controller.insertCard(0, "<xml/>");
     assertEquals(HttpStatus.CREATED, response.getStatusCode());
-    assertEquals("id2", response.getBody().getCardId());
+    assertEquals("SMCB", response.getBody().getLabel());
   }
 
   @Test
@@ -120,18 +108,6 @@ class SlotControllerTest {
     assertEquals(HttpStatusCode.valueOf(HttpStatus.CONFLICT.value()), ex.getStatusCode());
   }
 
-  @Test
-  void insertCard_invalidXml_throwsBadRequest() throws Exception {
-    when(slotManager.isValidSlotId(1)).thenReturn(true);
-    when(slotManager.isCardPresent(1)).thenReturn(false);
-    when(cardImageParser.parseCardImage(anyString()))
-        .thenThrow(new RuntimeException("Parse error"));
-    ResponseStatusException ex =
-        assertThrows(ResponseStatusException.class, () -> controller.insertCard(1, "<bad/>"));
-    assertEquals(HttpStatusCode.valueOf(HttpStatus.BAD_REQUEST.value()), ex.getStatusCode());
-    assertEquals(HttpStatusCode.valueOf(HttpStatus.BAD_REQUEST.value()), ex.getStatusCode());
-  }
-
   // ---------------------------------------------------------------------------
   // insertCardDataJson (JSON endpoint)
   // ---------------------------------------------------------------------------
@@ -140,11 +116,6 @@ class SlotControllerTest {
   void insertCardDataJson_success() {
     when(slotManager.isValidSlotId(0)).thenReturn(true);
     when(slotManager.isCardPresent(0)).thenReturn(false);
-    CardImage card = mock(CardImage.class);
-    when(cardImageService.createCardImage(any())).thenReturn(card);
-    when(card.getId()).thenReturn("sim-X110639491");
-    when(card.getCardType()).thenReturn(CardType.EGK);
-    when(card.getLabel()).thenReturn("Kriemhild Muster");
 
     String json =
         """
@@ -164,9 +135,7 @@ class SlotControllerTest {
     ResponseEntity<CardInfoDto> response = controller.insertCardDataJson(0, json);
 
     assertEquals(HttpStatus.CREATED, response.getStatusCode());
-    assertEquals("sim-X110639491", response.getBody().getCardId());
-    verify(cardImageService).createCardImage(any());
-    verify(slotManager).insertCard(eq(0), eq(card));
+    assertEquals("egk-X110639491", response.getBody().getLabel());
   }
 
   @Test
@@ -179,7 +148,6 @@ class SlotControllerTest {
             ResponseStatusException.class,
             () -> controller.insertCardDataJson(1, "not-valid-json{{{"));
     assertEquals(HttpStatusCode.valueOf(HttpStatus.BAD_REQUEST.value()), ex.getStatusCode());
-    verifyNoInteractions(cardImageService);
   }
 
   @Test

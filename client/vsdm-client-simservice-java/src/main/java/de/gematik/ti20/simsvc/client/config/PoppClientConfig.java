@@ -24,83 +24,17 @@
  */
 package de.gematik.ti20.simsvc.client.config;
 
-import de.gematik.ti20.client.card.card.AttachedCard;
-import de.gematik.ti20.client.card.config.CardTerminalConnectionConfig;
-import de.gematik.ti20.client.card.terminal.simsvc.SimulatorAttachedCard;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.Getter;
 
+@Getter
 public class PoppClientConfig {
 
-  @Getter private final TokenType tokenType;
+  private final TokenType tokenType;
   private final String urlPoppServerHttp;
-  private final String urlPoppServerWs;
-  private final String urlPoppServerMockHttp;
-  private final String urlPoppServerMockWs;
 
-  private List<CardTerminalConnectionConfig> terminalConnectionConfigs = new ArrayList<>();
-
-  public PoppClientConfig(TokenType tokenType, String urlPoppServerWs, String urlPoppServerHttp) {
+  public PoppClientConfig(final TokenType tokenType, final String urlPoppServerHttp) {
     this.tokenType = tokenType;
-    this.urlPoppServerWs = urlPoppServerWs;
     this.urlPoppServerHttp = urlPoppServerHttp;
-    this.urlPoppServerMockWs = urlPoppServerWs;
-    this.urlPoppServerMockHttp = urlPoppServerHttp;
-  }
-
-  /**
-   * Use this constructor in cases when you use the card-terminal-client-mockservice with card
-   * images.
-   *
-   * <p>In this case you must provide additionally the URLs where the popp-server-mockservice runs.
-   *
-   * @param urlPoppServerWs WebSocket URL to the real PoPP Service instance
-   * @param urlPoppServerHttp HTTP URL to the real PoPP Service instance
-   * @param urlPoppServerMockWs WebSocket URL to the popp-server-mockservice instance
-   * @param urlPoppServerMockHttp HTTP URL to the popp-server-mockservice instance
-   */
-  public PoppClientConfig(
-      TokenType tokenType,
-      String urlPoppServerWs,
-      String urlPoppServerHttp,
-      String urlPoppServerMockWs,
-      String urlPoppServerMockHttp) {
-    this.tokenType = tokenType;
-    this.urlPoppServerWs = urlPoppServerWs;
-    this.urlPoppServerHttp = urlPoppServerHttp;
-    this.urlPoppServerMockWs = urlPoppServerMockWs;
-    this.urlPoppServerMockHttp = urlPoppServerMockHttp;
-  }
-
-  public String getUrlPoppServerHttp(final AttachedCard card) {
-    if (card instanceof SimulatorAttachedCard) {
-      return urlPoppServerMockHttp;
-    }
-    return urlPoppServerHttp;
-  }
-
-  public String getUrlPoppServerWs(final AttachedCard card) {
-    if (card instanceof SimulatorAttachedCard) {
-      return urlPoppServerMockWs;
-    }
-    return urlPoppServerWs;
-  }
-
-  public List<CardTerminalConnectionConfig> getTerminalConnectionConfigs() {
-    return terminalConnectionConfigs;
-  }
-
-  public void addTerminalConnectionConfig(CardTerminalConnectionConfig terminalConnectionConfig) {
-    terminalConnectionConfigs.add(terminalConnectionConfig);
-  }
-
-  public void setTerminalConnectionConfigs(
-      final List<CardTerminalConnectionConfig> terminalConnectionConfigs) {
-    if (terminalConnectionConfigs != null) {
-      this.terminalConnectionConfigs.clear();
-      this.terminalConnectionConfigs.addAll(terminalConnectionConfigs);
-    }
   }
 
   public enum TokenType {
@@ -109,7 +43,7 @@ public class PoppClientConfig {
     CONTACT_VIRTUAL("contact-virtual");
     private final String type;
 
-    private TokenType(String type) {
+    TokenType(String type) {
       this.type = type;
     }
 

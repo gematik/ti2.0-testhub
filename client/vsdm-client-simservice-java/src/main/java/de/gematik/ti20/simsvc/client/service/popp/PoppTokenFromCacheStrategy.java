@@ -24,7 +24,7 @@
  */
 package de.gematik.ti20.simsvc.client.service.popp;
 
-import de.gematik.ti20.client.card.card.AttachedCard;
+import de.gematik.ti20.simsvc.client.card.AttachedCard;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;

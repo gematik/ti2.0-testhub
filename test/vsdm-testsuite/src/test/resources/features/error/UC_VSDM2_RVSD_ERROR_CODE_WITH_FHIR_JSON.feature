@@ -13,7 +13,7 @@ Funktionalität: Fehlerbehandlung VSDM 2.0
   @TESTSTUFE:3
   @PRIO:2
   @DESCRIPTION
-  Szenariogrundriss: VsdmOperationOutcome mit FHIR-JSON
+  Szenariogrundriss: VsdmOperationOutcome als FHIR-JSON
 
   Dieser Testfall beschreibt ein Fehlerszenario, das durch den fehlenden FHIR-Profilversion-Parameter bei der
   Abfrage der VSD verursacht wird. Der Fehlercode wird mit dem Content-Type "application/fhir+json" gesendet.

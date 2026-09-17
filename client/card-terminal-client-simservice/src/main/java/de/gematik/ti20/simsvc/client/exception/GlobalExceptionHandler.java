@@ -39,16 +39,18 @@ import org.springframework.web.server.ResponseStatusException;
 public class GlobalExceptionHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+  private static final String ERROR_KEY = "error";
+  private static final String MESSAGE_KEY = "message";
 
   /** Handle IllegalArgumentException, particularly for deprecated algorithms. */
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<Map<String, String>> handleIllegalArgumentException(
-      IllegalArgumentException e) {
+      final IllegalArgumentException e) {
     logger.warn("Invalid argument: {}", e.getMessage());
 
     Map<String, String> errorResponse = new HashMap<>();
-    errorResponse.put("error", "Bad Request");
-    errorResponse.put("message", e.getMessage());
+    errorResponse.put(ERROR_KEY, "Bad Request");
+    errorResponse.put(MESSAGE_KEY, e.getMessage());
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
   }
@@ -56,24 +58,35 @@ public class GlobalExceptionHandler {
   /** Handle ResponseStatusException from controllers. */
   @ExceptionHandler(ResponseStatusException.class)
   public ResponseEntity<Map<String, String>> handleResponseStatusException(
-      ResponseStatusException e) {
+      final ResponseStatusException e) {
     logger.warn("Response status exception: {}", e.getReason());
 
     Map<String, String> errorResponse = new HashMap<>();
-    errorResponse.put("error", e.getStatusCode().toString());
-    errorResponse.put("message", e.getReason());
+    errorResponse.put(ERROR_KEY, e.getStatusCode().toString());
+    errorResponse.put(MESSAGE_KEY, e.getReason());
 
     return ResponseEntity.status(e.getStatusCode()).body(errorResponse);
   }
 
+  @ExceptionHandler(CardNotFoundException.class)
+  public ResponseEntity<Map<String, String>> handleCardNotFoundException(
+      final CardNotFoundException e) {
+    logger.info("CardNotFound exception: ", e);
+
+    final Map<String, String> errorInfo = new HashMap<>();
+    errorInfo.put(ERROR_KEY, "Card not found");
+    errorInfo.put(MESSAGE_KEY, "No card found for handle: " + e.getCardId());
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorInfo);
+  }
+
   /** Handle generic exceptions as fallback. */
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<Map<String, String>> handleGenericException(Exception e) {
+  public ResponseEntity<Map<String, String>> handleGenericException(final Exception e) {
     logger.error("Unexpected error: ", e);
 
     Map<String, String> errorResponse = new HashMap<>();
-    errorResponse.put("error", "Internal Server Error");
-    errorResponse.put("message", "An unexpected error occurred: " + e.getMessage());
+    errorResponse.put(ERROR_KEY, "Internal Server Error");
+    errorResponse.put(MESSAGE_KEY, "An unexpected error occurred: " + e.getMessage());
 
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
   }

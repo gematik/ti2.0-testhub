@@ -41,7 +41,7 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class MockPoppTokenService {
 
-  private final String POPP_TOKEN_GENERATOR_ENDPOINT = "/popp/test/api/v1/token-generator";
+  private static final String POPP_TOKEN_GENERATOR_ENDPOINT = "/popp/test/api/v1/token-generator";
 
   private final RestTemplate restTemplate = new RestTemplate();
   private final ObjectMapper mapper = new ObjectMapper();
@@ -65,7 +65,7 @@ public class MockPoppTokenService {
     headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
     headers.setContentType(MediaType.APPLICATION_JSON);
 
-    HttpEntity<String> entity = new HttpEntity<>(body, headers);
+    final HttpEntity<String> entity = new HttpEntity<>(body, headers);
 
     final ResponseEntity<String> response =
         restTemplate.exchange(
@@ -74,8 +74,7 @@ public class MockPoppTokenService {
             entity,
             String.class);
 
-    final String poppToken = extractPoppToken(response.getBody());
-    return poppToken;
+    return extractPoppToken(response.getBody());
   }
 
   private String getPoppTokenJsonBody(
@@ -105,15 +104,15 @@ public class MockPoppTokenService {
 
   private String extractPoppToken(final String json) {
     try {
-      JsonNode root = mapper.readTree(json);
-      JsonNode tokenResults = root.path("tokenResults");
-      if (tokenResults.isArray() && tokenResults.size() > 0) {
-        JsonNode first = tokenResults.get(0);
+      final JsonNode root = mapper.readTree(json);
+      final JsonNode tokenResults = root.path("tokenResults");
+      if (tokenResults.isArray() && !tokenResults.isEmpty()) {
+        final JsonNode first = tokenResults.get(0);
         return first.isTextual() ? first.asText() : first.toString();
       }
       return null;
     } catch (final IOException e) {
-      throw new RuntimeException("Ungültiges JSON beim Parsen des Tokens", e);
+      throw new IllegalArgumentException("Ungültiges JSON beim Parsen des Tokens", e);
     }
   }
 }

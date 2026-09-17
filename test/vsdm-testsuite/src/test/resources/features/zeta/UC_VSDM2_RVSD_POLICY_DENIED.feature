@@ -3,15 +3,15 @@
 
 @PRODUKT:VSDM_2_FD
 @AFO-ID:A_26477-01
-@TYPE:POLICY
-Funktionalität: VSDM 2.0 Policy
+@TYPE:ZETA
+Funktionalität: Fehlerbehandlung ZETA Guard
 
   @TCID:UC_VSDM2_RVSD_POLICY_DENIED
   @STATUS:Implementiert
   @MODUS:Automatisch
   @TESTFALL:Negativ
   @TESTSTUFE:3
-  @PRIO:2
+  @PRIO:3
   @DESCRIPTION
   Szenariogrundriss: Ungültiger Profession OID
 

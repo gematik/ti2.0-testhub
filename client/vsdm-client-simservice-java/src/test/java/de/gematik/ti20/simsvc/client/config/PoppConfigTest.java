@@ -25,10 +25,12 @@
 package de.gematik.ti20.simsvc.client.config;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
+import de.gematik.ti20.simsvc.client.service.popp.PoppClientAdapter;
+import java.lang.reflect.Field;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.reactive.function.client.WebClient;
 
 class PoppConfigTest {
 
@@ -53,5 +55,29 @@ class PoppConfigTest {
   @Test
   void testGetWsUrl() {
     assertEquals("ws://example.com/ws", poppConfig.getWs().getUrl());
+  }
+
+  @Test
+  void shouldExposeTokenTypeAndCreateBeans() throws ReflectiveOperationException {
+    poppConfig.setTokenType(PoppClientConfig.TokenType.CONTACTLESS_CONNECTOR);
+    WebClient webClient = poppConfig.webClient();
+
+    assertNotNull(webClient);
+    assertEquals(PoppClientConfig.TokenType.CONTACTLESS_CONNECTOR, poppConfig.getTokenType());
+
+    PoppClientAdapter adapter = poppConfig.poppClientAdapter(webClient);
+    assertNotNull(adapter);
+
+    PoppClientConfig config = getPrivateField(adapter, "poppClientConfig", PoppClientConfig.class);
+    assertEquals("http://example.com/http", config.getUrlPoppServerHttp());
+    assertEquals(PoppClientConfig.TokenType.CONTACTLESS_CONNECTOR, config.getTokenType());
+    assertSame(webClient, getPrivateField(adapter, "webClient", WebClient.class));
+  }
+
+  private static <T> T getPrivateField(Object instance, String fieldName, Class<T> type)
+      throws ReflectiveOperationException {
+    Field field = instance.getClass().getDeclaredField(fieldName);
+    field.setAccessible(true);
+    return type.cast(field.get(instance));
   }
 }

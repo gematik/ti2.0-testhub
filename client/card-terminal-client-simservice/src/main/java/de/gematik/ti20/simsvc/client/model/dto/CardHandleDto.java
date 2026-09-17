@@ -24,6 +24,8 @@
  */
 package de.gematik.ti20.simsvc.client.model.dto;
 
+import de.gematik.ti20.simsvc.client.model.Slot;
+
 /**
  * Data Transfer Object (DTO) for card handles. Contains information about a card that can be used
  * to identify it in the system.
@@ -51,6 +53,14 @@ public class CardHandleDto {
     this.cardType = cardType;
     this.slotId = slotId;
     this.cardLabel = cardLabel;
+  }
+
+  public static CardHandleDto from(final Slot slot) {
+    return new CardHandleDto(
+        slot.cardImageData().cardId(),
+        slot.cardImageData().cardType(),
+        slot.slotId(),
+        slot.cardImageData().cardType());
   }
 
   /**

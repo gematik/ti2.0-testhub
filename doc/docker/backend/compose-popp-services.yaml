@@ -22,7 +22,7 @@ services:
   popp-client:
     profiles: [ "full" ]
     container_name: popp-client
-    image: gematik1/popp-client:2.7.1
+    image: gematik1/popp-client:2.8.0
     env_file:
       - path: ../.env
         required: true
@@ -82,7 +82,7 @@ services:
   popp-client-perf:
     profiles: [ "ps-only" ]
     container_name: popp-client
-    image: gematik1/popp-client:2.7.1
+    image: gematik1/popp-client:2.8.0
     env_file:
       - path: ../.env
         required: true
@@ -109,7 +109,7 @@ services:
 
   popp-server:
     profiles: [ "full", "backend-only" ]
-    image: gematik1/popp-server:2.7.1
+    image: gematik1/popp-server:2.8.0
     env_file:
       - path: ../.env
         required: true
@@ -152,7 +152,7 @@ services:
     profiles: [ "full", "backend-only" ]
     container_name: popp-zeta-ingress
     platform: linux/amd64
-    image: "nginx:1.29.7"
+    image: "nginx:1.31.3"
     pull_policy: if_not_present
     env_file:
       - path: ../.env
@@ -169,7 +169,7 @@ services:
 
   popp-zeta-pep:
     profiles: [ "full", "backend-only" ]
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:1.2.0
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:1.3.0
     env_file:
       - path: ../.env
         required: true
@@ -194,7 +194,7 @@ services:
 
   popp-zeta-pdp:
     profiles: [ "full", "backend-only" ]
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:1.2.3
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:1.3.1
     env_file:
       - path: ../.env
         required: true
@@ -218,15 +218,24 @@ services:
       KC_HTTP_PORT: 80
       KC_HTTP_RELATIVE_PATH: /auth
       KC_LOG_LEVEL: INFO
+      KC_METRICS_ENABLED: false
       KC_PROXY_HEADERS: xforwarded
       KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_DECISION_PATH: "/v1/data/zeta/authz/decision"
       KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_OPA_BASE_URL: http://popp-zeta-pdp-opa:8181
       KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_OPA_ENABLED: true
+      KC_TELEMETRY_ENDPOINT: http://otel-collector:4318
+      KC_TELEMETRY_LOGS_ENABLED: true
+      KC_TELEMETRY_RESOURCE_ATTRIBUTES: "service.version=1.3.1"
+      KC_TELEMETRY_SERVICE_NAME: "popp-zeta-pdp"
+      KC_TRACING_ENABLED: true
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+      OCSP_KEYSTORE_LOCATION: /var/trust-data/ocsp-signers.p12
+      OCSP_KEYSTORE_PASSWORD: "changeit"
       PROXY_ADDRESS_FORWARDING: true
       SMCB_HASHING_PEPPER: "-085c1245-dc0d-4d39-95b4-97496bec6182"
-      SMCB_KEYSTORE_LOCATION: /opt/keycloak/conf/smcb/truststore.p12
+      SMCB_KEYSTORE_LOCATION: /var/trust-data/smcb-trust-roots.p12
+      SMCB_KEYSTORE_META_LOCATION: /var/trust-data/smcb-trust-roots-meta.json
       SMCB_KEYSTORE_PASSWORD: "changeit"
       TPM_KEYSTORE_LOCATION: /opt/keycloak/conf/tpm/tpm-certificates.p12
       TPM_KEYSTORE_PASSWORD: "O3Bdel9P5+cOgzIGANkOPEzBQM3V"
@@ -238,6 +247,9 @@ services:
       - ./zeta-popp/realm:/opt/keycloak/data/import
       - ./zeta-popp/smcb:/opt/keycloak/conf/smcb
       - ./zeta/tpm/:/opt/keycloak/conf/tpm
+      - ./zeta/ocsp-signers.p12:/var/trust-data/ocsp-signers.p12:ro
+      - ./zeta/smcb-trust-roots.p12:/var/trust-data/smcb-trust-roots.p12:ro
+      - ./zeta/smcb-trust-roots-meta.json:/var/trust-data/smcb-trust-roots-meta.json:ro
     networks:
       - testhub_network
     healthcheck:
@@ -254,7 +266,7 @@ services:
     profiles: [ "full", "backend-only" ]
     container_name: popp-zeta-pdp-db
     platform: linux/amd64
-    image: postgres:16.2
+    image: postgres:16.14
     pull_policy: if_not_present
     env_file:
       - path: ../.env
@@ -273,7 +285,7 @@ services:
   popp-zeta-pdp-opa:
     profiles: [ "full", "backend-only" ]
     container_name: popp-zeta-pdp-opa
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/opa:1.18.2-static
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/opa:1.19.0-static
     env_file:
       - path: ../.env
         required: true

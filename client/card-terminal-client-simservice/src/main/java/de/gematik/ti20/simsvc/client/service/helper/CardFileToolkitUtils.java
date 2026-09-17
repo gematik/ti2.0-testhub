@@ -30,6 +30,8 @@ import java.util.Arrays;
 public class CardFileToolkitUtils {
   static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
+  private CardFileToolkitUtils() {}
+
   public static byte[][] uncompressAvdAndGvd(final byte[] efVd) throws IOException {
     int startOffsetOfFirstDocument = ByteUtils.getIntValue(Arrays.copyOfRange(efVd, 0, 2));
     int endOffsetOfFirstDocument = ByteUtils.getIntValue(Arrays.copyOfRange(efVd, 2, 4));
@@ -39,7 +41,7 @@ public class CardFileToolkitUtils {
       startOffsetOfSecondDocument = ByteUtils.getIntValue(Arrays.copyOfRange(efVd, 4, 6));
       endOffsetOfSecondDocument = ByteUtils.getIntValue(Arrays.copyOfRange(efVd, 6, 8));
     } else {
-      throw new RuntimeException("efVd is invalid");
+      throw new IllegalArgumentException("efVd is invalid");
     }
     byte[] allgemeineVersicherungsdaten =
         XmlContainerFileHelper.uncompressDocumentWithStartAndEndOffset(

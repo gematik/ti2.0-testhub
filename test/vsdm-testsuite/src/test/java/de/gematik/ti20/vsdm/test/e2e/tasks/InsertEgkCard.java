@@ -63,7 +63,8 @@ public class InsertEgkCard implements Task {
     Response removeResponse = api.request().delete("/slots/" + slot);
     removeResponse.then().statusCode(anyOf(is(204), is(404)));
 
-    ContentType contentType = cardImageName.endsWith("xml") ? ContentType.XML : ContentType.JSON;
+    ContentType contentType =
+        cardImageName.toLowerCase().endsWith("xml") ? ContentType.XML : ContentType.JSON;
 
     Response insertResponse =
         api.request()

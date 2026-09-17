@@ -25,13 +25,10 @@
 package de.gematik.ti20.simsvc.client.service;
 
 import de.gematik.bbriccs.fhir.EncodingType;
-import de.gematik.ti20.client.card.card.AttachedCard;
-import de.gematik.ti20.client.card.config.CardTerminalConnectionConfig;
-import de.gematik.ti20.client.card.terminal.CardTerminalException;
-import de.gematik.ti20.client.card.terminal.CardTerminalService;
-import de.gematik.ti20.client.card.terminal.simsvc.EgkInfo;
-import de.gematik.ti20.client.card.terminal.simsvc.SimulatorAttachedCard;
+import de.gematik.ti20.simsvc.client.card.AttachedCard;
+import de.gematik.ti20.simsvc.client.card.EgkInfo;
 import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
+import de.gematik.ti20.simsvc.client.exception.CardTerminalException;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
 import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
@@ -47,13 +44,12 @@ import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
 import io.ktor.client.plugins.ClientRequestException;
 import io.ktor.client.plugins.ServerResponseException;
 import java.net.HttpURLConnection;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -77,8 +73,6 @@ public class VsdmClientService {
   private final PoppTokenFromCacheStrategy poppTokenFromCache;
   private final PoppTokenFromServiceStrategy poppTokenFromService;
 
-  @Getter private List<CardTerminalConnectionConfig> terminalConnectionConfigs;
-
   private final FhirService fhirService;
 
   public VsdmClientService(
@@ -96,7 +90,6 @@ public class VsdmClientService {
 
     this.vsdmDataRepository = vsdmDataRepository;
 
-    this.terminalConnectionConfigs = new ArrayList<>();
     this.vsdmZetaClient = vsdmZetaClient;
 
     this.poppTokenFromInjected = new PoppTokenFromInjectedStrategy();
@@ -124,7 +117,9 @@ public class VsdmClientService {
         poppTokenInjected != null,
         profileVersion);
     final AttachedCard attachedCard =
-        poppTokenInjected != null ? null : getAttachedCard(terminalId, egkSlotId);
+        poppTokenInjected != null
+            ? null
+            : cardTerminalService.getAttachedCard(terminalId, egkSlotId);
 
     final PoppToken poppToken =
         requestPoppToken(poppTokenInjected, terminalId, egkSlotId, attachedCard, virtualCard);
@@ -158,39 +153,10 @@ public class VsdmClientService {
             .or(() -> poppTokenFromService.get(terminalId, egkSlotId, attachedCard, virtualCard))
             .or(() -> poppTokenFromService.get(terminalId, egkSlotId, attachedCard, virtualCard));
 
-    final PoppToken poppToken =
-        maybePoppToken.orElseThrow(
-            () ->
-                new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR, "Could not retrieve PoPP token"));
-
-    return poppToken;
-  }
-
-  public AttachedCard getAttachedCard(final String terminalId, final Integer slotId) {
-    log.debug("Getting attached card for terminal ID: {}, slot ID: {}", terminalId, slotId);
-
-    List<? extends AttachedCard> cards = null;
-
-    try {
-      cards = cardTerminalService.getAttachedCards();
-    } catch (final Exception e) {
-      log.error("Error getting attached EGK cards from terminal", e);
-      throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
-    }
-
-    final AttachedCard attachedCard =
-        cards.stream()
-            .filter(card -> ((SimulatorAttachedCard) card).getSlotId().equals(slotId))
-            .findFirst()
-            .orElseThrow(
-                () ->
-                    new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "No card found in slot " + slotId));
-
-    log.debug("Using card with ID: {}", attachedCard.getId());
-
-    return attachedCard;
+    return maybePoppToken.orElseThrow(
+        () ->
+            new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR, "Could not retrieve PoPP token"));
   }
 
   // vsdm handling
@@ -271,27 +237,32 @@ public class VsdmClientService {
     } catch (final ServerResponseException e) {
       log.error("Error while connecting to VSDM server: {}", e.getMessage(), e);
 
-      if (attachedCard == null) {
-        // No fallback available when using provided token
-        throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
-      }
-      // Fallback to card data only if attachedCard is available
-      try {
-        final String responseToCaller = loadTruncatedDataFromCard(attachedCard);
-        if (responseToCaller == null) {
-          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(responseToCaller);
-      } catch (final CardTerminalException cardEx) {
-        log.error("Error while loading truncated data from card: {}", cardEx.getMessage(), cardEx);
-        throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
-      }
-    } catch (InterruptedException e) {
+      return handleTruncatedDataResponse(attachedCard, e);
+    } catch (final InterruptedException e) {
       Thread.currentThread().interrupt();
       log.error("Thread interrupted while requesting VsdBundle with token", e);
       throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
     } catch (final Exception e) {
       log.error("Error on requesting VsdBundle with token", e);
+      throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
+    }
+  }
+
+  private @NonNull ResponseEntity<String> handleTruncatedDataResponse(
+      final AttachedCard attachedCard, final ServerResponseException e) {
+    if (attachedCard == null) {
+      // No fallback available when using provided token
+      throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
+    }
+    // Fallback to card data only if attachedCard is available
+    try {
+      final String responseToCaller = loadTruncatedDataFromCard(attachedCard);
+      if (responseToCaller == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      }
+      return ResponseEntity.status(HttpStatus.OK).body(responseToCaller);
+    } catch (final CardTerminalException cardEx) {
+      log.error("Error while loading truncated data from card: {}", cardEx.getMessage(), cardEx);
       throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
     }
   }
@@ -334,7 +305,7 @@ public class VsdmClientService {
       throws CardTerminalException {
     final EgkInfo egkInfo = cardTerminalService.getEgkInfo(attachedCard);
 
-    if (!egkInfo.getValid()) {
+    if (Boolean.FALSE.equals(egkInfo.getValid())) {
       return null;
     }
 
@@ -367,12 +338,5 @@ public class VsdmClientService {
             });
 
     return responseHeaders;
-  }
-
-  public void setTerminalConnectionConfigs(final List<CardTerminalConnectionConfig> configs) {
-    log.debug("Setting terminal connection configs: ", terminalConnectionConfigs);
-
-    terminalConnectionConfigs = configs;
-    cardTerminalService.setTerminalConnectionConfigs(terminalConnectionConfigs);
   }
 }

@@ -24,19 +24,22 @@
  */
 package de.gematik.ti20.simsvc.client.service;
 
-import de.gematik.ti20.simsvc.client.model.card.CardImage;
+import de.gematik.ti20.simsvc.client.model.CardImageData;
+import de.gematik.ti20.simsvc.client.model.Slot;
+import de.gematik.ti20.simsvc.client.model.dto.CardHandleDto;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-/** Service for managing card slots. */
 @Service
 public class SlotManager {
 
   private final int slotCount;
-  private final Map<Integer, CardImage> slots;
+  private final Map<Integer, Slot> slots;
 
   /**
    * Constructor for SlotManager.
@@ -84,11 +87,12 @@ public class SlotManager {
    * @param slotId Slot ID
    * @return CardImage if present, null otherwise
    */
-  public CardImage getCardInSlot(int slotId) {
+  public CardImageData getCardInSlot(final int slotId) {
     if (!isValidSlotId(slotId)) {
       return null;
     }
-    return slots.get(slotId);
+    final Slot slot = slots.get(slotId);
+    return slot != null ? slot.cardImageData() : null;
   }
 
   /**
@@ -98,12 +102,13 @@ public class SlotManager {
    * @param card CardImage to insert
    * @return true if insertion was successful, false otherwise
    */
-  public boolean insertCard(int slotId, CardImage card) {
+  public boolean insertCard(final int slotId, final CardImageData card) {
     if (!isValidSlotId(slotId) || isCardPresent(slotId) || card == null) {
       return false;
     }
 
-    slots.put(slotId, card);
+    final Slot slot = new Slot(slotId, card);
+    slots.put(slotId, slot);
     return true;
   }
 
@@ -120,5 +125,21 @@ public class SlotManager {
 
     slots.remove(slotId);
     return true;
+  }
+
+  public List<CardHandleDto> listAllCards() {
+    final List<CardHandleDto> cardHandles = new ArrayList<>();
+    slots.forEach((slotId, slot) -> cardHandles.add(CardHandleDto.from(slot)));
+    return cardHandles;
+  }
+
+  public CardImageData findCardByHandle(final String cardHandle) {
+    for (final Slot slot : slots.values()) {
+      if (slot.cardImageData().cardId().equals(cardHandle)) {
+        return slot.cardImageData();
+      }
+    }
+
+    return null;
   }
 }
