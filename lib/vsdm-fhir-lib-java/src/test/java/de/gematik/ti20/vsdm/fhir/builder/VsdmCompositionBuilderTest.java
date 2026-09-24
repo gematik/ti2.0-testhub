@@ -25,7 +25,6 @@
 package de.gematik.ti20.vsdm.fhir.builder;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 import de.gematik.bbriccs.fhir.builder.ResourceBuilder;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;

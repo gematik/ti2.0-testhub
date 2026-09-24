@@ -61,6 +61,8 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
@@ -69,6 +71,7 @@ import java.security.Signature;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
+import java.security.spec.ECGenParameterSpec;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
@@ -101,7 +104,7 @@ import org.springframework.web.client.RestTemplate;
  * that contains the {@code udat} claim required by the PEP.
  */
 @Slf4j
-public class ZetaPepJwtTestFactory {
+public class ZetaJwtTestFactory {
 
   static {
     if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
@@ -139,13 +142,6 @@ public class ZetaPepJwtTestFactory {
   /** KID computed from zetakeystore.p12 at runtime. */
   private static String keyKid;
 
-  /** PKCS12 keystore on test classpath containing the P-256 key pair for client-jwt auth. */
-  private static final String KEYSTORE_CLASSPATH = "zetakeystore.p12";
-
-  private static final String KEYSTORE_PASSWORD = "testpassword";
-  private static final String KEY_ALIAS = "zetamock";
-  private static final String KEY_PASSWORD = "testpassword";
-
   /** SMC-B PKCS12 keystore (brainpoolP256r1) for signing the subject_token. */
   private static final String SMCB_P12_PATH =
       "doc/docker/backend/zeta/smcb-private/smcb_private.p12";
@@ -162,6 +158,9 @@ public class ZetaPepJwtTestFactory {
   /** Cached ECKey for DPoP proof generation across calls. */
   private static ECKey cachedEcJwk;
 
+  /** Fresh client key generated for each DCR registration. */
+  private static KeyPairHolder cachedClientKeyPair;
+
   /** Cached access token for ath computation. */
   private static String cachedAccessToken;
 
@@ -174,7 +173,7 @@ public class ZetaPepJwtTestFactory {
    */
   private static String cachedNonce;
 
-  private ZetaPepJwtTestFactory() {
+  private ZetaJwtTestFactory() {
     // utility
   }
 
@@ -183,16 +182,78 @@ public class ZetaPepJwtTestFactory {
     return clientId;
   }
 
-  /** Returns the computed key ID. */
-  public static String getKeyKid() {
-    return keyKid;
+  /**
+   * Ensures DCR has been performed for the specified PDP target.
+   *
+   * @param target the PDP instance to register against; if {@code null}, defaults to {@link
+   *     PdpTarget#POPP}
+   */
+  public static void ensureRegistered(PdpTarget target) {
+    PdpTarget effectiveTarget = target != null ? target : PdpTarget.POPP;
+    if (clientId == null || !configuredPdps.contains(effectiveTarget)) {
+      registerClientViaDcr(effectiveTarget);
+      configuredPdps.add(effectiveTarget);
+    }
   }
 
-  /** Ensures DCR has been performed. Call this before using {@link #getClientId()}. */
+  /**
+   * Ensures DCR has been performed against the default PDP target ({@link PdpTarget#POPP}). Call
+   * this before using {@link #getClientId()} if no specific target is relevant.
+   */
   public static void ensureRegistered() {
-    if (clientId == null) {
-      registerClientViaDcr(PdpTarget.POPP);
-      configuredPdps.add(PdpTarget.POPP);
+    ensureRegistered(PdpTarget.POPP);
+  }
+
+  /**
+   * Clears the cached DCR registration so the next token exchange / {@link #ensureRegistered()}
+   * performs a fresh Dynamic Client Registration with a newly generated EC key pair and receives a
+   * new {@code client_id}. Also drops {@link #cachedClientKeyPair}: without this, a second {@code
+   * forceFreshDcr()} within the same scenario would re-register the identical public key/{@code
+   * keyKid}, which the PDP treats as the same client — causing a spurious {@code 409 Duplicate
+   * resource error} instead of the intended "new client" registration. Required for SMC-B
+   * max-clients tests where {@code zetaguard.smcbuser.client_ids} only grows when the client_id
+   * (and its underlying key) is genuinely new.
+   */
+  public static void resetRegistration() {
+    clientId = null;
+    keyKid = null;
+    cachedEcJwk = null;
+    cachedClientKeyPair = null;
+    cachedAccessToken = null;
+    cachedNonce = null;
+    configuredPdps.clear();
+    log.info("Cleared cached DCR registration (clientId/keyKid/keyPair/configuredPdps)");
+  }
+
+  /**
+   * Provides Telematik-ID used by the SMCB-Certificate.
+   *
+   * @return the Telematik-ID.
+   */
+  public static String getSmcbTelematikId() {
+    return SMCB_TELEMATIK_ID;
+  }
+
+  /**
+   * Returns the client JWK used for Dynamic Client Registration (DCR).
+   *
+   * @return the {@link ECKey} containing the P-256 EC key pair and key ID registered with the PDP
+   */
+  public static ECKey loadKeyForDCR() {
+    if (cachedEcJwk != null) {
+      return cachedEcJwk;
+    }
+    // Ensures DCR registration has run and keyKid is populated
+    ensureRegistered(null);
+    try {
+      var keyPair = loadKeyPair();
+      return cachedEcJwk =
+          new ECKey.Builder(Curve.P_256, keyPair.publicKey())
+              .privateKey(keyPair.privateKey())
+              .keyID(keyKid)
+              .build();
+    } catch (Exception e) {
+      throw new IllegalStateException("Unable to load registered client key", e);
     }
   }
 
@@ -218,11 +279,8 @@ public class ZetaPepJwtTestFactory {
       String tokenEndpoint =
           TigerGlobalConfiguration.resolvePlaceholders(target.tokenUrlPlaceholder);
 
-      // 0. One-time client registration via DCR (replaces setupKeycloak for real PDP)
-      if (!configuredPdps.contains(target)) {
-        registerClientViaDcr(target);
-        configuredPdps.add(target);
-      }
+      // 0. Dynamic Client Registration (re-run when resetRegistration() cleared clientId)
+      ensureRegistered(target);
 
       // 1. Load key pair and compute KID
       var keyPair = loadKeyPair();
@@ -313,8 +371,8 @@ public class ZetaPepJwtTestFactory {
       int proxyPort,
       boolean requestRefreshToken) {
     try {
-      // 0. One-time client registration via DCR
-      if (!configuredPdps.contains(target)) {
+      // 0. Dynamic Client Registration (re-run when resetRegistration() cleared clientId)
+      if (clientId == null || !configuredPdps.contains(target)) {
         registerClientViaDcr(target);
         configuredPdps.add(target);
       }
@@ -459,10 +517,12 @@ public class ZetaPepJwtTestFactory {
     String nonce = cachedNonce;
     String telematikId = extractTelematikIdFromCert(smcbCert);
     String professionOid = extractProfessionOidFromCert(smcbCert);
+    String clientKeyBinding = clientKeyBinding();
     String claimsJson =
         String.format(
             "{\"iss\":\"%s\",\"sub\":\"%s\",\"aud\":\"%s\",\"typ\":\"Bearer\",\"nonce\":\"%s\","
-                + "\"exp\":%d,\"iat\":%d,\"jti\":\"%s\",\"professionOid\":\"%s\"}",
+                + "\"exp\":%d,\"iat\":%d,\"jti\":\"%s\",\"professionOid\":\"%s\","
+                + "\"client_key\":{\"jkt\":\"%s\"},\"dpop_key\":{\"jkt\":\"%s\"}}",
             clientId,
             telematikId,
             PoPpConfig.smcbAudience(),
@@ -470,7 +530,10 @@ public class ZetaPepJwtTestFactory {
             now + 300,
             now,
             UUID.randomUUID(),
-            professionOid);
+            professionOid,
+            clientKeyBinding, // populates client_key.jwk
+            clientKeyBinding // populates dpop_key.jwk
+            );
 
     // Base64url encode
     String headerB64 =
@@ -495,6 +558,14 @@ public class ZetaPepJwtTestFactory {
     String sigB64 = Base64.getUrlEncoder().withoutPadding().encodeToString(rawSignature);
 
     return signingInput + "." + sigB64;
+  }
+
+  /**
+   * Returns the RFC 7638 JWK thumbprint used by Keycloak to bind the subject token to the
+   * registered client and DPoP key. Both bindings intentionally use the same key in this flow.
+   */
+  private static String clientKeyBinding() throws com.nimbusds.jose.JOSEException {
+    return loadKeyForDCR().computeThumbprint().toString();
   }
 
   /**
@@ -612,7 +683,7 @@ public class ZetaPepJwtTestFactory {
     var postureProductId = new java.util.LinkedHashMap<String, Object>();
     postureProductId.put("platform", "linux");
     postureProductId.put("packaging_type", "jar");
-    postureProductId.put("application_id", "de.gematik.test.zeta");
+    postureProductId.put("application_id", "de.gematik.test.zeta." + clientId);
     posture.put("platform_product_id", postureProductId);
 
     // client_statement structure - posture_type is external/sibling to posture (Jackson
@@ -628,7 +699,7 @@ public class ZetaPepJwtTestFactory {
     var platformProductId = new java.util.LinkedHashMap<String, Object>();
     platformProductId.put("platform", "linux");
     platformProductId.put("packaging_type", "jar");
-    platformProductId.put("application_id", "de.gematik.test.zeta");
+    platformProductId.put("application_id", "de.gematik.test.zeta." + clientId);
 
     var selfAssessment = new java.util.LinkedHashMap<String, Object>();
     selfAssessment.put("name", "ZeTA Test Client");
@@ -805,32 +876,18 @@ public class ZetaPepJwtTestFactory {
     return response.getBody().trim();
   }
 
-  // ---- Key Loading ----
-
+  /** Generates or retrieves a cached EC key pair (secp256r1 / P-256) for the client. */
   private static KeyPairHolder loadKeyPair() throws Exception {
-    var ks = KeyStore.getInstance("PKCS12");
-    try (var is =
-        ZetaPepJwtTestFactory.class.getClassLoader().getResourceAsStream(KEYSTORE_CLASSPATH)) {
-      if (is == null) {
-        throw new IllegalStateException(
-            "Keystore '" + KEYSTORE_CLASSPATH + "' not found on classpath");
-      }
-      ks.load(is, KEYSTORE_PASSWORD.toCharArray());
+    if (cachedClientKeyPair != null) {
+      return cachedClientKeyPair;
     }
-
-    var key = ks.getKey(KEY_ALIAS, KEY_PASSWORD.toCharArray());
-    if (!(key instanceof ECPrivateKey ecPrivateKey)) {
-      throw new IllegalStateException(
-          "Keystore entry '" + KEY_ALIAS + "' is not an EC private key");
-    }
-
-    var cert = (X509Certificate) ks.getCertificate(KEY_ALIAS);
-    if (!(cert.getPublicKey() instanceof ECPublicKey ecPublicKey)) {
-      throw new IllegalStateException(
-          "Certificate for '" + KEY_ALIAS + "' does not contain an EC public key");
-    }
-
-    return new KeyPairHolder(ecPrivateKey, ecPublicKey);
+    KeyPairGenerator generator = KeyPairGenerator.getInstance("EC");
+    generator.initialize(new ECGenParameterSpec("secp256r1"));
+    KeyPair generated = generator.generateKeyPair();
+    cachedClientKeyPair =
+        new KeyPairHolder(
+            (ECPrivateKey) generated.getPrivate(), (ECPublicKey) generated.getPublic());
+    return cachedClientKeyPair;
   }
 
   // ---- One-time DCR (Dynamic Client Registration) ----

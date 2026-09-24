@@ -79,20 +79,6 @@ class CodecServiceR4Test {
   }
 
   @Test
-  void testValidCoverageFhir() {
-    VsdmCoverage coverage =
-        VsdmCoverageBuilder.create()
-            .withStatus("active")
-            .withPayor("Test GKV Krankenkasse")
-            .withBeneficiary("Max Mustermann")
-            .build();
-    String json = codec.encode(coverage, EncodingType.JSON);
-
-    // Validierung schlägt fehl, da VSDMPatient nicht aufgelöst werden kann
-    // assertTrue(service.getCodec().isValid(json));
-  }
-
-  @Test
   void testCanDeserializeCoverage() {
     VsdmCoverage coverage =
         VsdmCoverageBuilder.create()

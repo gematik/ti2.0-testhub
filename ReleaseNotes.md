@@ -2,6 +2,18 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.17.0
+
+### Update notes
+
+The database schema has changed. Since we have no migrations, please delete the Docker volumes so the database is
+recreated on restart.
+
+### Changes
+
+- TESTHUB-268: Update ZETA-Guard to 1.3.2
+- ZTI-4188: Added telemetry tracing test
+
 ## Release 3.16.0
 
 ### Update Notes
@@ -25,6 +37,7 @@ access still works despite this issue. We are currently investigating the error.
 - ZTI-4876: Added positive testcases to verify policy integration
 - PTVSDM-1705: Added testcases of content-type for VsdmBundle and VsdmOperationOutcome
 - TKK-3940: Added E-Rezept Testcase
+- ZTI-2922: Apply SMCB signed token enforcement of ZG 1.3.x
 
 ## Release 3.14.0
 

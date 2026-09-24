@@ -169,7 +169,7 @@ services:
 
   popp-zeta-pep:
     profiles: [ "full", "backend-only" ]
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:1.3.0
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:1.3.3
     env_file:
       - path: ../.env
         required: true
@@ -191,10 +191,12 @@ services:
         condition: service_healthy
       popp-server:
         condition: service_started # TODO: change to "service_healthy" when healthcheck is available
+      otel-collector:
+        condition: service_started
 
   popp-zeta-pdp:
     profiles: [ "full", "backend-only" ]
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:1.3.1
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:1.3.2
     env_file:
       - path: ../.env
         required: true
@@ -218,13 +220,13 @@ services:
       KC_HTTP_PORT: 80
       KC_HTTP_RELATIVE_PATH: /auth
       KC_LOG_LEVEL: INFO
-      KC_METRICS_ENABLED: false
       KC_PROXY_HEADERS: xforwarded
       KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_DECISION_PATH: "/v1/data/zeta/authz/decision"
       KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_OPA_BASE_URL: http://popp-zeta-pdp-opa:8181
       KC_SPI_TOKEN_EXCHANGE_PROVIDER_ZETA_SMC_B_TOKEN_EXCHANGE_OPA_ENABLED: true
       KC_TELEMETRY_ENDPOINT: http://otel-collector:4318
       KC_TELEMETRY_LOGS_ENABLED: true
+      KC_TELEMETRY_PROTOCOL: http/protobuf
       KC_TELEMETRY_RESOURCE_ATTRIBUTES: "service.version=1.3.1"
       KC_TELEMETRY_SERVICE_NAME: "popp-zeta-pdp"
       KC_TRACING_ENABLED: true
@@ -285,7 +287,7 @@ services:
   popp-zeta-pdp-opa:
     profiles: [ "full", "backend-only" ]
     container_name: popp-zeta-pdp-opa
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/opa:1.19.0-static
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/opa:1.19.1-static
     env_file:
       - path: ../.env
         required: true

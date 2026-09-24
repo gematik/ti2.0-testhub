@@ -436,6 +436,11 @@ public class VsdmSteps extends BaseSteps {
     hccs().should(seeThat(LastOperationOutcome.text(), matchesPattern(errorWithValue)));
   }
 
+  @Dann("antwortet der VSDM Fachdienst mit einem Fehlercode größer oder gleich 400")
+  public void thenVsdmAnswersWithErrorCode() {
+    hccs().should(seeThat(LastStatusCode.value(), greaterThanOrEqualTo(400)));
+  }
+
   @Dann("antwortet der ZETA Guard mit dem Fehlercode {int} und dem Text {string}")
   public void thenZetaGuardAnswersWithErrorCodeAndText(Integer httpCode, String errorText) {
     hccs().should(seeThat(LastStatusCode.value(), is(httpCode)));
