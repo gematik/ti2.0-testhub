@@ -19,6 +19,7 @@ ReleaseChecklist.internal.md
 README-DooD-Internal.md
 /test/popp-testsuite/src/test/resources/certificates/mykeystore.p12
 /test/popp-testsuite/src/test/resources/hashDbPayloads
+/test/popp-testsuite/doc
 /test/vsdm-testsuite/src/test/resources/drafts
 /test/vsdm-testsuite/src/test/resources/scripts
 /test/vsdm-testsuite/src/test/resources/private

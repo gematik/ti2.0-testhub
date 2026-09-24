@@ -20,6 +20,7 @@ services:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
       - "${PORT_OTEL_COLLECTOR:?PORT_OTEL_COLLECTOR missing – set it in doc/docker/.env}:4318"
+      - "${PORT_OTEL_COLLECTOR_GRPC:?PORT_OTEL_COLLECTOR_GRPC missing – set it in doc/docker/.env}:4317"
     depends_on:
       - prometheus
     networks:

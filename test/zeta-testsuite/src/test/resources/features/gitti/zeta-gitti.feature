@@ -28,4 +28,4 @@ Funktionalität: ZETA-GITTI
 
     Beispiele:
       | Smcb-Card                                                            | Smcb-Slot |
-      | test/vsdm-testsuite/src/test/resources/data/cards/smcbCardImage.xml | 1         |
+      | test/vsdm-testsuite/src/test/resources/private/smcb/smcbCardImage.xml | 1         |

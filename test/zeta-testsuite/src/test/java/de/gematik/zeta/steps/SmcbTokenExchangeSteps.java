@@ -28,13 +28,12 @@ import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
 import de.gematik.zeta.config.PoPpConfig;
-import de.gematik.zeta.services.ZetaPepJwtTestFactory;
+import de.gematik.zeta.services.ZetaJwtTestFactory;
 import io.cucumber.java.de.Dann;
 import io.cucumber.java.de.Wenn;
 import io.cucumber.java.en.When;
@@ -51,7 +50,6 @@ import java.security.Signature;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.ECPublicKey;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
@@ -93,17 +91,11 @@ public class SmcbTokenExchangeSteps {
   private static final String SMCB_KEYSTORE_PASSWORD = "00";
   private static final String SMCB_KEY_ALIAS = "alias";
 
-  // Client assertion keystore (P-256)
-  private static final String CLIENT_KEYSTORE_CLASSPATH = "zetakeystore.p12";
-  private static final String CLIENT_KEYSTORE_PASSWORD = "testpassword";
-  private static final String CLIENT_KEY_ALIAS = "zetamock";
-  private static final String CLIENT_KEY_PASSWORD = "testpassword";
-
   static final String CLIENT_ID_FALLBACK = "f00561bc-a975-47aa-b87e-5d0f97265e10";
 
   private String getClientId() {
-    ZetaPepJwtTestFactory.ensureRegistered();
-    String id = ZetaPepJwtTestFactory.getClientId();
+    ZetaJwtTestFactory.ensureRegistered(null);
+    String id = ZetaJwtTestFactory.getClientId();
     return id != null ? id : CLIENT_ID_FALLBACK;
   }
 
@@ -266,6 +258,7 @@ public class SmcbTokenExchangeSteps {
     // Extract TelematikID from certificate for sub claim
     String telematikId = extractTelematikIdFromCert(smcbCert);
     String professionOid = extractProfessionOidFromCert(smcbCert);
+    String clientKeyBinding = ZetaJwtTestFactory.loadKeyForDCR().computeThumbprint().toString();
 
     Instant now = Instant.now();
 
@@ -282,7 +275,7 @@ public class SmcbTokenExchangeSteps {
     // Build payload (nonce and professionOid are required by schema and PDP-Mock)
     String payloadJson =
         String.format(
-            "{\"iss\":\"%s\",\"sub\":\"%s\",\"aud\":\"%s\",\"typ\":\"Bearer\",\"iat\":%d,\"exp\":%d,\"jti\":\"%s\",\"nonce\":\"%s\",\"professionOid\":\"%s\"}",
+            "{\"iss\":\"%s\",\"sub\":\"%s\",\"aud\":\"%s\",\"typ\":\"Bearer\",\"iat\":%d,\"exp\":%d,\"jti\":\"%s\",\"nonce\":\"%s\",\"professionOid\":\"%s\",\"client_key\":{\"jkt\":\"%s\"},\"dpop_key\":{\"jkt\":\"%s\"}}",
             getClientId(),
             telematikId,
             smcbAudience,
@@ -290,7 +283,10 @@ public class SmcbTokenExchangeSteps {
             now.plusSeconds(300).getEpochSecond(),
             UUID.randomUUID(),
             nonce,
-            professionOid);
+            professionOid,
+            clientKeyBinding, // populates client_key.jwk
+            clientKeyBinding // populates dpop_key.jwk
+            );
     String payloadB64 =
         java.util.Base64.getUrlEncoder()
             .withoutPadding()
@@ -318,25 +314,8 @@ public class SmcbTokenExchangeSteps {
    * header and client_statement in payload.
    */
   private String createClientAssertion(String nonce) throws Exception {
-    KeyStore ks = KeyStore.getInstance("PKCS12");
-    try (InputStream is =
-        getClass().getClassLoader().getResourceAsStream(CLIENT_KEYSTORE_CLASSPATH)) {
-      if (is == null) {
-        throw new IllegalStateException(
-            "Keystore not found on classpath: " + CLIENT_KEYSTORE_CLASSPATH);
-      }
-      ks.load(is, CLIENT_KEYSTORE_PASSWORD.toCharArray());
-    }
-
-    ECPrivateKey privateKey =
-        (ECPrivateKey) ks.getKey(CLIENT_KEY_ALIAS, CLIENT_KEY_PASSWORD.toCharArray());
-    ECPublicKey publicKey = (ECPublicKey) ks.getCertificate(CLIENT_KEY_ALIAS).getPublicKey();
-
-    // Build JWK for header
-    ECKey jwk =
-        new ECKey.Builder(Curve.P_256, publicKey)
-            .keyUse(com.nimbusds.jose.jwk.KeyUse.SIGNATURE)
-            .build();
+    ECKey jwk = ZetaJwtTestFactory.loadKeyForDCR();
+    ECPrivateKey privateKey = ZetaJwtTestFactory.loadKeyForDCR().toECPrivateKey();
 
     // KID = RFC 7638 JWK thumbprint. This is the same value the client was registered with via
     // DCR (see ZetaPepJwtTestFactory#registerClientViaDcr), so the real PDP can resolve the
@@ -362,7 +341,9 @@ public class SmcbTokenExchangeSteps {
     posture.put("attestation_challenge", attestationChallenge);
     posture.put(
         "public_key",
-        java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(publicKey.getEncoded()));
+        java.util.Base64.getUrlEncoder()
+            .withoutPadding()
+            .encodeToString(jwk.toPublicKey().getEncoded()));
 
     // product_id, product_version and platform_product_id are required by SoftwarePosture
     posture.put("product_id", "de.gematik.test.zeta");
@@ -373,7 +354,13 @@ public class SmcbTokenExchangeSteps {
     Map<String, Object> postureProductId = new java.util.LinkedHashMap<>();
     postureProductId.put("platform", "linux");
     postureProductId.put("packaging_type", "jar");
-    postureProductId.put("application_id", "de.gematik.test.zeta");
+
+    // Software posture specifications (following reverse-DNS naming conventions like
+    // de.<company>.<product>.<instance>)
+    // e.g., de.gematik.test.zeta.f00561bc-a975-47aa-b87e-5d0f97265e10
+    // This is a valid reverse-DNS identifier wich satisfies instance uniqueness.
+    postureProductId.put("application_id", "de.gematik.test.zeta." + getClientId());
+
     posture.put("platform_product_id", postureProductId);
 
     // posture_type is an external type id (Jackson EXTERNAL_PROPERTY), must be sibling of posture
@@ -394,7 +381,12 @@ public class SmcbTokenExchangeSteps {
     Map<String, Object> platformProductId = new java.util.LinkedHashMap<>();
     platformProductId.put("platform", "linux");
     platformProductId.put("packaging_type", "jar");
-    platformProductId.put("application_id", "de.gematik.test.zeta");
+
+    // Software posture specifications (following reverse-DNS naming conventions like
+    // de.<company>.<product>.<instance>)
+    // e.g., de.gematik.test.zeta.f00561bc-a975-47aa-b87e-5d0f97265e10
+    // This is a valid reverse-DNS identifier wich satisfies instance uniqueness.
+    platformProductId.put("application_id", "de.gematik.test.zeta." + getClientId());
 
     Map<String, Object> selfAssessment = new java.util.LinkedHashMap<>();
     selfAssessment.put("name", "ZeTA Test Client");
@@ -445,16 +437,8 @@ public class SmcbTokenExchangeSteps {
    * from the same keystore as the client assertion.
    */
   private String createDpopProof(String tokenEndpoint) throws Exception {
-    KeyStore ks = KeyStore.getInstance("PKCS12");
-    try (InputStream is =
-        getClass().getClassLoader().getResourceAsStream(CLIENT_KEYSTORE_CLASSPATH)) {
-      ks.load(is, CLIENT_KEYSTORE_PASSWORD.toCharArray());
-    }
-    ECPrivateKey privateKey =
-        (ECPrivateKey) ks.getKey(CLIENT_KEY_ALIAS, CLIENT_KEY_PASSWORD.toCharArray());
-    ECPublicKey publicKey = (ECPublicKey) ks.getCertificate(CLIENT_KEY_ALIAS).getPublicKey();
-
-    ECKey dpopJwk = new ECKey.Builder(Curve.P_256, publicKey).build();
+    ECKey dpopJwk = ZetaJwtTestFactory.loadKeyForDCR().toPublicJWK();
+    ECPrivateKey privateKey = ZetaJwtTestFactory.loadKeyForDCR().toECPrivateKey();
 
     JWTClaimsSet dpopClaims =
         new JWTClaimsSet.Builder()

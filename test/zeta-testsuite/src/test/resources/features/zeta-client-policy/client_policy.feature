@@ -33,7 +33,7 @@ Funktionalität: Client-Registrierungs-Policy und OPA-Integration (Policy-Ablehn
     # Neustart die bestehende WebSocket-Verbindung zum Kartenterminal invalidiert.
     Und die ZeTA-PDP-Registrierung des VSDM-Clients ist vollständig zurückgesetzt
     Und das Kartenterminal "ws://card-terminal-client" ist am VSDM-Client konfiguriert
-    Und die Karte "test/vsdm-testsuite/src/test/resources/private/cards/smcbCardImage.xml" ist in Slot 1 des Kartenterminals geladen
+    Und die Karte "test/vsdm-testsuite/src/test/resources/private/smcb/smcbCardImage.xml" ist in Slot 1 des Kartenterminals geladen
     Und die Karte "test/vsdm-testsuite/src/test/resources/data/cards/egkCardImage.xml" ist in Slot 2 des Kartenterminals geladen
 
     # Manipulation direkt auf der Remote-TigerProxy-Admin-API registrieren (siehe Hinweis oben)
@@ -75,7 +75,7 @@ Funktionalität: Client-Registrierungs-Policy und OPA-Integration (Policy-Ablehn
     # blockiert und die Anfrage bis zum ASL-Handshake mit dem PEP durchdringt.
     Und die ZeTA-PDP-Registrierung des VSDM-Clients ist vollständig zurückgesetzt
     Und das Kartenterminal "ws://card-terminal-client" ist am VSDM-Client konfiguriert
-    Und die Karte "test/vsdm-testsuite/src/test/resources/private/cards/smcbCardImage.xml" ist in Slot 1 des Kartenterminals geladen
+    Und die Karte "test/vsdm-testsuite/src/test/resources/private/smcb/smcbCardImage.xml" ist in Slot 1 des Kartenterminals geladen
     Und die Karte "test/vsdm-testsuite/src/test/resources/data/cards/egkCardImage.xml" ist in Slot 2 des Kartenterminals geladen
 
     # Manipulation direkt auf der Remote-TigerProxy-Admin-API registrieren (siehe Hinweis oben)

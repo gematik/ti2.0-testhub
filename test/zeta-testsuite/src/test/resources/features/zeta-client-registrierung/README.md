@@ -9,15 +9,15 @@ Das Feature testet den vollständigen ZETA-Protokollablauf gegen die **echte VSD
 - **PDP**: Keycloak mit ZeTA Extension (Port 9122) + PostgreSQL
 - **Ingress**: nginx SSL-Termination (Port 9119)
 
-| # | Szenario | Tag | Status |
-|---|----------|-----|--------|
-| 1 | Service Discovery – Protected Resource Metadata (RFC 9728) | `@service_discovery` | ✅ Aktiv |
-| 2 | Service Discovery – OAuth AS Metadata (Keycloak) | `@service_discovery` | ✅ Aktiv |
-| 3 | Dynamic Client Registration (Keycloak + PostgreSQL) | `@dcr` | ✅ Aktiv |
-| 4 | Token Exchange – SMC-B / brainpoolP256r1 | `@token_exchange` | ❌ `@Ignore` – keycloak-zeta unterstützt BP256R1 nicht |
-| 5 | Policy-Ablehnung (403 Fehlerfall) | `@policy_ablehnungen` | ❌ `@Ignore` – OPA-Routing + Policy fehlen |
 
----
+| #   | Szenario                                                   | Tag                   | Status                                                 |
+| --- | ---------------------------------------------------------- | --------------------- | -------------------------------------------------------|
+| 1   | Service Discovery – Protected Resource Metadata (RFC 9728) | `@service_discovery`  | ✅ Aktiv                                               |
+| 2   | Service Discovery – OAuth AS Metadata (Keycloak)           | `@service_discovery`  | ✅ Aktiv                                               |
+| 3   | Dynamic Client Registration (Keycloak + PostgreSQL)        | `@dcr`                | ✅ Aktiv                                               |
+| 4   | Token Exchange – SMC-B / brainpoolP256r1                   | `@token_exchange`     | ❌ `@Ignore` – keycloak-zeta unterstützt BP256R1 nicht |
+| 5   | Policy-Ablehnung (403 Fehlerfall)                          | `@policy_ablehnungen` | ❌ `@Ignore` – OPA-Routing + Policy fehlen             |
+| 6   | SMC-B maxClients Limit und LRU Eviction                    | `@smcb_max_clients`   | ✅ Aktiv                                               |
 
 ## Szenario 1: Service Discovery – Protected Resource Metadata (RFC 9728)
 
@@ -94,21 +94,23 @@ Keycloak schreibt die Clientdaten in PostgreSQL → impliziter DB-Integrationste
 
 ### Validierung
 
-| Prüfung | Erwarteter Wert |
-|---------|-----------------|
-| HTTP Response Code | 201 Created |
-| `$.body.client_id` | vorhanden |
-| `$.body.client_id_issued_at` | vorhanden |
-| `$.body.token_endpoint_auth_method` | `private_key_jwt` |
-| `$.body.grant_types` | vorhanden |
-| `$.body.jwks` | vorhanden |
-| `$.body.redirect_uris` | vorhanden |
-| `$.body.registration_client_uri` | vorhanden |
-| `$.body.registration_access_token` | vorhanden |
-| Schema-Validierung | `schemas/v_1_0/dcr-response.yaml` |
-| Request Method | POST |
-| Request Content-Type | `application/json` |
-| Request `client_name` | `sdk-client` |
+
+| Prüfung                             | Erwarteter Wert                   |
+| ----------------------------------- | --------------------------------- |
+| HTTP Response Code                  | 201 Created                       |
+| `$.body.client_id`                  | vorhanden                         |
+| `$.body.client_id_issued_at`        | vorhanden                         |
+| `$.body.token_endpoint_auth_method` | `private_key_jwt`                 |
+| `$.body.grant_types`                | vorhanden                         |
+| `$.body.jwks`                       | vorhanden                         |
+| `$.body.redirect_uris`              | vorhanden                         |
+| `$.body.registration_client_uri`    | vorhanden                         |
+| `$.body.registration_access_token`  | vorhanden                         |
+| Schema-Validierung                  | `schemas/v_1_0/dcr-response.yaml` |
+| Request Method                      | POST                              |
+| Request Content-Type                | `application/json`                |
+| Request `client_name`               | `sdk-client`                      |
+
 
 ---
 
@@ -135,6 +137,28 @@ Testet, dass der ZETA Guard Anfragen mit ungültigen Policy-Werten mit HTTP 403 
 > 1. **Netzwerk-Topologie** – OPA-Requests laufen Docker-intern und durchlaufen nicht den TigerProxy.
 > 2. **OPA-Policy** – `authz.rego` gibt aktuell immer `allow=true` zurück.
 
+## Szenario 6: SMC-B maxClients Limit und LRU Eviction
+
+**Feature:** `client_registrierung_max_clients.feature`  
+**Tags:** `@client_registrierung @smcb_max_clients`
+
+Prüft `SMCB_USER_MAX_CLIENTS` (Default **256**, Helm: `authserver.config.maxClients`; gemSpec **A_25748**).
+Das Limit gilt **pro SMC-B-User** auf dem Attribut `zetaguard.smcbuser.client_ids` und wird
+in `SMCBIdentityProvider.updateBrokeredUser()` beim **Token-Exchange** geprüft (nicht bei reiner DCR).
+
+Stand ab **ZG 1.3 (A_25748-02)**: "Zu viele Clients" ist der Ausnahmefall, kein Regelfall mehr. Beim
+Überschreiten von `SMCB_USER_MAX_CLIENTS` entfernt der Authserver automatisch den am längsten
+ungenutzten Client (**LRU-Eviction**) aus der `client_ids`-Liste, und die neue Registrierung bzw.
+der Token-Exchange gehen trotzdem durch (**HTTP 2xx**).
+Die Tests verifizieren die Eviction über die Keycloak Admin API, mit einer klassischen Grenzwertanalyse:
+
+| TCID                                        | Beispiele                                            | Erwartung                                                                                  |
+| -------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `@TCID:ZETA_SMCB_MAX_CLIENTS_BELOW_LIMIT`    | client_ids_count=255, configured_max_client_ids_count=256 | Token-Exchange mit neuem `client_id` → **2xx** + `access_token`, keine Eviction nötig        |
+| `@TCID:ZETA_SMCB_MAX_CLIENTS_LIMIT_REACHED`  | client_ids_count=256, configured_max_client_ids_count=256 | Token-Exchange mit neuem `client_id` → **2xx** + `access_token` dank LRU-Eviction; `client_ids`-Liste bleibt ≤ `configured_max_client_ids_count` |
+
+Ein Aufräumschritt (SMC-B User löschen + DCR-Cache leeren) läuft automatisch als `@After`-Hook
+(`SmcbMaxClientsSteps.cleanupSmcbUserAfterScenario`), gescoped auf `@smcb_max_clients`.
 ---
 
 ## Tests ausführen
@@ -153,6 +177,11 @@ Testet, dass der ZETA Guard Anfragen mit ungültigen Policy-Werten mit HTTP 403 
 # Nur DCR
 ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false \
   -Dcucumber.filter.tags='@client_registrierung and @dcr'
+
+# Nur Max SMCB
+./mvnw -pl test/zeta-testsuite verify -Dskip.inttests=false -Dzeta.env=local \
+  -Dcucumber.filter.tags='@smcb_max_clients'
+
 ```
 
 ---

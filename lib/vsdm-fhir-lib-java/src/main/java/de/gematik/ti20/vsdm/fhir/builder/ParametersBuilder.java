@@ -36,11 +36,10 @@ import org.hl7.fhir.r4.model.Type;
 
 public final class ParametersBuilder extends ResourceBuilder<Parameters, ParametersBuilder> {
 
-  WithStructureDefinition<?> definition;
+  final WithStructureDefinition<?> definition;
+  final Map<String, Type> values = new HashMap<>();
 
-  Map<String, Type> values = new HashMap<>();
-
-  private ParametersBuilder(WithStructureDefinition<?> definition) {
+  private ParametersBuilder(final WithStructureDefinition<?> definition) {
     this.definition = definition;
   }
 
@@ -48,24 +47,24 @@ public final class ParametersBuilder extends ResourceBuilder<Parameters, Paramet
     return new ParametersBuilder(definition);
   }
 
-  public ParametersBuilder set(String name, Type type) {
+  public ParametersBuilder set(final String name, final Type type) {
     this.values.put(name, type);
     return this;
   }
 
-  public ParametersBuilder set(String name, String value) {
+  public ParametersBuilder set(final String name, final String value) {
     return set(name, new StringType(value));
   }
 
-  public ParametersBuilder set(String name, boolean value) {
+  public ParametersBuilder set(final String name, final boolean value) {
     return set(name, new BooleanType(value));
   }
 
   public Parameters build() {
     val parameters = this.createResource(Parameters::new, definition.asCanonicalType());
 
-    for (String name : this.values.keySet()) {
-      parameters.setParameter(name, this.values.get(name));
+    for (final Map.Entry<String, Type> entry : this.values.entrySet()) {
+      parameters.setParameter(entry.getKey(), entry.getValue());
     }
 
     return parameters;

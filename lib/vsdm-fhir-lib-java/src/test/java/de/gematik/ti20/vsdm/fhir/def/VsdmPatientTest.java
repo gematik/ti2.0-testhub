@@ -25,7 +25,6 @@
 package de.gematik.ti20.vsdm.fhir.def;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 import ca.uhn.fhir.model.api.annotation.ResourceDef;
 import org.hl7.fhir.r4.model.HumanName;

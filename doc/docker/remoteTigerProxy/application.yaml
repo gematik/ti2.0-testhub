@@ -18,6 +18,7 @@ tigerProxy:
   activateRbelParsingFor:
     - websocket
     - erp-vau
+    - asl
   proxyRoutes:
     - from: /
       to: http://popp-client:8081/

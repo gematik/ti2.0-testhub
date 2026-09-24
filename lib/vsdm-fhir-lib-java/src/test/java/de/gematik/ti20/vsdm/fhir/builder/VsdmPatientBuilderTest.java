@@ -25,12 +25,10 @@
 package de.gematik.ti20.vsdm.fhir.builder;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 import ca.uhn.fhir.model.api.annotation.ResourceDef;
 import de.gematik.bbriccs.fhir.builder.ResourceBuilder;
 import de.gematik.ti20.vsdm.fhir.def.VsdmPatient;
-import java.util.Date;
 import org.hl7.fhir.r4.model.Address;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -142,7 +140,6 @@ class VsdmPatientBuilderTest {
 
   @Test
   void testBuildCompletePatient() {
-    Date birthDate = new Date();
     Address address = new Address().setCity("Berlin");
 
     VsdmPatient patient =

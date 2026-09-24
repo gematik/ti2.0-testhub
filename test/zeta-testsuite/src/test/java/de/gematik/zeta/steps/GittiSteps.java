@@ -27,8 +27,8 @@ package de.gematik.zeta.steps;
 import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
 import de.gematik.test.tiger.glue.RBelValidatorGlue;
 import de.gematik.zeta.config.PoPpConfig;
-import de.gematik.zeta.services.ZetaPepJwtTestFactory;
-import de.gematik.zeta.services.ZetaPepJwtTestFactory.PdpTarget;
+import de.gematik.zeta.services.ZetaJwtTestFactory;
+import de.gematik.zeta.services.ZetaJwtTestFactory.PdpTarget;
 import io.cucumber.java.de.Angenommen;
 import io.cucumber.java.de.Dann;
 import io.cucumber.java.de.Wenn;
@@ -57,8 +57,8 @@ import org.springframework.web.client.RestTemplate;
  *   <li>The SMC-B card is provisioned via the card terminal simulator, exactly as in {@link
  *       CardTerminalSteps} / {@code zeta-asl/asl.feature}.
  *   <li>The registration against the PoPP ZETA-Guard is triggered via {@link
- *       ZetaPepJwtTestFactory#doTokenExchangeViaProxy(PdpTarget, String, String, int, boolean)},
- *       the same DCR + SMC-B-token-exchange building block already used by {@code
+ *       ZetaJwtTestFactory#doTokenExchangeViaProxy(PdpTarget, String, String, int, boolean)}, the
+ *       same DCR + SMC-B-token-exchange building block already used by {@code
  *       ZetaPepJwtSteps#sendTokenExchangeViaTigerProxy}. Note: the PoPP-Client docker service
  *       itself only generates PoPP-Tokens (health-data authorization, via the PoPP-Server
  *       WebSocket) and is unrelated to ZETA-Guard client registration, so it cannot be used here.
@@ -124,7 +124,7 @@ public class GittiSteps {
     // something fixable from the test side — see #primarySystemReceivesTokensFromPoppZetaGuard.
     String tokenUrl = PoPpConfig.tokenUrl();
     URI proxyUri = resolveTigerProxyUri();
-    ZetaPepJwtTestFactory.doTokenExchangeViaProxy(
+    ZetaJwtTestFactory.doTokenExchangeViaProxy(
         PdpTarget.POPP, tokenUrl, proxyUri.getHost(), proxyUri.getPort(), false);
   }
 
