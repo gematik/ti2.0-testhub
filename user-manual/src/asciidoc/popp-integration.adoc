@@ -15,7 +15,7 @@ This is the default scenario where the Testhub uses the Gematik sample implement
 
 1. Set `POPP_HTTP_URL` to the `http://popp-client:{PORT}/token`. Find the value of `{PORT}` by looking at the port configuration of the popp-client container.
 
-    # doc/docker/compose-local.yml
+    # infra/docker/compose-local.yml
     vsdm-client-base:
     # ...
     environment:
@@ -33,7 +33,7 @@ If you want to operate the entire PoPP infrastructure (PoPP Client and Server) e
 1. Ensure the external infrastructure is up, running and reachable.
 2. Disable using the PoPP mock implementation in VSDM client by setting `VSDM_USE_MOCK_POPP_TOKEN=false`:
 
-    # doc/docker/compose-local.yml
+    # infra/docker/compose-local.yml
     vsdm-client:
     # ...
     environment:
@@ -41,7 +41,7 @@ If you want to operate the entire PoPP infrastructure (PoPP Client and Server) e
 
 3. Set `POPP_SERVER_URL` to the external server endpoint to request a new PoPP token:
 
-    # doc/docker/backend/compose-popp-services.yml
+    # infra/docker/backend/compose-popp-services.yml
     popp-client:
         # ...
         environment:
@@ -49,7 +49,7 @@ If you want to operate the entire PoPP infrastructure (PoPP Client and Server) e
 
 4. Ensure the PEP components use the external PoPP server to resolve the public keys for PoPP token validation:
 
-    # doc/docker/backend/zeta/vsdm-zeta-pep.conf
+    # infra/docker/backend/zeta/vsdm-zeta-pep.conf
     pep_popp_issuer https://example.com/
 
 Rebuild and restart services to ensure all configuration values are applied correctly.

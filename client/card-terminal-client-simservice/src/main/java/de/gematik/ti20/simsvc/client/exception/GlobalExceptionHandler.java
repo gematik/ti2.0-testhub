@@ -61,9 +61,8 @@ public class GlobalExceptionHandler {
       final ResponseStatusException e) {
     logger.warn("Response status exception: {}", e.getReason());
 
-    Map<String, String> errorResponse = new HashMap<>();
-    errorResponse.put(ERROR_KEY, e.getStatusCode().toString());
-    errorResponse.put(MESSAGE_KEY, e.getReason());
+    final Map<String, String> errorResponse =
+        Map.of(ERROR_KEY, e.getStatusCode().toString(), MESSAGE_KEY, e.getReason());
 
     return ResponseEntity.status(e.getStatusCode()).body(errorResponse);
   }
@@ -73,9 +72,10 @@ public class GlobalExceptionHandler {
       final CardNotFoundException e) {
     logger.info("CardNotFound exception: ", e);
 
-    final Map<String, String> errorInfo = new HashMap<>();
-    errorInfo.put(ERROR_KEY, "Card not found");
-    errorInfo.put(MESSAGE_KEY, "No card found for handle: " + e.getCardId());
+    final Map<String, String> errorInfo =
+        Map.of(
+            ERROR_KEY, "Card not found", MESSAGE_KEY, "No card found for handle: " + e.getCardId());
+
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorInfo);
   }
 
@@ -84,9 +84,12 @@ public class GlobalExceptionHandler {
   public ResponseEntity<Map<String, String>> handleGenericException(final Exception e) {
     logger.error("Unexpected error: ", e);
 
-    Map<String, String> errorResponse = new HashMap<>();
-    errorResponse.put(ERROR_KEY, "Internal Server Error");
-    errorResponse.put(MESSAGE_KEY, "An unexpected error occurred: " + e.getMessage());
+    final Map<String, String> errorResponse =
+        Map.of(
+            ERROR_KEY,
+            "Internal Server Error",
+            MESSAGE_KEY,
+            "An unexpected error occurred: " + e.getMessage());
 
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
   }

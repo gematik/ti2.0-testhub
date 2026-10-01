@@ -39,7 +39,7 @@ public class TraceIdFilter implements Filter {
       throws IOException, ServletException {
     try {
       if (request instanceof HttpServletRequest httpRequest) {
-        String traceId = httpRequest.getHeader("x-trace-id");
+        final String traceId = httpRequest.getHeader("x-trace-id");
         MDC.put("traceId", traceId);
       }
 
@@ -50,8 +50,12 @@ public class TraceIdFilter implements Filter {
   }
 
   @Override
-  public void init(FilterConfig filterConfig) {}
+  public void init(FilterConfig filterConfig) {
+    // nothing to init
+  }
 
   @Override
-  public void destroy() {}
+  public void destroy() {
+    // nothing to destroy
+  }
 }

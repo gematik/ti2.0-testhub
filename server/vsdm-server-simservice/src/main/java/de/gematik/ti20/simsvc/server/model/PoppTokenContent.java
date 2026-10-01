@@ -24,16 +24,4 @@
  */
 package de.gematik.ti20.simsvc.server.model;
 
-import lombok.Getter;
-
-@Getter
-public class PoppTokenContent {
-
-  private final String insurerId;
-  private final String patientId;
-
-  public PoppTokenContent(final String insurerId, final String patientId) {
-    this.insurerId = insurerId;
-    this.patientId = patientId;
-  }
-}
+public record PoppTokenContent(String insurerId, String patientId) {}

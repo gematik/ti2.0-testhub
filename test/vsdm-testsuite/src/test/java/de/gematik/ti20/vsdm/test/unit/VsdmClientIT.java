@@ -474,6 +474,30 @@ class VsdmClientIT {
     assertTrue(result.responseBody.contains("VSDSERVICE_MISSING_PROFILE_VERSION"));
   }
 
+  @Test
+  @Order(11)
+  void testSkipPoppTokenHeader() throws Exception {
+    final Result result =
+        readVsdOnce(
+            null,
+            new RequestBuilder()
+                .ifNoneMatch("0")
+                .isFhirXml(false)
+                .skipPoppTokenHeader(true)
+                .profileVersion(PROFILE_VERSION)
+                .build());
+    assertEquals(400, result.response.code());
+    System.out.println(result.responseBody);
+    assertEquals(
+        """
+        {
+          "error": "PoPPMissing",
+          "error_description": "PoPP header missing",
+          "error_uri": "https://vsdm-zeta-ingress/doc/errors/PoPPMissing.html"
+        }""",
+        result.responseBody);
+  }
+
   private static void removeCardFromSlot(final int slot) throws Exception {
     Request removeCard =
         new Request.Builder()
@@ -578,6 +602,7 @@ class VsdmClientIT {
   private static class RequestBuilder {
     private String ifNoneMatch;
     private Boolean isFhirXml;
+    private Boolean skipPoppTokenHeader;
     private String profileVersion;
     private String virtualCard;
 
@@ -588,6 +613,11 @@ class VsdmClientIT {
 
     public RequestBuilder isFhirXml(Boolean isFhirXml) {
       this.isFhirXml = isFhirXml;
+      return this;
+    }
+
+    public RequestBuilder skipPoppTokenHeader(Boolean skipPoppTokenHeader) {
+      this.skipPoppTokenHeader = skipPoppTokenHeader;
       return this;
     }
 
@@ -604,6 +634,9 @@ class VsdmClientIT {
     public Request build() {
       String url = resolvePlaceholders(VSDM_ENDPOINT);
       url += "&isFhirXml=" + isFhirXml;
+      if (skipPoppTokenHeader != null) {
+        url += "&skipPoppTokenHeader=" + skipPoppTokenHeader;
+      }
       if (profileVersion != null) {
         url += "&profileVersion=" + profileVersion;
       }
@@ -633,7 +666,8 @@ class VsdmClientIT {
     log.info("readVsd: " + readVsdResponse.code());
     log.info(readVsdBody);
 
-    final Resource resource = fhirCodec.decode(expectedClazz, readVsdBody);
+    final Resource resource =
+        expectedClazz != null ? fhirCodec.decode(expectedClazz, readVsdBody) : null;
 
     return new Result(resource, readVsdResponse, readVsdBody);
   }

@@ -28,8 +28,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 
 class GlobalExceptionHandlerTest {
 
@@ -53,5 +55,33 @@ class GlobalExceptionHandlerTest {
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     assertEquals("Internal Server Error", response.getBody().get("error"));
     assertTrue(response.getBody().get("message").contains("Card not found: card-123"));
+  }
+
+  @Test
+  void testHandleResponseStatusException() {
+    ResponseStatusException ex =
+        new ResponseStatusException(HttpStatus.UNAUTHORIZED, "eGK data is invalid");
+
+    ResponseEntity<Map<String, String>> response = handler.handleResponseStatusException(ex);
+
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    assertEquals("Unauthorized", response.getBody().get("error"));
+    assertEquals("eGK data is invalid", response.getBody().get("message"));
+  }
+
+  @Test
+  void testHandleVsdmServerException() {
+    VsdmServerException ex =
+        new VsdmServerException(
+            HttpStatus.BAD_GATEWAY,
+            Map.of(HttpHeaders.ETAG, "\"etag-1\"", "vsdm-pz", "pz-1"),
+            "{\"error\":\"upstream\"}");
+
+    ResponseEntity<String> response = handler.handleVsdmServerException(ex);
+
+    assertEquals(HttpStatus.BAD_GATEWAY, response.getStatusCode());
+    assertEquals("{\"error\":\"upstream\"}", response.getBody());
+    assertEquals("\"etag-1\"", response.getHeaders().getETag());
+    assertEquals("pz-1", response.getHeaders().getFirst("vsdm-pz"));
   }
 }

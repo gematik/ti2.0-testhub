@@ -12,7 +12,7 @@
 | Anzahl notwendiger Infrastruktur-Komponenten (Tiger-Proxies)
 | *2* (`docker-tiger-proxy`, `ti-connect-tiger-proxy`)
 | *1* (`docker-tiger-proxy`; Canopy als DNS-Steuerung)
-| `doc/docker/compose-local.yaml`, Löschung `doc/docker/tiConnectTigerProxy/*`
+| `infra/docker/compose-local.yaml`, Löschung `infra/docker/tiConnectTigerProxy/*`
 
 | Aufwand zur Integration neuer Mocks/FDs
 | *Gesamtaufwand: ~gleich* (Tiger-Proxies müssen konfiguriert werden)
@@ -55,7 +55,7 @@ Die Reduktion eines Tiger-Proxy-Containers führt daher nicht zu einer messbaren
 ==== Durchgeführte Optimierung
 
 * Zusammenführung auf ein gemeinsames Netzwerk (`testhub_network`).
-* Entfernung des zweiten Proxies inklusive dessen Konfiguration (`doc/docker/tiConnectTigerProxy/application.yaml` gelöscht).
+* Entfernung des zweiten Proxies inklusive dessen Konfiguration (`infra/docker/tiConnectTigerProxy/application.yaml` gelöscht).
 * Entfernung der Forwarding-Kette im `remoteTigerProxy`.
 
 ==== Messbares Ergebnis (Vorher/Nachher)

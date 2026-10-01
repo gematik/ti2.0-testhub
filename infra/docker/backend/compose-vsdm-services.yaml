@@ -12,10 +12,10 @@ services:
     env_file:
       - path: ../.env
         required: true
-    profiles: [ "full", "backend-only", "perf" ]
+    profiles: [ "full", "backend-only" ]
     platform: linux/amd64
     ports:
-      - "${PORT_VSDM_ZETA_INGRESS:?PORT_VSDM_ZETA_INGRESS missing – set it in doc/docker/.env}:443"
+      - "${PORT_VSDM_ZETA_INGRESS:?PORT_VSDM_ZETA_INGRESS missing – set it in infra/docker/.env}:443"
     volumes:
       - ./zeta/ingress/conf:/etc/nginx/conf.d:ro
       - ./zeta/ingress/certs:/etc/nginx/certs:ro
@@ -30,10 +30,10 @@ services:
     env_file:
       - path: ../.env
         required: true
-    profiles: [ "full", "backend-only", "perf" ]
+    profiles: [ "full", "backend-only" ]
     ports:
-      - "${PORT_VSDM_SERVER:?PORT_VSDM_SERVER missing – set it in doc/docker/.env}:80"
-      - "${PORT_VSDM_SERVER_DEBUG:?PORT_VSDM_SERVER_DEBUG missing – set it in doc/docker/.env}:5012"
+      - "${PORT_VSDM_SERVER:?PORT_VSDM_SERVER missing – set it in infra/docker/.env}:80"
+      - "${PORT_VSDM_SERVER_DEBUG:?PORT_VSDM_SERVER_DEBUG missing – set it in infra/docker/.env}:5012"
     # volumes:
     #   - type: bind
     #     source: /tmp/testhub/test-data
@@ -52,12 +52,12 @@ services:
     env_file:
       - path: ../.env
         required: true
-    profiles: [ "full", "backend-only", "perf" ]
+    profiles: [ "full", "backend-only" ]
     platform: linux/amd64
     container_name: vsdm-zeta-pep
     environment: *vsdm-no-proxy-env
     ports:
-      - "${PORT_VSDM_ZETA_PEP:?PORT_VSDM_ZETA_PEP missing – set it in doc/docker/.env}:80"
+      - "${PORT_VSDM_ZETA_PEP:?PORT_VSDM_ZETA_PEP missing – set it in infra/docker/.env}:80"
     command: [ "nginx", "-g", "daemon off;", "-c", "/ci_nginx/nginx.conf" ]
     volumes:
       - ./zeta/vsdm-pep-conf:/ci_nginx:ro
@@ -78,7 +78,7 @@ services:
     env_file:
       - path: ../.env
         required: true
-    profiles: [ "full", "backend-only", "perf" ]
+    profiles: [ "full", "backend-only" ]
     platform: linux/amd64
     container_name: vsdm-zeta-pdp
     environment:
@@ -130,9 +130,9 @@ services:
       TPM_KEYSTORE_LOCATION: /opt/keycloak/conf/tpm/tpm-certificates.p12
       TPM_KEYSTORE_PASSWORD: "O3Bdel9P5+cOgzIGANkOPEzBQM3V"
     ports:
-      - "${PORT_VSDM_ZETA_PDP:?PORT_VSDM_ZETA_PDP missing – set it in doc/docker/.env}:80"
-      - "${PORT_VSDM_ZETA_PDP_HEALTH:?PORT_VSDM_ZETA_PDP_HEALTH missing – set it in doc/docker/.env}:9000"
-      - "${PORT_VSDM_ZETA_PDP_DEBUG:?PORT_VSDM_ZETA_PDP_DEBUG missing – set it in doc/docker/.env}:5022"
+      - "${PORT_VSDM_ZETA_PDP:?PORT_VSDM_ZETA_PDP missing – set it in infra/docker/.env}:80"
+      - "${PORT_VSDM_ZETA_PDP_HEALTH:?PORT_VSDM_ZETA_PDP_HEALTH missing – set it in infra/docker/.env}:9000"
+      - "${PORT_VSDM_ZETA_PDP_DEBUG:?PORT_VSDM_ZETA_PDP_DEBUG missing – set it in infra/docker/.env}:5022"
     volumes:
       - ./zeta/realm:/opt/keycloak/data/import
       - ./zeta/smcb:/opt/keycloak/conf/smcb
@@ -171,7 +171,7 @@ services:
     env_file:
       - path: ../.env
         required: true
-    profiles: [ "full", "backend-only", "perf" ]
+    profiles: [ "full", "backend-only" ]
     platform: linux/amd64
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -187,11 +187,11 @@ services:
     env_file:
       - path: ../.env
         required: true
-    profiles: [ "full", "backend-only", "perf" ]
+    profiles: [ "full", "backend-only" ]
     platform: linux/amd64
     environment: *vsdm-no-proxy-env
     ports:
-      - "${PORT_VSDM_ZETA_PDP_OPA:?PORT_VSDM_ZETA_PDP_OPA missing – set it in doc/docker/.env}:8181"
+      - "${PORT_VSDM_ZETA_PDP_OPA:?PORT_VSDM_ZETA_PDP_OPA missing – set it in infra/docker/.env}:8181"
     command:
       - 'run'
       - '--server'

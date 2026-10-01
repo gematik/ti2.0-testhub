@@ -202,6 +202,7 @@ Returns the VSDM data provided by the server for the given terminal and eGK slot
 
 - `virtualCard` - Optional identifier used when a token is injected
 - `isFhirXml` - When `true`, returns the VSDM response as FHIR XML instead of JSON
+- `skipPoppTokenHeader` - When `true`, the vsdm-client will not send a PoPP token to the backend
 - `profileVersion` - Optional profile version appended as backend query parameter
 
 **Optional headers:**

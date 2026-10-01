@@ -176,13 +176,17 @@ public class GittiSteps {
   public void primarySystemReceivesTokensFromVsdmZetaGuard() {
     String vsdmZetaGuardTokenUrl =
         TigerGlobalConfiguration.resolvePlaceholders(
-            "http://${ports.host}:${ports.vsdmPdpPort}/auth/realms/zeta-guard/protocol/openid-connect/token");
+            "https://vsdm-zeta-ingress/auth/realms/zeta-guard/protocol/openid-connect/token");
     // The VSDM-Client's ZETA registration traffic is captured by docker-tiger-proxy under the
-    // "vsdm-zeta-ingress" DNS alias (see registerFirstTimeAtVsdmZetaGuard), NOT under the direct
-    // PDP host/port used above to derive the path. Since the PoPP flow's token-exchange happens to
-    // use the exact same request PATH (both realms are named "zeta-guard"), a plain
-    // "find last request to path" would risk matching PoPP's already-recorded response instead of
-    // VSDM's. We therefore additionally filter by the captured Host to disambiguate the two.
+    // "vsdm-zeta-ingress" DNS alias (see registerFirstTimeAtVsdmZetaGuard). Both PoPP's and VSDM's
+    // token-exchange requests use the exact same request PATH (both realms are named
+    // "zeta-guard"), so a plain "find last request to path" relies on VSDM's request always being
+    // recorded after PoPP's already-recorded one (which it reliably is, since the VSDM
+    // registration is triggered only after the PoPP registration completed). We do NOT filter by
+    // Host here: Tiger's host filter matches against the network-level receiver address of a
+    // message, which for traffic forwarded from the docker-compose Tiger-Proxy is the resolved
+    // container IP, not the "vsdm-zeta-ingress" DNS alias found in the HTTP "Host" header — so
+    // such a filter would never match and always fail.
     assertAccessAndRefreshTokenIssuedByZetaGuard(vsdmZetaGuardTokenUrl);
   }
 
@@ -193,12 +197,12 @@ public class GittiSteps {
    * steps ("TGR finde die letzte Anfrage mit dem Pfad ...", "TGR prüfe aktuelle Antwort ...").
    *
    * <p>Only used for the VSDM ZETA-Guard (see {@link
-   * #primarySystemReceivesTokensFromVsdmZetaGuard()}), so the {@code "vsdm-zeta-ingress"} host
-   * filter (see {@link #assertAccessTokenIssuedByZetaGuard(String, String)}) is always applied
+   * #primarySystemReceivesTokensFromVsdmZetaGuard()}). No host filter is applied — see {@link
+   * #assertAccessTokenIssuedByZetaGuard(String, String)} for why such a filter would never match
    * here.
    */
   private void assertAccessAndRefreshTokenIssuedByZetaGuard(String tokenEndpointUrl) {
-    assertAccessTokenIssuedByZetaGuard(tokenEndpointUrl, "vsdm-zeta-ingress");
+    assertAccessTokenIssuedByZetaGuard(tokenEndpointUrl, null);
     rbelValidatorGlue.currentResponseMessageContainsNode("$.body.refresh_token");
     rbelValidatorGlue.currentResponseMessageAttributeMatches("$.body.refresh_token", ".+");
   }
@@ -218,8 +222,14 @@ public class GittiSteps {
    * for the same purpose in {@code zeta-asl/asl.feature}).
    *
    * @param hostFilter if non-null/blank, restricts the search to requests whose captured Host
-   *     matches this value (see {@link #primarySystemReceivesTokensFromVsdmZetaGuard()} for why
-   *     this is necessary — PoPP and VSDM token-exchange requests share the same request path).
+   *     matches this value. Not used for the VSDM ZETA-Guard: PoPP and VSDM token-exchange requests
+   *     share the same request path, but Tiger's host filter compares against the network-level
+   *     receiver address of a message. For traffic forwarded from the docker-compose Tiger-Proxy
+   *     that address is the resolved container IP, not the DNS alias (e.g. "vsdm-zeta-ingress")
+   *     carried in the HTTP "Host" header, so such a filter would never match and always fail.
+   *     Disambiguation instead relies on the VSDM token request always being recorded after PoPP's
+   *     (VSDM registration is only triggered once PoPP registration has completed), so "find last
+   *     request to path" reliably picks the right one.
    */
   private void assertAccessTokenIssuedByZetaGuard(String tokenEndpointUrl, String hostFilter) {
     String path = URI.create(tokenEndpointUrl).getPath();

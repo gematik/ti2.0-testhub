@@ -24,8 +24,13 @@
  */
 package de.gematik.ti20.simsvc.server.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.lang.reflect.Method;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -222,5 +227,34 @@ class EtagServiceTest {
     String secondEtag = headers2.getFirst(EtagService.HEADER_NAME);
 
     assertEquals(firstEtag, secondEtag);
+  }
+
+  @Test
+  void testAddEtagPadding_AddsQuotesWhenMissing() throws Exception {
+    Method method = EtagService.class.getDeclaredMethod("addEtagPadding", String.class);
+    method.setAccessible(true);
+
+    assertEquals("\"abc123\"", etagService.addEtagPadding("abc123"));
+    assertEquals("\"abc123\"", etagService.addEtagPadding("\"abc123\""));
+    assertEquals("W/\"abc123\"", etagService.addEtagPadding("W/\"abc123\""));
+  }
+
+  @Test
+  void testRemoveEtagPadding_RemovesQuotesWhenPresent() throws Exception {
+    assertEquals("abc123", etagService.removeEtagPadding("\"abc123\""));
+    assertEquals("plain-text", etagService.removeEtagPadding("plain-text"));
+  }
+
+  @Test
+  void testCheckEtag_WithWeakValidatorEtag() {
+    String kvnr = "X123456789";
+    String encodedResponse = "{\"resourceType\":\"Bundle\"}";
+    HttpHeaders headers = new HttpHeaders();
+
+    etagService.addEtagHeader(kvnr, encodedResponse, headers);
+    String storedEtag = headers.getFirst(EtagService.HEADER_NAME);
+
+    assertTrue(etagService.checkEtag(kvnr, storedEtag));
+    assertFalse(etagService.checkEtag(kvnr, "W/\"different\""));
   }
 }

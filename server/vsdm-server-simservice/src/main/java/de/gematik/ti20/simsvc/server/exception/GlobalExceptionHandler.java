@@ -43,16 +43,20 @@ import org.springframework.web.server.ResponseStatusException;
 @Slf4j
 public class GlobalExceptionHandler {
 
+  public static final String APPLICATION = "application";
+  public static final String FHIR_JSON = "fhir+json";
+  public static final String FHIR_XML = "fhir+xml";
+
   @ExceptionHandler(ResponseStatusException.class)
   public ResponseEntity<String> handleResponseStatusException(final ResponseStatusException ex) {
     final ErrorCase errorCase = ErrorCase.getByBdeReference(ex.getReason());
     if (errorCase != null) {
       return ResponseEntity.status(errorCase.getHttpCode())
-          .contentType(new MediaType("application", "fhir+json", StandardCharsets.UTF_8))
+          .contentType(new MediaType(APPLICATION, FHIR_JSON, StandardCharsets.UTF_8))
           .body(operationOutcome(errorCase, Map.of()));
     } else {
       return ResponseEntity.status(ex.getStatusCode())
-          .contentType(new MediaType("application", "fhir+json", StandardCharsets.UTF_8))
+          .contentType(new MediaType(APPLICATION, FHIR_JSON, StandardCharsets.UTF_8))
           .body(operationOutcome(ErrorCase.SERVICE_INTERNAL_SERVER_ERROR, Map.of()));
     }
   }
@@ -66,8 +70,8 @@ public class GlobalExceptionHandler {
             : EncodingType.JSON;
     final MediaType contentType =
         encodingType == EncodingType.XML
-            ? new MediaType("application", "fhir+xml", StandardCharsets.UTF_8)
-            : new MediaType("application", "fhir+json", StandardCharsets.UTF_8);
+            ? new MediaType(APPLICATION, FHIR_XML, StandardCharsets.UTF_8)
+            : new MediaType(APPLICATION, FHIR_JSON, StandardCharsets.UTF_8);
     if (errorCase != null) {
       return ResponseEntity.status(errorCase.getHttpCode())
           .contentType(contentType)

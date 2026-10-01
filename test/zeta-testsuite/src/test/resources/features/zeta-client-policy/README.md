@@ -21,8 +21,8 @@ wird hierfür lokal – nur für dieses Szenario – auf den Remote-Admin-Port
 umgebogen).
 
 PDP→OPA-Verkehr (Docker-intern) wird per DNS-Interception (Canopy, siehe
-`doc/docker/compose-local.yaml` "proxiedHosts" +
-`doc/docker/remoteTigerProxy/application.yaml` "proxyRoutes") über
+`infra/docker/compose-local.yaml` "proxiedHosts" +
+`infra/docker/remoteTigerProxy/application.yaml` "proxyRoutes") über
 `docker-tiger-proxy` geroutet, damit dieser den Verkehr überhaupt sieht.
 
 Der ZeTA-PDP (Keycloak) befragt OPA nur EINMAL pro SMC-B-Identität, bei der
@@ -129,7 +129,7 @@ Beispielzeile (siehe `authz.rego`):
 (Deny-Listen-)Wert, `@policy_erlaubnis` auf den jeweils echten, gültigen Wert.
 
 ## Implementierung
-- **Policy**: `doc/docker/backend/zeta/policies/authz.rego` – je eine
+- **Policy**: `infra/docker/backend/zeta/policies/authz.rego` – je eine
   `*_is_allowed`-Regel pro geprüftem Feld, als Deny-Liste umgesetzt (nur die
   synthetischen, im Negativ-Test verwendeten Werte werden geblockt). So bleibt
   die Policy für beliebige echte Werte (z. B. andere SMC-B-professionOIDs)
@@ -140,7 +140,7 @@ Beispielzeile (siehe `authz.rego`):
   registrieren), `CardTerminalSteps.java` (Kartenterminal/Karten laden).
 
 ## Voraussetzungen
-- Docker-Compose-Stack muss laufen: `docker compose -f doc/docker/compose-local.yaml --profile full up -d`
+- Docker-Compose-Stack muss laufen: `docker compose -f infra/docker/compose-local.yaml --profile full up -d`
 - Docker-CLI/-Socket muss vom Maven-Prozess aus erreichbar sein (für
   `docker restart vsdm-client` in `PolicyRejectionSteps`).
 

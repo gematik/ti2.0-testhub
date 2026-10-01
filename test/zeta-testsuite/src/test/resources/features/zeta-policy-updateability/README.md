@@ -24,7 +24,7 @@ PEP → PDP → OPA.
 - **Decision**: `POST /v1/data/zeta/authz/decision` mit `professionOID` als Input
 
 ## Voraussetzungen
-- Docker-Compose-Stack muss laufen: `docker compose -f doc/docker/compose-local.yaml --profile full up -d`
+- Docker-Compose-Stack muss laufen: `docker compose -f infra/docker/compose-local.yaml --profile full up -d`
 - OPA muss auf Port 2401 erreichbar sein (konfigurierbar via `zeta.server.opa.baseUrl`)
 
 ## Hinweis (Produktion)

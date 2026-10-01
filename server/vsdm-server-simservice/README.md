@@ -211,7 +211,7 @@ If you want to customize or reuse your test data you can use Docker Volumes. The
 easiest way to get started is:
 
 1. Copy the examples from `<projectRoot>/public-test-data` to a local folder.
-2. Open `<projectRoot>/doc/docker/vsdm/compose-local.yaml` and check the value
+2. Open `<projectRoot>/infra/docker/vsdm/compose-local.yaml` and check the value
    of the environment variable `VSDM_PATH_TO_TEST_DATA`.
 3. Add a volume to the compose file and point your local directory to the value
    of `VSDM_PATH_TO_TEST_DATA`.

@@ -49,7 +49,7 @@ import org.springframework.http.ResponseEntity;
 @ExtendWith(MockitoExtension.class)
 class VsdmControllerV1Test {
 
-  private String VALID_USER_INFO =
+  private static final String VALID_USER_INFO =
       Base64.getEncoder()
           .encodeToString(
               """
@@ -73,7 +73,7 @@ class VsdmControllerV1Test {
   private VsdmControllerV1 vsdmController;
 
   @BeforeEach
-  void setUp() throws Exception {
+  void setUp() {
     VsdmConfig vsdmConfig = new VsdmConfig();
     vsdmConfig.setIknr("109500969");
     vsdmConfig.setValidKvnrPrefix("X1234");
@@ -116,8 +116,7 @@ class VsdmControllerV1Test {
               }
           """,
             iknr, kvnr);
-    String poppTokenContentCoded = Base64.getEncoder().encodeToString(poppTokenContent.getBytes());
-    return poppTokenContentCoded;
+    return Base64.getEncoder().encodeToString(poppTokenContent.getBytes());
   }
 
   @Test
@@ -507,5 +506,77 @@ class VsdmControllerV1Test {
 
     assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getErrorCase().getHttpCode());
     assertEquals(ErrorCase.VSDSERVICE_INVALID_PROFILE_VERSION, exception.getErrorCase());
+  }
+
+  @Test
+  void testVsdmbundle_IfNoneMatchMissingHeader_ThrowsVsdmError() {
+    String kvnr = "X123456789";
+    String iknr = "109500969";
+    String poppTokenContentCoded = makePoppTokenContentCoded(kvnr, iknr);
+
+    when(request.getHeader("if-none-match")).thenReturn(null);
+
+    VsdmErrorException exception =
+        assertThrows(
+            VsdmErrorException.class,
+            () ->
+                vsdmController.vsdmbundle(
+                    poppTokenContentCoded, VALID_USER_INFO, null, "1.1", request));
+
+    assertEquals(HttpStatus.PRECONDITION_REQUIRED.value(), exception.getErrorCase().getHttpCode());
+    assertEquals(ErrorCase.VSDSERVICE_MISSING_PATIENT_RECORD_VERSION, exception.getErrorCase());
+  }
+
+  @Test
+  void testVsdmbundle_IfNoneMatchNotQuoted_ThrowsServiceError() {
+    String kvnr = "X123456789";
+    String iknr = "109500969";
+    String poppTokenContentCoded = makePoppTokenContentCoded(kvnr, iknr);
+
+    when(request.getHeader("if-none-match")).thenReturn("123456789");
+
+    VsdmErrorException exception =
+        assertThrows(
+            VsdmErrorException.class,
+            () ->
+                vsdmController.vsdmbundle(
+                    poppTokenContentCoded, VALID_USER_INFO, "123456789", "1.1", request));
+
+    assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getErrorCase().getHttpCode());
+    assertEquals(ErrorCase.SERVICE_MISSING_OR_INVALID_HEADER, exception.getErrorCase());
+  }
+
+  @Test
+  void testVsdmbundle_InvalidKvnrFormat_ThrowsVsdmError() {
+    String kvnr = "INVALID-KVNR";
+    String iknr = "109500969";
+    String poppTokenContentCoded = makePoppTokenContentCoded(kvnr, iknr);
+
+    VsdmErrorException exception =
+        assertThrows(
+            VsdmErrorException.class,
+            () ->
+                vsdmController.vsdmbundle(
+                    poppTokenContentCoded, VALID_USER_INFO, "\"0\"", "1.1", request));
+
+    assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getErrorCase().getHttpCode());
+    assertEquals(ErrorCase.VSDSERVICE_INVALID_KVNR, exception.getErrorCase());
+  }
+
+  @Test
+  void testVsdmbundle_UnknownKvnr_ThrowsVsdmError() {
+    String kvnr = "X987654321";
+    String iknr = "109500969";
+    String poppTokenContentCoded = makePoppTokenContentCoded(kvnr, iknr);
+
+    VsdmErrorException exception =
+        assertThrows(
+            VsdmErrorException.class,
+            () ->
+                vsdmController.vsdmbundle(
+                    poppTokenContentCoded, VALID_USER_INFO, "\"0\"", "1.1", request));
+
+    assertEquals(HttpStatus.NOT_FOUND.value(), exception.getErrorCase().getHttpCode());
+    assertEquals(ErrorCase.VSDSERVICE_UNKNOWN_KVNR, exception.getErrorCase());
   }
 }

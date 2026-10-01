@@ -87,8 +87,7 @@ class VsdmServiceTest {
     verify(testDataRepository).patientByKvnr(kvnr);
   }
 
-  void testSuccessful(final String kvnr, final String iknr) throws Exception {
-
+  void testSuccessful(final String kvnr) {
     Resource result = vsdmService.readVsd(kvnr);
 
     assertNotNull(result);
@@ -121,16 +120,16 @@ class VsdmServiceTest {
   }
 
   @Test
-  void testReadVsd_Synthetic_Success() throws Exception {
-    testSuccessful("X123456789", "109500969");
+  void testReadVsd_Synthetic_Success() {
+    testSuccessful("X123456789");
   }
 
   @Test
-  void testReadVsd_Synthetic_Success_Letter() throws Exception {
-    testSuccessful("X12345678X", "109500969");
+  void testReadVsd_Synthetic_Success_Letter() {
+    testSuccessful("X12345678X");
   }
 
-  private void testErrorCase(final String kvnr, final String iknr, final String expectedReason) {
+  private void testErrorCase(final String kvnr, final String expectedReason) {
 
     ResponseStatusException exception =
         assertThrows(ResponseStatusException.class, () -> vsdmService.readVsd(kvnr));
@@ -140,17 +139,17 @@ class VsdmServiceTest {
   }
 
   @Test
-  void testReadVsd_Invalid_KVNR_Syntax() throws Exception {
-    testErrorCase("123456789X", "987654321", "VSDSERVICE_INVALID_KVNR");
+  void testReadVsd_Invalid_KVNR_Syntax() {
+    testErrorCase("123456789X", "VSDSERVICE_INVALID_KVNR");
   }
 
   @Test
-  void testReadVsd_Invalid_KVNR_Prefix() throws Exception {
-    testErrorCase("X899999999", "109500969", "VSDSERVICE_INVALID_KVNR");
+  void testReadVsd_Invalid_KVNR_Prefix() {
+    testErrorCase("X899999999", "VSDSERVICE_INVALID_KVNR");
   }
 
   @Test
-  void testReadVsd_PatientRecordNotFound() throws Exception {
-    testErrorCase("X432156789", "109500969", "VSDSERVICE_PATIENT_RECORD_NOT_FOUND");
+  void testReadVsd_PatientRecordNotFound() {
+    testErrorCase("X432156789", "VSDSERVICE_PATIENT_RECORD_NOT_FOUND");
   }
 }

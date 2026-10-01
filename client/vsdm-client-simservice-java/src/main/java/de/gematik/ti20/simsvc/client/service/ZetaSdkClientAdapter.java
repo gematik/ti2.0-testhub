@@ -51,6 +51,7 @@ public class ZetaSdkClientAdapter {
       @Nonnull String traceId,
       @Nonnull String poppToken,
       boolean isFhirXml,
+      boolean skipPoppTokenHeader,
       @CheckForNull String ifNoneMatch) {}
 
   /** Wraps the response from the Zeta client for convenience */
@@ -69,16 +70,18 @@ public class ZetaSdkClientAdapter {
       @Nonnull final String url, @Nonnull final ZetaSdkClientAdapter.RequestParameters parameters)
       throws InterruptedException {
 
-    try (ZetaHttpClient httpClient =
+    try (final ZetaHttpClient httpClient =
         zetaClient.httpClient(
             it -> {
               it.disableServerValidation(true);
               return Unit.INSTANCE;
             })) {
 
-      Map<String, String> headers = new HashMap<>();
+      final Map<String, String> headers = new HashMap<>();
       headers.put("x-trace-id", parameters.traceId());
-      headers.put("PoPP", parameters.poppToken());
+      if (!parameters.skipPoppTokenHeader) {
+        headers.put("PoPP", parameters.poppToken());
+      }
       headers.put(
           "Accept", (parameters.isFhirXml) ? "application/fhir+xml" : "application/fhir+json");
       if (!Strings.isNullOrEmpty(parameters.ifNoneMatch())) {

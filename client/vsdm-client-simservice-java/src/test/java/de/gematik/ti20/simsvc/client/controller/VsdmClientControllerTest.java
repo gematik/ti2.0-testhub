@@ -28,8 +28,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import de.gematik.ti20.simsvc.client.service.VsdmClientService;
+import de.gematik.ti20.simsvc.client.service.vsdm.VsdmReadResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 class VsdmClientControllerTest {
@@ -52,34 +55,67 @@ class VsdmClientControllerTest {
   void testReadVsd_Success() {
     String ifNoneMatch = "\"etag123\"";
     boolean isFhirXml = true;
+    boolean skipPoppTokenHeader = false;
 
-    ResponseEntity<String> mockResponse = ResponseEntity.ok("Success");
+    VsdmReadResult mockResponse =
+        new VsdmReadResult(HttpStatus.OK, "\"etag123\"", "pz123", "Success", null);
     when(mockVsdmClientService.read(
-            terminalId, egkSlotId, null, isFhirXml, null, ifNoneMatch, profileVersion))
+            terminalId,
+            egkSlotId,
+            null,
+            isFhirXml,
+            skipPoppTokenHeader,
+            null,
+            ifNoneMatch,
+            profileVersion))
         .thenReturn(mockResponse);
 
     ResponseEntity<?> response =
         vsdmClientController.readVsd(
-            terminalId, egkSlotId, null, isFhirXml, profileVersion, null, ifNoneMatch);
+            terminalId,
+            egkSlotId,
+            null,
+            isFhirXml,
+            skipPoppTokenHeader,
+            profileVersion,
+            null,
+            ifNoneMatch);
 
     assertNotNull(response);
     assertEquals(200, response.getStatusCode().value());
     assertEquals("Success", response.getBody());
+    assertEquals("\"etag123\"", response.getHeaders().getETag());
+    assertEquals("pz123", response.getHeaders().getFirst("vsdm-pz"));
   }
 
   @Test
   void testVirtualCardSet() {
     String ifNoneMatch = "\"etag123\"";
     boolean isFhirXml = true;
+    boolean skipPoppTokenHeader = false;
 
-    ResponseEntity<String> mockResponse = ResponseEntity.ok("Success");
+    VsdmReadResult mockResponse = new VsdmReadResult(HttpStatus.OK, null, null, "Success", null);
     when(mockVsdmClientService.read(
-            terminalId, egkSlotId, virtualCard, isFhirXml, null, ifNoneMatch, profileVersion))
+            terminalId,
+            egkSlotId,
+            virtualCard,
+            isFhirXml,
+            skipPoppTokenHeader,
+            null,
+            ifNoneMatch,
+            profileVersion))
         .thenReturn(mockResponse);
 
     ResponseEntity<?> response =
         vsdmClientController.readVsd(
-            terminalId, egkSlotId, virtualCard, isFhirXml, profileVersion, null, ifNoneMatch);
+            terminalId,
+            egkSlotId,
+            virtualCard,
+            isFhirXml,
+            skipPoppTokenHeader,
+            profileVersion,
+            null,
+            ifNoneMatch);
 
     assertNotNull(response);
     assertEquals(200, response.getStatusCode().value());
@@ -89,15 +125,30 @@ class VsdmClientControllerTest {
   @Test
   void testReadVsd_DefaultIsFhirXml() {
     String ifNoneMatch = "\"etag123\"";
+    boolean skipPoppTokenHeader = false;
 
-    ResponseEntity<String> mockResponse = ResponseEntity.ok("Success");
+    VsdmReadResult mockResponse = new VsdmReadResult(HttpStatus.OK, null, null, "Success", null);
     when(mockVsdmClientService.read(
-            terminalId, egkSlotId, null, false, null, ifNoneMatch, profileVersion))
+            terminalId,
+            egkSlotId,
+            null,
+            false,
+            skipPoppTokenHeader,
+            null,
+            ifNoneMatch,
+            profileVersion))
         .thenReturn(mockResponse);
 
     ResponseEntity<String> response =
         vsdmClientController.readVsd(
-            terminalId, egkSlotId, null, false, profileVersion, null, ifNoneMatch);
+            terminalId,
+            egkSlotId,
+            null,
+            false,
+            skipPoppTokenHeader,
+            profileVersion,
+            null,
+            ifNoneMatch);
 
     assertNotNull(response);
     assertEquals(200, response.getStatusCode().value());
@@ -109,34 +160,156 @@ class VsdmClientControllerTest {
     String poppToken = "token123";
     String ifNoneMatch = "etag123";
     String quotedIfNoneMatch = "\"etag123\"";
-    ResponseEntity<String> mockResponse = ResponseEntity.ok("Quoted");
+    boolean skipPoppTokenHeader = false;
+    VsdmReadResult mockResponse = new VsdmReadResult(HttpStatus.OK, null, null, "Quoted", null);
 
     when(mockVsdmClientService.read(
-            terminalId, egkSlotId, null, true, poppToken, quotedIfNoneMatch, profileVersion))
+            terminalId,
+            egkSlotId,
+            null,
+            true,
+            skipPoppTokenHeader,
+            poppToken,
+            quotedIfNoneMatch,
+            profileVersion))
         .thenReturn(mockResponse);
 
     ResponseEntity<String> response =
         vsdmClientController.readVsd(
-            terminalId, egkSlotId, null, true, profileVersion, poppToken, ifNoneMatch);
+            terminalId,
+            egkSlotId,
+            null,
+            true,
+            skipPoppTokenHeader,
+            profileVersion,
+            poppToken,
+            ifNoneMatch);
 
     assertEquals("Quoted", response.getBody());
     verify(mockVsdmClientService)
-        .read(terminalId, egkSlotId, null, true, poppToken, quotedIfNoneMatch, profileVersion);
+        .read(
+            terminalId,
+            egkSlotId,
+            null,
+            true,
+            skipPoppTokenHeader,
+            poppToken,
+            quotedIfNoneMatch,
+            profileVersion);
   }
 
   @Test
   void testReadVsd_LeavesNullIfNoneMatchUntouched() {
-    ResponseEntity<String> mockResponse = ResponseEntity.ok("NullValue");
+    boolean skipPoppTokenHeader = false;
+    VsdmReadResult mockResponse = new VsdmReadResult(HttpStatus.OK, null, null, "NullValue", null);
     when(mockVsdmClientService.read(
-            terminalId, egkSlotId, virtualCard, false, "poppToken", null, profileVersion))
+            terminalId,
+            egkSlotId,
+            virtualCard,
+            false,
+            skipPoppTokenHeader,
+            "poppToken",
+            null,
+            profileVersion))
         .thenReturn(mockResponse);
 
     ResponseEntity<String> response =
         vsdmClientController.readVsd(
-            terminalId, egkSlotId, virtualCard, false, profileVersion, "poppToken", null);
+            terminalId,
+            egkSlotId,
+            virtualCard,
+            false,
+            skipPoppTokenHeader,
+            profileVersion,
+            "poppToken",
+            null);
 
     assertEquals("NullValue", response.getBody());
     verify(mockVsdmClientService)
-        .read(terminalId, egkSlotId, virtualCard, false, "poppToken", null, profileVersion);
+        .read(
+            terminalId,
+            egkSlotId,
+            virtualCard,
+            false,
+            skipPoppTokenHeader,
+            "poppToken",
+            null,
+            profileVersion);
+  }
+
+  @Test
+  void testReadVsd_ForwardsSkipPoppTokenHeaderFlagWhenTrue() {
+    String ifNoneMatch = "\"etag123\"";
+    boolean skipPoppTokenHeader = true;
+    VsdmReadResult mockResponse = new VsdmReadResult(HttpStatus.OK, null, null, "Success", null);
+
+    when(mockVsdmClientService.read(
+            terminalId,
+            egkSlotId,
+            virtualCard,
+            false,
+            skipPoppTokenHeader,
+            "poppToken",
+            ifNoneMatch,
+            profileVersion))
+        .thenReturn(mockResponse);
+
+    ResponseEntity<String> response =
+        vsdmClientController.readVsd(
+            terminalId,
+            egkSlotId,
+            virtualCard,
+            false,
+            skipPoppTokenHeader,
+            profileVersion,
+            "poppToken",
+            ifNoneMatch);
+
+    assertEquals("Success", response.getBody());
+    verify(mockVsdmClientService)
+        .read(
+            terminalId,
+            egkSlotId,
+            virtualCard,
+            false,
+            skipPoppTokenHeader,
+            "poppToken",
+            ifNoneMatch,
+            profileVersion);
+  }
+
+  @Test
+  void testReadVsd_NotModifiedBuildsHeaderOnlyResponse() {
+    boolean skipPoppTokenHeader = false;
+    when(mockVsdmClientService.read(
+            terminalId, egkSlotId, null, false, skipPoppTokenHeader, null, null, profileVersion))
+        .thenReturn(
+            new VsdmReadResult(HttpStatus.NOT_MODIFIED, "\"etag123\"", "pz123", null, null));
+
+    ResponseEntity<String> response =
+        vsdmClientController.readVsd(
+            terminalId, egkSlotId, null, false, skipPoppTokenHeader, profileVersion, null, null);
+
+    assertEquals(HttpStatus.NOT_MODIFIED, response.getStatusCode());
+    assertNull(response.getBody());
+    assertEquals("\"etag123\"", response.getHeaders().getETag());
+    assertEquals("pz123", response.getHeaders().getFirst("vsdm-pz"));
+  }
+
+  @Test
+  void testReadVsd_UsesContentTypeFromServiceResult() {
+    boolean skipPoppTokenHeader = false;
+    when(mockVsdmClientService.read(
+            terminalId, egkSlotId, null, true, skipPoppTokenHeader, null, null, profileVersion))
+        .thenReturn(
+            new VsdmReadResult(
+                HttpStatus.OK, null, null, "<Bundle/>", MediaType.APPLICATION_XML_VALUE));
+
+    ResponseEntity<String> response =
+        vsdmClientController.readVsd(
+            terminalId, egkSlotId, null, true, skipPoppTokenHeader, profileVersion, null, null);
+
+    assertEquals(MediaType.APPLICATION_XML, response.getHeaders().getContentType());
+    assertEquals("<Bundle/>", response.getBody());
   }
 }

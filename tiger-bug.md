@@ -90,7 +90,7 @@ Repo: `gematik/ti2.0-testhub` (VSDM 2.0 testsuite). The two scenarios that repro
 - `test/vsdm-testsuite/src/test/resources/features/perf/UC_VSDM2_RVSD_PERF_MULTI_WITHOUT_UPDATE.feature`
 
 ```bash
-docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
+docker compose -f ./infra/docker/compose-local.yaml --profile full up -d --remove-orphans
 
 VSDM_LOAD_TESTING_ACTIVE=false ./mvnw -pl test/vsdm-testsuite/ verify \
   -Dcucumber.filter.tags="@TYPE:PERF" \

@@ -66,7 +66,7 @@ export CONTEXT_WORKPLACE_ID=AP1
 export CONTEXT_MANDANT_ID=Mandant1
 
 cd $(git rev-parse --show-toplevel)
-docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
+docker compose -f ./infra/docker/compose-local.yaml --profile full up -d --remove-orphans
 ```
 
 ## Running Tests
@@ -104,5 +104,5 @@ curl -X 'POST' 'http://popp-client-erp/token' \
 
 ```bash
 cd $(git rev-parse --show-toplevel)
-docker compose -f ./doc/docker/compose-local.yaml --profile full down -v --remove-orphans
+docker compose -f ./infra/docker/compose-local.yaml --profile full down -v --remove-orphans
 ```

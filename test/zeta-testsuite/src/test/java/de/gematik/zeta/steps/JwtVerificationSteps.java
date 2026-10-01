@@ -249,21 +249,94 @@ public class JwtVerificationSteps {
         signedJwksUri);
   }
 
-  /** Simple direct HTTPS GET (public discovery endpoints, valid public TLS certs). */
+  /**
+   * Simple direct HTTPS GET (public discovery endpoints).
+   *
+   * <p>Trusts whatever TLS certificate is presented instead of validating against a CA bundle. This
+   * is safe here because:
+   *
+   * <ul>
+   *   <li>The actual security property under test is the ES256 signature of the fetched JWT/JWKS
+   *       (verified cryptographically afterwards via Nimbus), not the transport security of this
+   *       discovery fetch.
+   *   <li>In this test environment, Tiger Proxy transparently intercepts ALL outbound HTTPS traffic
+   *       from the test JVM - including requests to real, publicly-routable hosts like {@code
+   *       popp.test.poppservice.de} - and re-terminates TLS with its own dynamically generated
+   *       certificate (subject {@code CN=localhost}, issued by {@code CN=Tiger-Proxy}). Building a
+   *       trust store around the JDK's real CA bundle (e.g. DigiCert) therefore does NOT help: the
+   *       real chain never reaches this JVM, only Tiger's own interception certificate does.
+   *       Validating against Tiger's certificate isn't practical/stable either (Tiger's own {@code
+   *       TigerSecurityProviderInitialiser} inserts BouncyCastle's JCA provider at position 1,
+   *       ahead of the JDK's "SUN" provider, which makes even the JDK's own internal, non-pinnable
+   *       {@code sun.security.validator.PKIXValidator} resolve its unqualified {@code
+   *       CertPathBuilder.getInstance("PKIX")} call to BouncyCastle instead of Sun - so trust
+   *       decisions for this connection cannot rely on the platform's default validation machinery
+   *       in a predictable way regardless of which store is used).
+   * </ul>
+   */
   private String httpGet(String url) throws Exception {
-    var client =
+    try (var client =
         java.net.http.HttpClient.newBuilder()
             .connectTimeout(java.time.Duration.ofSeconds(20))
             .followRedirects(java.net.http.HttpClient.Redirect.NORMAL)
-            .build();
-    var request =
-        java.net.http.HttpRequest.newBuilder(java.net.URI.create(url))
-            .timeout(java.time.Duration.ofSeconds(20))
-            .GET()
-            .build();
-    var response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
-    assertThat(response.statusCode()).as("GET %s must return 200", url).isEqualTo(200);
-    return response.body().trim();
+            .sslContext(trustAllSslContext())
+            .build()) {
+      var request =
+          java.net.http.HttpRequest.newBuilder(java.net.URI.create(url))
+              .timeout(java.time.Duration.ofSeconds(20))
+              .header("Accept", "*/*")
+              .GET()
+              .build();
+      var response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+      assertThat(response.statusCode()).as("GET %s must return 200", url).isEqualTo(200);
+      return response.body().trim();
+    }
+  }
+
+  /** See {@link #httpGet(String)} for why trusting any certificate is safe here. */
+  private javax.net.ssl.SSLContext trustAllSslContext() throws Exception {
+    var sslContext = javax.net.ssl.SSLContext.getInstance("TLS", "SunJSSE");
+    javax.net.ssl.X509ExtendedTrustManager trustAll =
+        new javax.net.ssl.X509ExtendedTrustManager() {
+          @Override
+          public void checkClientTrusted(
+              java.security.cert.X509Certificate[] chain, String authType) {}
+
+          @Override
+          public void checkServerTrusted(
+              java.security.cert.X509Certificate[] chain, String authType) {}
+
+          @Override
+          public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+            return new java.security.cert.X509Certificate[0];
+          }
+
+          @Override
+          public void checkClientTrusted(
+              java.security.cert.X509Certificate[] chain,
+              String authType,
+              java.net.Socket socket) {}
+
+          @Override
+          public void checkServerTrusted(
+              java.security.cert.X509Certificate[] chain,
+              String authType,
+              java.net.Socket socket) {}
+
+          @Override
+          public void checkClientTrusted(
+              java.security.cert.X509Certificate[] chain,
+              String authType,
+              javax.net.ssl.SSLEngine engine) {}
+
+          @Override
+          public void checkServerTrusted(
+              java.security.cert.X509Certificate[] chain,
+              String authType,
+              javax.net.ssl.SSLEngine engine) {}
+        };
+    sslContext.init(null, new javax.net.ssl.TrustManager[] {trustAll}, null);
+    return sslContext;
   }
 
   /** Verifies using x5c certificate (supports brainpoolP256r1 via BouncyCastle). */
@@ -316,9 +389,9 @@ public class JwtVerificationSteps {
 
   /**
    * Resolves Docker internal hostnames to localhost for test environments. Converts URLs like
-   * "http://popp-server:8443" to "http://localhost:18443" to allow local HTTP clients to reach
-   * Docker containers. Ports are read from Tiger configuration (ports.yaml) so that dynamically
-   * assigned ports (e.g. on Jenkins) are respected.
+   * {@code http://popp-server:8443} to {@code http://localhost:18443} to allow local HTTP clients
+   * to reach Docker containers. Ports are read from Tiger configuration (ports.yaml) so that
+   * dynamically assigned ports (e.g. on Jenkins) are respected.
    */
   private String resolveDockerHostname(String url) {
     String zetaIngressPort =

@@ -6,7 +6,7 @@
 
 The quickest and easiest way to disable ASL is by setting `zeta_asl_use` to `not_supported` in the `.well-known/oauth-protected-resource` file.
 
-Example for `doc/docker/backend/zeta/well-known/oauth-protected-resource`:
+Example for `infra/docker/backend/zeta/well-known/oauth-protected-resource`:
 
     {
         "resource": "https://vsdm-zeta-ingress/",

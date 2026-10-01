@@ -3,21 +3,21 @@
 
 === Port Configuration via `.env` File
 
-`doc/docker/.env` contains the default port mappings from the container to the
+`infra/docker/.env` contains the default port mappings from the container to the
 host. Docker Compose automatically loads this file when you run commands from
-the `doc/docker/` directory (or pass `-f doc/docker/compose-local.yaml`).
+the `infra/docker/` directory (or pass `-f infra/docker/compose-local.yaml`).
 
 To remap a port that conflicts with another service on your machine, either edit
-`doc/docker/.env` directly or pass the variable inline:
+`infra/docker/.env` directly or pass the variable inline:
 
 [source,bash]
 ----
 # Remap VSDM server to port 19130 for this run only
-PORT_VSDM_SERVER=19130 docker compose -f doc/docker/compose-local.yaml --profile full up -d
+PORT_VSDM_SERVER=19130 docker compose -f infra/docker/compose-local.yaml --profile full up -d
 
 # Or export the variable in your shell session
 export PORT_VSDM_SERVER=19130
-docker compose -f doc/docker/compose-local.yaml --profile full up -d
+docker compose -f infra/docker/compose-local.yaml --profile full up -d
 ----
 
 The Spring Boot `application-local.yaml` files in the client services reference
@@ -27,13 +27,13 @@ If you run a client service directly from IntelliJ or the command line, you can
 load the variables from `.env` in one of two ways:
 
 - **IntelliJ:** Open *Run → Edit Configurations*, switch to the **EnvFile** tab,
-  click `+` and select `doc/docker/.env`. All port variables are then available
+  click `+` and select `infra/docker/.env`. All port variables are then available
   to the Spring Boot process.
 - **Shell:** Source the file before starting the application:
 +
 [source,bash]
 ----
-export $(grep -v '^#' doc/docker/.env | xargs)
+export $(grep -v '^#' infra/docker/.env | xargs)
 ./mvnw spring-boot:run -pl client/vsdm-client-simservice-java -Dspring-boot.run.profiles=local
 ----
 
@@ -55,12 +55,12 @@ Each service can be configured via environment variables. Key configuration opti
 
 === Test Environment Configuration via `.env` File
 
-Reference additional `.env` files to overwrite default settings from `doc/docker/.env`:
+Reference additional `.env` files to overwrite default settings from `infra/docker/.env`:
 
 ```shell
-docker compose -f ./doc/docker/compose-local.yaml \
-    --env-file=./doc/docker/.env \
-    --env-file=./doc/docker/env-private/.my-own.env \
+docker compose -f ./infra/docker/compose-local.yaml \
+    --env-file=./infra/docker/.env \
+    --env-file=./infra/docker/env-private/.my-own.env \
     --profile ps-only
 ```
 
@@ -112,9 +112,6 @@ The Testhub supports different startup profiles for various use cases:
 | `full`
 | Backend + Tiger-Proxies + Clients via proxy. Use this for normal development and testing.
 
-| `perf`
-| Backend + Tiger-Proxies + Clients with direct backend access. Use this for performance testing as it bypasses the Tiger-Proxy.
-
 | `backend-only`
 | Backend services only (no Tiger-Proxies, no clients). Use this when you want to run your own client implementation against the backend.
 |===
@@ -140,56 +137,6 @@ Key characteristics of the `full` profile:
   observability.
 * Suitable for functional feature-testing, debugging, and contract (Pact) verification.
 
-==== The `perf` Profile – Direct Backend Access
-
-The `perf` profile is optimised for **performance and load testing**.
-Clients connect **directly** to the backend services, bypassing all Tiger Proxy
-instances.  This eliminates the overhead of request recording and proxy
-hop latency.
-
-.Architecture of the `perf` profile
-image::diagrams/perf_profile.png[Architecture diagram showing clients connecting directly to the backend without Tiger Proxy, width=900]
-
-Key characteristics of the `perf` profile:
-
-* No backend Tiger Proxy is started – traffic is *not* recorded.
-* Lower latency and higher throughput than the `full` profile.
-* Suitable for measuring baseline performance, stress tests, and benchmarks.
-
-==== Comparison: `full` vs. `perf`
-
-[cols="1,2,2", options="header"]
-|===
-| Aspect | `full` profile | `perf` profile
-
-| Tiger Proxy
-| ✅ Started – records all traffic
-| ❌ Not started
-
-| Popp Service
-| ✅ Started – all components (Token Generator, Client, Server) are included
-| ❌ Not started - only popp-token-generator is included for token generation
-
-| Traffic recording
-| ✅ `.tgr` and `.html` files written
-| ❌ No recording
-
-| Observability (OTEL / Prometheus / Grafana)
-| ✅ Included
-| ✅ Included
-
-| Client routing
-| Via Tiger Proxy (extra hop)
-| Direct to backend
-
-| Latency overhead
-| Higher (proxy hop)
-| Lower (direct)
-
-| Recommended for
-| All test types are technically possible (feature, debugging, Pact, performance, load), but additional proxy hops add overhead and make this profile unsuitable for load-test measurements.
-| Performance and load tests. Feature tests do *not* work in this profile.
-|===
 
 ==== Starting with Profiles
 
@@ -201,16 +148,13 @@ Use Docker Compose with the appropriate profile:
 ./mvnw clean install -Pdocker -DskipTests
 
 # Start full stack
-docker compose -f doc/docker/compose-local.yaml --profile full up -d
-
-# Start with performance profile (clients bypass Tiger-Proxy)
-docker compose -f doc/docker/compose-local.yaml --profile perf up -d
+docker compose -f infra/docker/compose-local.yaml --profile full up -d
 
 # Start backend only (no clients)
-docker compose -f doc/docker/compose-local.yaml --profile backend-only up -d
+docker compose -f infra/docker/compose-local.yaml --profile backend-only up -d
 
 # Stop all containers (all profiles)
-docker compose -f doc/docker/compose-local.yaml --profile full --profile perf --profile backend-only down -v
+docker compose -f infra/docker/compose-local.yaml --profile full --profile perf --profile backend-only down -v
 ----
 
 [#_test_environment_selection]
@@ -317,6 +261,6 @@ See `test/vsdm-testsuite/HOWTO-TEST.md` for the per-environment `.env`/`.conf` m
 
 To customize service configuration:
 
-1.  Edit `doc/docker/compose-local.yaml` for Docker Compose setup
+1.  Edit `infra/docker/compose-local.yaml` for Docker Compose setup
 2. Or create custom `application-<profile>.yaml` files in each service's `src/main/resources` directory
 

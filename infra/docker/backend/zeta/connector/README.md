@@ -28,7 +28,7 @@ sowie die Konnektor-Zertifikatskette ersetzt werden. Zwei Varianten:
 
 - **Persönlicher/echter Konnektor:** eigene Zertifikate lokal unter `private/` ablegen
   (gitignored, siehe `.gitignore`) und in einer eigenen, nicht versionierten
-  `doc/docker/env-private/.my-own.env` via `CONNECTOR_KEYSTORE_FILE=private/keystore.p12`
+  `infra/docker/env-private/.my-own.env` via `CONNECTOR_KEYSTORE_FILE=private/keystore.p12`
   bzw. `CONNECTOR_TRUSTSTORE_FILE=private/truststore.p12` referenzieren.
 - **Geteilter Referenz-Konnektor (z. B. gematik-Testkonnektor):** Zertifikate liegen
   versioniert unter `no-publish/test-data/zeta/connector/` (kein echtes Geheimnis, für

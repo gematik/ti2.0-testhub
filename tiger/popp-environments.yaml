@@ -11,7 +11,7 @@
 #  auszuloesen.
 #
 #  Verfuegbare Stufen:
-#     local   = lokaler popp-server aus doc/docker (kein Block noetig)
+#     local   = lokaler popp-server aus infra/docker (kein Block noetig)
 #     ru-dev  = popp.dev.poppservice.de
 #     ru      = popp.ref.poppservice.de
 #     tu      = popp.test.poppservice.de
@@ -30,7 +30,7 @@
 popp:
   # ---- Gemeinsame Werte ----------------------------------------------------
   common:
-    # Defaults: der lokale popp-server aus doc/docker.
+    # Defaults: der lokale popp-server aus infra/docker.
     host: "${ports.host}:${ports.poppServerPort}"
     kidTokenKey: 4IVYHy721K0rnjZ8_9fnsKofs0eKhGOcqEDVo0RBZFQ
   puet:
@@ -68,5 +68,5 @@ popp:
     # sonst der Host selbst.
     to: "https://${popp.environments.${popp.env|${env}}.ip|${popp.server.host}}"
   client:
-    # Endpunkt des lokalen PoPP-Clients aus doc/docker
+    # Endpunkt des lokalen PoPP-Clients aus infra/docker
     tokenUrl: "http://${ports.host}:${ports.poppClientPort}/token"

@@ -25,9 +25,7 @@ Funktionalität: PoPP WebSocket-Kommunikation über ZETA-PEP
 
   Grundlage:
     Gegeben sei TGR lösche aufgezeichnete Nachrichten
-    Und setze Anfrage Timeout für WebSocket Verbindungen auf 10 Sekunden
-    Und setze Timeout für WebSocket Nachrichten auf 10 Sekunden
-    Und deaktiviere HTTP Proxy für WebSocket
+    Und TGR lösche alle default headers
 
   @TCID:ZETA_WS_HANDSHAKE_WITH_VALID_AUTH_TOKEN
   @STATUS:Implementiert
@@ -41,6 +39,7 @@ Funktionalität: PoPP WebSocket-Kommunikation über ZETA-PEP
     # wss://popp-zeta-ingress/ws → popp-zeta-pep (ZETA-PEP) → popp-server:8443/ws.
     # D.h. ein erfolgreich erzeugtes PoPP-Token beweist implizit, dass der ZETA-PEP den
     # WebSocket-Upgrade-Handshake mit einem gültigen Token durchgelassen hat.
+    Gegeben sei die ZeTA-PDP-Registrierung des popp-client ist vollständig zurückgesetzt
     Wenn TGR sende eine POST Anfrage an "${popp.client.tokenUrl}" mit ContentType "application/json" und folgenden mehrzeiligen Daten:
       """
       {
@@ -68,12 +67,13 @@ Funktionalität: PoPP WebSocket-Kommunikation über ZETA-PEP
   @PRIO:1
   @websocket @popp @pep
   Szenario: ZETA-PEP lehnt WebSocket-Handshake mit ungültigem Authorization Token ab
-    # Negativtest: Ungültiges JWT → PEP lehnt Upgrade-Handshake ab
+    # Negativtest: Ungültiges JWT → PEP lehnt Upgrade-Handshake bereits auf HTTP-Ebene ab
     Gegeben sei ein ungültiger ZETA-PEP AccessToken wird erzeugt
-    Und lösche alle WebSocket Handshake Header
-    Und setze WebSocket Handshake Header "Authorization" auf "${ZETA_PEP_AUTHZ}"
 
-    Wenn eine plain WebSocket Verbindung zu "ws://127.0.0.1:${ports.poppPepPort}/ws" mit den gesetzten Handshake Headern fehlschlägt
+    Wenn TGR sende eine leere GET Anfrage an "http://127.0.0.1:${ports.poppPepPort}/ws"
+
+    Dann TGR finde die letzte Anfrage mit dem Pfad "/ws"
+    Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "401"
 
   @TCID:ZETA_WS_HANDSHAKE_WITH_MISSING_AUTH_TOKEN
   @STATUS:Implementiert
@@ -82,7 +82,8 @@ Funktionalität: PoPP WebSocket-Kommunikation über ZETA-PEP
   @PRIO:1
   @websocket @popp @pep
   Szenario: ZETA-PEP lehnt WebSocket-Handshake ohne Authorization ab
-    # Negativtest: Kein Auth-Header → PEP bricht den Handshake ab
-    Gegeben sei lösche alle WebSocket Handshake Header
+    # Negativtest: Kein Auth-Header → PEP bricht den Handshake bereits auf HTTP-Ebene ab
+    Wenn TGR sende eine leere GET Anfrage an "http://127.0.0.1:${ports.poppPepPort}/ws"
 
-    Wenn eine plain WebSocket Verbindung zu "ws://127.0.0.1:${ports.poppPepPort}/ws" mit den gesetzten Handshake Headern fehlschlägt
+    Dann TGR finde die letzte Anfrage mit dem Pfad "/ws"
+    Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "401"

@@ -28,21 +28,43 @@ import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+  @ExceptionHandler(VsdmServerException.class)
+  public ResponseEntity<String> handleVsdmServerException(final VsdmServerException e) {
+    final HttpHeaders headers = new HttpHeaders();
+    e.getHeaders().forEach(headers::add);
+
+    return ResponseEntity.status(e.getStatusCode()).headers(headers).body(e.getResponseBody());
+  }
+
+  @ExceptionHandler(ResponseStatusException.class)
+  public ResponseEntity<Map<String, String>> handleResponseStatusException(
+      final ResponseStatusException e) {
+    LOGGER.error("Request failed: ", e);
+
+    final Map<String, String> errorResponse = new HashMap<>();
+    errorResponse.put("error", HttpStatus.valueOf(e.getStatusCode().value()).getReasonPhrase());
+    errorResponse.put("message", e.getReason());
+
+    return ResponseEntity.status(e.getStatusCode()).body(errorResponse);
+  }
+
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<Map<String, String>> handleGenericException(Exception e) {
+  public ResponseEntity<Map<String, String>> handleGenericException(final Exception e) {
     LOGGER.error("Unexpected error: ", e);
 
-    Map<String, String> errorResponse = new HashMap<>();
+    final Map<String, String> errorResponse = new HashMap<>();
     errorResponse.put("error", "Internal Server Error");
     errorResponse.put("message", "An unexpected error occurred: " + e.getMessage());
 
