@@ -25,15 +25,25 @@
 package de.gematik.ti20.simsvc.client.controller;
 
 import de.gematik.ti20.simsvc.client.service.VsdmClientService;
+import de.gematik.ti20.simsvc.client.service.vsdm.VsdmReadResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
 @RequestMapping("/client/vsdm")
 public class VsdmClientController {
+
+  private final String HEADER_ETAG = HttpHeaders.ETAG;
+  private final String HEADER_VSDM_PZ = "vsdm-pz";
 
   private final VsdmClientService vsdmClientService;
 
@@ -47,6 +57,7 @@ public class VsdmClientController {
       @RequestParam final int egkSlotId,
       @RequestParam(required = false) final String virtualCard,
       @RequestParam(defaultValue = "false") final boolean isFhirXml,
+      @RequestParam(defaultValue = "false") final boolean skipPoppTokenHeader,
       @RequestParam(required = false) final String profileVersion,
       @RequestHeader(name = "poppToken", required = false) final String poppToken,
       @RequestHeader(name = "If-None-Match", required = false) final String ifNoneMatch) {
@@ -57,14 +68,37 @@ public class VsdmClientController {
         ifNoneMatch,
         profileVersion);
 
-    return vsdmClientService.read(
-        terminalId,
-        egkSlotId,
-        virtualCard,
-        isFhirXml,
-        poppToken,
-        quoteIfNotQuoted(ifNoneMatch),
-        profileVersion);
+    final VsdmReadResult result =
+        vsdmClientService.read(
+            terminalId,
+            egkSlotId,
+            virtualCard,
+            isFhirXml,
+            skipPoppTokenHeader,
+            poppToken,
+            quoteIfNotQuoted(ifNoneMatch),
+            profileVersion);
+
+    final ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.status(result.statusCode());
+    maybeAddHeader(responseBuilder, HEADER_ETAG, result.etag());
+    maybeAddHeader(responseBuilder, HEADER_VSDM_PZ, result.pruefziffer());
+    maybeAddHeader(responseBuilder, HttpHeaders.CONTENT_TYPE, result.contentType());
+
+    if (result.statusCode().isSameCodeAs(HttpStatus.NOT_MODIFIED)) {
+      // no body
+      return responseBuilder.build();
+    }
+
+    return responseBuilder.body(result.value());
+  }
+
+  private static void maybeAddHeader(
+      final ResponseEntity.BodyBuilder responseBuilder,
+      final String headerName,
+      final String headerValue) {
+    if (headerValue != null) {
+      responseBuilder.header(headerName, headerValue);
+    }
   }
 
   private static String quoteIfNotQuoted(final String input) {

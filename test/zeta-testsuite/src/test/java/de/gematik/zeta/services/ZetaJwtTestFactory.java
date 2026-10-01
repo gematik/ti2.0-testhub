@@ -79,6 +79,7 @@ import java.util.UUID;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jspecify.annotations.NonNull;
@@ -137,14 +138,14 @@ public class ZetaJwtTestFactory {
   }
 
   /** Client ID — populated at runtime via DCR against the real PDP. */
-  private static String clientId;
+  @Getter private static String clientId;
 
   /** KID computed from zetakeystore.p12 at runtime. */
   private static String keyKid;
 
   /** SMC-B PKCS12 keystore (brainpoolP256r1) for signing the subject_token. */
   private static final String SMCB_P12_PATH =
-      "doc/docker/backend/zeta/smcb-private/smcb_private.p12";
+      "infra/docker/backend/zeta/smcb-private/smcb_private.p12";
 
   private static final String SMCB_P12_PASSWORD = "00";
   private static final String SMCB_KEY_ALIAS = "alias";
@@ -177,11 +178,6 @@ public class ZetaJwtTestFactory {
     // utility
   }
 
-  /** Returns the dynamically registered client ID (set after DCR). */
-  public static String getClientId() {
-    return clientId;
-  }
-
   /**
    * Ensures DCR has been performed for the specified PDP target.
    *
@@ -191,7 +187,7 @@ public class ZetaJwtTestFactory {
   public static void ensureRegistered(PdpTarget target) {
     PdpTarget effectiveTarget = target != null ? target : PdpTarget.POPP;
     if (clientId == null || !configuredPdps.contains(effectiveTarget)) {
-      registerClientViaDcr(effectiveTarget);
+      registerClientViaDcr();
       configuredPdps.add(effectiveTarget);
     }
   }
@@ -290,22 +286,30 @@ public class ZetaJwtTestFactory {
               .keyID(keyKid)
               .build();
 
+      // Route both the nonce fetch and the token exchange through the same Tiger-Proxy upstream
+      // connection. The real PoPP/PDP cluster pins the single-use nonce to the replica that
+      // issued it, so fetching the nonce and exchanging it via two independent, unproxied
+      // connections can land on different replicas, causing the PDP to reject the request with
+      // "Invalid nonce value" (see doTokenExchangeViaProxy for the same fix applied there).
+      SimpleClientHttpRequestFactory proxyFactory = resolveTigerProxyRequestFactory();
+
       // 1b. Fetch nonce once — shared between SMC-B token and attestation challenge
-      cachedNonce = fetchNonce(target);
+      cachedNonce = fetchNonce(target, proxyFactory);
       log.info("Fetched ZETA nonce for {}: {}", target, cachedNonce);
 
       // 2. Create SMC-B signed subject_token (brainpoolP256r1, using BouncyCastle)
-      String subjectToken = createSmcbSubjectToken(target, tokenEndpoint);
+      String subjectToken = createSmcbSubjectToken();
       log.info("SMC-B subject token created for {} (length={})", target, subjectToken.length());
 
       // 3. Create client_assertion JWT (P-256, using Nimbus) — uses cachedNonce for attestation
-      String clientAssertion = createClientAssertionJwt(cachedEcJwk, target);
+      String clientAssertion = createClientAssertionJwt(cachedEcJwk);
 
       // 4. Create DPoP proof for the token endpoint (no ath for initial request)
       String dpopProof = createDpopProof(cachedEcJwk, "POST", tokenEndpoint, null);
 
       // 5. Token Exchange — Keycloak issues access token with udat + cdat claims
-      String accessToken = doTokenExchange(tokenEndpoint, clientAssertion, dpopProof, subjectToken);
+      String accessToken =
+          doTokenExchange(tokenEndpoint, clientAssertion, dpopProof, subjectToken, proxyFactory);
       cachedAccessToken = accessToken;
       log.info("Obtained access token from {} PDP (length={})", target, accessToken.length());
       return "Bearer " + accessToken;
@@ -373,7 +377,7 @@ public class ZetaJwtTestFactory {
     try {
       // 0. Dynamic Client Registration (re-run when resetRegistration() cleared clientId)
       if (clientId == null || !configuredPdps.contains(target)) {
-        registerClientViaDcr(target);
+        registerClientViaDcr();
         configuredPdps.add(target);
       }
 
@@ -397,10 +401,10 @@ public class ZetaJwtTestFactory {
       cachedNonce = fetchNonce(target, factory);
 
       // 2. Create SMC-B signed subject_token
-      String subjectToken = createSmcbSubjectToken(target, tokenEndpoint);
+      String subjectToken = createSmcbSubjectToken();
 
       // 3. Create client_assertion JWT
-      String clientAssertion = createClientAssertionJwt(cachedEcJwk, target);
+      String clientAssertion = createClientAssertionJwt(cachedEcJwk);
 
       // 4. Create DPoP proof for the token endpoint
       String dpopProof = createDpopProof(cachedEcJwk, "POST", tokenEndpoint, null);
@@ -478,8 +482,7 @@ public class ZetaJwtTestFactory {
    * with the brainpoolP256r1 key from the SMC-B PKCS12 file and includes the x5c certificate chain
    * in the header.
    */
-  private static String createSmcbSubjectToken(
-      PdpTarget target, @SuppressWarnings("unused") String tokenEndpoint) throws Exception {
+  private static String createSmcbSubjectToken() throws Exception {
     // Resolve path relative to project root
     java.io.File smcbFile =
         new java.io.File(System.getProperty("user.dir")).toPath().resolve(SMCB_P12_PATH).toFile();
@@ -652,7 +655,7 @@ public class ZetaJwtTestFactory {
 
   // ---- Client Assertion & DPoP (P-256 via Nimbus) ----
 
-  private static String createClientAssertionJwt(ECKey ecJwk, PdpTarget target) throws Exception {
+  private static String createClientAssertionJwt(ECKey ecJwk) throws Exception {
     var now = Instant.now();
 
     // Build posture (without posture_type - it's an external type id property, sibling of posture)
@@ -807,9 +810,30 @@ public class ZetaJwtTestFactory {
 
   // ---- Token Exchange ----
 
+  /**
+   * Builds a {@link SimpleClientHttpRequestFactory} routed through the local Tiger-Proxy (same
+   * proxy the Tiger-managed HTTP clients and the VSDM-Client's traffic go through), so that direct
+   * REST calls made from test code (nonce fetch, token exchange) are pinned to the same upstream
+   * connection/replica and their traffic is captured for RBEL-based assertions.
+   */
+  private static SimpleClientHttpRequestFactory resolveTigerProxyRequestFactory() {
+    String proxyUrl =
+        TigerGlobalConfiguration.resolvePlaceholders(
+            "http://localhost:${tiger.tigerProxy.proxyPort}");
+    URI proxyUri = URI.create(proxyUrl);
+    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+    factory.setProxy(
+        new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyUri.getHost(), proxyUri.getPort())));
+    return factory;
+  }
+
   private static String doTokenExchange(
-      String tokenEndpoint, String clientAssertion, String dpopProof, String subjectToken) {
-    RestTemplate rt = new RestTemplate();
+      String tokenEndpoint,
+      String clientAssertion,
+      String dpopProof,
+      String subjectToken,
+      SimpleClientHttpRequestFactory proxyFactory) {
+    RestTemplate rt = proxyFactory != null ? new RestTemplate(proxyFactory) : new RestTemplate();
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -854,10 +878,6 @@ public class ZetaJwtTestFactory {
 
   // ---- Nonce ----
 
-  private static String fetchNonce(PdpTarget target) {
-    return fetchNonce(target, null);
-  }
-
   /**
    * Fetches a fresh ZETA Guard nonce. When a {@code proxyFactory} is supplied the request is routed
    * through the same proxy as the subsequent token exchange, so both hit the same cluster replica
@@ -896,7 +916,7 @@ public class ZetaJwtTestFactory {
    * Registers a new client on the real PDP via DCR, using the P-256 public key from
    * zetakeystore.p12. Sets {@link #clientId} and {@link #keyKid} for subsequent token exchanges.
    */
-  private static void registerClientViaDcr(PdpTarget target) {
+  private static void registerClientViaDcr() {
     try {
       var keyPair = loadKeyPair();
       ECKey ecJwk =
@@ -949,222 +969,13 @@ public class ZetaJwtTestFactory {
     }
   }
 
-  // ---- One-time Keycloak Admin API setup ----
-
-  /**
-   * Configures the running Keycloak instance via Admin API so that:
-   *
-   * <ul>
-   *   <li>The client's JWKS matches the test keystore ({@code zetakeystore.p12})
-   *   <li>Hardcoded {@code udat} claim mappers are present on the client
-   *   <li>The {@code zeta-guard-accesstoken-mapper} is present for the {@code cdat} claim
-   * </ul>
-   *
-   * This avoids having to modify the {@code zeta-guard-realm.json} file.
-   */
-  private static void setupKeycloak(String tokenEndpoint) {
-    try {
-      String pdpBaseUrl = tokenEndpoint.replaceAll("/realms/.*", "");
-      log.info("Configuring Keycloak via Admin API at {}", pdpBaseUrl);
-
-      // --- Admin token ---
-      String adminToken = obtainAdminToken(pdpBaseUrl);
-
-      // --- 1. Update client JWKS / kid / public key to match zetakeystore.p12 ---
-      updateClientJwks(pdpBaseUrl, adminToken);
-
-      // --- 2. Add protocol mappers for udat + cdat directly on the client ---
-      addProtocolMappersIfMissing(pdpBaseUrl, adminToken);
-
-      log.info("Keycloak Admin API setup completed successfully");
-    } catch (Exception e) {
-      log.warn(
-          "Keycloak Admin API setup failed — token exchange may still work "
-              + "if the realm was pre-configured: {}",
-          e.getMessage());
-    }
-  }
-
-  private static String obtainAdminToken(String pdpBaseUrl) {
-    RestTemplate rt = new RestTemplate();
-    HttpHeaders h = new HttpHeaders();
-    h.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-    MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-    form.add("client_id", "admin-cli");
-    form.add("username", "admin");
-    form.add("password", "admin");
-    form.add("grant_type", "password");
-    ResponseEntity<String> resp =
-        rt.postForEntity(
-            URI.create(pdpBaseUrl + "/realms/master/protocol/openid-connect/token"),
-            new HttpEntity<>(form, h),
-            String.class);
-    try {
-      return new ObjectMapper().readTree(resp.getBody()).get("access_token").asText();
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to obtain Keycloak admin token", e);
-    }
-  }
-
-  private static void updateClientJwks(String pdpBaseUrl, String adminToken) throws Exception {
-    var keyPair = loadKeyPair();
-    ECKey ecJwk =
-        new ECKey.Builder(Curve.P_256, keyPair.publicKey())
-            .keyID(keyKid)
-            .algorithm(JWSAlgorithm.ES256)
-            .keyUse(com.nimbusds.jose.jwk.KeyUse.SIGNATURE)
-            .build();
-
-    String jwksString = "{\"keys\":[" + ecJwk.toJSONString() + "]}";
-    String publicKeyB64 = Base64.getEncoder().encodeToString(keyPair.publicKey().getEncoded());
-
-    RestTemplate rt = new RestTemplate();
-    HttpHeaders h = new HttpHeaders();
-    h.set("Authorization", "Bearer " + adminToken);
-    String clientUrl = pdpBaseUrl + "/admin/realms/zeta-guard/clients/" + clientId;
-
-    // Read-modify-write: GET the full client, update only what we need, PUT back.
-    // This preserves all existing settings (scopes, flows, etc.).
-    ResponseEntity<String> getResp =
-        rt.exchange(URI.create(clientUrl), HttpMethod.GET, new HttpEntity<>(h), String.class);
-    var om = new ObjectMapper();
-    var clientNode =
-        (com.fasterxml.jackson.databind.node.ObjectNode) om.readTree(getResp.getBody());
-
-    // Merge into existing attributes (don't replace)
-    var attrs =
-        clientNode.has("attributes")
-            ? (com.fasterxml.jackson.databind.node.ObjectNode) clientNode.get("attributes")
-            : om.createObjectNode();
-    attrs.put("jwks.string", jwksString);
-    attrs.put("jwt.credential.kid", keyKid);
-    attrs.put("jwt.credential.public.key", publicKeyB64);
-    attrs.put("use.jwks.string", "true");
-    clientNode.set("attributes", attrs);
-
-    // Ensure serviceAccountsEnabled (needed for token exchange)
-    clientNode.put("serviceAccountsEnabled", true);
-
-    h.setContentType(MediaType.APPLICATION_JSON);
-    rt.exchange(
-        URI.create(clientUrl),
-        HttpMethod.PUT,
-        new HttpEntity<>(om.writeValueAsString(clientNode), h),
-        String.class);
-    log.info("Updated client JWKS and settings via Admin API (kid={})", keyKid);
-  }
-
-  private static void addProtocolMappersIfMissing(String pdpBaseUrl, String adminToken)
-      throws Exception {
-    RestTemplate rt = new RestTemplate();
-    HttpHeaders authHeader = new HttpHeaders();
-    authHeader.set("Authorization", "Bearer " + adminToken);
-
-    // Fetch existing mappers
-    ResponseEntity<String> resp =
-        rt.exchange(
-            URI.create(
-                pdpBaseUrl
-                    + "/admin/realms/zeta-guard/clients/"
-                    + clientId
-                    + "/protocol-mappers/models"),
-            HttpMethod.GET,
-            new HttpEntity<>(authHeader),
-            String.class);
-    var existingMappers = new ObjectMapper().readTree(resp.getBody());
-    var existingNames = new java.util.HashSet<String>();
-    existingMappers.forEach(m -> existingNames.add(m.get("name").asText()));
-
-    HttpHeaders postHeader = new HttpHeaders();
-    postHeader.setContentType(MediaType.APPLICATION_JSON);
-    postHeader.set("Authorization", "Bearer " + adminToken);
-    String mappersUrl =
-        pdpBaseUrl + "/admin/realms/zeta-guard/clients/" + clientId + "/protocol-mappers/models";
-
-    // Hardcoded udat.telid mapper
-    if (!existingNames.contains("udat-telematik-id")) {
-      String mapper =
-          new ObjectMapper()
-              .writeValueAsString(
-                  java.util.Map.of(
-                      "name", "udat-telematik-id",
-                      "protocol", "openid-connect",
-                      "protocolMapper", "oidc-hardcoded-claim-mapper",
-                      "config",
-                          java.util.Map.of(
-                              "claim.value", SMCB_TELEMATIK_ID,
-                              "claim.name", "udat.telid",
-                              "jsonType.label", "String",
-                              "access.token.claim", "true",
-                              "id.token.claim", "true")));
-      rt.postForEntity(URI.create(mappersUrl), new HttpEntity<>(mapper, postHeader), String.class);
-      log.info("Added hardcoded udat.telid mapper to client");
-    }
-
-    // Hardcoded udat.prof mapper
-    if (!existingNames.contains("udat-profession-oid")) {
-      String mapper =
-          new ObjectMapper()
-              .writeValueAsString(
-                  java.util.Map.of(
-                      "name", "udat-profession-oid",
-                      "protocol", "openid-connect",
-                      "protocolMapper", "oidc-hardcoded-claim-mapper",
-                      "config",
-                          java.util.Map.of(
-                              "claim.value", SMCB_PROFESSION_OID,
-                              "claim.name", "udat.prof",
-                              "jsonType.label", "String",
-                              "access.token.claim", "true",
-                              "id.token.claim", "true")));
-      rt.postForEntity(URI.create(mappersUrl), new HttpEntity<>(mapper, postHeader), String.class);
-      log.info("Added hardcoded udat.prof mapper to client");
-    }
-
-    // zeta-guard-accesstoken-mapper (for cdat claim)
-    if (!existingNames.contains("zeta-guard-mapper")) {
-      String mapper =
-          new ObjectMapper()
-              .writeValueAsString(
-                  java.util.Map.of(
-                      "name", "zeta-guard-mapper",
-                      "protocol", "openid-connect",
-                      "protocolMapper", "zeta-guard-accesstoken-mapper",
-                      "config",
-                          java.util.Map.of(
-                              "access.token.claim", "true",
-                              "id.token.claim", "true",
-                              "access.tokenResponse.claim", "true")));
-      rt.postForEntity(URI.create(mappersUrl), new HttpEntity<>(mapper, postHeader), String.class);
-      log.info("Added zeta-guard-accesstoken-mapper to client");
-    }
-
-    // Audience mapper — required by ngx_pep which validates the 'aud' claim
-    if (!existingNames.contains("audience-mapper")) {
-      String mapper =
-          new ObjectMapper()
-              .writeValueAsString(
-                  java.util.Map.of(
-                      "name", "audience-mapper",
-                      "protocol", "openid-connect",
-                      "protocolMapper", "oidc-audience-mapper",
-                      "config",
-                          java.util.Map.of(
-                              "included.custom.audience", "https://popp-zeta-ingress/",
-                              "access.token.claim", "true",
-                              "id.token.claim", "false")));
-      rt.postForEntity(URI.create(mappersUrl), new HttpEntity<>(mapper, postHeader), String.class);
-      log.info("Added audience mapper to client");
-    }
-  }
-
   private record KeyPairHolder(ECPrivateKey privateKey, ECPublicKey publicKey) {}
 
   /**
    * Creates a RestTemplate that trusts all TLS certificates. Required because BouncyCastle's JSSE
    * provider does not include all public root CAs (e.g. DigiCert) in its default trust store.
    */
-  private static RestTemplate createTrustAllRestTemplate() {
+  private static void createTrustAllRestTemplate() {
     try {
       TrustManager[] trustAll =
           new TrustManager[] {
@@ -1188,12 +999,9 @@ public class ZetaJwtTestFactory {
 
       javax.net.ssl.HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
       javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
-
-      return new RestTemplate();
     } catch (Exception e) {
       log.warn(
           "Failed to create trust-all RestTemplate, falling back to default: {}", e.getMessage());
-      return new RestTemplate();
     }
   }
 }

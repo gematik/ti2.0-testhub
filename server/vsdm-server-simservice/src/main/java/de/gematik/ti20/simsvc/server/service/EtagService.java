@@ -40,8 +40,8 @@ public class EtagService {
 
   public static final String HEADER_NAME = "Etag";
 
-  private final String ALGORITHM = "HmacSHA256";
-  private final String KEY =
+  private static final String ALGORITHM = "HmacSHA256";
+  private static final String KEY =
       "gematik-simsvc-etag-key"; // This should be securely stored and managed
 
   // Store etags per kvnr
@@ -103,19 +103,17 @@ public class EtagService {
   }
 
   // etag response headers must be padded with quotes
-  private String addEtagPadding(String etag) {
+  protected String addEtagPadding(final String etag) {
     if (StringUtils.hasLength(etag)
         && (!(etag.startsWith("\"") || etag.startsWith("W/\"")) || !etag.endsWith("\""))) {
-      etag = "\"" + etag + "\"";
+      return "\"" + etag + "\"";
     }
     return etag;
   }
 
-  private String removeEtagPadding(String etag) {
-    if (StringUtils.hasLength(etag)) {
-      if (etag.startsWith("\"") && etag.endsWith("\"")) {
-        etag = etag.substring(1, etag.length() - 1);
-      }
+  protected String removeEtagPadding(final String etag) {
+    if (StringUtils.hasLength(etag) && etag.startsWith("\"") && etag.endsWith("\"")) {
+      return etag.substring(1, etag.length() - 1);
     }
     return etag;
   }

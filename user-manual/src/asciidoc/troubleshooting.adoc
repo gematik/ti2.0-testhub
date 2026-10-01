@@ -92,8 +92,8 @@ You have to rename or remove it.
 2. It's possible that a previous Testhub start wasn't cleaned properly.
 First remove the remaining containers and then restart Testhub:
 
-   docker compose -f ./doc/docker/compose-local.yaml down -v
-   docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
+   docker compose -f ./infra/docker/compose-local.yaml down -v
+   docker compose -f ./infra/docker/compose-local.yaml --profile full up -d --remove-orphans
 
 [id=docker-credentials]
 ==== Authentication for pulling Docker images
@@ -211,16 +211,16 @@ Most commands from this documentation can be mapped 1:1 from Docker to Podman.
 [source,bash]
 ----
 # Docker
-docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
+docker compose -f ./infra/docker/compose-local.yaml --profile full up -d --remove-orphans
 
 # Podman equivalent
-podman compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
+podman compose -f ./infra/docker/compose-local.yaml --profile full up -d --remove-orphans
 ----
 
 If `podman compose` is not available in your setup, use `podman-compose` instead:
 
 [source,bash]
 ----
-podman-compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
+podman-compose -f ./infra/docker/compose-local.yaml --profile full up -d --remove-orphans
 ----
 

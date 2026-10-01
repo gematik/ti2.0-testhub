@@ -13,14 +13,14 @@ services:
       - path: ../.env
         required: true
     ports:
-      - "${PORT_POPP_TOKEN_GENERATOR:?PORT_POPP_TOKEN_GENERATOR missing – set it in doc/docker/.env}:80"
+      - "${PORT_POPP_TOKEN_GENERATOR:?PORT_POPP_TOKEN_GENERATOR missing – set it in infra/docker/.env}:80"
     environment:
       - SPRING_PROFILES_ACTIVE=beispielimpl
     networks:
       - testhub_network
 
   popp-client:
-    profiles: [ "full" ]
+    profiles: [ "full", "ps-only" ]
     container_name: popp-client
     image: gematik1/popp-client:2.8.0
     env_file:
@@ -31,14 +31,14 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - POPP_SERVER_URL=${POPP_SERVER_URL:-wss://popp-zeta-ingress:443/popp/practitioner/api/v1/token-generation-ehc}
       - SPRING_PROFILES_ACTIVE=dev
-      - VIRTUAL_CARD_IMAGE_FILE=${VIRTUAL_CARD_IMAGE_PATH:-/data/cards}/${VIRTUAL_CARD_IMAGE_FILE:-egkCardImage.xml}
+      - VIRTUAL_CARD_IMAGE_FILE=/test-resources${VIRTUAL_CARD_IMAGE_PATH:-/data/cards}/${VIRTUAL_CARD_IMAGE_FILE:-egkCardImage.xml}
       - ZETA_AUTHENTICATION_SMB_KEYFILE=${ZETA_AUTHENTICATION_SMB_KEYFILE:-/app/smcb_private.p12}
       # Konnektor address (event-service endpoint) and terminal context – only used when a
       # request specifies "communicationType": "contact-connector"/"contactless-connector".
       # The PoPP-Client selects the SMC-B source (keystore vs. Konnektor) per request, so both
       # can be configured on the same container at the same time, see
       # https://github.com/gematik/popp-sample-code/blob/main/README.md#b-konnektor
-      # Override the placeholder defaults below via doc/docker/env-private/.my-own.env to point
+      # Override the placeholder defaults below via infra/docker/env-private/.my-own.env to point
       # at a real Konnektor.
       - CONNECTOR_END_POINT_URL=${CONNECTOR_END_POINT_URL:-https://<Konnektor-IP-oder-Host>:<Port>}
       - CONNECTOR_SECURE_ENABLE=${CONNECTOR_SECURE_ENABLE:-true}
@@ -58,54 +58,32 @@ services:
     networks:
       - testhub_network
     ports:
-      - "${PORT_POPP_CLIENT:?PORT_POPP_CLIENT missing – set it in doc/docker/.env}:8081"
-      - "${PORT_POPP_CLIENT_MGMT:?PORT_POPP_CLIENT_MGMT missing – set it in doc/docker/.env}:9001"
+      - "${PORT_POPP_CLIENT:?PORT_POPP_CLIENT missing – set it in infra/docker/.env}:8081"
+      - "${PORT_POPP_CLIENT_MGMT:?PORT_POPP_CLIENT_MGMT missing – set it in infra/docker/.env}:9001"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:8081/actuator/health/readiness | grep -q 'UP'" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
     volumes:
       - ./zeta/smcb-private/${SMCB_FILE:-smcb_private.p12}:/app/smcb_private.p12:ro
       - ${CONNECTOR_KEYSTORE_DIR:-./zeta/connector}/${CONNECTOR_KEYSTORE_FILE:-keystore.p12}:/app/connector/keystore.p12:ro
       - ${CONNECTOR_TRUSTSTORE_DIR:-./zeta/connector}/${CONNECTOR_TRUSTSTORE_FILE:-truststore.p12}:/app/connector/truststore.p12:ro
       - ../../../test/vsdm-testsuite/src/test/resources/data/cards:/data/cards
+      - ../../../test/vsdm-testsuite/src/test/resources:/test-resources:ro
       - type: volume
         source: dns-config
         target: /etc/resolv.conf
         read_only: true
         volume:
           subpath: resolv.conf
-      - ../../../test/vsdm-testsuite/src/test/resources/${VIRTUAL_CARD_IMAGE_PATH:-data/cards}:${VIRTUAL_CARD_IMAGE_PATH:-/data/cards}:ro
       - ../../../no-publish/test-data/erp:/mnt/:ro
     depends_on:
       otel-collector:
         condition: service_started
       resolv-writer:
         condition: service_completed_successfully
-
-  popp-client-perf:
-    profiles: [ "ps-only" ]
-    container_name: popp-client
-    image: gematik1/popp-client:2.8.0
-    env_file:
-      - path: ../.env
-        required: true
-    platform: linux/amd64
-    environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-      - POPP_SERVER_URL=${POPP_SERVER_URL:-wss://popp-zeta-ingress:443/popp/practitioner/api/v1/token-generation-ehc}
-      - SPRING_PROFILES_ACTIVE=dev
-      - VIRTUAL_CARD_IMAGE_FILE=${VIRTUAL_CARD_IMAGE_PATH:-/data/cards}/${VIRTUAL_CARD_IMAGE_FILE:-egkCardImage.xml}
-      - ZETA_AUTHENTICATION_SMB_KEYFILE=/app/smcb_private.p12
-      # - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5013"
-    networks:
-      - testhub_network
-    ports:
-      - "${PORT_POPP_CLIENT:?PORT_POPP_CLIENT missing – set it in doc/docker/.env}:8081"
-      - "${PORT_POPP_CLIENT_MGMT:?PORT_POPP_CLIENT_MGMT missing – set it in doc/docker/.env}:9001"
-    volumes:
-      - ./zeta/smcb-private/${SMCB_FILE:-smcb_private.p12}:/app/smcb_private.p12:ro
-      - ../../../test/vsdm-testsuite/src/test/resources/data/cards:/data/cards
-      - ../../../test/vsdm-testsuite/src/test/resources/${VIRTUAL_CARD_IMAGE_PATH:-data/cards}:${VIRTUAL_CARD_IMAGE_PATH:-/data/cards}:ro
-    depends_on:
-      otel-collector:
-        condition: service_started
 
   popp-server:
     profiles: [ "full", "backend-only" ]
@@ -116,7 +94,7 @@ services:
     platform: linux/amd64
     container_name: popp-server
     ports:
-      - "${PORT_POPP_SERVER:?PORT_POPP_SERVER missing – set it in doc/docker/.env}:8443"
+      - "${PORT_POPP_SERVER:?PORT_POPP_SERVER missing – set it in infra/docker/.env}:8443"
     environment:
       - CERT_HASH_IMPORT_LOCATION=file:/app/import
       - IDENTITIES_LOCATION=classpath:identities
@@ -141,7 +119,7 @@ services:
       POSTGRES_PASSWORD: verysafe
       POSTGRES_USER: poppserver
     ports:
-      - "${PORT_POPP_SERVER_DB:?PORT_POPP_SERVER_DB missing – set it in doc/docker/.env}:5432"
+      - "${PORT_POPP_SERVER_DB:?PORT_POPP_SERVER_DB missing – set it in infra/docker/.env}:5432"
     tmpfs:
       - /var/lib/postgresql
     restart: on-failure
@@ -158,7 +136,7 @@ services:
       - path: ../.env
         required: true
     ports:
-      - "${PORT_POPP_ZETA_INGRESS:?PORT_POPP_ZETA_INGRESS missing – set it in doc/docker/.env}:443"
+      - "${PORT_POPP_ZETA_INGRESS:?PORT_POPP_ZETA_INGRESS missing – set it in infra/docker/.env}:443"
     volumes:
       - ./zeta-popp/ingress/conf:/etc/nginx/conf.d:ro
       - ./zeta-popp/ingress/certs:/etc/nginx/certs:ro
@@ -178,7 +156,7 @@ services:
       <<: *popp-no-proxy-env
       POPP_SERVER_HOST: popp-server:8443
     ports:
-      - "${PORT_POPP_ZETA_PEP:?PORT_POPP_ZETA_PEP missing – set it in doc/docker/.env}:80"
+      - "${PORT_POPP_ZETA_PEP:?PORT_POPP_ZETA_PEP missing – set it in infra/docker/.env}:80"
     command: [ "nginx", "-g", "daemon off;", "-c", "/ci_nginx/nginx.conf" ]
     volumes:
       - ./zeta-popp/pep/conf/:/etc/nginx/templates/:ro
@@ -242,9 +220,9 @@ services:
       TPM_KEYSTORE_LOCATION: /opt/keycloak/conf/tpm/tpm-certificates.p12
       TPM_KEYSTORE_PASSWORD: "O3Bdel9P5+cOgzIGANkOPEzBQM3V"
     ports:
-      - "${PORT_POPP_ZETA_PDP:?PORT_POPP_ZETA_PDP missing – set it in doc/docker/.env}:80"
-      - "${PORT_POPP_ZETA_PDP_HEALTH:?PORT_POPP_ZETA_PDP_HEALTH missing – set it in doc/docker/.env}:9000"
-      - "${PORT_POPP_ZETA_PDP_DEBUG:?PORT_POPP_ZETA_PDP_DEBUG missing – set it in doc/docker/.env}:5022"
+      - "${PORT_POPP_ZETA_PDP:?PORT_POPP_ZETA_PDP missing – set it in infra/docker/.env}:80"
+      - "${PORT_POPP_ZETA_PDP_HEALTH:?PORT_POPP_ZETA_PDP_HEALTH missing – set it in infra/docker/.env}:9000"
+      - "${PORT_POPP_ZETA_PDP_DEBUG:?PORT_POPP_ZETA_PDP_DEBUG missing – set it in infra/docker/.env}:5022"
     volumes:
       - ./zeta-popp/realm:/opt/keycloak/data/import
       - ./zeta-popp/smcb:/opt/keycloak/conf/smcb
@@ -274,7 +252,7 @@ services:
       - path: ../.env
         required: true
     ports:
-      - "${PORT_POPP_ZETA_PDP_DB:?PORT_POPP_ZETA_PDP_DB missing – set it in doc/docker/.env}:5432"
+      - "${PORT_POPP_ZETA_PDP_DB:?PORT_POPP_ZETA_PDP_DB missing – set it in infra/docker/.env}:5432"
     tmpfs:
       - /var/lib/postgresql/data
     networks:
@@ -295,7 +273,7 @@ services:
     environment:
       <<: *popp-no-proxy-env
     ports:
-      - "${PORT_POPP_ZETA_PDP_OPA:?PORT_POPP_ZETA_PDP_OPA missing – set it in doc/docker/.env}:8181"
+      - "${PORT_POPP_ZETA_PDP_OPA:?PORT_POPP_ZETA_PDP_OPA missing – set it in infra/docker/.env}:8181"
     command:
       - 'run'
       - '--server'

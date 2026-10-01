@@ -24,7 +24,7 @@ ZETA requires an SMC-B certificate to work. Follow these steps:
    You will receive the certificate from Gematik as a ZIP file.
 2. In the ZIP file locate a `.p12` file whose filename includes `AUT_E256_`.
 3. Extract the file and rename it to `smcb_private.p12`
-4. Place the file in the `doc/docker/backend/zeta/smcb-private` folder
+4. Place the file in the `infra/docker/backend/zeta/smcb-private` folder
 
 ## Install Required Software
 
@@ -43,23 +43,23 @@ ZETA requires an SMC-B certificate to work. Follow these steps:
     ```
 2. Remove Docker containers from previous runs:
     ```bash
-    docker compose -f ./doc/docker/compose-local.yaml --profile full down -v
+    docker compose -f ./infra/docker/compose-local.yaml --profile full down -v
     ```
 3. Start Docker containers:
     ```bash
-    docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
+    docker compose -f ./infra/docker/compose-local.yaml --profile full up -d --remove-orphans
     ```
 
 ### Port Configuration
 
-Host ports are defined in [`doc/docker/.env`](./doc/docker/.env).
+Host ports are defined in [`infra/docker/.env`](./infra/docker/.env).
 Docker Compose loads this file automatically. You can customize these to fit your environment. For more information
 refer to the
 [user manual configuration section](https://gematik.github.io/ti2.0-testhub/#_port_configuration_via_env_file).
 
 ```bash
 # Example: remap VSDM server from 9130 to 19130
-PORT_VSDM_SERVER=19130 docker compose -f ./doc/docker/compose-local.yaml --profile full up -d
+PORT_VSDM_SERVER=19130 docker compose -f ./infra/docker/compose-local.yaml --profile full up -d
 ```
 
 A full list of available port variables and their defaults is documented in the

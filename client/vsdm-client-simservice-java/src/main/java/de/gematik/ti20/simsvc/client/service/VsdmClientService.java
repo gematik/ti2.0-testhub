@@ -24,13 +24,9 @@
  */
 package de.gematik.ti20.simsvc.client.service;
 
-import de.gematik.bbriccs.fhir.EncodingType;
 import de.gematik.ti20.simsvc.client.card.AttachedCard;
-import de.gematik.ti20.simsvc.client.card.EgkInfo;
 import de.gematik.ti20.simsvc.client.config.VsdmClientConfig;
-import de.gematik.ti20.simsvc.client.exception.CardTerminalException;
 import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
-import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
 import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
 import de.gematik.ti20.simsvc.client.service.popp.PoppClientAdapter;
 import de.gematik.ti20.simsvc.client.service.popp.PoppToken;
@@ -38,31 +34,20 @@ import de.gematik.ti20.simsvc.client.service.popp.PoppTokenFromCacheStrategy;
 import de.gematik.ti20.simsvc.client.service.popp.PoppTokenFromInjectedStrategy;
 import de.gematik.ti20.simsvc.client.service.popp.PoppTokenFromMockedStrategy;
 import de.gematik.ti20.simsvc.client.service.popp.PoppTokenFromServiceStrategy;
-import de.gematik.ti20.vsdm.fhir.builder.VsdmBundleBuilder;
-import de.gematik.ti20.vsdm.fhir.builder.VsdmPatientBuilder;
-import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
-import io.ktor.client.plugins.ClientRequestException;
-import io.ktor.client.plugins.ServerResponseException;
+import de.gematik.ti20.simsvc.client.service.vsdm.VsdmDataFromCacheStrategy;
+import de.gematik.ti20.simsvc.client.service.vsdm.VsdmDataFromCardStrategy;
+import de.gematik.ti20.simsvc.client.service.vsdm.VsdmDataFromServiceStrategy;
+import de.gematik.ti20.simsvc.client.service.vsdm.VsdmReadResult;
 import java.net.HttpURLConnection;
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
-import org.slf4j.MDC;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
 @Service
 public class VsdmClientService {
-
-  public static final String HEADER_VSDM_PZ = "vsdm-pz";
-  public static final String HEADER_ETAG = "etag";
 
   private final CardTerminalService cardTerminalService;
   private final VsdmDataRepository vsdmDataRepository;
@@ -73,7 +58,9 @@ public class VsdmClientService {
   private final PoppTokenFromCacheStrategy poppTokenFromCache;
   private final PoppTokenFromServiceStrategy poppTokenFromService;
 
-  private final FhirService fhirService;
+  private final VsdmDataFromCacheStrategy vsdmDataFromCacheStrategy;
+  private final VsdmDataFromServiceStrategy vsdmDataFromServiceStrategy;
+  private final VsdmDataFromCardStrategy vsdmDataFromCardStrategy;
 
   public VsdmClientService(
       final VsdmClientConfig vsdmClientConfig,
@@ -86,7 +73,6 @@ public class VsdmClientService {
       final ZetaSdkClientAdapter vsdmZetaClient) {
 
     this.cardTerminalService = cardTerminalService;
-    this.fhirService = fhirService;
 
     this.vsdmDataRepository = vsdmDataRepository;
 
@@ -99,23 +85,31 @@ public class VsdmClientService {
     this.poppTokenFromCache = new PoppTokenFromCacheStrategy(poppTokenRepository);
     this.poppTokenFromService =
         new PoppTokenFromServiceStrategy(poppClientAdapter, poppTokenRepository);
+
+    this.vsdmDataFromCacheStrategy = new VsdmDataFromCacheStrategy(vsdmDataRepository);
+    this.vsdmDataFromServiceStrategy =
+        new VsdmDataFromServiceStrategy(vsdmDataRepository, vsdmZetaClient);
+    this.vsdmDataFromCardStrategy = new VsdmDataFromCardStrategy(cardTerminalService, fhirService);
   }
 
-  public ResponseEntity<String> read(
+  public VsdmReadResult read(
       final String terminalId,
       final int egkSlotId,
       final String virtualCard,
       final boolean isFhirXml,
+      final boolean skipPoppTokenHeader,
       final String poppTokenInjected,
       final String ifNoneMatch,
       final String profileVersion) {
     log.info(
-        "read initiated with terminalId = {}, egkSlotId={}, if-none-match={}, poppTokenInjected={}, profileVersion={}",
+        "read initiated with terminalId = {}, egkSlotId={}, if-none-match={}, skipPoppTokenHeader={}, poppTokenInjected={}, profileVersion={}",
         terminalId,
         egkSlotId,
         ifNoneMatch,
+        skipPoppTokenHeader,
         poppTokenInjected != null,
         profileVersion);
+
     final AttachedCard attachedCard =
         poppTokenInjected != null
             ? null
@@ -125,9 +119,16 @@ public class VsdmClientService {
         requestPoppToken(poppTokenInjected, terminalId, egkSlotId, attachedCard, virtualCard);
     log.debug("Received PoPP token: {}", poppToken.value());
 
-    final ResponseEntity<String> vsd =
+    final VsdmReadResult vsd =
         requestVsd(
-            terminalId, egkSlotId, attachedCard, poppToken, ifNoneMatch, isFhirXml, profileVersion);
+            terminalId,
+            egkSlotId,
+            attachedCard,
+            poppToken,
+            ifNoneMatch,
+            isFhirXml,
+            skipPoppTokenHeader,
+            profileVersion);
     log.debug("Received VSD: {}", vsd);
 
     return vsd;
@@ -159,184 +160,35 @@ public class VsdmClientService {
                 HttpStatus.INTERNAL_SERVER_ERROR, "Could not retrieve PoPP token"));
   }
 
-  // vsdm handling
-
-  protected ResponseEntity<String> requestVsd(
+  protected VsdmReadResult requestVsd(
       final String terminal,
       final int egkSlotId,
       final AttachedCard attachedCard,
       final PoppToken poppToken,
       final String ifNoneMatch,
       final boolean isFhirXml,
+      final boolean skipPoppTokenHeader,
       final String profileVersion) {
 
-    if (attachedCard != null) {
-      final VsdmCachedValue vsdmCachedValue =
-          vsdmDataRepository.get(terminal, egkSlotId, attachedCard.getId());
+    final Optional<VsdmReadResult> maybeVsdmReadResult =
+        vsdmDataFromCacheStrategy
+            .get(attachedCard, terminal, egkSlotId)
+            .or(
+                () ->
+                    vsdmDataFromServiceStrategy.get(
+                        terminal,
+                        egkSlotId,
+                        attachedCard,
+                        isFhirXml,
+                        skipPoppTokenHeader,
+                        poppToken.value(),
+                        ifNoneMatch,
+                        profileVersion))
+            .or(() -> vsdmDataFromCardStrategy.get(attachedCard));
 
-      if (vsdmCachedValue != null) {
-        return ResponseEntity.status(HttpStatus.OK)
-            .header(HEADER_VSDM_PZ, vsdmCachedValue.pruefziffer())
-            .header(HEADER_ETAG, vsdmCachedValue.etag())
-            .body(vsdmCachedValue.vsdmData());
-      }
-    }
-
-    try {
-      final String traceId = MDC.get("traceId");
-      final ZetaSdkClientAdapter.RequestParameters requestParameters =
-          new ZetaSdkClientAdapter.RequestParameters(
-              traceId, poppToken.value(), isFhirXml, ifNoneMatch);
-      final String baseUrl = "vsdservice/v1/vsdmbundle";
-      final String url =
-          profileVersion != null ? baseUrl + "?profileVersion=" + profileVersion : baseUrl;
-      final ZetaSdkClientAdapter.Response responseFromServer =
-          vsdmZetaClient.httpGet(url, requestParameters);
-
-      responseFromServer
-          .headers()
-          .forEach((key, value) -> log.debug("Header from VSDM response: {}: {}", key, value));
-
-      final boolean isNotModified =
-          responseFromServer.statusCode().isSameCodeAs(HttpStatus.NOT_MODIFIED);
-      if (!responseFromServer.statusCode().is2xxSuccessful() && !isNotModified) {
-        return ResponseEntity.status(responseFromServer.statusCode())
-            .headers(copyApplicableHeaders(responseFromServer))
-            .body(responseFromServer.body());
-      }
-
-      if (isNotModified) {
-        return handleNotModified(terminal, egkSlotId, attachedCard, responseFromServer);
-      }
-
-      final HttpHeaders responseHeaders = copyApplicableHeaders(responseFromServer);
-      final String responseToCaller = responseFromServer.body();
-
-      if (responseToCaller == null) {
-        throw new ResponseStatusException(
-            HttpStatus.INTERNAL_SERVER_ERROR, "Could not parse valid FHIR response");
-      }
-
-      // Only cache if attachedCard is available
-      if (attachedCard != null) {
-        vsdmDataRepository.put(
-            terminal,
-            egkSlotId,
-            attachedCard.getId(),
-            new VsdmCachedValue(
-                responseHeaders.getETag(),
-                responseHeaders.getFirst(HEADER_VSDM_PZ),
-                responseToCaller));
-      }
-
-      return ResponseEntity.status(HttpStatus.OK).headers(responseHeaders).body(responseToCaller);
-
-    } catch (final ClientRequestException e) {
-      final int responseStatus = e.getResponse().getStatus().getValue();
-      return ResponseEntity.status(responseStatus).body(e.getMessage());
-    } catch (final ServerResponseException e) {
-      log.error("Error while connecting to VSDM server: {}", e.getMessage(), e);
-
-      return handleTruncatedDataResponse(attachedCard, e);
-    } catch (final InterruptedException e) {
-      Thread.currentThread().interrupt();
-      log.error("Thread interrupted while requesting VsdBundle with token", e);
-      throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
-    } catch (final Exception e) {
-      log.error("Error on requesting VsdBundle with token", e);
-      throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
-    }
-  }
-
-  private @NonNull ResponseEntity<String> handleTruncatedDataResponse(
-      final AttachedCard attachedCard, final ServerResponseException e) {
-    if (attachedCard == null) {
-      // No fallback available when using provided token
-      throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
-    }
-    // Fallback to card data only if attachedCard is available
-    try {
-      final String responseToCaller = loadTruncatedDataFromCard(attachedCard);
-      if (responseToCaller == null) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-      }
-      return ResponseEntity.status(HttpStatus.OK).body(responseToCaller);
-    } catch (final CardTerminalException cardEx) {
-      log.error("Error while loading truncated data from card: {}", cardEx.getMessage(), cardEx);
-      throw new ResponseStatusException(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage(), e);
-    }
-  }
-
-  /** Process a 304 from the VSDM backend and update the cache accordingly. */
-  private @NotNull ResponseEntity<String> handleNotModified(
-      final String terminal,
-      final Integer egkSlotId,
-      final AttachedCard attachedCard,
-      final ZetaSdkClientAdapter.Response responseFromServer) {
-    final HttpHeaders responseHeaders = copyApplicableHeaders(responseFromServer);
-    final String etagHeader = responseFromServer.headers().get(HEADER_ETAG);
-    Objects.requireNonNull(
-        etagHeader, "'%s' header must be set by VSDM backend on 304".formatted(HEADER_ETAG));
-
-    final String checkDigitHeader =
-        responseFromServer.headers().get(HEADER_VSDM_PZ) != null
-            ? responseFromServer.headers().get(HEADER_VSDM_PZ)
-            : responseFromServer.headers().get(HEADER_VSDM_PZ.toLowerCase());
-    Objects.requireNonNull(
-        checkDigitHeader,
-        "'%s' header must be set by VSDM backend on 304".formatted(HEADER_VSDM_PZ));
-
-    if (attachedCard != null) {
-      final VsdmCachedValue cachedValue =
-          vsdmDataRepository.get(terminal, egkSlotId, attachedCard.getId());
-      final VsdmCachedValue updatedCacheValue;
-      if (cachedValue == null) {
-        updatedCacheValue = new VsdmCachedValue(etagHeader, checkDigitHeader, "");
-      } else {
-        updatedCacheValue = cachedValue.copyWith(etagHeader, checkDigitHeader);
-      }
-      vsdmDataRepository.put(terminal, egkSlotId, attachedCard.getId(), updatedCacheValue);
-    }
-
-    return ResponseEntity.status(HttpStatus.NOT_MODIFIED).headers(responseHeaders).build();
-  }
-
-  public String loadTruncatedDataFromCard(final AttachedCard attachedCard)
-      throws CardTerminalException {
-    final EgkInfo egkInfo = cardTerminalService.getEgkInfo(attachedCard);
-
-    if (Boolean.FALSE.equals(egkInfo.getValid())) {
-      return null;
-    }
-
-    // send 401, falls nicht valid
-    final VsdmBundle truncatedDataBundle =
-        VsdmBundleBuilder.create()
-            .addEntry(
-                VsdmPatientBuilder.create()
-                    .withKvnr(egkInfo.getKvnr())
-                    .withNames(egkInfo.getLastName(), egkInfo.getFirstName())
-                    .build())
-            .build();
-
-    return fhirService.encodeResponse(truncatedDataBundle, EncodingType.JSON);
-  }
-
-  private HttpHeaders copyApplicableHeaders(
-      final ZetaSdkClientAdapter.Response responseFromServer) {
-    final HttpHeaders responseHeaders = new HttpHeaders();
-    responseFromServer
-        .headers()
-        .forEach(
-            (key, value) -> {
-              if (key.equalsIgnoreCase(HEADER_VSDM_PZ)
-                  || key.equalsIgnoreCase(HEADER_ETAG)
-                  || key.equalsIgnoreCase("Content-Type")
-                  || key.equalsIgnoreCase("Content-Length")) {
-                responseHeaders.put(key, List.of(value));
-              }
-            });
-
-    return responseHeaders;
+    return maybeVsdmReadResult.orElseThrow(
+        () ->
+            new ResponseStatusException(
+                HttpURLConnection.HTTP_INTERNAL_ERROR, "Could not retrieve VSDM data", null));
   }
 }

@@ -41,7 +41,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class FhirService extends CodecServiceR4 {
 
-  public Resource parsePostRequest(HttpServletRequest request) {
+  public Resource parsePostRequest(final HttpServletRequest request) {
     return parseString(getBodyString(request), request.getHeader("content-type"));
   }
 
@@ -51,24 +51,22 @@ public class FhirService extends CodecServiceR4 {
   }
 
   public Resource parseString(final String body, final String contentType) {
-    // validate(body);
     return codec.decode(body, EncodingType.fromString(contentType));
   }
 
   public <T extends Resource> T parseString(
       final String body, final String contentType, final Class<T> cls) {
-    // validate(body);
     return codec.decode(cls, body, EncodingType.fromString(contentType));
   }
 
   private String getBodyString(final HttpServletRequest request) {
-    StringBuilder requestBody = new StringBuilder();
+    final StringBuilder requestBody = new StringBuilder();
     try (BufferedReader reader = request.getReader()) {
       String line;
       while ((line = reader.readLine()) != null) {
         requestBody.append(line);
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error reading request body");
     }
 
@@ -88,7 +86,7 @@ public class FhirService extends CodecServiceR4 {
       if (EncodingType.fromString(accept) == EncodingType.XML) {
         encodingType = EncodingType.XML;
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       // do nothing
     }
 

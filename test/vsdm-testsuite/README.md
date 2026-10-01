@@ -47,7 +47,7 @@ Docker-Container gestartet werden: (Die Befehle sollten im Projekt-Root-Verzeich
 ```
 ### Start der Docker-Container
 ```
-docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
+docker compose -f ./infra/docker/compose-local.yaml --profile full up -d --remove-orphans
 ```
 
 ### Profile
@@ -60,7 +60,6 @@ unterschiedliche Kombinationen von Diensten zu starten. Die folgenden Profile we
 | Bezeichnung | Einsatz             | Anmerkung                                                                                                                  |
 |:------------|:--------------------|:---------------------------------------------------------------------------------------------------------------------------|
 | full        | Lokale Testumgebung | Dieses Profil startet alle Module des Testhubs und kann zur Durchführung von E2E-, ERROR- und PERF-Tests verwendet werden. |
-| perf        | Lokale Testumgebung | Dieses Profil startet alle Vsdm-Client und Vsdm-Server-Module und eignet sich zum Test der Gatling-Simulationen.           |
 | ps-only     | Remote Testumgebung | Dieses Profil startet alle Client-Module und kann für die Zulassungstests verwendet werden.                                | 
 
 

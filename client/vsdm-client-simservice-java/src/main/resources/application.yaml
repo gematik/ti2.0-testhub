@@ -6,6 +6,15 @@ server:
     include-message: always
   port: ${SERVER_PORT:80}
 
+management:
+  endpoint:
+    configprops:
+      show-values: always
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
 popp:
   tokenType: CONTACT_VIRTUAL
   http:

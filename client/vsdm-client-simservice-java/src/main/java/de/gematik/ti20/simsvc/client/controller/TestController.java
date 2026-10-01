@@ -31,7 +31,9 @@ import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
 import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
 import de.gematik.ti20.simsvc.client.service.CardTerminalService;
+import de.gematik.ti20.simsvc.client.service.FhirService;
 import de.gematik.ti20.simsvc.client.service.VsdmClientService;
+import de.gematik.ti20.simsvc.client.service.vsdm.VsdmDataFromCardStrategy;
 import de.gematik.ti20.simsvc.client.util.StorageInterceptor;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +60,8 @@ public class TestController {
   private final StorageInterceptor storageInterceptor;
   private final CardTerminalService cardTerminalService;
 
+  private final VsdmDataFromCardStrategy vsdmDataFromCardStrategy;
+
   @Autowired
   public TestController(
       final PoppTokenRepository poppTokenRepository,
@@ -65,13 +69,16 @@ public class TestController {
       final VsdmClientService vsdmClientService,
       final VsdmClientConfig vsdmClientConfig,
       final StorageInterceptor storageInterceptor,
-      CardTerminalService cardTerminalService) {
+      final CardTerminalService cardTerminalService,
+      final FhirService fhirService) {
     this.poppTokenRepository = poppTokenRepository;
     this.vsdmDataRepository = vsdmDataRepository;
     this.vsdmClientService = vsdmClientService;
     this.vsdmClientConfig = vsdmClientConfig;
     this.storageInterceptor = storageInterceptor;
     this.cardTerminalService = cardTerminalService;
+
+    this.vsdmDataFromCardStrategy = new VsdmDataFromCardStrategy(cardTerminalService, fhirService);
   }
 
   @GetMapping("/poppToken")
@@ -119,7 +126,7 @@ public class TestController {
     log.info("readEgk called with terminalId: {}, egkSlotId: {}", terminalId, egkSlotId);
 
     final AttachedCard attachedCard = cardTerminalService.getAttachedCard(terminalId, egkSlotId);
-    final String egkData = vsdmClientService.loadTruncatedDataFromCard(attachedCard);
+    final String egkData = vsdmDataFromCardStrategy.loadTruncatedDataFromCard(attachedCard);
 
     if (egkData == null) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

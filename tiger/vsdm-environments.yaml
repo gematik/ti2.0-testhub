@@ -11,7 +11,7 @@
 #  auszuloesen.
 #
 #  Verfuegbare Stufen:
-#     local = lokaler Docker-Stack aus doc/docker (kein Block noetig)
+#     local = lokaler Docker-Stack aus infra/docker (kein Block noetig)
 #
 #  Hinweis: die Auswahl der Testdaten (Kartenimages, IKNR/KVNR-Feeder) laeuft
 #  weiterhin ueber -Dconfig=<name>.conf (HOCON, siehe
@@ -21,7 +21,7 @@
 vsdm:
   # ---- Gemeinsame Werte ----------------------------------------------------
   common:
-    # Defaults: der lokale Docker-Stack aus doc/docker.
+    # Defaults: der lokale Docker-Stack aus infra/docker.
     cardTerminalUrl: "http://${ports.host}:${ports.cardTerminalPort}"
     clientUrl: "http://${ports.host}:${ports.vsdmClientPort}"
     poppClientUrl: "http://${ports.host}:${ports.poppClientPort}"

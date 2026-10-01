@@ -3,7 +3,7 @@
 # ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@asl'
 #
 # VORAUSSETZUNG: TestHub im Profil "full":
-#   docker compose -f doc/docker/compose-local.yaml --profile full up -d
+#   docker compose -f infra/docker/compose-local.yaml --profile full up -d
 @PRODUKT:ZT_Cluster
 @PRODUKT:VSDM_2_FD
 @PRODUKT:Anb_FD_VSDM

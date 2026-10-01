@@ -24,4 +24,4 @@ ports:
   vsdmPdpPort: 9122
   vsdmIngressPort: 9119
   vsdmServerPort: 9130
-  vsdmOpaPort: 9121
+  vsdmOpaPort: 8181

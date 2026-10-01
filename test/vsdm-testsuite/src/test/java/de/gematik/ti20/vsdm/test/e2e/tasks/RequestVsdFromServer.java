@@ -37,13 +37,19 @@ public class RequestVsdFromServer implements Task {
   private final String poppToken;
   private final boolean isFhirXml;
   private final String profileVersion;
+  private final boolean skipPoppTokenHeader;
 
   public RequestVsdFromServer(
-      String etag, String poppToken, boolean isFhirXml, String profileVersion) {
+      String etag,
+      String poppToken,
+      boolean isFhirXml,
+      String profileVersion,
+      boolean skipPoppTokenHeader) {
     this.etag = etag;
     this.poppToken = poppToken;
     this.isFhirXml = isFhirXml;
     this.profileVersion = profileVersion;
+    this.skipPoppTokenHeader = skipPoppTokenHeader;
   }
 
   /*
@@ -69,7 +75,13 @@ public class RequestVsdFromServer implements Task {
   */
   public static RequestVsdFromServer withEtagAndPoppToken(
       String etag, String poppToken, boolean isFhirXml, String profileVersion) {
-    return instrumented(RequestVsdFromServer.class, etag, poppToken, isFhirXml, profileVersion);
+    return instrumented(
+        RequestVsdFromServer.class, etag, poppToken, isFhirXml, profileVersion, false);
+  }
+
+  public static RequestVsdFromServer withEtagAndNoPoppToken(
+      String etag, boolean isFhirXml, String profileVersion) {
+    return instrumented(RequestVsdFromServer.class, etag, null, isFhirXml, profileVersion, true);
   }
 
   @Override
@@ -85,7 +97,8 @@ public class RequestVsdFromServer implements Task {
             .queryParam("terminalId", "0")
             .queryParam("isFhirXml", isFhirXml)
             .queryParam("smcBSlotId", smcbSlot)
-            .queryParam("egkSlotId", egkSlot);
+            .queryParam("egkSlotId", egkSlot)
+            .queryParam("skipPoppTokenHeader", skipPoppTokenHeader);
 
     if (profileVersion != null) {
       request.queryParam("profileVersion", profileVersion);

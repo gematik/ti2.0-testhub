@@ -90,16 +90,54 @@ Vom Root-Verzeichnis (ti2.0-testhub/) aus:
 ```
 
 
-## Testausführung gegen VSDM 2.0
+## Testausführung gegen VSDM 2.0 anbieter
 
-Der Block `zeta.environments.vsdm-rudev` in `tiger/zeta-environments.yaml` enthält die Konfiguration
-für die Ausführung der ZETA-Tests gegen den echten VSDM 2.0 Server in der RU-DEV Umgebung
-(für die TU entsprechend `vsdm-tu`). Die Testsuite kann mit dem Tag-Filter `@PRODUKT:VSDM_2_FD` gestartet werden, 
+Die Datei `tiger/zeta-environments.yaml` enthält die Konfigurationen
+für die Ausführung der ZETA-Tests gegen einen echten VSDM 2.0 Server in der RU-DEV/TU Umgebung.
+Die Testsuite kann mit dem Tag-Filter `@PRODUKT:VSDM_2_FD` gestartet werden, 
 um nur die Tests auszuführen, die für die Kommunikation mit dem VSDM 2.0 Server relevant sind. 
 Alle anderen Tests werden mit `not @local` ausgeschlossen, da sie nur gegen die lokale Testumgebung laufen. 
-Der Tag `not @Ignore` schließt Tests aus, die aktuell nicht relevant sind oder noch nicht implementiert wurden.   
+Der Tag `not @Ignore` schließt Tests aus, die aktuell nicht relevant sind oder noch nicht implementiert wurden.
 
+Vor dem Starten der Tests muss der Docker Stack mit dem entsprechenden vsdm-client Konfiguration gestartet werden.
+
+## Starten des VSDM-Clients für Tests gegen:
+
+### TK-RU
+```bash
+docker compose -f ./infra/docker/compose-local.yaml \
+  --env-file=./infra/docker/.env \
+  --env-file=./infra/docker/env-private/tk/.tk-ru-rise.env \
+  --profile full up -d --remove-orphans
+```
+
+### TK-TU
+```bash
+docker compose -f ./infra/docker/compose-local.yaml \
+  --env-file=./infra/docker/.env \
+  --env-file=./infra/docker/env-private/tk/.tk-tu-rise.env \
+  --profile full up -d --remove-orphans
+```
+
+### Arvato-RU
+```bash
+docker compose -f ./infra/docker/compose-local.yaml \
+  --env-file=./infra/docker/.env \
+  --env-file=./infra/docker/env-private/tk/.arvato-ru-rise.env \
+  --profile full up -d --remove-orphans
+```
+
+### Arvato-TU
+```bash
+docker compose -f ./infra/docker/compose-local.yaml \
+  --env-file=./infra/docker/.env \
+  --env-file=./infra/docker/env-private/arvato/.arvato-tu-rise.env \
+  --profile full up -d --remove-orphans
+```
+
+## Testausführung gegen ein VSDM 2.0 Fachdienst
 Vom Root-Verzeichnis (ti2.0-testhub/) aus:
+
 ```bash
 ./mvnw -pl test/zeta-testsuite clean verify \
   -Dskip.inttests=false \

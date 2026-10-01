@@ -30,7 +30,6 @@ import de.gematik.ti20.vsdm.fhir.builder.VsdmBundleBuilder;
 import de.gematik.ti20.vsdm.fhir.builder.VsdmCoverageBuilder;
 import de.gematik.ti20.vsdm.fhir.builder.VsdmPatientBuilder;
 import de.gematik.ti20.vsdm.fhir.builder.VsdmPayorOrganizationBuilder;
-import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
 import de.gematik.ti20.vsdm.fhir.def.VsdmCoverage;
 import de.gematik.ti20.vsdm.fhir.def.VsdmPatient;
 import de.gematik.ti20.vsdm.fhir.def.VsdmPayorOrganization;
@@ -62,14 +61,11 @@ public class VsdmService {
     final VsdmPayorOrganization payorOrganization = mockPayorOrganization();
     final VsdmCoverage coverage = mockCoverage(kvnr, patient, payorOrganization);
 
-    final VsdmBundle vsdmBundle =
-        VsdmBundleBuilder.create()
-            .addEntry(patient)
-            .addEntry(payorOrganization)
-            .addEntry(coverage)
-            .build();
-
-    return vsdmBundle;
+    return VsdmBundleBuilder.create()
+        .addEntry(patient)
+        .addEntry(payorOrganization)
+        .addEntry(coverage)
+        .build();
   }
 
   private VsdmPatient getPatient(final String kvnr) {
@@ -109,25 +105,19 @@ public class VsdmService {
   }
 
   private VsdmPayorOrganization mockPayorOrganization() {
-    final VsdmPayorOrganization payorOrganization =
-        VsdmPayorOrganizationBuilder.create()
-            .iknr(vsdmConfig.getIknr())
-            .name("Test GKV Krankenkasse")
-            .build();
-
-    return payorOrganization;
+    return VsdmPayorOrganizationBuilder.create()
+        .iknr(vsdmConfig.getIknr())
+        .name("Test GKV Krankenkasse")
+        .build();
   }
 
   private VsdmCoverage mockCoverage(
       final String kvnr, final VsdmPatient patient, final VsdmPayorOrganization payorOrganization) {
-    final VsdmCoverage coverage =
-        VsdmCoverageBuilder.create()
-            .withStatus("active")
-            .withPayor("https://gematik.de/fhir/Organization/" + payorOrganization.getId())
-            .withBeneficiary("https://gematik.de/fhir/Patient/" + patient.getId())
-            .withKvnr(kvnr)
-            .build();
-
-    return coverage;
+    return VsdmCoverageBuilder.create()
+        .withStatus("active")
+        .withPayor("https://gematik.de/fhir/Organization/" + payorOrganization.getId())
+        .withBeneficiary("https://gematik.de/fhir/Patient/" + patient.getId())
+        .withKvnr(kvnr)
+        .build();
   }
 }

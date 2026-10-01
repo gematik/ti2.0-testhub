@@ -394,6 +394,13 @@ public class VsdmSteps extends BaseSteps {
                 "\"0\"", "INVALID_POPP_TOKEN", true, VALID_PROFILE_VERSION));
   }
 
+  @Wenn("das Primärsystem die VSD ohne einen PoPP-Token vom VSDM Ressource Server abfragt")
+  public void whenClientSystemIsRequestingVsdWithoutPoppToken() {
+    hccs()
+        .attemptsTo(
+            RequestVsdFromServer.withEtagAndNoPoppToken("\"0\"", true, VALID_PROFILE_VERSION));
+  }
+
   @Wenn(
       "das Primärsystem die VSD mit einer ungültigen Profession OID vom VSDM Ressource Server abfragt")
   public void whenClientSystemIsRequestingVsdWithInvalidProfessionOid() {

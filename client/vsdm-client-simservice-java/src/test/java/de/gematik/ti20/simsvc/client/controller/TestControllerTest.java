@@ -37,13 +37,16 @@ import de.gematik.ti20.simsvc.client.repository.PoppTokenRepository;
 import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
 import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
 import de.gematik.ti20.simsvc.client.service.CardTerminalService;
+import de.gematik.ti20.simsvc.client.service.FhirService;
 import de.gematik.ti20.simsvc.client.service.VsdmClientService;
+import de.gematik.ti20.simsvc.client.service.vsdm.VsdmDataFromCardStrategy;
 import de.gematik.ti20.simsvc.client.util.StorageInterceptor;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class TestControllerTest {
 
@@ -53,6 +56,9 @@ class TestControllerTest {
   private VsdmClientConfig vsdmClientConfig;
   private StorageInterceptor storageInterceptor;
   private CardTerminalService cardTerminalService;
+  private FhirService fhirService;
+
+  private VsdmDataFromCardStrategy vsdmDataFromCardStrategy;
 
   private TestController testController;
 
@@ -64,6 +70,9 @@ class TestControllerTest {
     vsdmClientConfig = new VsdmClientConfig();
     storageInterceptor = new StorageInterceptor();
     cardTerminalService = mock(CardTerminalService.class);
+    fhirService = mock(FhirService.class);
+
+    vsdmDataFromCardStrategy = mock(VsdmDataFromCardStrategy.class);
 
     testController =
         new TestController(
@@ -72,7 +81,12 @@ class TestControllerTest {
             vsdmClientService,
             vsdmClientConfig,
             storageInterceptor,
-            cardTerminalService);
+            cardTerminalService,
+            fhirService);
+
+    // temporary
+    ReflectionTestUtils.setField(
+        testController, "vsdmDataFromCardStrategy", vsdmDataFromCardStrategy);
   }
 
   @Test
@@ -114,7 +128,7 @@ class TestControllerTest {
         AttachedCard.from(
             "http://terminal", Map.of("cardHandle", "card-1", "cardType", "EGK", "slotId", 3));
     when(cardTerminalService.getAttachedCard("terminal-1", 3)).thenReturn(attachedCard);
-    when(vsdmClientService.loadTruncatedDataFromCard(attachedCard)).thenReturn(null);
+    when(vsdmDataFromCardStrategy.loadTruncatedDataFromCard(attachedCard)).thenReturn(null);
 
     ResponseEntity<String> response = testController.readEgk("terminal-1", 3);
 
@@ -128,7 +142,7 @@ class TestControllerTest {
         AttachedCard.from(
             "http://terminal", Map.of("cardHandle", "card-1", "cardType", "EGK", "slotId", 4));
     when(cardTerminalService.getAttachedCard("terminal-1", 4)).thenReturn(attachedCard);
-    when(vsdmClientService.loadTruncatedDataFromCard(attachedCard)).thenReturn("egk-data");
+    when(vsdmDataFromCardStrategy.loadTruncatedDataFromCard(attachedCard)).thenReturn("egk-data");
 
     ResponseEntity<String> response = testController.readEgk("terminal-1", 4);
 

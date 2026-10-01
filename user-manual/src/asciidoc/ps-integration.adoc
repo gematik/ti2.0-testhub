@@ -6,10 +6,10 @@ Integrating a custom Primärsystem (PS) is a primary design goal of the TI 2.0 T
 * Start the Testhub with the `backend-only` profile to disable the built-in PS-Simulators (VSDM Client and Card Terminal Client):
 [source,bash]
 ----
-docker compose -f doc/docker/compose-local.yaml --profile backend-only up -d
+docker compose -f infra/docker/compose-local.yaml --profile backend-only up -d
 ----
 
-* The custom PS has to be started (e.g. add as a new service in `doc/docker/backend/compose-local.yaml`, but could simply be started outside of docker compose as well)
+* The custom PS has to be started (e.g. add as a new service in `infra/docker/backend/compose-local.yaml`, but could simply be started outside of docker compose as well)
 
 * Optional: To use the PS with the VSDM-Testsuite it has to implement the same API as the existing vsdm-client(which can be seen at http://localhost:{PORT}/v3/api-docs)
 

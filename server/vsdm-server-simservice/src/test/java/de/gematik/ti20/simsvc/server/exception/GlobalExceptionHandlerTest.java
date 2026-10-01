@@ -51,8 +51,8 @@ class GlobalExceptionHandlerTest {
         new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "SERVICE_UNSUPPORTED_MEDIATYPE");
     final ResponseEntity<String> response =
         globalExceptionHandler.handleResponseStatusException(ex);
-    assertThat(response.getHeaders().getContentType().toString())
-        .isEqualTo("application/fhir+json;charset=UTF-8");
+    assertThat(response.getHeaders().getContentType())
+        .hasToString("application/fhir+json;charset=UTF-8");
   }
 
   @Test

@@ -143,19 +143,19 @@ PoPpConfig.pepUrl();         // zeta.server.pep.url
 Die lokale PEP-/nginx-Infrastruktur in Docker wird **nicht** über `env`/`zeta.env` gesteuert, sondern über die Umgebungsvariable `POPP_SERVER_HOST` in der docker-compose-Datei (siehe Abschnitte unten). Beim Wechsel der Zielumgebung müssen daher zusätzlich die Docker-Variablen passend gesetzt werden:
 
 ```text
-doc/docker/backend/compose-popp-services.yaml
+infra/docker/backend/compose-popp-services.yaml
   └─ POPP_SERVER_HOST, POPP_SERVER_URL
 
-doc/docker/backend/zeta-popp/pep/nginx.conf
+infra/docker/backend/zeta-popp/pep/nginx.conf
   └─ pep_popp_issuer, pep_pdp_issuer
 
-doc/docker/backend/zeta-popp/pep/conf/50-pep.conf.template
+infra/docker/backend/zeta-popp/pep/conf/50-pep.conf.template
   └─ proxy_pass http://${POPP_SERVER_HOST}/...
 ```
 
 ### Verhalten der Java-Klassen (nun konfigurationsgesteuert)
 
-**ZetaPepJwtTestFactory.java:**
+**ZetaJwtTestFactory.java:**
 - DCR-, Token-, JWKS-, Nonce-Endpunkt, Issuer und SMC-B-Audience werden über `PoPpConfig` / `${zeta.server.pdp.*}` aus dem aktiven ZETA-Block gelesen.
 - Token Exchange Scope: `popp` (ohne `audience`-Parameter).
 - Logik: Dynamische Client Registration (DCR) statt vordefinierter Test-Clients.
@@ -176,9 +176,9 @@ Der echte PoPP-Server wird vom lokalen PEP als Upstream verwendet.
 Betroffene Dateien:
 
 ```text
-doc/docker/backend/compose-popp-services.yaml
-doc/docker/backend/zeta-popp/pep/conf/50-pep.conf.template
-doc/docker/backend/zeta-popp/pep/nginx.conf
+infra/docker/backend/compose-popp-services.yaml
+infra/docker/backend/zeta-popp/pep/conf/50-pep.conf.template
+infra/docker/backend/zeta-popp/pep/nginx.conf
 ```
 
 In `compose-popp-services.yaml` wird der Host für den PEP gesetzt:
@@ -207,7 +207,7 @@ Die PoPP-Token-Erzeugung läuft über den lokalen PoPP-Client. Der PoPP-Client v
 Betroffene Datei:
 
 ```text
-doc/docker/backend/compose-popp-services.yaml
+infra/docker/backend/compose-popp-services.yaml
 ```
 
 Im Service `popp-client` wird die WebSocket-URL gesetzt:
@@ -231,7 +231,7 @@ Der PoPP-Client benötigt ein SMC-B-Zertifikat, um die Token-Erzeugung gegen die
 Betroffene Datei:
 
 ```text
-doc/docker/backend/compose-popp-services.yaml
+infra/docker/backend/compose-popp-services.yaml
 ```
 
 Im Service `popp-client` wird die PKCS#12-Datei gesetzt:
@@ -267,7 +267,7 @@ Konnektor-Konfiguration, für alle anderen weiterhin die Keystore-Datei.
 
 Konfiguration erfolgt über `connector.*`-Properties bzw. folgende Umgebungsvariablen
 (Defaults im Compose-File müssen für einen echten Konnektor überschrieben werden, z. B. via
-`doc/docker/env-private/.my-own.env`):
+`infra/docker/env-private/.my-own.env`):
 
 ```text
 CONNECTOR_END_POINT_URL                 # https://<Konnektor-IP-oder-Host>:<Port>
@@ -283,7 +283,7 @@ CARD_TERMINAL_ID
 CARD_TERMINAL_SLOT
 ```
 
-Keystore/Truststore-Dateien werden aus `doc/docker/backend/zeta/connector/` gemountet (siehe
+Keystore/Truststore-Dateien werden aus `infra/docker/backend/zeta/connector/` gemountet (siehe
 README dort). Dort liegen bereits selbstsignierte Platzhalter-Dateien, damit der `full`-Profil-
 Start auch ohne echten Konnektor funktioniert; für einen echten Konnektor müssen diese durch
 das tatsächliche Client-Zertifikat sowie die Konnektor-Zertifikatskette ersetzt werden.
@@ -296,8 +296,8 @@ Betroffene Dateien:
 
 ```text
 tiger/zeta-environments.yaml
-doc/docker/backend/zeta-popp/pep/nginx.conf
-test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaPepJwtTestFactory.java
+infra/docker/backend/zeta-popp/pep/nginx.conf
+test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaJwtTestFactory.java
 test/zeta-testsuite/src/test/java/de/gematik/zeta/steps/SmcbTokenExchangeSteps.java
 ```
 
@@ -343,7 +343,7 @@ Für den echten PDP wird kein hardcodierter lokaler Test-Client verwendet. Statt
 Betroffene Datei:
 
 ```text
-test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaPepJwtTestFactory.java
+test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaJwtTestFactory.java
 ```
 
 Der DCR-Endpunkt muss auf den echten PDP zeigen:
@@ -361,7 +361,7 @@ Der SMC-B Token Exchange läuft gegen den echten PDP-Token-Endpoint.
 Betroffene Dateien:
 
 ```text
-test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaPepJwtTestFactory.java
+test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaJwtTestFactory.java
 test/zeta-testsuite/src/test/java/de/gematik/zeta/steps/SmcbTokenExchangeSteps.java
 tiger/zeta-environments.yaml
 ```
@@ -430,9 +430,9 @@ Der lokale PEP bleibt Bestandteil der Docker-Testumgebung. Er validiert Tokens u
 Betroffene Dateien:
 
 ```text
-doc/docker/backend/zeta-popp/pep/nginx.conf
-doc/docker/backend/zeta-popp/pep/conf/50-pep.conf.template
-doc/docker/backend/compose-popp-services.yaml
+infra/docker/backend/zeta-popp/pep/nginx.conf
+infra/docker/backend/zeta-popp/pep/conf/50-pep.conf.template
+infra/docker/backend/compose-popp-services.yaml
 ```
 
 Der PEP verwendet:
@@ -456,7 +456,7 @@ Betroffene Dateien:
 
 ```text
 tiger/zeta-environments.yaml
-test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaPepJwtTestFactory.java
+test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaJwtTestFactory.java
 ```
 
 Relevante Endpunkte:
@@ -517,12 +517,12 @@ https://popp.dev.poppservice.de/auth/realms/zeta-guard/.well-known/openid-config
 Für die Ausführung gegen den echten PoPP-Server werden folgende Dateien angepasst:
 
 ```text
-doc/docker/backend/zeta-popp/pep/nginx.conf
-doc/docker/backend/zeta-popp/pep/conf/50-pep.conf.template
-doc/docker/backend/compose-popp-services.yaml
+infra/docker/backend/zeta-popp/pep/nginx.conf
+infra/docker/backend/zeta-popp/pep/conf/50-pep.conf.template
+infra/docker/backend/compose-popp-services.yaml
 tiger/zeta-environments.yaml
 test/zeta-testsuite/src/test/java/de/gematik/zeta/config/PoPpConfig.java
-test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaPepJwtTestFactory.java
+test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaJwtTestFactory.java
 test/zeta-testsuite/src/test/java/de/gematik/zeta/steps/ZetaPepJwtSteps.java
 test/zeta-testsuite/src/test/java/de/gematik/zeta/steps/SmcbTokenExchangeSteps.java
 ```
@@ -534,7 +534,7 @@ test/zeta-testsuite/src/test/java/de/gematik/zeta/steps/SmcbTokenExchangeSteps.j
 Datei:
 
 ```text
-doc/docker/backend/zeta-popp/pep/nginx.conf
+infra/docker/backend/zeta-popp/pep/nginx.conf
 ```
 
 Die lokalen Mock-Issuer werden durch die echten RU-DEV-Issuer ersetzt:
@@ -552,7 +552,7 @@ Die lokalen Mock-Issuer werden durch die echten RU-DEV-Issuer ersetzt:
 Datei:
 
 ```text
-doc/docker/backend/zeta-popp/pep/conf/50-pep.conf.template
+infra/docker/backend/zeta-popp/pep/conf/50-pep.conf.template
 ```
 
 Die Proxy-Ziele werden von HTTP auf HTTPS umgestellt:
@@ -570,7 +570,7 @@ Die Proxy-Ziele werden von HTTP auf HTTPS umgestellt:
 Datei:
 
 ```text
-doc/docker/backend/compose-popp-services.yaml
+infra/docker/backend/compose-popp-services.yaml
 ```
 
 Der PEP zeigt auf den echten PoPP-Server:
@@ -622,12 +622,12 @@ Die Token-/Issuer-/PoPP-Client-URLs werden **nicht mehr direkt** editiert, sonde
 
 (Die Default-Stufe ist `local`, also der lokale Mock; ohne `-Dzeta.env` greift der Block `local`.) Siehe Abschnitt [Umgebung umschalten (zentraler Schalter)](#umgebung-umschalten-zentraler-schalter).
 
-### ZetaPepJwtTestFactory
+### ZetaJwtTestFactory
 
 Datei:
 
 ```text
-test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaPepJwtTestFactory.java
+test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaJwtTestFactory.java
 ```
 
 Die Factory liest alle Endpunkte aus der zentralen Konfiguration:
@@ -691,7 +691,7 @@ Vor dem Start müssen folgende Voraussetzungen erfüllt sein:
 ## Docker-Services starten
 
 ```bash
-cd doc/docker
+cd infra/docker
 docker compose -f compose-local.yaml --profile full up -d
 ```
 
@@ -752,19 +752,19 @@ Die Änderungen können mit folgendem Befehl zurückgesetzt werden:
 
 ```bash
 git checkout -- \
-  doc/docker/backend/zeta-popp/pep/nginx.conf \
-  doc/docker/backend/zeta-popp/pep/conf/50-pep.conf.template \
-  doc/docker/backend/compose-popp-services.yaml \
+  infra/docker/backend/zeta-popp/pep/nginx.conf \
+  infra/docker/backend/zeta-popp/pep/conf/50-pep.conf.template \
+  infra/docker/backend/compose-popp-services.yaml \
   tiger/zeta-environments.yaml \
   test/zeta-testsuite/src/test/java/de/gematik/zeta/steps/ZetaPepJwtSteps.java \
   test/zeta-testsuite/src/test/java/de/gematik/zeta/steps/SmcbTokenExchangeSteps.java \
-  test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaPepJwtTestFactory.java
+  test/zeta-testsuite/src/test/java/de/gematik/zeta/services/ZetaJwtTestFactory.java
 ```
 
 Anschließend die Docker-Services neu starten:
 
 ```bash
-cd doc/docker
+cd infra/docker
 docker compose -f compose-local.yaml --profile full down
 docker compose -f compose-local.yaml --profile full up -d
 ```

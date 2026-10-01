@@ -19,8 +19,8 @@ services:
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
-      - "${PORT_OTEL_COLLECTOR:?PORT_OTEL_COLLECTOR missing – set it in doc/docker/.env}:4318"
-      - "${PORT_OTEL_COLLECTOR_GRPC:?PORT_OTEL_COLLECTOR_GRPC missing – set it in doc/docker/.env}:4317"
+      - "${PORT_OTEL_COLLECTOR:?PORT_OTEL_COLLECTOR missing – set it in infra/docker/.env}:4318"
+      - "${PORT_OTEL_COLLECTOR_GRPC:?PORT_OTEL_COLLECTOR_GRPC missing – set it in infra/docker/.env}:4317"
     depends_on:
       - prometheus
     networks:
@@ -38,7 +38,7 @@ services:
       - ./prometheus:/etc/prometheus
       - prometheus-data:/prometheus
     ports:
-      - "${PORT_PROMETHEUS:?PORT_PROMETHEUS missing – set it in doc/docker/.env}:7100"
+      - "${PORT_PROMETHEUS:?PORT_PROMETHEUS missing – set it in infra/docker/.env}:7100"
     command:
       - '--config.file=/etc/prometheus/config.yaml'
       - '--web.listen-address=:7100'
@@ -63,7 +63,7 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_SECURITY_ADMIN_PASSWORD_MUST_CHANGE=false
     ports:
-      - "${PORT_GRAFANA:?PORT_GRAFANA missing – set it in doc/docker/.env}:3000"
+      - "${PORT_GRAFANA:?PORT_GRAFANA missing – set it in infra/docker/.env}:3000"
     depends_on:
       - prometheus
     networks:

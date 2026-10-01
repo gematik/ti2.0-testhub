@@ -15,8 +15,7 @@ pactconfig-local.properties
 /.vscode/
 jenkinsfiles
 .owaspignore
-ReleaseChecklist.internal.md
-README-DooD-Internal.md
+.gitlab
 /test/popp-testsuite/src/test/resources/certificates/mykeystore.p12
 /test/popp-testsuite/src/test/resources/hashDbPayloads
 /test/popp-testsuite/doc
@@ -25,9 +24,9 @@ README-DooD-Internal.md
 /test/vsdm-testsuite/src/test/resources/private
 /test/vsdm-testsuite/doc
 /test/zeta-testsuite/POLARION.md
-/doc/docker/backend/zeta/smcb-private/**
-/doc/docker/compose-ci-vsdm.yaml
-/doc/docker/env-private/**
+/infra/docker/backend/zeta/smcb-private/**
+/infra/docker/compose-ci-vsdm.yaml
+/infra/docker/env-private/**
 /no-publish/
 /doc/internal/
 

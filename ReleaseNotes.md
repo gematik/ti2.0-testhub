@@ -2,6 +2,19 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.18.0
+
+### Update notes
+
+Docker compose files have been moved to the `infra/docker` directory. Please update your scripts accordingly.
+
+### Changes
+
+- TESTHUB-177: activate actuator endpoints, log configuration on startup
+- TESTHUB-262: remove perf docker profile, use ps-only instead
+- TESTHUB-267: Add skipPoppTokenHeader parameter. This will make the vsdm-client not send a popp token to the backend.
+- PTVSDM-1711: Add testcase to verify server response when popp token is missing.
+
 ## Release 3.17.0
 
 ### Update notes
@@ -269,7 +282,7 @@ Examples of valid JSON card data can be found in the
 ### Changes
 
 - TESTHUB-117: extract port configuration to a separate file. The port configuration can be found in
-  `doc/docker/.env`.
+  `infra/docker/.env`.
 - TESTHUB-123: allow JSON card data in card-terminal-client
 - PTVSDM-1598: update Fhir schema to match latest version of VSDM2 specification 1.0.0
 
@@ -438,9 +451,9 @@ Docker Compose now supports profiles for different startup configurations:
 Example usage:
 
 ```bash
-docker compose -f doc/docker/compose-local.yaml --profile full up -d          # full stack 
-docker compose -f doc/docker/compose-local.yaml --profile perf up -d          # performance testing
-docker compose -f doc/docker/compose-local.yaml --profile backend-only up -d  # backend only
+docker compose -f infra/docker/compose-local.yaml --profile full up -d          # full stack
+docker compose -f infra/docker/compose-local.yaml --profile perf up -d          # performance testing
+docker compose -f infra/docker/compose-local.yaml --profile backend-only up -d  # backend only
 ```
 
 ### Changes
@@ -471,8 +484,8 @@ docker compose -f doc/docker/compose-local.yaml --profile backend-only up -d  # 
 The content of the following files has been moved to environment variables and the files can be
 removed:
 
-- doc/docker/backend/zeta/smcb-private/smcb_private.alias.txt
-- doc/docker/backend/zeta/smcb-private/smcb_private.pw.txt
+- infra/docker/backend/zeta/smcb-private/smcb_private.alias.txt
+- infra/docker/backend/zeta/smcb-private/smcb_private.pw.txt
 
 #### Removed Bash Script Files (TESTHUB-55)
 
@@ -481,14 +494,14 @@ The Bash script files in `doc/bin/` have been removed. Use regular commands as d
 
 - `docker-compose-local-restart.sh` can be replaced with
   ```bash
-  docker compose -f ./doc/docker/compose-local.yaml down -v
-  docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
+  docker compose -f ./infra/docker/compose-local.yaml down -v
+  docker compose -f ./infra/docker/compose-local.yaml --profile full up -d --remove-orphans
   ```
 - `test-with-compose-local-rebuild.sh` can be replaced with
   ```bash
   ./mvnw clean install -Pdocker -DskipTests
-  docker compose -f ./doc/docker/compose-local.yaml down -v
-  docker compose -f ./doc/docker/compose-local.yaml --profile full up -d --remove-orphans
+  docker compose -f ./infra/docker/compose-local.yaml down -v
+  docker compose -f ./infra/docker/compose-local.yaml --profile full up -d --remove-orphans
   ./mvnw -pl test/vsdm-testsuite/ -Dit.test="Vsdm*IT" -Dskip.inttests=false verify
   ```
 

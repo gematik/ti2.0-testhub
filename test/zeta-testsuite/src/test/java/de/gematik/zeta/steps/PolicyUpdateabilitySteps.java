@@ -27,15 +27,24 @@ package de.gematik.zeta.steps;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
+import de.gematik.test.tiger.glue.RBelValidatorGlue;
+import de.gematik.test.tiger.lib.TigerHttpClient;
+import io.cucumber.java.After;
 import io.cucumber.java.de.Dann;
 import io.cucumber.java.de.Gegebensei;
 import io.cucumber.java.de.Wenn;
+import io.restassured.http.Method;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionTimeoutException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -56,7 +65,35 @@ import org.springframework.web.client.RestTemplate;
  *   <li>GET /v1/policies - List all policies
  * </ul>
  *
- * <p>Policy decisions are queried directly via OPA's Data API (POST /v1/data/zeta/authz/decision).
+ * <p><b>Uploading/deleting/listing policies stays a direct OPA-Admin-API call.</b> This is a pure
+ * infrastructure/administration operation (deploying a policy bundle), not something any
+ * Primärsystem-Client ever does - no client has an OPA-Admin endpoint, so there is nothing to route
+ * this through. In production, OPA would instead pull policy bundles via Bundle-Polling from a
+ * Local Artifact Registry; the direct REST API is used here as a pragmatic stand-in for that
+ * deployment mechanism, exactly as documented in {@code README.md} of this feature.
+ *
+ * <p><b>Verifying the EFFECT of a policy change, however, is driven through the real
+ * VSDM-Client</b> (its {@code /client/vsdm/vsd} endpoint), the same endpoint already exercised by
+ * {@code zeta-gitti/zeta-gitti.feature} ({@link GittiSteps}) and {@code
+ * zeta-client-policy/client_policy.feature} ({@link PolicyRejectionSteps}, {@link
+ * TigerProxyManipulationsSteps}):
+ *
+ * <ul>
+ *   <li>The uploaded test policies ({@code policy_p1.rego} / {@code policy_p11.rego}) target the
+ *       exact same OPA policy id/package ({@code zeta/authz}) as the real production policy ({@code
+ *       infra/docker/backend/zeta/policies/authz.rego}), so hot-reloading them genuinely changes
+ *       what the real PDP-to-OPA authorization call evaluates for a real client request.
+ *   <li>The ZeTA-PDP (Keycloak) only calls OPA once per SMC-B identity, during the initial Dynamic
+ *       Client Registration (DCR) - see {@link PolicyRejectionSteps}. To force a fresh OPA decision
+ *       for every "PS-Profil sendet eine Anfrage" step, the VSDM-Client's PDP registration is reset
+ *       beforehand.
+ *   <li>Since all PS-Profiles in this test share the same physical SMC-B test card, the
+ *       PS-Profile's {@code professionOID} is injected into the live PDP-to-OPA decision request
+ *       via a TigerProxy manipulation - the same mechanism {@code client_policy.feature} uses to
+ *       exercise specific OPA-input values against a freshly-evaluated, real decision.
+ *   <li>Whether the (hot-reloaded) policy accepted or rejected the request is read from the
+ *       Tiger-Proxy-recorded VSDM-Client traffic, instead of asking OPA directly.
+ * </ul>
  */
 @Slf4j
 public class PolicyUpdateabilitySteps {
@@ -64,6 +101,23 @@ public class PolicyUpdateabilitySteps {
   private static final String OPA_POLICY_ID = "zeta/authz";
   private static final String OPA_DEFAULT_POLICY_ID = "policies/authz.rego";
   private static final RestTemplate REST_TEMPLATE = new RestTemplate();
+
+  private static final String CARD_TERMINAL_WS_URL = "ws://card-terminal-client";
+  private static final String SMCB_CARD_IMAGE =
+      "test/vsdm-testsuite/src/test/resources/private/smcb/smcbCardImage.xml";
+  private static final int SMCB_SLOT = 1;
+  private static final String EGK_CARD_IMAGE =
+      "test/vsdm-testsuite/src/test/resources/data/cards/egkCardImage.xml";
+  private static final int EGK_SLOT = 2;
+  private static final String TIGER_PROXY_ADMIN_BASE_URL_CONFIG_KEY =
+      "zeta.paths.tigerProxy.baseUrl";
+  private static final String RESPONSE_CODE_VARIABLE = "policyUpdateability.vsdReadResponseCode";
+
+  private final PolicyRejectionSteps policyRejectionSteps = new PolicyRejectionSteps();
+  private final CardTerminalSteps cardTerminalSteps = new CardTerminalSteps();
+  private final TigerProxyManipulationsSteps tigerProxyManipulationsSteps =
+      new TigerProxyManipulationsSteps();
+  private final RBelValidatorGlue rbelValidatorGlue = new RBelValidatorGlue();
 
   /** PS profile definitions: profileName -> professionOid */
   private final Map<String, String> psProfiles = new HashMap<>();
@@ -75,8 +129,20 @@ public class PolicyUpdateabilitySteps {
 
   // --- Helper methods ---
 
+  /**
+   * Base URL of the VSDM-Client's ZeTA-PDP OPA instance ({@code vsdm-zeta-pdp-opa}), the OPA
+   * decision this test actually needs to hot-reload: the VSD-Read triggered via {@link
+   * #triggerRealClientRequest(String)} performs a fresh OPA decision against THIS OPA instance
+   * (routed through docker-tiger-proxy, see {@code vsdm-zeta-pdp}'s DNS-interception setup in
+   * {@code compose-vsdm-services.yaml}), not the popp-client's own OPA ({@code popp-zeta-pdp-opa}).
+   * The latter is a separate OPA instance not reachable via the TigerProxy-manipulation mechanism
+   * (popp-zeta-pdp does not route through docker-tiger-proxy), so uploading test policies there
+   * would have no effect on - and in fact incorrectly interferes with - the popp-client's own
+   * (unrelated, always-allow) decision.
+   */
   private String getOpaBaseUrl() {
-    return TigerGlobalConfiguration.resolvePlaceholders("${zeta.server.opa.baseUrl}");
+    return TigerGlobalConfiguration.resolvePlaceholders(
+        "http://${ports.host}:${ports.vsdmOpaPort}");
   }
 
   private String loadPolicyFromClasspath(String policyName) {
@@ -91,11 +157,58 @@ public class PolicyUpdateabilitySteps {
     }
   }
 
+  /**
+   * Path (relative to the repository root) of the real production policy the vsdm-zeta-pdp-opa
+   * container loads from disk at startup - the single source of truth {@link
+   * #loadRealDefaultPolicy()} reads from directly, so no duplicate copy has to be kept in sync
+   * under {@code src/test/resources}.
+   */
+  private static final String REAL_DEFAULT_POLICY_PATH =
+      "infra/docker/backend/zeta/policies/authz.rego";
+
+  /**
+   * Loads the real production policy directly from the filesystem (as opposed to {@link
+   * #loadPolicyFromClasspath(String)}, which is used for the test-only P1/P11 policies). Reading
+   * the actual file - instead of maintaining a duplicate copy in {@code src/test/resources} -
+   * guarantees {@link #restoreDefaultOpaPolicy()} can never drift out of sync with what
+   * vsdm-zeta-pdp-opa actually loads from disk at container startup.
+   */
+  private String loadRealDefaultPolicy() {
+    java.io.File file =
+        new java.io.File(System.getProperty("user.dir"))
+            .toPath()
+            .resolve(REAL_DEFAULT_POLICY_PATH)
+            .toFile();
+    if (!file.exists()) {
+      // Maven may run from test/zeta-testsuite instead of the repository root.
+      file =
+          new java.io.File(System.getProperty("user.dir"))
+              .toPath()
+              .resolve("../../" + REAL_DEFAULT_POLICY_PATH)
+              .normalize()
+              .toFile();
+    }
+    if (!file.exists()) {
+      throw new IllegalStateException(
+          "Real default policy not found at: " + file.getAbsolutePath());
+    }
+    try {
+      return java.nio.file.Files.readString(file.toPath(), StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new RuntimeException(
+          "Failed to read real default policy: " + file.getAbsolutePath(), e);
+    }
+  }
+
   private void uploadPolicyToOpa(String regoContent) {
     String url = getOpaBaseUrl() + "/v1/policies/" + OPA_POLICY_ID;
 
     HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.valueOf("text/plain"));
+    // Charset must be explicit: RestTemplate's StringHttpMessageConverter otherwise falls back to
+    // ISO-8859-1 for a bare "text/plain" content type, mangling any non-ASCII characters (e.g. the
+    // German umlauts in this policy's comments) into invalid UTF-8 byte sequences that OPA's rego
+    // compiler then rejects with "illegal utf-8 character".
+    headers.setContentType(MediaType.valueOf("text/plain; charset=UTF-8"));
     HttpEntity<String> request = new HttpEntity<>(regoContent, headers);
 
     ResponseEntity<String> response =
@@ -128,39 +241,137 @@ public class PolicyUpdateabilitySteps {
   }
 
   /**
-   * Queries OPA directly to check if the given professionOid is allowed by the current policy. This
-   * avoids the complexity of Keycloak token exchange while still testing policy hot-reload.
+   * Restores OPA to its real default policy (read directly from {@code
+   * infra/docker/backend/zeta/policies/authz.rego} - the deny-list policy the vsdm-zeta-pdp-opa
+   * container also loads from disk at startup, see {@link #loadRealDefaultPolicy()}) by uploading
+   * it under {@link #OPA_POLICY_ID}.
+   *
+   * <p>This is required because {@link #deleteDefaultPolicyFromOpa()} only removes the disk-loaded
+   * policy from OPA's in-memory runtime (a container restart would be needed to reload it from
+   * disk) - without re-uploading equivalent content, OPA would be left with no {@code
+   * zeta.authz.decision} rule at all, causing all subsequent PDP token requests in the same suite
+   * run (e.g. other ZETA features sharing this OPA instance) to fail with an undefined-decision
+   * error instead of a proper allow/deny.
+   *
+   * <p><b>Note:</b> the restored policy is the real deny-list policy, NOT an allow-all stub -
+   * uploading an allow-all stub here previously (silently) disabled OPA policy enforcement (e.g.
+   * for zeta-client-policy/client_policy.feature) for the remainder of any suite run that included
+   * policy_updateability.feature.
    */
-  private int sendPolicyDecisionRequest(String professionOid) {
-    String url = getOpaBaseUrl() + "/v1/data/zeta/authz/decision";
+  private void restoreDefaultOpaPolicy() {
+    uploadPolicyToOpa(loadRealDefaultPolicy());
+    log.info("OPA restored to its real default (deny-list) policy under id '{}'", OPA_POLICY_ID);
+  }
 
-    // Build the OPA input matching the structure expected by the Rego policy
-    String jsonBody =
-        String.format("{\"input\":{\"user_info\":{\"professionOID\":\"%s\"}}}", professionOid);
+  /**
+   * Unconditionally restores OPA to its default allow-all decision after every {@code
+   * @policy_updateability} scenario, regardless of whether the scenario itself passed or failed
+   * partway through (e.g. due to the pre-existing TigerProxy-manipulation-reset issue). Without
+   * this, a restrictive test policy (P1/P11) or no policy at all could leak into subsequent
+   * scenarios/features run in the same suite.
+   */
+  @After("@policy_updateability")
+  public void restoreOpaDefaultsAfterScenario() {
+    deletePolicyFromOpa();
+    restoreDefaultOpaPolicy();
+  }
 
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    HttpEntity<String> request = new HttpEntity<>(jsonBody, headers);
+  /**
+   * Drives a real, freshly-evaluated OPA decision for the given PS-Profile through the actual
+   * VSDM-Client, so that the resulting VSD-Read request/response is captured by the Tiger-Proxy for
+   * the subsequent status assertion (see {@link #zetaRespondsWithStatus(String)}).
+   *
+   * <p>Steps, mirroring {@code zeta-client-policy/client_policy.feature}:
+   *
+   * <ol>
+   *   <li>Reset the VSDM-Client's ZeTA-PDP registration ({@link PolicyRejectionSteps}), so the next
+   *       VSD-Read performs a fresh DCR and therefore triggers a fresh OPA decision (OPA is only
+   *       queried once per SMC-B identity/DCR, see {@link PolicyRejectionSteps} javadoc).
+   *   <li>Reconfigure the card terminal/SMC-B card, since the reset (a {@code docker restart} under
+   *       the hood) invalidates the previous WebSocket connection to the card terminal.
+   *   <li>Register a TigerProxy manipulation that overwrites {@code
+   *       $.body.input.user_info.professionOID} on the live PDP-to-OPA decision request with the
+   *       PS-Profile's professionOID (all PS-Profiles share the same physical SMC-B test card).
+   *   <li>Trigger the real VSD-Read ({@code /client/vsdm/vsd}) at the VSDM-Client.
+   * </ol>
+   */
+  private void triggerRealClientRequest(String professionOid) {
+    policyRejectionSteps.resetZetaPdpRegistration();
+
+    cardTerminalSteps.configureTerminalAtVsdmClient(CARD_TERMINAL_WS_URL);
+    cardTerminalSteps.loadCardInSlot(SMCB_CARD_IMAGE, SMCB_SLOT);
+    cardTerminalSteps.loadCardInSlot(EGK_CARD_IMAGE, EGK_SLOT);
+
+    // PDP -> OPA traffic is Docker-internal and only visible on the remote/docker-compose
+    // TigerProxy, not on this JVM's local one (same reasoning as
+    // zeta-client-policy/client_policy.feature and its README "Mechanismus" section).
+    TigerGlobalConfiguration.putValue(
+        TIGER_PROXY_ADMIN_BASE_URL_CONFIG_KEY,
+        TigerGlobalConfiguration.resolvePlaceholders(
+            "http://${ports.host}:${ports.remoteTigerProxyAdminPort}"));
+
+    String opaCondition =
+        TigerGlobalConfiguration.resolvePlaceholders(
+            "isRequest && request.path =~ '.*${zeta.paths.opa.decisionPath}'");
+    tigerProxyManipulationsSteps.setTigerProxyManipulationWithExecutions(
+        opaCondition, "$.body.input.user_info.professionOID", professionOid, 1);
 
     try {
-      ResponseEntity<String> response = REST_TEMPLATE.postForEntity(url, request, String.class);
-      String body = response.getBody();
-      log.info("OPA decision response: HTTP {} - {}", response.getStatusCode().value(), body);
-
-      // Parse the OPA response to check if allow is true
-      // Response format: {"result":{"allow":true/false,...}}
-      if (body != null && body.matches("(?s).*\"allow\"\\s*:\\s*true.*")) {
-        return 200; // allowed
-      } else {
-        return 403; // denied
-      }
-    } catch (HttpClientErrorException e) {
+      String vsdRequestUrl =
+          TigerGlobalConfiguration.resolvePlaceholders(
+              "${zeta.paths.client.vsdRequest}&profileVersion=1.1");
       log.info(
-          "OPA decision error: HTTP {} - {}",
-          e.getStatusCode().value(),
-          e.getResponseBodyAsString());
-      return e.getStatusCode().value();
+          "Triggering VSDM-Client VSD-Read via {} (professionOID={})",
+          vsdRequestUrl,
+          professionOid);
+      // Uses RestAssured via TigerHttpClient (the same mechanism the native "TGR sende eine leere
+      // GET Anfrage an" step uses, see zeta-client-policy/client_policy.feature) instead of a
+      // plain Spring RestTemplate, so the request/response is captured by Tiger's local Rbel
+      // logging and can be found afterwards via awaitVsdReadResponseCode(). A RestTemplate call
+      // bypasses this logging entirely, which previously caused
+      // "No request with path '.../vsd' found in messages" failures.
+      //
+      // The "If-None-Match" header is required on every VSD-Read - the VSDM-Client rejects the
+      // request with 428 "MISSING_PATIENT_RECORD_VERSION" otherwise, before it ever reaches the
+      // ZETA registration/OPA decision (same requirement documented in
+      // GittiSteps#registerFirstTimeAtVsdmZetaGuard() and set via "TGR setze den default header
+      // If-None-Match" in zeta-asl/asl.feature's Grundlage).
+      TigerHttpClient.givenDefaultSpec()
+          .header("If-None-Match", "0")
+          .request(Method.GET, URI.create(vsdRequestUrl));
+    } finally {
+      tigerProxyManipulationsSteps.resetTigerProxyManipulation();
     }
+  }
+
+  /**
+   * Finds the last recorded VSD-Read request/response via the Tiger-Proxy and returns its response
+   * code, retrying for a few seconds to bridge the asynchronous docker-compose Tiger-Proxy
+   * traffic-forwarding delay (mirrors {@code GittiSteps#awaitAssertion(Runnable)}).
+   */
+  private String awaitVsdReadResponseCode() {
+    String vsdRequestPath =
+        TigerGlobalConfiguration.resolvePlaceholders("${zeta.paths.client.vsdRequestPath}");
+    AtomicReference<String> responseCode = new AtomicReference<>();
+    try {
+      Awaitility.await()
+          .atMost(Duration.ofSeconds(10))
+          .pollInterval(Duration.ofMillis(500))
+          .ignoreExceptions()
+          .until(
+              () -> {
+                rbelValidatorGlue.findLastRequestToPath(vsdRequestPath);
+                rbelValidatorGlue.storeCurrentResponseNodeTextValueInVariable(
+                    "$.responseCode", RESPONSE_CODE_VARIABLE);
+                responseCode.set(
+                    TigerGlobalConfiguration.resolvePlaceholders(
+                        "${" + RESPONSE_CODE_VARIABLE + "}"));
+                return true;
+              });
+    } catch (ConditionTimeoutException e) {
+      throw new AssertionError("Timed out waiting for VSD-Read response", e);
+    }
+    return responseCode.get();
   }
 
   // --- Cucumber Step Definitions ---
@@ -237,10 +448,11 @@ public class PolicyUpdateabilitySteps {
         .isNotNull();
 
     log.info(
-        "PS-Profil '{}' sendet OPA-Decision-Request mit professionOid '{}'",
+        "PS-Profil '{}' löst eine echte VSD-Anfrage über den VSDM-Client aus (professionOid '{}')",
         profileName,
         professionOid);
-    lastResponseStatusCode = sendPolicyDecisionRequest(professionOid);
+    triggerRealClientRequest(professionOid);
+    lastResponseStatusCode = Integer.parseInt(awaitVsdReadResponseCode());
   }
 
   @Wenn("die Policy {string} in der OPA Registry veröffentlicht wird")
@@ -264,6 +476,8 @@ public class PolicyUpdateabilitySteps {
           .matches(expectedStatusPattern.replace("x", "\\d"));
     }
     log.info(
-        "ZETA Antwort-Status: {} (erwartet: {})", lastResponseStatusCode, expectedStatusPattern);
+        "ZETA Antwort-Status (VSDM-Client VSD-Read, via Tiger-Proxy beobachtet): {} (erwartet: {})",
+        lastResponseStatusCode,
+        expectedStatusPattern);
   }
 }

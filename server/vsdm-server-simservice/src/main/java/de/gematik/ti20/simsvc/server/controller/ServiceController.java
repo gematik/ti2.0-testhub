@@ -24,7 +24,6 @@
  */
 package de.gematik.ti20.simsvc.server.controller;
 
-import org.jose4j.lang.JoseException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,8 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ServiceController {
 
   @GetMapping("/status")
-  public ResponseEntity<?> status() throws JoseException {
-
+  public ResponseEntity<Void> status() {
     return ResponseEntity.ok().build();
   }
 }

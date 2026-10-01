@@ -68,3 +68,9 @@ Funktionalität: Policy Hot-Reload via OPA
     # --- Phase 7: PS11 wird mit P11 akzeptiert ---
     Wenn PS-Profil "PS11" eine Anfrage an ZETA sendet
     Dann antwortet ZETA mit Status "2xx"
+
+    # Aufräumen (OPA auf allow-all zurücksetzen) erfolgt automatisch über den
+    # @After("@policy_updateability")-Hook in PolicyUpdateabilitySteps, und zwar auch dann, wenn
+    # dieses Szenario vorzeitig fehlschlägt - so wird verhindert, dass Policy "P11" oder gar keine
+    # Policy nachfolgende Szenarien (z.B. client_authentifizierung, zeta-gitti) im selben Testlauf
+    # mit einer fremden professionOID/OPA-Entscheidung stört.

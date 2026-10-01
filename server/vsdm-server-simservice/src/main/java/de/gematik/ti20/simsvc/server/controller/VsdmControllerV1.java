@@ -56,6 +56,11 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/vsdservice/v1")
 public class VsdmControllerV1 {
 
+  private static final String HEADER_ZETA_POPP_TOKEN_CONTENT = "zeta-popp-token-content";
+  private static final String HEADER_ZETA_USER_INFO = "zeta-user-info";
+  private static final String HEADER_IF_NONE_MATCH = "if-none-match";
+  private static final String HEADER_PROFILE_VERSION = "profileVersion";
+
   private final VsdmConfig vsdmConfig;
   private final VsdmService vsdmService;
   private final FhirService fhirService;
@@ -63,8 +68,8 @@ public class VsdmControllerV1 {
   private final EtagService etagService;
   private final UserInfoValidationService userInfoValidationService;
 
-  private static final Pattern VALID_IKNR_PATTERN = Pattern.compile("^[0-9]{9}$");
-  private static final Pattern VALID_KVNR_PATTERN = Pattern.compile("^[A-Z][0-9]{8}[A-Z,0-9]$");
+  private static final Pattern VALID_IKNR_PATTERN = Pattern.compile("^\\d{9}$");
+  private static final Pattern VALID_KVNR_PATTERN = Pattern.compile("^[A-Z]\\d{8}[A-Z,0-9]$");
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -86,13 +91,13 @@ public class VsdmControllerV1 {
   @GetMapping(
       value = "/vsdmbundle",
       produces = {"application/fhir+json", "application/fhir+xml"})
-  public ResponseEntity<?> vsdmbundle(
-      @RequestHeader(value = "zeta-popp-token-content", required = false)
+  public ResponseEntity<String> vsdmbundle(
+      @RequestHeader(value = HEADER_ZETA_POPP_TOKEN_CONTENT, required = false)
           final String poppTokenContentCoded,
-      @RequestHeader(value = "zeta-user-info", required = false) final String userInfo,
-      @RequestHeader(value = "if-none-match", required = false, defaultValue = "\"0\"")
+      @RequestHeader(value = HEADER_ZETA_USER_INFO, required = false) final String userInfo,
+      @RequestHeader(value = HEADER_IF_NONE_MATCH, required = false, defaultValue = "\"0\"")
           final String ifNoneMatch,
-      @RequestParam(value = "profileVersion", required = false) final String profileVersion,
+      @RequestParam(value = HEADER_PROFILE_VERSION, required = false) final String profileVersion,
       final HttpServletRequest request) {
     log.info(
         "Received request for readVsd zeta-popp-token-content: {}, zeta-user-info: {}, if-none-match: {}",
@@ -106,7 +111,7 @@ public class VsdmControllerV1 {
 
     final String accept = request.getHeader(HttpHeaders.ACCEPT);
     final PoppTokenContent poppTokenContent = parsePoppTokenContent(poppTokenContentCoded, accept);
-    final String kvnr = poppTokenContent.getPatientId();
+    final String kvnr = poppTokenContent.patientId();
 
     if (Strings.isNullOrEmpty(profileVersion)) {
       throw new VsdmErrorException(ErrorCase.VSDSERVICE_MISSING_PROFILE_VERSION, accept);
@@ -136,20 +141,20 @@ public class VsdmControllerV1 {
   }
 
   private void validateHeaders(final HttpServletRequest request) {
-    if (request.getHeader("zeta-popp-token-content") == null) {
+    if (request.getHeader(HEADER_ZETA_POPP_TOKEN_CONTENT) == null) {
       throw new ZetaErrorException(ErrorCase.MISSING_HEADER_POPP);
     }
-    if (request.getHeader("zeta-user-info") == null) {
+    if (request.getHeader(HEADER_ZETA_USER_INFO) == null) {
       throw new ZetaErrorException(ErrorCase.MISSING_HEADER_USERINFO);
     }
-    if (request.getHeader("if-none-match") == null) {
+    if (request.getHeader(HEADER_IF_NONE_MATCH) == null) {
       throw new VsdmErrorException(
           ErrorCase.VSDSERVICE_MISSING_PATIENT_RECORD_VERSION, request.getHeader("Accept"));
     }
-    if (!isQuoted(request.getHeader("if-none-match"))) {
+    if (!isQuoted(request.getHeader(HEADER_IF_NONE_MATCH))) {
       throw new VsdmErrorException(
           ErrorCase.SERVICE_MISSING_OR_INVALID_HEADER,
-          Map.of("header", "if-none-match"),
+          Map.of("header", HEADER_IF_NONE_MATCH),
           request.getHeader("Accept"));
     }
   }
@@ -166,7 +171,7 @@ public class VsdmControllerV1 {
           HttpStatus.BAD_REQUEST,
           ErrorCase.SERVICE_MISSING_OR_INVALID_HEADER
               .getBdeReference()
-              .replaceAll("<header>", "zeta-popp-token-content"));
+              .replaceAll("<header>", HEADER_ZETA_POPP_TOKEN_CONTENT));
     }
     if (!VALID_KVNR_PATTERN.matcher(kvnr).matches()) {
       throw new VsdmErrorException(ErrorCase.VSDSERVICE_INVALID_KVNR, Map.of("kvnr", kvnr), accept);
@@ -187,7 +192,7 @@ public class VsdmControllerV1 {
           HttpStatus.BAD_REQUEST,
           ErrorCase.SERVICE_MISSING_OR_INVALID_HEADER
               .getBdeReference()
-              .replaceAll("<header>", "zeta-popp-token-content"));
+              .replaceAll("<header>", HEADER_ZETA_POPP_TOKEN_CONTENT));
     }
     if (!VALID_IKNR_PATTERN.matcher(iknr).matches()) {
       throw new VsdmErrorException(ErrorCase.VSDSERVICE_INVALID_IK, Map.of("ik", iknr), accept);

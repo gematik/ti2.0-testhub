@@ -3,9 +3,23 @@
 # ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@smcb_authentisierung and not @Ignore'
 #
 # Hinweis: Diese Tests weisen die SMC-B-Authentisierung des ZETA-Clients nach.
-# Ein echtes, per SMC-B-Zertifikat signiertes subject_token wird erzeugt und zusammen
-# mit einer client_assertion über den Tiger-Proxy an den ZETA-PDP-Mock gesendet.
-# Der mitgeschnittene Traffic wird geprüft.
+# Der SMC-B-Token-Exchange wird nicht mehr selbst gebaut, sondern indirekt über den bereits
+# existierenden Endpunkt POST /token des echten popp-client ausgelöst (via TGR-Standard-Step "TGR
+# sende eine POST Anfrage an ... mit ContentType ... und folgenden mehrzeiligen Daten:"):
+# der popp-client signiert subject_token und client_assertion mit seiner eigenen konfigurierten
+# SMC-B (ZETA_AUTHENTICATION_SMB_KEYFILE, siehe infra/docker/backend/compose-popp-services.yaml) und
+# führt den Token-Exchange gegen den ZETA-PDP durch, BEVOR er die eigentliche PoPP-Token-Anfrage an
+# den PoPP-Server stellt. Der mitgeschnittene Traffic wird geprüft.
+#
+# Wichtig: Der popp-client führt Service Discovery + DCR + Token-Exchange nur beim ALLERERSTEN
+# /token-Aufruf seiner Container-Laufzeit durch; danach cached sein eingebettetes ZETA-SDK
+# client_id/access_token im Speicher und überspringt diesen Flow bei jedem weiteren Aufruf. Läuft
+# dieses Feature als Teil einer größeren Suite NACH anderen Szenarien, die den popp-client bereits
+# "aufgewärmt" haben (z. B. rest_data_transfer_via_pep.feature, pep_header_management.feature),
+# würde die Prüfung "TGR finde die letzte Anfrage mit dem Pfad '.*/protocol/openid-connect/token$'"
+# fehlschlagen, weil kein solcher Request mehr aufgezeichnet wird. Die Grundlage startet den
+# popp-client deshalb vor jedem Szenario neu, um garantiert einen frischen Token-Exchange zu
+# erzwingen (siehe PoppClientResetSteps#restartPoppClientToClearTokenCache).
 @PRODUKT:ZT_Cluster
 @PRODUKT:PoPP_Service
 @PRODUKT:Anb_PoPP_Service
@@ -15,11 +29,11 @@ Funktionalität: SMC-B Authentisierung - ZETA-Client Authentisierung mittels SMC
 
   Diese Tests sollen nachweisen,
   dass der ZETA-Client sich korrekt mittels SMC-B-Zertifikat authentisiert,
-  indem ein echtes SMC-B-signiertes subject_token erzeugt und der
-  Token-Exchange-Flow gegen den PDP geprüft wird.
+  indem der Token-Exchange-Flow des echten popp-client gegen den PDP geprüft wird.
 
   Grundlage:
-    Gegeben sei TGR lösche aufgezeichnete Nachrichten
+    Gegeben sei der popp-client wurde neu gestartet, um seinen ZeTA-Token-Cache zu leeren
+    Und TGR lösche aufgezeichnete Nachrichten
 
   # ===========================================================================
   # Szenario 1: Gutfall - Token Exchange mit echtem SMC-B subject_token
@@ -32,18 +46,21 @@ Funktionalität: SMC-B Authentisierung - ZETA-Client Authentisierung mittels SMC
   @smcb_authentisierung
   Szenario: Token Exchange mit SMC-B-signiertem subject_token liefert Access-Token (Gutfall)
     # Dieser Test prüft den erfolgreichen Token-Exchange-Flow:
-    # 1. Echtes SMC-B-Zertifikat aus smcb_private.p12 wird geladen
-    # 2. subject_token wird mit Brainpool P-256 R1 signiert (via BouncyCastle)
-    # 3. client_assertion JWT (ES256/P-256) wird erzeugt
-    # 4. Token-Exchange-Request wird über Tiger-Proxy an PDP-Mock gesendet
-    # 5. PDP-Mock liest sub (TelematikID) und professionOid aus dem subject_token
-    # 6. PDP-Mock stellt ein Access-Token aus
+    # 1. Der popp-client wird über POST /token angestoßen (echtes SMC-B-Zertifikat aus seiner
+    #    konfigurierten Keystore-Datei)
+    # 2. Sein eingebettetes ZETA-SDK erzeugt ein subject_token, signiert mit Brainpool P-256 R1
+    # 3. ... sowie eine client_assertion (ES256/P-256)
+    # 4. und sendet den Token-Exchange-Request an den echten PDP
+    # 5. Der PDP liest sub (TelematikID) und professionOid aus dem subject_token
+    # 6. Der PDP stellt ein Access-Token aus
 
-    # Token-Exchange mit echtem SMC-B subject_token und client_assertion über Tiger-Proxy senden
-    Wenn sende SMC-B Token-Exchange-Request an "${zeta.server.pdp.tokenUrl}" über Tiger-Proxy "http://localhost:${tiger.tigerProxy.proxyPort}"
+    Wenn TGR sende eine POST Anfrage an "${popp.client.tokenUrl}" mit ContentType "application/json" und folgenden mehrzeiligen Daten:
+      """
+      {"communicationType": "contact-virtual"}
+      """
 
     # Token-Request muss im Tiger-Proxy aufgezeichnet worden sein
-    Dann TGR finde die letzte Anfrage mit dem Pfad "${zeta.paths.vsdm.tokenEndpointPath}"
+    Dann TGR finde die letzte Anfrage mit dem Pfad ".*/protocol/openid-connect/token$"
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "2.."
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.body.access_token" überein mit ".*"
 
@@ -61,14 +78,17 @@ Funktionalität: SMC-B Authentisierung - ZETA-Client Authentisierung mittels SMC
   @PRIO:1
   @smcb_authentisierung
   Szenario: Token Exchange Request Body enthält alle erforderlichen Felder (RFC 8693)
-    # Dieser Test prüft, dass der Token-Exchange-Request alle Pflichtfelder enthält:
-    # grant_type, subject_token_type, client_id, client_assertion, client_assertion_type
+    # Dieser Test prüft, dass der vom popp-client gesendete Token-Exchange-Request alle
+    # Pflichtfelder enthält: grant_type, subject_token_type, client_id, client_assertion,
+    # client_assertion_type
 
-    # SMC-B Token-Exchange senden
-    Wenn sende SMC-B Token-Exchange-Request an "${zeta.server.pdp.tokenUrl}" über Tiger-Proxy "http://localhost:${tiger.tigerProxy.proxyPort}"
+    Wenn TGR sende eine POST Anfrage an "${popp.client.tokenUrl}" mit ContentType "application/json" und folgenden mehrzeiligen Daten:
+      """
+      {"communicationType": "contact-virtual"}
+      """
 
     # Token-Exchange-Request im Traffic finden
-    Dann TGR finde die letzte Anfrage mit dem Pfad "${zeta.paths.vsdm.tokenEndpointPath}"
+    Dann TGR finde die letzte Anfrage mit dem Pfad ".*/protocol/openid-connect/token$"
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "2.."
 
     ## Request Body - grant_type und subject_token_type prüfen (RFC 8693)
@@ -98,15 +118,17 @@ Funktionalität: SMC-B Authentisierung - ZETA-Client Authentisierung mittels SMC
   @PRIO:1
   @smcb_authentisierung
   Szenario: Client Assertion JWT enthält korrekte Struktur und gültige Signatur
-    # Dieser Test weist nach, dass die client_assertion die korrekte Struktur hat,
-    # mit ES256 signiert ist und die client_id als iss und sub enthält.
+    # Dieser Test weist nach, dass die vom popp-client gesendete client_assertion die korrekte
+    # Struktur hat, mit ES256 signiert ist und die client_id als iss und sub enthält.
     # Ergänzt um Schema-Validierung, audience- und exp-Prüfung
 
-    # SMC-B Token-Exchange senden
-    Wenn sende SMC-B Token-Exchange-Request an "${zeta.server.pdp.tokenUrl}" über Tiger-Proxy "http://localhost:${tiger.tigerProxy.proxyPort}"
+    Wenn TGR sende eine POST Anfrage an "${popp.client.tokenUrl}" mit ContentType "application/json" und folgenden mehrzeiligen Daten:
+      """
+      {"communicationType": "contact-virtual"}
+      """
 
     # Token-Exchange-Request im Traffic finden
-    Dann TGR finde die letzte Anfrage mit dem Pfad "${zeta.paths.vsdm.tokenEndpointPath}"
+    Dann TGR finde die letzte Anfrage mit dem Pfad ".*/protocol/openid-connect/token$"
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "2.."
 
     # client_id und client_assertion extrahieren
@@ -139,8 +161,11 @@ Funktionalität: SMC-B Authentisierung - ZETA-Client Authentisierung mittels SMC
     ## Client Assertion Payload - audience enthält den Token-Endpoint
     # Hinweis: Die client_assertion verwendet die Keycloak-Ingress-URL als audience,
     # da Keycloak diese URL als issuer erwartet (nicht die lokale Tiger-Proxy-URL)
+    # Nimbus serialisiert eine einzelne audience als JSON-Array (z.B. ["https://.../token"]),
+    # nicht als einfachen String - daher muss die Regex das umschließende '["...']' tolerieren
+    # (der Match ist ein voller String-Match, siehe RbelMessageNodeElementMatchExecutor).
     Und TGR prüfe aktueller Request enthält Knoten "$.body.client_assertion.body.aud"
-    Und TGR prüfe aktueller Request stimmt im Knoten "$.body.client_assertion.body.aud" überein mit ".*protocol/openid-connect/token"
+    Und TGR prüfe aktueller Request stimmt im Knoten "$.body.client_assertion.body.aud" überein mit ".*protocol/openid-connect/token.*"
 
     ## Client Assertion Payload - exp muss in der Zukunft liegen
     Und TGR speichere Wert des Knotens "$.body.client_assertion.body.exp" der aktuellen Anfrage in der Variable "CLIENT_ASSERTION_EXP"
@@ -156,16 +181,18 @@ Funktionalität: SMC-B Authentisierung - ZETA-Client Authentisierung mittels SMC
   @PRIO:1
   @smcb_authentisierung
   Szenario: SMC-B subject_token enthält TelematikID, korrekte Struktur und gültige Signatur
-    # Dieser Test weist nach, dass das erzeugte subject_token
+    # Dieser Test weist nach, dass das vom popp-client erzeugte subject_token
     # die korrekte Struktur hat, gegen das Schema validiert,
     # eine gültige ES256-Signatur besitzt und die TelematikID
-    # aus dem SMC-B-Zertifikat enthält.
+    # aus dem konfigurierten SMC-B-Zertifikat enthält.
 
-    # SMC-B Token-Exchange senden
-    Wenn sende SMC-B Token-Exchange-Request an "${zeta.server.pdp.tokenUrl}" über Tiger-Proxy "http://localhost:${tiger.tigerProxy.proxyPort}"
+    Wenn TGR sende eine POST Anfrage an "${popp.client.tokenUrl}" mit ContentType "application/json" und folgenden mehrzeiligen Daten:
+      """
+      {"communicationType": "contact-virtual"}
+      """
 
     # Token-Exchange-Request im Traffic finden
-    Dann TGR finde die letzte Anfrage mit dem Pfad "${zeta.paths.vsdm.tokenEndpointPath}"
+    Dann TGR finde die letzte Anfrage mit dem Pfad ".*/protocol/openid-connect/token$"
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "2.."
 
     # grant_type und subject_token_type prüfen
@@ -208,16 +235,17 @@ Funktionalität: SMC-B Authentisierung - ZETA-Client Authentisierung mittels SMC
   @PRIO:1
   @smcb_authentisierung
   Szenario: Access-Token nach SMC-B Token Exchange enthält korrekte User-Info Claims
-    # Dieser Test prüft End-to-End, dass der PDP-Mock die TelematikID und
-    # professionOID aus dem SMC-B subject_token korrekt in das Access-Token übernimmt.
-    # Hinweis: Der PDP-Mock speichert die TelematikID im clientId-Claim des Access-Tokens
-    # und die professionOID im professionOid-Claim.
+    # Dieser Test prüft End-to-End, dass der PDP die TelematikID und
+    # professionOID aus dem SMC-B subject_token des popp-client korrekt in das Access-Token
+    # übernimmt.
 
-    # Token-Exchange mit echtem SMC-B subject_token und client_assertion
-    Wenn sende SMC-B Token-Exchange-Request an "${zeta.server.pdp.tokenUrl}" über Tiger-Proxy "http://localhost:${tiger.tigerProxy.proxyPort}"
+    Wenn TGR sende eine POST Anfrage an "${popp.client.tokenUrl}" mit ContentType "application/json" und folgenden mehrzeiligen Daten:
+      """
+      {"communicationType": "contact-virtual"}
+      """
 
     # Prüfe, dass der Token-Request erfolgreich war
-    Dann TGR finde die letzte Anfrage mit dem Pfad "${zeta.paths.vsdm.tokenEndpointPath}"
+    Dann TGR finde die letzte Anfrage mit dem Pfad ".*/protocol/openid-connect/token$"
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "2.."
 
     # SMC-B-Daten aus dem subject_token extrahieren
@@ -235,8 +263,7 @@ Funktionalität: SMC-B Authentisierung - ZETA-Client Authentisierung mittels SMC
     Und decodiere und validiere JWT aus der aktuellen Antwort Knoten "$.body.access_token" gegen Schema "schemas/v_1_0/access-token.yaml" soft assert
 
     # Prüfe, dass das Access-Token die TelematikID als sub enthält
-    # (Keycloak setzt sub auf die TelematikID dank des udat-telematik-id Protocol-Mappers,
-    #  der in ZetaPepJwtTestFactory.setupKeycloak() per Admin API konfiguriert wird)
+    # (Keycloak setzt sub auf die TelematikID dank des udat-telematik-id Protocol-Mappers)
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.body.access_token.body.sub" überein mit "${SMCB-INFO.telematikId}"
 
     # Prüfe, dass das Access-Token die professionOID enthält
@@ -252,14 +279,17 @@ Funktionalität: SMC-B Authentisierung - ZETA-Client Authentisierung mittels SMC
   @PRIO:1
   @smcb_authentisierung
   Szenario: Client Assertion JWT enthält Client Statement mit Attestation-Daten
-    # Dieser Test prüft, dass die client_assertion ein client_statement mit
-    # den erforderlichen Attestation-Daten enthält (platform, sub, attestation_timestamp, posture).
+    # Dieser Test prüft, dass die vom popp-client gesendete client_assertion ein client_statement
+    # mit den erforderlichen Attestation-Daten enthält (platform, sub, attestation_timestamp,
+    # posture).
 
-    # SMC-B Token-Exchange senden
-    Wenn sende SMC-B Token-Exchange-Request an "${zeta.server.pdp.tokenUrl}" über Tiger-Proxy "http://localhost:${tiger.tigerProxy.proxyPort}"
+    Wenn TGR sende eine POST Anfrage an "${popp.client.tokenUrl}" mit ContentType "application/json" und folgenden mehrzeiligen Daten:
+      """
+      {"communicationType": "contact-virtual"}
+      """
 
     # Token-Exchange-Request im Traffic finden
-    Dann TGR finde die letzte Anfrage mit dem Pfad "${zeta.paths.vsdm.tokenEndpointPath}"
+    Dann TGR finde die letzte Anfrage mit dem Pfad ".*/protocol/openid-connect/token$"
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "2.."
 
     # client_id extrahieren
@@ -297,19 +327,19 @@ Funktionalität: SMC-B Authentisierung - ZETA-Client Authentisierung mittels SMC
   # STATUS: @Ignore — benötigt einen echten, erreichbaren Konnektor (SMC-B via Karte,
   # nicht Keystore). Voraussetzungen zum manuellen Ausführen:
   #   1. Zertifikate besorgen: entweder eigene, echte Konnektor-Zertifikate unter
-  #      doc/docker/backend/zeta/connector/private/{keystore,truststore}.p12 ablegen
-  #      (siehe doc/docker/backend/zeta/connector/README.md), oder den geteilten
+  #      infra/docker/backend/zeta/connector/private/{keystore,truststore}.p12 ablegen
+  #      (siehe infra/docker/backend/zeta/connector/README.md), oder den geteilten
   #      gematik-Referenz-Testkonnektor unter no-publish/test-data/zeta/connector/
   #      verwenden.
   #   2. Env-Datei anlegen/verwenden:
-  #      - eigener Konnektor: doc/docker/env-private/.my-own.env mit
+  #      - eigener Konnektor: infra/docker/env-private/.my-own.env mit
   #        CONNECTOR_END_POINT_URL=https://<Konnektor-IP>:443 und den zugehörigen
   #        CONNECTOR_*/CONTEXT_*/CARD_TERMINAL_* Werten anlegen.
   #      - geteilter Testkonnektor: no-publish/test-data/zeta/connector/.shared-konnektor-kon41.env
   #        (bereits vorhanden, versioniert) verwenden.
   #   3. Stack starten (Beispiel mit geteiltem Testkonnektor):
-  #      docker compose -f doc/docker/compose-local.yaml \
-  #        --env-file ./doc/docker/.env \
+  #      docker compose -f infra/docker/compose-local.yaml \
+  #        --env-file ./infra/docker/.env \
   #        --env-file ./no-publish/test-data/zeta/connector/.shared-konnektor-kon41.env \
   #        --profile full up -d
   #   4. Diese Szenario-Tag manuell ausführen:
@@ -326,4 +356,3 @@ Funktionalität: SMC-B Authentisierung - ZETA-Client Authentisierung mittels SMC
     # Bei Erfolg liefert popp-client ein signiertes PoPP-Token zurück.
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "2.."
     Und TGR prüfe aktuelle Antwort enthält Knoten "$.body.token"
-
