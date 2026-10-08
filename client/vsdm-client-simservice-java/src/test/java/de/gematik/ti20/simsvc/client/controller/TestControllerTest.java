@@ -38,7 +38,6 @@ import de.gematik.ti20.simsvc.client.repository.VsdmCachedValue;
 import de.gematik.ti20.simsvc.client.repository.VsdmDataRepository;
 import de.gematik.ti20.simsvc.client.service.CardTerminalService;
 import de.gematik.ti20.simsvc.client.service.FhirService;
-import de.gematik.ti20.simsvc.client.service.VsdmClientService;
 import de.gematik.ti20.simsvc.client.service.vsdm.VsdmDataFromCardStrategy;
 import de.gematik.ti20.simsvc.client.util.StorageInterceptor;
 import java.util.Map;
@@ -52,7 +51,6 @@ class TestControllerTest {
 
   private PoppTokenRepository poppTokenRepository;
   private VsdmDataRepository vsdmDataRepository;
-  private VsdmClientService vsdmClientService;
   private VsdmClientConfig vsdmClientConfig;
   private StorageInterceptor storageInterceptor;
   private CardTerminalService cardTerminalService;
@@ -66,7 +64,6 @@ class TestControllerTest {
   void setUp() {
     poppTokenRepository = mock(PoppTokenRepository.class);
     vsdmDataRepository = mock(VsdmDataRepository.class);
-    vsdmClientService = mock(VsdmClientService.class);
     vsdmClientConfig = new VsdmClientConfig();
     storageInterceptor = new StorageInterceptor();
     cardTerminalService = mock(CardTerminalService.class);
@@ -78,7 +75,6 @@ class TestControllerTest {
         new TestController(
             poppTokenRepository,
             vsdmDataRepository,
-            vsdmClientService,
             vsdmClientConfig,
             storageInterceptor,
             cardTerminalService,

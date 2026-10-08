@@ -53,13 +53,13 @@ class VsdmControllerV1Test {
       Base64.getEncoder()
           .encodeToString(
               """
-            {
-              "subject": "subject",
-              "commonName": "commonName",
-              "identifier": "1-SMC-B-Testkarte--883110000168762",
-              "professionOID": "1.2.276.0.76.4.50"
-            }
-                """
+              {
+                "subject": "subject",
+                "commonName": "commonName",
+                "identifier": "1-SMC-B-Testkarte--883110000168762",
+                "professionOID": "1.2.276.0.76.4.50"
+              }
+              """
                   .getBytes());
 
   @Mock private VsdmService vsdmService;
@@ -103,18 +103,18 @@ class VsdmControllerV1Test {
     String poppTokenContent =
         String.format(
             """
-                {
-                    "actorId": "1-SMC-B-Testkarte--883110000168762",
-                    "actorProfessionOid": "1.2.276.0.76.4.50",
-                    "at": 1773397230,
-                    "insurerId": "%1$s",
-                    "iss": "https://popp.example.com",
-                    "patientId": "%2$s",
-                    "patientProofTime": 1773397230,
-                    "proofMethod": "ehc-practitioner-trustedchannel",
-                    "version": "1.0.0"
-              }
-          """,
+                  {
+                      "actorId": "1-SMC-B-Testkarte--883110000168762",
+                      "actorProfessionOid": "1.2.276.0.76.4.50",
+                      "at": 1773397230,
+                      "insurerId": "%1$s",
+                      "iss": "https://popp.example.com",
+                      "patientId": "%2$s",
+                      "patientProofTime": 1773397230,
+                      "proofMethod": "ehc-practitioner-trustedchannel",
+                      "version": "1.0.0"
+                }
+            """,
             iknr, kvnr);
     return Base64.getEncoder().encodeToString(poppTokenContent.getBytes());
   }
@@ -277,11 +277,11 @@ class VsdmControllerV1Test {
   void testVsdmbundle_InvalidPoppToken_MissingFieldsInClaims() {
     String poppTokenContentMissingFields =
         """
-      {
-          "actorId": "1-SMC-B-Testkarte--883110000168762",
-          "actorProfessionOid": "1.2.276."
-        }
-      """;
+        {
+            "actorId": "1-SMC-B-Testkarte--883110000168762",
+            "actorProfessionOid": "1.2.276."
+          }
+        """;
     String poppTokenContentCoded =
         Base64.getEncoder().encodeToString(poppTokenContentMissingFields.getBytes());
 
@@ -376,10 +376,10 @@ class VsdmControllerV1Test {
 
     String userInfoMissingFields =
         """
-          {
-              "foo": "bar"
-            }
-          """;
+        {
+            "foo": "bar"
+          }
+        """;
     String userInfo = Base64.getEncoder().encodeToString(userInfoMissingFields.getBytes());
 
     String etag = "\"123456789\"";

@@ -50,8 +50,6 @@ import org.springframework.web.server.ResponseStatusException;
 public class VsdmClientService {
 
   private final CardTerminalService cardTerminalService;
-  private final VsdmDataRepository vsdmDataRepository;
-  private final ZetaSdkClientAdapter vsdmZetaClient;
 
   private final PoppTokenFromInjectedStrategy poppTokenFromInjected;
   private final PoppTokenFromMockedStrategy poppTokenFromMocked;
@@ -73,10 +71,6 @@ public class VsdmClientService {
       final ZetaSdkClientAdapter vsdmZetaClient) {
 
     this.cardTerminalService = cardTerminalService;
-
-    this.vsdmDataRepository = vsdmDataRepository;
-
-    this.vsdmZetaClient = vsdmZetaClient;
 
     this.poppTokenFromInjected = new PoppTokenFromInjectedStrategy();
     this.poppTokenFromMocked =
@@ -102,7 +96,8 @@ public class VsdmClientService {
       final String ifNoneMatch,
       final String profileVersion) {
     log.info(
-        "read initiated with terminalId = {}, egkSlotId={}, if-none-match={}, skipPoppTokenHeader={}, poppTokenInjected={}, profileVersion={}",
+        "read initiated with terminalId = {}, egkSlotId={}, if-none-match={},"
+            + " skipPoppTokenHeader={}, poppTokenInjected={}, profileVersion={}",
         terminalId,
         egkSlotId,
         ifNoneMatch,

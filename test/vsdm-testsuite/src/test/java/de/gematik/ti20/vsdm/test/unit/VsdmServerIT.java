@@ -89,18 +89,18 @@ class VsdmServerIT {
     String poppTokenContent =
         String.format(
             """
-                                      {
-                                          "actorId": "1-SMC-B-Testkarte--883110000168762",
-                                          "actorProfessionOid": "1.2.276.0.76.4.50",
-                                          "at": 1773397230,
-                                          "insurerId": "%1$s",
-                                          "iss": "https://popp.example.com",
-                                          "patientId": "%2$s",
-                                          "patientProofTime": 1773397230,
-                                          "proofMethod": "ehc-practitioner-trustedchannel",
-                                          "version": "1.0.0"
-                                    }
-                                """,
+                  {
+                      "actorId": "1-SMC-B-Testkarte--883110000168762",
+                      "actorProfessionOid": "1.2.276.0.76.4.50",
+                      "at": 1773397230,
+                      "insurerId": "%1$s",
+                      "iss": "https://popp.example.com",
+                      "patientId": "%2$s",
+                      "patientProofTime": 1773397230,
+                      "proofMethod": "ehc-practitioner-trustedchannel",
+                      "version": "1.0.0"
+                }
+            """,
             iknr, kvnr);
     return Base64.getEncoder().encodeToString(poppTokenContent.getBytes());
   }
@@ -108,13 +108,14 @@ class VsdmServerIT {
   private static String makeUserInfoCoded() {
     String userInfo =
         """
-                        {
-                          "subject": "subject",
-                          "commonName": "commonName",
-                          "identifier": "1-SMC-B-Testkarte--883110000168765",
-                          "professionOID": "1.2.276.0.76.4.50"
-                        }
-                           \s""";
+        {
+          "subject": "subject",
+          "commonName": "commonName",
+          "identifier": "1-SMC-B-Testkarte--883110000168765",
+          "professionOID": "1.2.276.0.76.4.50"
+        }
+           \s\
+        """;
     return Base64.getEncoder().encodeToString(userInfo.getBytes());
   }
 

@@ -332,8 +332,8 @@ class VsdmClientServiceTest {
                     "vsdm-pz", "new-pz",
                     "Content-Type", "application/fhir+json"),
                 """
-            {"resourceType":"Bundle"}\
-            """);
+                {"resourceType":"Bundle"}\
+                """);
 
         when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenReturn(mockResponse);
 
@@ -361,7 +361,8 @@ class VsdmClientServiceTest {
                 HttpStatus.OK,
                 new HashMap<>(),
                 """
-            <Bundle xmlns="http://hl7.org/fhir"></Bundle>""");
+                <Bundle xmlns="http://hl7.org/fhir"></Bundle>\
+                """);
         when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenReturn(mockResponse);
 
         VsdmReadResult response =
@@ -398,8 +399,8 @@ class VsdmClientServiceTest {
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 new HashMap<>(),
                 "{\"resourceType\":\"Bundle\",\"id\":\"9f8a388d-c6ba-47d3-a644-34750542d1a0\",\"meta\":{\"profile\":[\"https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMBundle\"]},\"identifier\":{\"system\":\"urn:ietf:rfc:3986\",\"value\":\"urn:uuid:9f8a388d-c6ba-47d3-a644-34750542d1a0\"},\"type\":\"document\",\"timestamp\":\"2025-08-21T14:15:33.402+02:00\",\"entry\":[{\"fullUrl\":\"https://gematik.de/fhir/OperationOutcome/70237e55-ec26-4ee9-8b8d-1e5cc7f0af26\",\"resource\":{\"resourceType\":\"OperationOutcome\",\"id\":\"70237e55-ec26-4ee9-8b8d-1e5cc7f0af26\",\"meta\":{\"profile\":[\"https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMOperationOutcome\"]},\"issue\":[{\"severity\":\"fatal\",\"code\":\"invalid\",\"details\":{\"coding\":[{\"code\":\"VSDSERVICE_INTERNAL_SERVER_ERROR\",\"display\":\"Unerwarteter"
-                    + " interner Fehler des Fachdienstes VSDM. \"}],\"text\":\"Unerwarteter interner"
-                    + " Fehler des Fachdienstes VSDM. \"}}]}}]}");
+                    + " interner Fehler des Fachdienstes VSDM. \"}],\"text\":\"Unerwarteter"
+                    + " interner Fehler des Fachdienstes VSDM. \"}}]}}]}");
 
         when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenReturn(mockResponse);
 
@@ -464,8 +465,8 @@ class VsdmClientServiceTest {
                 HttpStatus.OK,
                 new HashMap<>(),
                 """
-            {"resourceType":"Bundle"}\
-            """);
+                {"resourceType":"Bundle"}\
+                """);
         when(mockZetaSdkAdapter.httpGet(anyString(), any())).thenReturn(mockResponse);
 
         VsdmReadResult response =
@@ -535,8 +536,8 @@ class VsdmClientServiceTest {
                 HttpStatus.OK,
                 new HashMap<>(),
                 """
-            {"resourceType":"Bundle"}\
-            """);
+                {"resourceType":"Bundle"}\
+                """);
         when(mockZetaSdkAdapter.httpGet(any(), any())).thenReturn(mockResponse);
         final VsdmBundle mockBundle = mock(VsdmBundle.class);
         when(mockFhirService.parseString(anyString(), eq("json"), eq(VsdmBundle.class)))

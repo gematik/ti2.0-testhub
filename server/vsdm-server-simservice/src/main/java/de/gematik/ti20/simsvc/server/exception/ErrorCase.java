@@ -47,7 +47,8 @@ public enum ErrorCase {
       "79013",
       404,
       "VSDSERVICE_UNKNOWN_KVNR",
-      "Krankenversichertennummer '[kvnr]' aus dem PoPP-Token ist dem Fachdienst zur Institutionskennung '[ik]' nicht bekannt."),
+      "Krankenversichertennummer '[kvnr]' aus dem PoPP-Token ist dem Fachdienst zur"
+          + " Institutionskennung '[ik]' nicht bekannt."),
   VSDSERVICE_MISSING_PATIENT_RECORD_VERSION(
       "79014",
       428,

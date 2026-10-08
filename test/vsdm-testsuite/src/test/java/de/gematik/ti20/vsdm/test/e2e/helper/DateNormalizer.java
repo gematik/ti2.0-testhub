@@ -44,6 +44,7 @@ public class DateNormalizer {
       try {
         return LocalDate.parse(input, fmt);
       } catch (DateTimeParseException ignored) {
+        // ignored
       }
     }
     throw new IllegalArgumentException("Unbekanntes Datumsformat: " + input);

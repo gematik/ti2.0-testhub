@@ -68,9 +68,11 @@ public class OtelLoggingSteps {
   }
 
   @Und(
-      "das Fehler-Event {string} oder Statuscode {string} ist in den Logs des Containers {string} vorhanden")
+      "das Fehler-Event {string} oder Statuscode {string} ist in den Logs des Containers {string}"
+          + " vorhanden")
   @Then(
-      "the error event {string} or status code {string} is present in the logs of container {string}")
+      "the error event {string} or status code {string} is present in the logs of container"
+          + " {string}")
   public void verifyErrorEventInContainerLogs(
       String eventName, String statusCode, String containerName) {
     List<String> patterns = new ArrayList<>();
@@ -140,7 +142,9 @@ public class OtelLoggingSteps {
     }
 
     fail(
-        "Erwartetes Telemetrie-Muster %s wurde nicht innerhalb von %s in den Logs von %s gefunden. Letzte Logs:\n%s",
+        "Erwartetes Telemetrie-Muster %s wurde nicht innerhalb von %s in den Logs von %s gefunden."
+            + " Letzte Logs:\n"
+            + "%s",
         expectedPatterns, LOG_SEARCH_TIMEOUT, resolvedContainerName, latestLogs);
   }
 
@@ -178,7 +182,9 @@ public class OtelLoggingSteps {
 
     assertThat(missingPatterns)
         .as(
-            "Folgende erwartete Telemetrie-Attribute wurden nicht innerhalb von %s in den Logs von %s gefunden. Letzte Logs:\n%s",
+            "Folgende erwartete Telemetrie-Attribute wurden nicht innerhalb von %s in den Logs von"
+                + " %s gefunden. Letzte Logs:\n"
+                + "%s",
             LOG_SEARCH_TIMEOUT, resolvedContainerName, latestLogs)
         .isEmpty();
   }

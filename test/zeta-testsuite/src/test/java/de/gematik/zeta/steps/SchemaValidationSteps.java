@@ -270,9 +270,11 @@ public class SchemaValidationSteps {
    * @param schemaName relative path of the schema under {@code resources}
    */
   @Dann(
-      "decodiere und validiere JWT aus der aktuellen Antwort Knoten {string} gegen Schema {string} soft assert")
+      "decodiere und validiere JWT aus der aktuellen Antwort Knoten {string} gegen Schema {string}"
+          + " soft assert")
   @Then(
-      "decode and validate JWT from current response node {string} against schema {string} soft assert")
+      "decode and validate JWT from current response node {string} against schema {string} soft"
+          + " assert")
   public void validateJwtFromCurrentResponseAgainstSchemaSoftAssert(
       String rbelPath, String schemaName) {
     try {

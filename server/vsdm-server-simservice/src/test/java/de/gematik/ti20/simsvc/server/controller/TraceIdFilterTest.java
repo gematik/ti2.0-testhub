@@ -110,6 +110,6 @@ class TraceIdFilterTest {
     FilterConfig filterConfig = mock(FilterConfig.class);
 
     assertDoesNotThrow(() -> filter.init(filterConfig));
-    assertDoesNotThrow(() -> filter.destroy());
+    assertDoesNotThrow(filter::destroy);
   }
 }

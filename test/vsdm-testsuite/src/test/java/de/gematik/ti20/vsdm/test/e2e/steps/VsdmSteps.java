@@ -41,7 +41,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
-import java.util.concurrent.ThreadLocalRandom;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.core.Serenity;
 import org.hl7.fhir.r4.model.Coverage;
@@ -87,7 +86,8 @@ public class VsdmSteps extends BaseSteps {
     if (SHOW_BACKGROUND_LOAD_DIALOG) {
       TigerDirector.pauseExecution(
           String.format(
-              "Bitte senden Sie jetzt eine Hintergrundlast von durchschnittlich %d Aufrufen pro Sekunde an den Fachdienst VSDM 2.0.",
+              "Bitte senden Sie jetzt eine Hintergrundlast von durchschnittlich %d Aufrufen pro"
+                  + " Sekunde an den Fachdienst VSDM 2.0.",
               callsPerSecond));
     }
   }
@@ -139,7 +139,8 @@ public class VsdmSteps extends BaseSteps {
   }
 
   @Dann(
-      "sendet der VSDM Ressource Server die aktualisierten VSD mit dem Statuscode {int} zum Primärsystem")
+      "sendet der VSDM Ressource Server die aktualisierten VSD mit dem Statuscode {int} zum"
+          + " Primärsystem")
   public void thenVsdmRessourceServerIsSendingStatusCodeOkayWithVsd(int httpCode) {
     hccs().should(seeThat(LastStatusCode.value(), is(httpCode)));
     hccs().should(seeThat(LastVsdmBundle.value(), is(notNullValue())));
@@ -149,7 +150,8 @@ public class VsdmSteps extends BaseSteps {
   }
 
   @Dann(
-      "sendet der VSDM Ressource Server die aktualisierten VSD mit dem Content-Type {string} zum Primärsystem")
+      "sendet der VSDM Ressource Server die aktualisierten VSD mit dem Content-Type {string} zum"
+          + " Primärsystem")
   public void thenVsdmRessourceServerIsSendingVsdWithContentType(String contentType) {
     hccs().should(seeThat(LastResponseHeader.named("Content-Type"), containsString(contentType)));
   }
@@ -306,7 +308,8 @@ public class VsdmSteps extends BaseSteps {
   }
 
   @Wenn(
-      "das Primärsystem die VSD mit einer unbekannten IK {string} vom VSDM Ressource Server abfragt")
+      "das Primärsystem die VSD mit einer unbekannten IK {string} vom VSDM Ressource Server"
+          + " abfragt")
   public void whenClientSystemIsRequestingVsdWithUnknownIkNumber(String unknownIk) {
     EgkCardInfo egk = hccs().recall("egkCardInfo");
     egk.setIknr(unknownIk);
@@ -336,7 +339,8 @@ public class VsdmSteps extends BaseSteps {
   }
 
   @Wenn(
-      "das Primärsystem die VSD mit einer fehlenden FHIR Profile Version und dem Accept-Header {string} abfragt")
+      "das Primärsystem die VSD mit einer fehlenden FHIR Profile Version und dem Accept-Header"
+          + " {string} abfragt")
   public void whenClientSystemIsRequestingVsdWithMissingProfileVersionAndAcceptHeader(
       String acceptHeader) {
     hccs().attemptsTo(GeneratePoppToken.now());
@@ -354,7 +358,8 @@ public class VsdmSteps extends BaseSteps {
   }
 
   @Wenn(
-      "das Primärsystem die VSD mit einer ungültigen KVNR {string} vom VSDM Ressource Server abfragt")
+      "das Primärsystem die VSD mit einer ungültigen KVNR {string} vom VSDM Ressource Server"
+          + " abfragt")
   public void whenClientSystemIsRequestingVsdWithInvalidKvnr(String invalidKvnr) {
     EgkCardInfo egk = hccs().recall("egkCardInfo");
     egk.setKvnr(invalidKvnr);
@@ -366,7 +371,8 @@ public class VsdmSteps extends BaseSteps {
   }
 
   @Wenn(
-      "das Primärsystem die VSD mit einer unbekannten KVNR {string} vom VSDM Ressource Server abfragt")
+      "das Primärsystem die VSD mit einer unbekannten KVNR {string} vom VSDM Ressource Server"
+          + " abfragt")
   public void whenClientSystemIsRequestingVsdWithUnknownKvnr(String unknownKvnr) {
     EgkCardInfo egk = hccs().recall("egkCardInfo");
     egk.setKvnr(unknownKvnr);
@@ -402,7 +408,8 @@ public class VsdmSteps extends BaseSteps {
   }
 
   @Wenn(
-      "das Primärsystem die VSD mit einer ungültigen Profession OID vom VSDM Ressource Server abfragt")
+      "das Primärsystem die VSD mit einer ungültigen Profession OID vom VSDM Ressource Server"
+          + " abfragt")
   public void whenClientSystemIsRequestingVsdWithInvalidProfessionOid() {
     hccs()
         .attemptsTo(
@@ -454,7 +461,7 @@ public class VsdmSteps extends BaseSteps {
     hccs().should(seeThat(LastResponse.text(), containsString(errorText)));
   }
 
-  private void sendReadVsd(int nbrCalls, boolean withUpdateVsd) throws InterruptedException {
+  private void sendReadVsd(int nbrCalls, boolean withUpdateVsd) {
     hccs().attemptsTo(GeneratePoppTokenList.now(nbrCalls)); // Used for return code 200 only.
 
     for (int i = 0; i < nbrCalls; i++) {
@@ -476,7 +483,6 @@ public class VsdmSteps extends BaseSteps {
         andRessourceServerIsFindingEqualEtag();
       }
       answerTimes.add(LastResponseTime.value().answeredBy(hccs()));
-      Thread.sleep(ThreadLocalRandom.current().nextInt(10, 100));
     }
   }
 }

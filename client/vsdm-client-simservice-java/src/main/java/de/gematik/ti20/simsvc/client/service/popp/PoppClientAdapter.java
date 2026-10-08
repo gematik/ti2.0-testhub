@@ -47,7 +47,8 @@ public class PoppClientAdapter {
 
   public String getPoppToken(final String virtualCard) {
     log.info(
-        "============ Starting PoPP token session for card with tokentype={}, virtualCard={} and URL={}",
+        "============ Starting PoPP token session for card with tokentype={}, virtualCard={} and"
+            + " URL={}",
         poppClientConfig.getTokenType(),
         virtualCard,
         poppClientConfig.getUrlPoppServerHttp());

@@ -76,7 +76,8 @@ public class TlsTestToolSteps {
   // --- Guard steps (TLS client connecting to ZETA Guard) ---
 
   @Gegebensei(
-      "die TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} wurden nur für TLS 1.1 erstellt")
+      "die TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} wurden nur für TLS"
+          + " 1.1 erstellt")
   public void guardTls11(String host) {
     try {
       result = TlsClientHelper.connect(host, new String[] {"TLSv1.1"}, null);
@@ -95,13 +96,15 @@ public class TlsTestToolSteps {
   }
 
   @Gegebensei(
-      "die TLS 1.2 TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} für TLS Renegotiation")
+      "die TLS 1.2 TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} für TLS"
+          + " Renegotiation")
   public void guardRenegotiation(String host) {
     result = TlsClientHelper.connectWithRenegotiation(host);
   }
 
   @Gegebensei(
-      "die TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} mit den folgenden nicht unterstützten Hashfunktionen wurden festgelegt:")
+      "die TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} mit den folgenden"
+          + " nicht unterstützten Hashfunktionen wurden festgelegt:")
   public void guardUnsupportedHash(String host, DataTable t) {
     var hashes = t.asList();
     log.info("Teste Guard mit nicht unterstützten Hashfunktionen: {}", hashes);
@@ -126,7 +129,8 @@ public class TlsTestToolSteps {
   }
 
   @Gegebensei(
-      "die TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} mit den folgenden unterstützten Hashfunktionen wurden festgelegt:")
+      "die TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} mit den folgenden"
+          + " unterstützten Hashfunktionen wurden festgelegt:")
   public void guardSupportedHash(String host, DataTable t) {
     var hashes = t.asList();
     log.info("Teste Guard mit unterstützten Hashfunktionen: {}", hashes);
@@ -144,7 +148,8 @@ public class TlsTestToolSteps {
   }
 
   @Gegebensei(
-      "die TLS 1.2 TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} für die nicht unterstützten Cipher-Suiten")
+      "die TLS 1.2 TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} für die nicht"
+          + " unterstützten Cipher-Suiten")
   public void guardUnsupportedCiphers(String host) {
     result =
         TlsClientHelper.connect(
@@ -152,7 +157,8 @@ public class TlsTestToolSteps {
   }
 
   @Gegebensei(
-      "die TLS 1.2 TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} für das unterstützte-Gruppen-Profil {string}")
+      "die TLS 1.2 TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} für das"
+          + " unterstützte-Gruppen-Profil {string}")
   public void guardSupportedGroup(String host, String group) {
     if ("unsupported_mix".equals(group))
       result =
@@ -169,7 +175,8 @@ public class TlsTestToolSteps {
   }
 
   @Gegebensei(
-      "die TLS 1.2 TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} für das Cipher-Suite-Profil {tlsCipherSuiteProfile}")
+      "die TLS 1.2 TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} für das"
+          + " Cipher-Suite-Profil {tlsCipherSuiteProfile}")
   public void guardCipherProfile(String host, TlsCipherSuite p) {
     result =
         TlsClientHelper.connect(host, new String[] {"TLSv1.2"}, new String[] {p.getJsseName()});
@@ -181,7 +188,8 @@ public class TlsTestToolSteps {
   }
 
   @Gegebensei(
-      "die TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} mit den folgenden TLS 1.2 Signatur-Hash-Algorithmen wurden festgelegt:")
+      "die TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} mit den folgenden TLS"
+          + " 1.2 Signatur-Hash-Algorithmen wurden festgelegt:")
   public void guardRsaSigHash(String host, DataTable t) {
     var sigAlgs = t.asList();
     log.info(
@@ -203,7 +211,8 @@ public class TlsTestToolSteps {
   }
 
   @Gegebensei(
-      "die TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} mit den folgenden TLS 1.3 Signature-Schemes wurden festgelegt:")
+      "die TlsTestTool-Konfigurationsdaten für den Host {tigerResolvedString} mit den folgenden TLS"
+          + " 1.3 Signature-Schemes wurden festgelegt:")
   public void guardRsaTls13(String host, DataTable t) {
     var schemes = t.asList();
     log.info("Teste Guard: RSA-Signature-Schemes für TLS 1.3 müssen abgelehnt werden: {}", schemes);
@@ -224,7 +233,8 @@ public class TlsTestToolSteps {
   // --- Dann (Then) steps ---
 
   @Dann(
-      "akzeptiert der ZETA Guard Endpunkt das ClientHello nicht und sendet eine Alert Nachricht mit Description Id {string}")
+      "akzeptiert der ZETA Guard Endpunkt das ClientHello nicht und sendet eine Alert Nachricht mit"
+          + " Description Id {string}")
   public void alertWith(String descId) {
     req();
     int exp = Integer.parseInt(descId, 16);

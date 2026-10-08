@@ -92,7 +92,8 @@ public class TimestampValidationSteps {
    * @throws AssertionError if either value is invalid or the first is not after the second
    */
   @Und(
-      "validiere, dass der Zeitstempel {tigerResolvedString} später als {tigerResolvedString} liegt")
+      "validiere, dass der Zeitstempel {tigerResolvedString} später als {tigerResolvedString}"
+          + " liegt")
   @And("validate that the timestamp {tigerResolvedString} is after {tigerResolvedString}")
   public void validateTimestampIsLaterThan(String after, String before) {
     Instant later;

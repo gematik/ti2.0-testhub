@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.18.0</version>
+        <version>3.19.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -18,53 +17,27 @@
     <description>Collection of E2E and IT tests to validate VSDM 2.0 service.</description>
 
     <properties>
-        <skip.inttests>true</skip.inttests>
-        <vsdm.testsuite.path>${maven.multiModuleProjectDirectory}/test/vsdm-testsuite
-        </vsdm.testsuite.path>
         <gatling.maven-plugin.version>4.21.11</gatling.maven-plugin.version>
+        <polarion.auth.password>${polarion.pat}</polarion.auth.password>
+        <polarion.auth.username>${polarion.username}</polarion.auth.username>
         <polarion.project>Mainline_OPB1</polarion.project>
         <polarion.testrun>VSDM2_GEMATIK</polarion.testrun>
-        <polarion.auth.username>${polarion.username}</polarion.auth.username>
-        <polarion.auth.password>${polarion.pat}</polarion.auth.password>
+        <skip.inttests>true</skip.inttests>
+        <vsdm.testsuite.path>${maven.multiModuleProjectDirectory}/test/vsdm-testsuite</vsdm.testsuite.path>
     </properties>
-
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.serenity-bdd</groupId>
-            <artifactId>serenity-screenplay</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.serenity-bdd</groupId>
-            <artifactId>serenity-screenplay-rest</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.serenity-bdd</groupId>
-            <artifactId>serenity-ensure</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>de.gematik.test</groupId>
-            <artifactId>tiger-test-lib</artifactId>
         </dependency>
         <dependency>
             <groupId>de.gematik</groupId>
@@ -77,17 +50,41 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>de.gematik.test</groupId>
+            <artifactId>gem-testdata</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.gematik.test</groupId>
+            <artifactId>tiger-test-lib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.serenity-bdd</groupId>
+            <artifactId>serenity-ensure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.serenity-bdd</groupId>
+            <artifactId>serenity-screenplay</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.serenity-bdd</groupId>
+            <artifactId>serenity-screenplay-rest</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
             <version>${version.testcontainers}</version>
         </dependency>
         <dependency>
-            <groupId>de.gematik.test</groupId>
-            <artifactId>gem-testdata</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.gatling.highcharts</groupId>
-            <artifactId>gatling-charts-highcharts</artifactId>
+            <groupId>de.gematik.ti20.rbel</groupId>
+            <artifactId>rbel-fluent-api</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -96,14 +93,14 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>de.gematik.ti20.rbel</groupId>
-            <artifactId>rbel-fluent-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>de.gematik.zeta</groupId>
             <artifactId>zeta-sdk-jvm</artifactId>
             <version>${zeta-sdk-jvm.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gatling.highcharts</groupId>
+            <artifactId>gatling-charts-highcharts</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -116,12 +113,12 @@
                 <version>${version.tiger}</version>
                 <executions>
                     <execution>
-                        <phase>generate-test-sources</phase>
                         <id>generate-tiger-drivers</id>
                         <goals>
                             <goal>generate-drivers</goal>
                             <goal>attach-tiger-agent</goal>
                         </goals>
+                        <phase>generate-test-sources</phase>
                         <configuration>
                             <glues>
                                 <glue>de.gematik.test.tiger.glue</glue>
@@ -133,9 +130,7 @@
                     <execution>
                         <id>generate-tiger-report</id>
                         <goals>
-                            <goal>
-                                generate-serenity-reports
-                            </goal>
+                            <goal>generate-serenity-reports</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -146,16 +141,15 @@
                 <version>${gatling.maven-plugin.version}</version>
                 <configuration>
                     <jvmArgs>
-                        <jvmArg>
-                            -Dtiger.testenv.cfgfile=${maven.multiModuleProjectDirectory}/tiger.yaml
-                        </jvmArg>
+                        <jvmArg>-Dtiger.testenv.cfgfile=${maven.multiModuleProjectDirectory}/tiger.yaml</jvmArg>
                         <jvmArg>-Dtiger.rootfolder=${maven.multiModuleProjectDirectory}</jvmArg>
                         <!-- Kein Profil-Schalter noetig: das Tiger-Profil wird aus dem
                              Modulverzeichnis abgeleitet (-> `vsdm`), siehe lib.defaultProfile
                              in tiger.yaml. Die Gatling-Simulationen initialisieren Tiger
                              ohnehin nicht. -->
                     </jvmArgs>
-                </configuration>                    <!-- Enterprise Cloud (https://cloud.gatling.io/) configuration reference: https://docs.gatling.io/reference/integrations/build-tools/maven-plugin/#running-your-simulations-on-gatling-enterprise-cloud -->
+                </configuration>
+                <!-- Enterprise Cloud (https://cloud.gatling.io/) configuration reference: https://docs.gatling.io/reference/integrations/build-tools/maven-plugin/#running-your-simulations-on-gatling-enterprise-cloud -->
             </plugin>
             <plugin>
                 <groupId>com.spotify.fmt</groupId>
@@ -165,6 +159,12 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>3.5.5</version>
+                <configuration>
+                    <environmentVariables>
+                        <TIGER_TESTENV_CFGFILE>${maven.multiModuleProjectDirectory}/tiger.yaml</TIGER_TESTENV_CFGFILE>
+                        <TIGER_ROOTFOLDER>${maven.multiModuleProjectDirectory}</TIGER_ROOTFOLDER>
+                    </environmentVariables>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -173,13 +173,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <environmentVariables>
-                        <TIGER_TESTENV_CFGFILE>${maven.multiModuleProjectDirectory}/tiger.yaml
-                        </TIGER_TESTENV_CFGFILE>
-                        <TIGER_ROOTFOLDER>${maven.multiModuleProjectDirectory}</TIGER_ROOTFOLDER>
-                    </environmentVariables>
-                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -195,18 +188,14 @@
                         <version>3.1.1-224</version>
                         <executions>
                             <execution>
-                                <configuration>
-                                    <pathToBddFiles>
-                                        ${vsdm.testsuite.path}/src/test/resources/features
-                                    </pathToBddFiles>
-                                    <fileExtension>.feature</fileExtension>
-                                    <destinationFilePath>
-                                        ${vsdm.testsuite.path}/target/polarion/vsdm2-testcases.json
-                                    </destinationFilePath>
-                                </configuration>
                                 <goals>
                                     <goal>parse-bdd</goal>
                                 </goals>
+                                <configuration>
+                                    <pathToBddFiles>${vsdm.testsuite.path}/src/test/resources/features</pathToBddFiles>
+                                    <fileExtension>.feature</fileExtension>
+                                    <destinationFilePath>${vsdm.testsuite.path}/target/polarion/vsdm2-testcases.json</destinationFilePath>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
@@ -222,8 +211,8 @@
                 </property>
             </activation>
             <properties>
-                <polarion.auth.username>${env.POLARION_CREDENTIALS_USR}</polarion.auth.username>
                 <polarion.auth.password>${env.POLARION_CREDENTIALS_PSW}</polarion.auth.password>
+                <polarion.auth.username>${env.POLARION_CREDENTIALS_USR}</polarion.auth.username>
             </properties>
         </profile>
         <profile>
@@ -237,6 +226,9 @@
                         <executions>
                             <execution>
                                 <id>sync</id>
+                                <goals>
+                                    <goal>sync-testcases</goal>
+                                </goals>
                                 <phase>install</phase>
                                 <configuration>
                                     <polarionUrl>${polarion.url}</polarionUrl>
@@ -244,13 +236,8 @@
                                     <password>${polarion.auth.password}</password>
                                     <project>${polarion.project}</project>
                                     <luceneQuery>cfInternalId:UC_VSDM2_* UC_GITTI_*</luceneQuery>
-                                    <jsonFilePath>
-                                        ${vsdm.testsuite.path}/target/polarion/vsdm2-testcases.json
-                                    </jsonFilePath>
+                                    <jsonFilePath>${vsdm.testsuite.path}/target/polarion/vsdm2-testcases.json</jsonFilePath>
                                 </configuration>
-                                <goals>
-                                    <goal>sync-testcases</goal>
-                                </goals>
                             </execution>
                         </executions>
                     </plugin>
@@ -268,19 +255,17 @@
                         <executions>
                             <execution>
                                 <id>upload</id>
+                                <goals>
+                                    <goal>upload-testresults</goal>
+                                </goals>
                                 <phase>post-integration-test</phase>
                                 <configuration>
                                     <username>${polarion.auth.username}</username>
                                     <password>${polarion.auth.password}</password>
                                     <project>${polarion.project}</project>
                                     <testRun>${polarion.testrun}</testRun>
-                                    <serenityReportsFolderPath>
-                                        ${vsdm.testsuite.path}/target/site/serenity
-                                    </serenityReportsFolderPath>
+                                    <serenityReportsFolderPath>${vsdm.testsuite.path}/target/site/serenity</serenityReportsFolderPath>
                                 </configuration>
-                                <goals>
-                                    <goal>upload-testresults</goal>
-                                </goals>
                             </execution>
                         </executions>
                     </plugin>

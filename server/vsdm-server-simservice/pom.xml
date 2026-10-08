@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.18.0</version>
+        <version>3.19.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -18,42 +17,22 @@
     <description>Simulator-Service for VSDM2 Service</description>
 
     <properties>
-        <start-class>de.gematik.ti20.simsvc.server.VsdmServerApplication</start-class>
         <image.docker.tag>testhub/${project.artifactId}:local</image.docker.tag>
+        <start-class>de.gematik.ti20.simsvc.server.VsdmServerApplication</start-class>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.bitbucket.b_c</groupId>
-            <artifactId>jose4j</artifactId>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>de.gematik.test</groupId>
-            <artifactId>gem-testdata</artifactId>
         </dependency>
 
         <dependency>
@@ -69,8 +48,32 @@
             <artifactId>fhir-de-basisprofil-r4-brick</artifactId>
         </dependency>
         <dependency>
+            <groupId>de.gematik.test</groupId>
+            <artifactId>gem-testdata</artifactId>
+        </dependency>
+        <dependency>
             <groupId>de.gematik.ti20.vsdm</groupId>
             <artifactId>vsdm-fhir-lib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bitbucket.b_c</groupId>
+            <artifactId>jose4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -80,10 +83,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.networknt</groupId>
-            <artifactId>json-schema-validator</artifactId>
         </dependency>
     </dependencies>
 
@@ -128,24 +127,19 @@
                         <executions>
                             <execution>
                                 <id>create-docker-image</id>
-                                <!-- must run after spring boot repackage, or we have an incomplete jar -->
-                                <phase>install</phase>
                                 <goals>
                                     <goal>run</goal>
                                 </goals>
+                                <!-- must run after spring boot repackage, or we have an incomplete jar -->
+                                <phase>install</phase>
                                 <configuration>
-                                    <target
-                                            if="image.docker.tag"
-                                            name="build-service-docker-image"
-                                            description="Task to build services docker images">
+                                    <target description="Task to build services docker images" if="image.docker.tag" name="build-service-docker-image">
                                         <!-- calculate the repository root here so we can invoke docker build with
                                         the repository root as build context. We need that build context to include
                                         the public test data. -->
-                                        <property name="repository.root"
-                                                  location="${project.basedir}/../../"/>
+                                        <property location="${project.basedir}/../../" name="repository.root"/>
                                         <echo>####### Building '${image.docker.tag}'</echo>
-                                        <exec executable="docker" dir="${repository.root}"
-                                              failonerror="true">
+                                        <exec dir="${repository.root}" executable="docker" failonerror="true">
                                             <arg value="build"/>
                                             <arg value="--no-cache"/>
                                             <arg value="--tag"/>

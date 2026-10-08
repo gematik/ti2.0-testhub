@@ -242,7 +242,8 @@ public class JwtVerificationSteps {
         .as("ES256 signature verification via federation-discovered key (kid=%s) must succeed", kid)
         .isTrue();
     log.info(
-        "ES256 signature verified via OpenID-Federation discovery (iss={}, resolvedIss={}, kid={}, jwksUri={})",
+        "ES256 signature verified via OpenID-Federation discovery (iss={}, resolvedIss={}, kid={},"
+            + " jwksUri={})",
         issuer,
         resolvedIssuer,
         kid,

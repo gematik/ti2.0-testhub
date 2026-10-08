@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class ZetaClientPoolTest {
+class ZetaClientPoolIT {
 
   @Test
   void constructorRejectsDuplicateActorIds() {
@@ -40,10 +40,10 @@ class ZetaClientPoolTest {
     SimulationConfigBean.SmcbData second = new SimulationConfigBean.SmcbData();
     second.setActorId("actor-1");
     second.setKeypath("/tmp/second.p12");
+    final List<SimulationConfigBean.SmcbData> smcbDataList = List.of(first, second);
 
     assertThrows(
-        IllegalArgumentException.class,
-        () -> new ZetaClientPool("resource", 1, List.of(first, second)));
+        IllegalArgumentException.class, () -> new ZetaClientPool("resource", 1, smcbDataList));
   }
 
   @Test
@@ -51,8 +51,9 @@ class ZetaClientPoolTest {
     SimulationConfigBean.SmcbData smcbData = new SimulationConfigBean.SmcbData();
     smcbData.setActorId(" ");
     smcbData.setKeypath("/tmp/first.p12");
+    final List<SimulationConfigBean.SmcbData> smcbDataList = List.of(smcbData);
 
     assertThrows(
-        IllegalArgumentException.class, () -> new ZetaClientPool("resource", 1, List.of(smcbData)));
+        IllegalArgumentException.class, () -> new ZetaClientPool("resource", 1, smcbDataList));
   }
 }

@@ -42,8 +42,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/client/vsdm")
 public class VsdmClientController {
 
-  private final String HEADER_ETAG = HttpHeaders.ETAG;
-  private final String HEADER_VSDM_PZ = "vsdm-pz";
+  private static final String HEADER_ETAG = HttpHeaders.ETAG;
+  private static final String HEADER_VSDM_PZ = "vsdm-pz";
 
   private final VsdmClientService vsdmClientService;
 

@@ -1,14 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
-
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.18.0</version>
+        <version>3.19.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -25,18 +23,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>de.gematik.ti20.vsdm</groupId>
-            <artifactId>vsdm-fhir-lib</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>de.gematik.ti20.rbel</groupId>
             <artifactId>rbel-fluent-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>de.gematik.ti20.simsvc.server</groupId>
-            <artifactId>vsdm-server-simservice</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -49,6 +37,16 @@
             <artifactId>vsdm-client-simservice</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>de.gematik.ti20.simsvc.server</groupId>
+            <artifactId>vsdm-server-simservice</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>de.gematik.ti20.vsdm</groupId>
+            <artifactId>vsdm-fhir-lib</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -59,10 +57,10 @@
                 <executions>
                     <execution>
                         <id>report-aggregate</id>
-                        <phase>verify</phase>
                         <goals>
                             <goal>report-aggregate</goal>
                         </goals>
+                        <phase>verify</phase>
                     </execution>
                 </executions>
             </plugin>

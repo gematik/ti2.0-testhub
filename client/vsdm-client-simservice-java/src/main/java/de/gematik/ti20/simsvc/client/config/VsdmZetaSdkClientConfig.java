@@ -110,7 +110,8 @@ public class VsdmZetaSdkClientConfig {
     String keyPath = getSmcbPrivateKeyPath();
     if (keyPath == null || keyPath.isBlank()) {
       throw new IllegalArgumentException(
-          "SMCB private key path is not configured (zetasdk.smcbPrivateKeyPath). Please set the path to the private key file.");
+          "SMCB private key path is not configured (zetasdk.smcbPrivateKeyPath). Please set the"
+              + " path to the private key file.");
     }
 
     Path p = Paths.get(keyPath);

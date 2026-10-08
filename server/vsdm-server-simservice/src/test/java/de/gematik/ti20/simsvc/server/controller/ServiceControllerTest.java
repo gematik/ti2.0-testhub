@@ -28,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.jose4j.lang.JoseException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -48,7 +47,7 @@ class ServiceControllerTest {
   }
 
   @Test
-  void testStatus_Success() throws JoseException {
+  void testStatus_Success() {
     ResponseEntity<?> response = serviceController.status();
 
     assertNotNull(response);

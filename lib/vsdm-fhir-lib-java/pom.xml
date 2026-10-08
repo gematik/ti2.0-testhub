@@ -1,12 +1,12 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.18.0</version>
+        <version>3.19.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -19,9 +19,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <scope>test</scope>
+            <groupId>de.gematik.bbriccs</groupId>
+            <artifactId>fd-fhir-client-brick</artifactId>
         </dependency>
         <dependency>
             <groupId>de.gematik.bbriccs</groupId>
@@ -37,10 +36,6 @@
         </dependency>
         <dependency>
             <groupId>de.gematik.bbriccs</groupId>
-            <artifactId>fd-fhir-client-brick</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>de.gematik.bbriccs</groupId>
             <artifactId>rest-client-brick</artifactId>
         </dependency>
         <dependency>
@@ -50,6 +45,11 @@
         <dependency>
             <groupId>de.gematik.test</groupId>
             <artifactId>gem-testdata</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>

@@ -40,14 +40,7 @@ public class SimulationConfigBean {
 
   @Data
   public static class Url {
-    private Client client;
     private Server server;
-
-    @Data
-    public static class Client {
-      private String card;
-      private String vsdm;
-    }
 
     @Data
     public static class Server {
@@ -88,11 +81,7 @@ public class SimulationConfigBean {
 
   @Data
   public static class TestData {
-    private String iknrKvnrList;
-    private String poppTokens;
     private String poppTokenEtags;
-    private String smcbSlots;
-    private String egkSlots;
     private String profileVersion;
   }
 

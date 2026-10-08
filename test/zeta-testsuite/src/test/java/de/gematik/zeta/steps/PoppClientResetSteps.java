@@ -30,6 +30,7 @@ import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
 import io.cucumber.java.de.Gegebensei;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +85,15 @@ public class PoppClientResetSteps {
           "security-admin-console");
 
   private static final String ZETA_GUARD_REALM = "zeta-guard";
-  private static final String POPP_CLIENT_CONTAINER_NAME = "popp-client";
+
+  /**
+   * Docker Compose service name of the popp-client (as declared in the {@code compose-*.yaml}
+   * files), NOT the actual container name. Compose sets the label {@code
+   * com.docker.compose.service} to this value on every container it creates, regardless of whether
+   * a {@code container_name:} override is configured - which is what makes it possible to look up
+   * the real container name via {@link #findPoppClientContainerName()} below.
+   */
+  private static final String POPP_CLIENT_SERVICE_NAME = "popp-client";
 
   private final RestTemplate restTemplate = new RestTemplate();
 
@@ -177,11 +186,56 @@ public class PoppClientResetSteps {
   }
 
   /**
-   * Restarts the {@code popp-client} Docker container via the Docker CLI to clear its in-memory
+   * Restarts the popp-client Docker container via the Docker CLI to clear its in-memory
    * client_id/token cache, then waits for the service to become healthy again.
    */
   private void restartPoppClient() {
-    List<String> command = List.of("docker", "restart", POPP_CLIENT_CONTAINER_NAME);
+    String containerName = findPoppClientContainerName();
+    runDockerCommand(List.of("docker", "restart", containerName));
+    waitForPoppClientHealthy();
+  }
+
+  /**
+   * Resolves the actual, currently running container name of the popp-client service.
+   *
+   * <p>Locally (via {@code compose-local.yaml}) the container is simply named {@code popp-client},
+   * but in Jenkins/DooD (Docker-outside-of-Docker, e.g. {@code compose-ci-vsdm.yaml}) Compose
+   * prefixes it with the project name, e.g. {@code ${COMPOSE_PROJECT_NAME}-popp-client}. The
+   * Compose project label scopes the Jenkins lookup to this build, avoiding matches from other
+   * projects sharing the Docker daemon.
+   */
+  private String findPoppClientContainerName() {
+    String projectName = System.getenv("COMPOSE_PROJECT_NAME");
+    List<String> command = new ArrayList<>(List.of("docker", "ps", "--filter"));
+    if (projectName != null && !projectName.isBlank()) {
+      command.add("label=com.docker.compose.project=" + projectName);
+      command.add("--filter");
+      command.add("label=com.docker.compose.service=" + POPP_CLIENT_SERVICE_NAME);
+    } else {
+      // The local Compose file uses this fixed container_name; scope to it rather than
+      // accidentally matching project-prefixed containers from another stack.
+      command.add("name=^/popp-client$");
+    }
+    command.addAll(List.of("--format", "{{.Names}}"));
+    String output = runDockerCommand(command).trim();
+    List<String> names = output.lines().map(String::trim).filter(s -> !s.isEmpty()).toList();
+    if (names.isEmpty()) {
+      throw new AssertionError(
+          "No running popp-client container found for %s. Is the stack up?"
+              .formatted(
+                  projectName != null && !projectName.isBlank()
+                      ? "Compose project '%s'".formatted(projectName)
+                      : "local container name 'popp-client'"));
+    }
+    if (names.size() > 1) {
+      throw new AssertionError(
+          "Expected exactly one running container for Docker Compose service '%s', found %s: %s"
+              .formatted(POPP_CLIENT_SERVICE_NAME, names.size(), names));
+    }
+    return names.get(0);
+  }
+
+  private String runDockerCommand(List<String> command) {
     try {
       Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
       boolean finished = process.waitFor(60, TimeUnit.SECONDS);
@@ -192,13 +246,13 @@ public class PoppClientResetSteps {
                 .formatted(String.join(" ", command), output));
       }
       log.info("Docker command '{}' succeeded: {}", String.join(" ", command), output.trim());
+      return output;
     } catch (IOException | InterruptedException e) {
       if (e instanceof InterruptedException) {
         Thread.currentThread().interrupt();
       }
       throw new AssertionError("Failed to run docker command: " + String.join(" ", command), e);
     }
-    waitForPoppClientHealthy();
   }
 
   private void waitForPoppClientHealthy() {

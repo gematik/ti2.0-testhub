@@ -137,14 +137,6 @@ final class ZetaClientPool {
             actorId,
             ZetaSdkClientExtension.status(client));
 
-        // TODO pre authentication or registration of client
-
-        //        final boolean authenticated = ZetaSdkClientExtension.authenticate(client);
-        //        if (!authenticated) {
-        //          throw new IllegalStateException(
-        //              "Unable to authenticate ZetaSdkClient for actorId '" + actorId + "'");
-        //        }
-
         actorPool.available.offer(client);
       }
       actorPool.created.set(capacity);

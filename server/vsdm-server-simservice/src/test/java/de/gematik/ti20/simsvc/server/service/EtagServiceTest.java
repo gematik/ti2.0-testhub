@@ -240,7 +240,7 @@ class EtagServiceTest {
   }
 
   @Test
-  void testRemoveEtagPadding_RemovesQuotesWhenPresent() throws Exception {
+  void testRemoveEtagPadding_RemovesQuotesWhenPresent() {
     assertEquals("abc123", etagService.removeEtagPadding("\"abc123\""));
     assertEquals("plain-text", etagService.removeEtagPadding("plain-text"));
   }
