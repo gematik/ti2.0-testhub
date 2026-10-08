@@ -76,7 +76,8 @@ public class Steps {
   }
 
   @Dann(
-      "Die Daten der Leisungserbringerorganisation im PoPP-Token entsprichen denen auf der Karte {string}")
+      "Die Daten der Leisungserbringerorganisation im PoPP-Token entsprichen denen auf der Karte"
+          + " {string}")
   public void practitionerDataInTokenMatchesSmcbData(final String smcb) {
     final SmcbType smcbType = SmcbType.valueOf(smcb);
     PoppTokenValidator.asserThatPractitionerDataInTokenMatchesDataOnSmcb(smcbType);

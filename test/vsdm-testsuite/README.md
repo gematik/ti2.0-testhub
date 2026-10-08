@@ -180,7 +180,8 @@ Die Simulation kann mittels Maven und folgender Kommandozeile im Projekt-Root-Ve
 Die Simulation wird in der Datei "simulation.conf" konfiguriert. Dort ist eine Liste von SMCBs mit der jeweiligen
 `actorId` hinterlegt. Für jede `actorId` wird mit `create_popptokens.sh` ein eigener Satz PoPP-Tokens vorab erzeugt.
 Anschließend werden mit `create_etags.sh` die zugehörigen `etags` erzeugt und die einzelnen CSV-Dateien mit `paste`
-zusammengeführt.
+zusammengeführt. Alternativ automatisiert `create_popptoken_etags.sh` diesen Ablauf für eine IKNR-KVNR-Datei und
+mehrere `actorIds`; Details dazu stehen in `src/test/resources/scripts/README.md`. Der manuelle Ablauf bleibt möglich:
 
 Beispiel:
 

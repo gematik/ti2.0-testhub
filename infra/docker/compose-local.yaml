@@ -91,7 +91,7 @@ services:
       - dns-config:/dns
 
   docker-tiger-proxy:
-    image: gematik1/tiger-proxy-image:4.4.2
+    image: gematik1/tiger-proxy-image:4.4.5
     env_file:
       - path: .env
         required: true
@@ -110,7 +110,7 @@ services:
       - ./remoteTigerProxy:/app/tiger-config:ro
 
   canopy:
-    image: docker.io/gematik1/tiger-canopy-image:4.4.2
+    image: docker.io/gematik1/tiger-canopy-image:4.4.5
     container_name: tiger-canopy
     profiles: [ "full", "ps-only"]
     platform: linux/amd64

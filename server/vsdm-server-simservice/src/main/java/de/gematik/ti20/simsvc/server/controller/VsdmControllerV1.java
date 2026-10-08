@@ -100,7 +100,8 @@ public class VsdmControllerV1 {
       @RequestParam(value = HEADER_PROFILE_VERSION, required = false) final String profileVersion,
       final HttpServletRequest request) {
     log.info(
-        "Received request for readVsd zeta-popp-token-content: {}, zeta-user-info: {}, if-none-match: {}",
+        "Received request for readVsd zeta-popp-token-content: {}, zeta-user-info: {},"
+            + " if-none-match: {}",
         poppTokenContentCoded,
         userInfo,
         ifNoneMatch);

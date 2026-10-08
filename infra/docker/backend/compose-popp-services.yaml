@@ -22,7 +22,7 @@ services:
   popp-client:
     profiles: [ "full", "ps-only" ]
     container_name: popp-client
-    image: gematik1/popp-client:2.8.0
+    image: gematik1/popp-client:2.9.0
     env_file:
       - path: ../.env
         required: true
@@ -87,7 +87,7 @@ services:
 
   popp-server:
     profiles: [ "full", "backend-only" ]
-    image: gematik1/popp-server:2.8.0
+    image: gematik1/popp-server:2.9.0
     env_file:
       - path: ../.env
         required: true

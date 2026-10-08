@@ -1,14 +1,13 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.18.0</version>
+        <version>3.19.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -20,26 +19,14 @@
 
     <properties>
         <skip.inttests>true</skip.inttests>
-        <zeta.testsuite.path>${maven.multiModuleProjectDirectory}/test/zeta-testsuite</zeta.testsuite.path>
         <zeta.polarion.output.dir>${project.build.directory}/polarion</zeta.polarion.output.dir>
+        <zeta.testsuite.path>${maven.multiModuleProjectDirectory}/test/zeta-testsuite</zeta.testsuite.path>
     </properties>
-
 
     <!-- ========================================================= -->
     <!-- Dependencies                                              -->
     <!-- ========================================================= -->
     <dependencies>
-        <!-- Tiger Test Library (bringt Cucumber + Serenity Glue mit) -->
-        <dependency>
-            <groupId>de.gematik.test</groupId>
-            <artifactId>tiger-test-lib</artifactId>
-        </dependency>
-
-        <!-- Tiger Cloud Extension für Docker-Support -->
-        <dependency>
-            <groupId>de.gematik</groupId>
-            <artifactId>tiger-cloud-extension</artifactId>
-        </dependency>
 
         <!-- Nimbus JOSE JWT für JWT-Handling in Tests -->
         <dependency>
@@ -48,9 +35,15 @@
             <version>${version.nimbus-jose-jwt}</version>
         </dependency>
 
+        <!-- Tiger Cloud Extension für Docker-Support -->
         <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
+            <groupId>de.gematik</groupId>
+            <artifactId>tiger-cloud-extension</artifactId>
+        </dependency>
+        <!-- Tiger Test Library (bringt Cucumber + Serenity Glue mit) -->
+        <dependency>
+            <groupId>de.gematik.test</groupId>
+            <artifactId>tiger-test-lib</artifactId>
         </dependency>
         <dependency>
             <groupId>de.gematik.ti20.rbel</groupId>
@@ -59,6 +52,11 @@
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
@@ -89,12 +87,12 @@
                 <version>${version.tiger}</version>
                 <executions>
                     <execution>
-                        <phase>generate-test-sources</phase>
                         <id>generate-tiger-drivers</id>
                         <goals>
                             <goal>generate-drivers</goal>
                             <goal>attach-tiger-agent</goal>
                         </goals>
+                        <phase>generate-test-sources</phase>
                         <configuration>
                             <glues>
                                 <glue>de.gematik.test.tiger.glue</glue>
@@ -115,6 +113,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <environmentVariables>
+                        <TIGER_TESTENV_CFGFILE>${maven.multiModuleProjectDirectory}/tiger.yaml</TIGER_TESTENV_CFGFILE>
+                        <TIGER_ROOTFOLDER>${maven.multiModuleProjectDirectory}</TIGER_ROOTFOLDER>
+                    </environmentVariables>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -123,12 +127,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <environmentVariables>
-                        <TIGER_TESTENV_CFGFILE>${maven.multiModuleProjectDirectory}/tiger.yaml</TIGER_TESTENV_CFGFILE>
-                        <TIGER_ROOTFOLDER>${maven.multiModuleProjectDirectory}</TIGER_ROOTFOLDER>
-                    </environmentVariables>
-                </configuration>
             </plugin>
 
         </plugins>
@@ -148,14 +146,14 @@
                         <version>3.1.1-224</version>
                         <executions>
                             <execution>
+                                <goals>
+                                    <goal>parse-bdd</goal>
+                                </goals>
                                 <configuration>
                                     <pathToBddFiles>${zeta.testsuite.path}/src/test/resources/features</pathToBddFiles>
                                     <fileExtension>.feature</fileExtension>
                                     <destinationFilePath>${zeta.polarion.output.dir}/zeta-testcases.json</destinationFilePath>
                                 </configuration>
-                                <goals>
-                                    <goal>parse-bdd</goal>
-                                </goals>
                             </execution>
                         </executions>
                     </plugin>
@@ -173,6 +171,9 @@
                         <executions>
                             <execution>
                                 <id>sync</id>
+                                <goals>
+                                    <goal>sync-testcases</goal>
+                                </goals>
                                 <phase>install</phase>
                                 <configuration>
                                     <polarionUrl>${polarion.url}</polarionUrl>
@@ -182,9 +183,6 @@
                                     <luceneQuery>cfInternalId:ZETA_*</luceneQuery>
                                     <jsonFilePath>${zeta.testsuite.path}/target/polarion/zeta-testcases.json</jsonFilePath>
                                 </configuration>
-                                <goals>
-                                    <goal>sync-testcases</goal>
-                                </goals>
                             </execution>
                         </executions>
                     </plugin>
@@ -202,6 +200,9 @@
                         <executions>
                             <execution>
                                 <id>upload</id>
+                                <goals>
+                                    <goal>upload-testresults</goal>
+                                </goals>
                                 <phase>post-integration-test</phase>
                                 <configuration>
                                     <username>${polarion.username}</username>
@@ -210,9 +211,6 @@
                                     <testRun>ZETA_GEMATIK</testRun>
                                     <serenityReportsFolderPath>${zeta.testsuite.path}/target/site/serenity</serenityReportsFolderPath>
                                 </configuration>
-                                <goals>
-                                    <goal>upload-testresults</goal>
-                                </goals>
                             </execution>
                         </executions>
                     </plugin>

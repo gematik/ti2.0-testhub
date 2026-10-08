@@ -494,7 +494,8 @@ class VsdmClientIT {
           "error": "PoPPMissing",
           "error_description": "PoPP header missing",
           "error_uri": "https://vsdm-zeta-ingress/doc/errors/PoPPMissing.html"
-        }""",
+        }\
+        """,
         result.responseBody);
   }
 

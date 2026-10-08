@@ -24,11 +24,14 @@
  */
 package de.gematik.ti20.simsvc.client.controller;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
+import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
@@ -39,9 +42,10 @@ import org.springframework.mock.web.MockHttpServletResponse;
 
 class TraceIdFilterTest {
 
+  private final TraceIdFilter filter = new TraceIdFilter();
+
   @Test
   void shouldAddTraceIdDuringRequestAndClearItAfterwards() throws ServletException, IOException {
-    TraceIdFilter filter = new TraceIdFilter();
     MockHttpServletRequest request = new MockHttpServletRequest();
     MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -63,10 +67,10 @@ class TraceIdFilterTest {
   }
 
   @Test
-  void shouldExposeLifecycleHooks() {
-    TraceIdFilter filter = new TraceIdFilter();
+  void initAndDestroy_doNothing() {
+    FilterConfig filterConfig = mock(FilterConfig.class);
 
-    filter.init(null);
-    filter.destroy();
+    assertDoesNotThrow(() -> filter.init(filterConfig));
+    assertDoesNotThrow(filter::destroy);
   }
 }

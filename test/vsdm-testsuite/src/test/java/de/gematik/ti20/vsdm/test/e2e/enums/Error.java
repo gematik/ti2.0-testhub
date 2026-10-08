@@ -35,7 +35,8 @@ public enum Error {
   VSDSERVICE_UNKNOWN_IK(
       "Institutionskennung '[ik]' aus dem PoPP-Token ist dem Fachdienst nicht bekannt."),
   VSDSERVICE_UNKNOWN_KVNR(
-      "Krankenversichertennummer '[kvnr]' aus dem PoPP-Token ist dem Fachdienst zur Institutionskennung '[ik]' nicht bekannt."),
+      "Krankenversichertennummer '[kvnr]' aus dem PoPP-Token ist dem Fachdienst zur"
+          + " Institutionskennung '[ik]' nicht bekannt."),
   VSDSERVICE_MISSING_PATIENT_RECORD_VERSION(
       "Der erforderliche Änderungsindikator im Header If-None-Match fehlt."),
   VSDSERVICE_INVALID_PROFILE_VERSION(

@@ -40,7 +40,6 @@ import org.jetbrains.annotations.NotNull;
 @Slf4j
 public class BaseSimulation extends Simulation {
 
-  private static final String OID_PRAXIS_ARZT = "1.2.276.0.76.4.50";
   protected static final SimulationConfigBean CFG = SimulationConfigProvider.getInstance();
   protected static final boolean RANDOM_READ_VSD = CFG.isRandomReadVsd();
   protected static final int ZETA_POOL_CAPACITY = CFG.getZetaSdkPool().getCapacity();
@@ -63,22 +62,12 @@ public class BaseSimulation extends Simulation {
   protected static final int RAMP_USERS_RANDOM_CYCLES =
       CFG.getRamp().getUsers().getRandom().getCycles();
 
-  protected static final String URL_CLIENT_CARD = CFG.getUrl().getClient().getCard();
-  protected static final String URL_CLIENT_VSDM = CFG.getUrl().getClient().getVsdm();
   protected static final String URL_SERVER_VSDM = CFG.getUrl().getServer().getVsdm();
-
-  protected static final String POPP_TOKENS = CFG.getTestData().getPoppTokens();
   protected static final String POPP_TOKEN_ETAGS = CFG.getTestData().getPoppTokenEtags();
-  protected static final String SMCB_SLOTS = CFG.getTestData().getSmcbSlots();
-  protected static final String EGK_SLOTS = CFG.getTestData().getEgkSlots();
   protected static final String FHIR_PROFILE_VERSION = CFG.getTestData().getProfileVersion();
 
-  protected static final FeederBuilder.FileBased<String> POPP_TOKEN_FEEDER =
-      csv(POPP_TOKENS).circular();
   protected static final FeederBuilder.FileBased<String> POPP_TOKEN_ETAG_FEEDER =
       csv(POPP_TOKEN_ETAGS).circular();
-  protected static final FeederBuilder.FileBased<String> SMCB_FEEDER = csv(SMCB_SLOTS).circular();
-  protected static final FeederBuilder.FileBased<String> EGK_FEEDER = csv(EGK_SLOTS).circular();
 
   private static double validatePercentage(double percentage) {
     if (percentage < 0.0 || percentage > 100.0) {

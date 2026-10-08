@@ -71,7 +71,8 @@ class GlobalExceptionHandlerTest {
     assertThat(response.getStatusCode().value()).isEqualTo(400);
     assertThat(response.getBody())
         .contains(
-            "{\"error\": \"MISSING_HEADER_POPP\", \"error_description\": \"Header ZETA-PoPP-Token-Content fehlt.\"}");
+            "{\"error\": \"MISSING_HEADER_POPP\", \"error_description\": \"Header"
+                + " ZETA-PoPP-Token-Content fehlt.\"}");
   }
 
   @Test

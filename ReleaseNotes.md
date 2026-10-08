@@ -2,6 +2,14 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.19.0
+
+### Changes
+
+- TESTHUB-266: update Tiger to 4.3.1
+- TESTHUB-280: simplify load test scripting
+- misc. dependency updates and bugfixes
+
 ## Release 3.18.0
 
 ### Update notes

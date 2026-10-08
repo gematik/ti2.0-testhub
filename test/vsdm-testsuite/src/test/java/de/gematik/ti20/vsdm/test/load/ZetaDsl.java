@@ -223,10 +223,15 @@ public final class ZetaDsl {
                   builder.disableServerValidation(true);
                   return Unit.INSTANCE;
                 })) {
+
+          log.info(">>> Request headers: \n{}\n", resolvedHeaders);
+
           final var response =
               HttpClientExtension.getAsync(httpClient, targetUrl, resolvedHeaders).join();
           final int actualStatus = response.getStatus().getValue();
           final String responseBody = HttpClientExtension.bodyAsText(response).join();
+
+          log.info(">>> Response body: \n{}\n", responseBody);
 
           final int durationMs = (int) ((System.nanoTime() - startedAtNanos) / 1_000_000L);
 

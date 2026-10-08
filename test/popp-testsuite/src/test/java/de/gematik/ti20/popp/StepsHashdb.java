@@ -51,7 +51,8 @@ public class StepsHashdb {
   TigerProxyGlue tigerProxyGlue = new TigerProxyGlue();
 
   @Angenommen(
-      "der TSP sendet den signierten eContent {tigerResolvedString} zum importieren an den PoPP Service")
+      "der TSP sendet den signierten eContent {tigerResolvedString} zum importieren an den PoPP"
+          + " Service")
   public void importDataToHashDb(final String econtentFileName) {
     sendSignedEContent(econtentFileName, true);
   }
@@ -112,7 +113,8 @@ public class StepsHashdb {
   }
 
   @Dann(
-      "der TSP erhält eine positive Rückmeldung mit einer jobID und diese entspricht {tigerResolvedString}")
+      "der TSP erhält eine positive Rückmeldung mit einer jobID und diese entspricht"
+          + " {tigerResolvedString}")
   public void jobIdInLastResponseMatchesJobIdPreviouslyGiven(final String previousJobId) {
     expectRequests(".*/api/v1/hash-db/import")
         .nextResponse()
