@@ -6,3 +6,8 @@ server:
 card:
   terminal:
     slots: 1001
+    card-image-paths:
+      - attached_assets
+      - cardimages
+      - file:no-publish/test-data/cards
+      - file:test/vsdm-testsuite/src/test/resources/private

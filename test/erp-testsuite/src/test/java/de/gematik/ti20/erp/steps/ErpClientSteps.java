@@ -25,15 +25,16 @@
 package de.gematik.ti20.erp.steps;
 
 import static java.text.MessageFormat.format;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import com.google.common.base.Strings;
 import de.gematik.bbriccs.fhir.EncodingType;
 import de.gematik.bbriccs.fhir.codec.FhirCodec;
 import de.gematik.bbriccs.rest.fd.FhirBResponse;
 import de.gematik.test.erezept.client.ErpClient;
 import de.gematik.test.erezept.client.usecases.ErpBaseCommand;
-import de.gematik.test.erezept.client.usecases.TaskGetCommand;
+import de.gematik.test.erezept.client.usecases.TaskGetByPoppTokenCommand;
 import de.gematik.test.erezept.fhir.r4.erp.ErxTaskBundle;
-import java.util.Objects;
 import lombok.val;
 import net.serenitybdd.annotations.Step;
 import net.serenitybdd.core.Serenity;
@@ -43,6 +44,7 @@ public class ErpClientSteps {
 
   @Step("Alle E-Rezepte mit PoPP-Token abrufen")
   public ErxTaskBundle obtainPrescriptionsWithPoppToken(ErpClient client, String poppToken) {
+    assertFalse(Strings.isNullOrEmpty(poppToken), "PoPP-Token must not be null or empty");
     val requestCmd = new TaskGetByPoppTokenCommand(poppToken);
     val response = client.request(requestCmd);
 
@@ -68,16 +70,5 @@ public class ErpClientSteps {
     val resource = response.getAsBaseResource();
     val content = fhir.encode(resource, EncodingType.XML, true);
     Serenity.recordReportData().withTitle(title).andContents(content);
-  }
-
-  // TODO: not yet merged: TSERP-493 -> MR !1179
-  public static class TaskGetByPoppTokenCommand extends TaskGetCommand {
-    public static final String POPP_TOKEN_HEADER = "X-PoPP-Token";
-
-    public TaskGetByPoppTokenCommand(String poppToken) {
-      // TODO: temporary workaround
-      //      Objects.requireNonNull(poppToken, "PoPP-Token darf nicht null sein.");
-      this.headerParameters.put(POPP_TOKEN_HEADER, Objects.requireNonNullElse(poppToken, "EMPTY"));
-    }
   }
 }

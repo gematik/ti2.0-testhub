@@ -26,13 +26,20 @@ package de.gematik.ti20.simsvc.client.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.gematik.ti20.simsvc.client.model.CardImageData;
+import de.gematik.ti20.simsvc.client.model.EgkIdentifier;
+import de.gematik.ti20.simsvc.client.model.SmcbIdentifier;
 import de.gematik.ti20.simsvc.client.model.VirtualCardImageData;
 import de.gematik.ti20.simsvc.client.model.dto.CardInfoDto;
 import de.gematik.ti20.simsvc.client.model.dto.EgkInfoDto;
+import de.gematik.ti20.simsvc.client.repository.CardImageIdentifier;
+import de.gematik.ti20.simsvc.client.repository.CardImageRepository;
 import de.gematik.ti20.simsvc.client.service.SlotManager;
 import de.gematik.ti20.simsvc.client.service.VirtualCardImageLoader;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +56,8 @@ import org.springframework.web.server.ResponseStatusException;
 public class SlotController {
 
   private final SlotManager slotManager;
+  private final CardImageRepository cardImageRepository;
+
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final VirtualCardImageLoader cardImageLoader = new VirtualCardImageLoader();
 
@@ -58,8 +67,10 @@ public class SlotController {
    * @param slotManager Service to manage slots
    */
   @Autowired
-  public SlotController(final SlotManager slotManager) {
+  public SlotController(
+      final SlotManager slotManager, final CardImageRepository cardImageRepository) {
     this.slotManager = slotManager;
+    this.cardImageRepository = cardImageRepository;
   }
 
   /**
@@ -90,18 +101,13 @@ public class SlotController {
    * @param xmlCardData XML representation of the card data
    * @return Information about the inserted card
    */
+  @Deprecated(since = "3.20.0", forRemoval = true)
   @PutMapping(value = "/{slotId}", consumes = MediaType.APPLICATION_XML_VALUE)
   public ResponseEntity<CardInfoDto> insertCard(
       @PathVariable int slotId, @RequestBody String xmlCardData) {
     log.info("Inserting card as XML card image");
 
-    if (!slotManager.isValidSlotId(slotId)) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Slot not found: " + slotId);
-    }
-
-    if (slotManager.isCardPresent(slotId)) {
-      throw new ResponseStatusException(HttpStatus.CONFLICT, "Slot already contains a card");
-    }
+    checkValidSlot(slotId);
 
     try {
       final VirtualCardImageData card = cardImageLoader.load(xmlCardData);
@@ -109,7 +115,7 @@ public class SlotController {
 
       final CardInfoDto cardInfo = CardInfoDto.from(card, slotId);
       return ResponseEntity.status(HttpStatus.CREATED).body(cardInfo);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Invalid card data: " + e.getMessage(), e);
     }
@@ -122,18 +128,13 @@ public class SlotController {
    * @param jsonCardData JSON representation of the card data
    * @return Information about the inserted card
    */
+  @Deprecated(since = "3.20.0", forRemoval = true)
   @PutMapping(value = "/{slotId}", consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<CardInfoDto> insertCardDataJson(
       @PathVariable final int slotId, @RequestBody final String jsonCardData) {
     log.info("Inserting card as JSON card data: {}", jsonCardData);
 
-    if (!slotManager.isValidSlotId(slotId)) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Slot not found: " + slotId);
-    }
-
-    if (slotManager.isCardPresent(slotId)) {
-      throw new ResponseStatusException(HttpStatus.CONFLICT, "Slot already contains a card");
-    }
+    checkValidSlot(slotId);
 
     try {
       final EgkInfoDto egkInfoDto = objectMapper.readValue(jsonCardData, EgkInfoDto.class);
@@ -141,9 +142,111 @@ public class SlotController {
 
       final CardInfoDto cardInfo = CardInfoDto.from(egkInfoDto, slotId);
       return ResponseEntity.status(HttpStatus.CREATED).body(cardInfo);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Invalid card data: " + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Insert a card into a specific slot.
+   *
+   * @param slotId Slot identifier
+   * @param egkIdentifier IKNR and KVNR used to look up the card image
+   * @return Information about the inserted card
+   */
+  @PutMapping(value = "/{slotId}/egk", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<CardInfoDto> insertEgk(
+      @PathVariable final int slotId, @RequestBody final EgkIdentifier egkIdentifier) {
+    log.info("Inserting card by egkIdentifier: {}", egkIdentifier);
+
+    checkValidSlot(slotId);
+
+    final List<CardImageIdentifier> matchingCards =
+        cardImageRepository.findByEgkIdentifier(egkIdentifier);
+    if (matchingCards.isEmpty()) {
+      throw new ResponseStatusException(
+          HttpStatus.NOT_FOUND,
+          "No card image found for the provided EgkIdentifier: " + egkIdentifier);
+    }
+    if (matchingCards.size() > 1) {
+      throw new ResponseStatusException(
+          HttpStatus.CONFLICT,
+          "Multiple card images found for the provided EgkIdentifier: " + egkIdentifier);
+    }
+    final CardImageIdentifier matchingCard = matchingCards.get(0);
+
+    try {
+      final String xmlCardData =
+          new DefaultResourceLoader()
+              .getResource(matchingCard.path())
+              .getContentAsString(StandardCharsets.UTF_8);
+
+      final VirtualCardImageData card = cardImageLoader.load(xmlCardData);
+      slotManager.insertCard(slotId, card);
+
+      final CardInfoDto cardInfo = CardInfoDto.from(card, slotId);
+      return ResponseEntity.status(HttpStatus.CREATED).body(cardInfo);
+    } catch (final Exception e) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Invalid card data: " + e.getMessage(), e);
+    }
+  }
+
+  // FIXME rk hinkriegen, Test schreiben, duplicated code refactorn
+
+  /**
+   * Insert a card into a specific slot.
+   *
+   * @param slotId Slot identifier
+   * @param smcbIdentifier IKNR and KVNR used to look up the card image
+   * @return Information about the inserted card
+   */
+  @PutMapping(value = "/{slotId}/smcb", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<CardInfoDto> insertSmcb(
+      @PathVariable final int slotId, @RequestBody final SmcbIdentifier smcbIdentifier) {
+    log.info("Inserting card by smcbIdentifier: {}", smcbIdentifier);
+
+    checkValidSlot(slotId);
+
+    final List<CardImageIdentifier> matchingCards =
+        cardImageRepository.findBySmcbIdentifier(smcbIdentifier);
+    if (matchingCards.isEmpty()) {
+      throw new ResponseStatusException(
+          HttpStatus.NOT_FOUND,
+          "No card image found for the provided SmcbIdentifier: " + smcbIdentifier);
+    }
+    if (matchingCards.size() > 1) {
+      throw new ResponseStatusException(
+          HttpStatus.CONFLICT,
+          "Multiple card images found for the provided SmcbIdentifier: " + smcbIdentifier);
+    }
+    final CardImageIdentifier matchingCard = matchingCards.get(0);
+
+    try {
+      final String xmlCardData =
+          new DefaultResourceLoader()
+              .getResource(matchingCard.path())
+              .getContentAsString(StandardCharsets.UTF_8);
+
+      final VirtualCardImageData card = cardImageLoader.load(xmlCardData);
+      slotManager.insertCard(slotId, card);
+
+      final CardInfoDto cardInfo = CardInfoDto.from(card, slotId);
+      return ResponseEntity.status(HttpStatus.CREATED).body(cardInfo);
+    } catch (final Exception e) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Invalid card data: " + e.getMessage(), e);
+    }
+  }
+
+  private void checkValidSlot(final int slotId) {
+    if (!slotManager.isValidSlotId(slotId)) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Slot not found: " + slotId);
+    }
+
+    if (slotManager.isCardPresent(slotId)) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Slot already contains a card");
     }
   }
 

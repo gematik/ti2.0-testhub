@@ -15,6 +15,7 @@ pactconfig-local.properties
 /.vscode/
 jenkinsfiles
 .owaspignore
+.github/copilot-instructions.md
 .gitlab
 /test/popp-testsuite/src/test/resources/certificates/mykeystore.p12
 /test/popp-testsuite/src/test/resources/hashDbPayloads

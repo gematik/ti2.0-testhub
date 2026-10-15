@@ -24,6 +24,7 @@
  */
 package de.gematik.ti20.erp;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -44,7 +45,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @ExtendWith(SerenityJUnit5Extension.class)
-public class ErpPoppIT {
+class ErpPoppIT {
 
   @Autowired private ErpTestsuiteConfiguration config;
   @Steps PoppClientSteps poppClientSteps;
@@ -76,6 +77,7 @@ public class ErpPoppIT {
 
     // THEN the ERP client can retrieve all prescriptions for the token's KVNR
     val taskBundle = erpClientSteps.obtainPrescriptionsWithPoppToken(erpClient, poppToken);
+    assertNotNull(taskBundle);
   }
 
   @Test // just demonstrates the issue with the ZETA SMC-B

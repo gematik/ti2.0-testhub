@@ -82,6 +82,9 @@ public class BaseSimulation extends Simulation {
   protected static List<OpenInjectionStep> getRandomReadVsdSteps() {
     List<OpenInjectionStep> steps = new ArrayList<>();
 
+    // Warm up
+    steps.add(rampUsersPerSec(1).to(RAMP_USERS_RANDOM_MAX).during(120));
+
     // Ramp up and ramp down cycles like a sawtooth curve.
     for (int i = 1; i <= RAMP_USERS_RANDOM_CYCLES; i++) {
       int readVsdPerSecMaxRandom =

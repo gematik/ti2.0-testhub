@@ -25,6 +25,22 @@ Konfiguration verschiedene Laststufen und Lastkurven (linear, nicht-linear) gene
 Simulation orientiert sich an den Vorgaben der gematik Performance-Spezifikation (gemSpec_Perf), d.h. die Maximallast
 beträgt 1.000 Calls/sec und die maximale Antwortzeit liegt bei 1.000 msecs.
 
+## Docker-free Compose unit tests
+
+`ComposeTest` reads `infra/docker/compose-local.yaml` and its nested backend includes.
+For each of `backend-only`, `full`, and `ps-only`, it checks service selection, required dependencies, healthcheck prerequisites,
+dependency cycles, and declared networks and named volumes. It does not invoke Docker, start
+containers, or require a local `.env` file.
+
+Run it from the repository root:
+
+```shell
+./mvnw -pl test/vsdm-testsuite -am -Dtest=ComposeTest -Dsurefire.failIfNoSpecifiedTests=false test
+```
+
+These are static regression checks, not a guarantee of runtime readiness: image availability,
+environment interpolation, bind-mounted files, port availability, and application health are not checked.
+
 ## Vorbedingungen
 
 Alle Tests der VSDM 2.0 Testsuite verwenden aktuell die simulierten Dienste des TI 2.0 TestHubs. Dieser besteht aus

@@ -2,11 +2,18 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.20.0
+
+### Changes
+
+- TESTHUB-282: add new endpoint to insert eGK by iknr/kvnr and Smcb by actorId
+- TESTHUB-288: fix backend-only profile and expand on documentation how to use it
+
 ## Release 3.19.0
 
 ### Changes
 
-- TESTHUB-266: update Tiger to 4.3.1
+- TESTHUB-266: update Tiger to 4.4.5
 - TESTHUB-280: simplify load test scripting
 - misc. dependency updates and bugfixes
 

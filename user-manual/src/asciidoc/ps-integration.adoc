@@ -1,22 +1,55 @@
 
 == Integrate a custom PS (Primärsystem)
 
-Integrating a custom Primärsystem (PS) is a primary design goal of the TI 2.0 Testhub. Currently, however, it requires some manual steps:
+Integrating a custom Primärsystem (PS) is a primary design goal of the TI 2.0 Testhub.
+The following steps describe how to run the Testhub backend locally so that a custom PS running on the Docker host can connect to the VSDM resource server via the ZETA ingress.
 
-* Start the Testhub with the `backend-only` profile to disable the built-in PS-Simulators (VSDM Client and Card Terminal Client):
+=== 1. Register the service host names in `/etc/hosts`
+
+Every service that must be reachable from outside of Docker has to be registered in `/etc/hosts` using the service name from the compose files.
+This is required because the ZETA components (e.g. the OAuth protected resource metadata and the Keycloak issuer) use these host names in their URLs.
+
+Example for the VSDM ZETA ingress:
+
+----
+127.0.0.1       vsdm-zeta-ingress
+----
+
+=== 2. Start the Testhub in `backend-only` mode
+
+Start the Testhub with the `backend-only` profile. This disables the built-in PS simulators (VSDM Client and Card Terminal Client):
+
 [source,bash]
 ----
-docker compose -f infra/docker/compose-local.yaml --profile backend-only up -d
+docker compose -f ./infra/docker/compose-local.yaml --env-file=./infra/docker/.env --env-file=./infra/docker/.env-local --profile backend-only up -d --remove-orphans
 ----
 
-* The custom PS has to be started (e.g. add as a new service in `infra/docker/backend/compose-local.yaml`, but could simply be started outside of docker compose as well)
+All required local adjustments can be made in the file `infra/docker/.env-local`, which overrides the defaults from `infra/docker/.env`.
+This applies in particular to the port mappings. For example, the following entry exposes the VSDM ZETA ingress on the standard HTTPS port, so it can be reached via `https://vsdm-zeta-ingress/`:
 
-* Optional: To use the PS with the VSDM-Testsuite it has to implement the same API as the existing vsdm-client(which can be seen at http://localhost:{PORT}/v3/api-docs)
+----
+PORT_VSDM_ZETA_INGRESS=443
+----
 
-You can connect to the resource servers as follows:
+=== 3. Optional: Verify the setup with the load test
 
-VSDM-Server:: Use the port that is forwarded to the internal port 443 of `vsdm-zeta-ingress`. If the port is 9119 you can connect from the Docker host using https://localhost:9119/.
+To check that everything is reachable, run the load test against the local setup:
 
-PoPP-Server:: Use the port that is forwarded to the internal port 80 of `popp-ingress`.
+[source,bash]
+----
+./mvnw -pl test/vsdm-testsuite/ gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmBackgroundLoadSimulation -Dconfig=simulation.conf
+----
 
-The usage of the Zeta-SDK can be seen in the existing vsdm-client-simservice-java implementation. The class `ZetaSdkClientAdapter.java` uses the client while `VsdmZetaSdkClientConfig.java` configures it.
+=== PoPP
+
+The same steps can be applied analogously for the PoPP ZETA ingress:
+
+* Add `popp-zeta-ingress` to `/etc/hosts`, e.g. `127.0.0.1       popp-zeta-ingress`
+* Adjust the port via `PORT_POPP_ZETA_INGRESS` in `infra/docker/.env-local` if required.
+
+NOTE: A host port can only be bound once. If both ingresses are needed at the same time, they cannot both be mapped to port 443.
+
+=== ZETA SDK usage
+
+The usage of the ZETA SDK can be seen in the existing `vsdm-client-simservice-java` implementation.
+The class `ZetaSdkClientAdapter.java` uses the client, while `VsdmZetaSdkClientConfig.java` configures it.
