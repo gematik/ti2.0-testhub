@@ -29,6 +29,7 @@ import static de.gematik.ti20.popp.data.TestConstants.POPP_ENTITY_STATEMENT;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import de.gematik.rbellogger.data.RbelElement;
 import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
 import de.gematik.test.tiger.glue.HttpGlueCode;
 import de.gematik.ti20.popp.validation.ApduValidator;
@@ -106,11 +107,12 @@ public class Steps {
     httpGlueCode.sendRequestWithMultiLineBody(
         Method.POST, URI.create(url), "application/json", jsonBody);
 
-    POPP_TOKEN.putValue(
-        RbelFluentApi.expectRequests(".*/token")
-            .nextResponse()
-            .elementAtPath("$.body.token")
-            .getRawStringContent());
+    RbelFluentApi.expectRequests(".*/token")
+        .nextResponse()
+        .elementAtPath("$.body")
+        .findElement("$.token")
+        .map(RbelElement::getRawStringContent)
+        .ifPresentOrElse(POPP_TOKEN::putValue, POPP_TOKEN::clearValue);
   }
 
   @Und("die empfangenen APDUs sind korrekt")

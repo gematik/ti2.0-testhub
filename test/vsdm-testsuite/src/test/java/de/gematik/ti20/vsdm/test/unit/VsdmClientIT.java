@@ -29,6 +29,8 @@ import static de.gematik.ti20.vsdm.test.util.ClasspathUtils.loadClasspathRessour
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.gematik.bbriccs.fhir.codec.EmptyResource;
 import de.gematik.bbriccs.fhir.codec.FhirCodec;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
@@ -53,6 +55,7 @@ class VsdmClientIT {
   private static final Integer TERMINAL_ID = 1;
   private static final Integer EGK_SLOT = 1;
   private static final Integer SMCB_SLOT = 2;
+  private static final String SMCB_ACTOR_ID = "1-SMC-B-Testkarte--883110000168672";
   private static final String PROFILE_VERSION = "1.1";
 
   private static final String VSDM_ENDPOINT =
@@ -63,6 +66,8 @@ class VsdmClientIT {
           + EGK_SLOT
           + "&smcBSlotId="
           + SMCB_SLOT;
+  public static final String IKNR = "109500969";
+  public static final String KVNR = "X110639491";
 
   private static OkHttpClient httpClient;
   private static FhirCodec fhirCodec;
@@ -88,8 +93,8 @@ class VsdmClientIT {
     removeCardFromSlot(EGK_SLOT);
     removeCardFromSlot(SMCB_SLOT);
 
-    insertEgkCard();
-    insertSmcbCard();
+    insertEgkCard(IKNR, KVNR);
+    insertSmcbCard(SMCB_ACTOR_ID);
 
     configureTerminal();
   }
@@ -127,7 +132,7 @@ class VsdmClientIT {
     assertEquals("Amelie Abigail H. Freifrau Bruser", name.getFamily());
     assertEquals("Kriemhild", name.getGiven().getFirst().getValue());
 
-    assertEquals("X110639491", patient.getIdentifierFirstRep().getValue());
+    assertEquals(KVNR, patient.getIdentifierFirstRep().getValue());
 
     final Organization payorOrganization =
         resources.stream()
@@ -157,7 +162,7 @@ class VsdmClientIT {
   @Order(2)
   void testReadVsdReturnsExpectedDataJsonForVirtualCard() throws Exception {
     removeCardFromSlot(EGK_SLOT);
-    insertCard("data/cards/EGK_80276883110000168584_gema5.xml", EGK_SLOT);
+    insertEgkCard("109500969", "X110630769");
 
     final Result result =
         readVsdOnce(
@@ -225,7 +230,7 @@ class VsdmClientIT {
     assertEquals("Amelie Abigail H. Freifrau Bruser", name.getFamily());
     assertEquals("Kriemhild", name.getGiven().getFirst().getValue());
 
-    assertEquals("X110639491", patient.getIdentifierFirstRep().getValue());
+    assertEquals(KVNR, patient.getIdentifierFirstRep().getValue());
 
     final Organization payorOrganization =
         resources.stream()
@@ -366,9 +371,10 @@ class VsdmClientIT {
     final String cardHandleBody = cardHandleResponse.body().string();
     log.info(cardHandleBody);
 
-    final String cardId =
-        cardHandleBody.substring(
-            cardHandleBody.indexOf("card-"), cardHandleBody.indexOf("card-") + 15);
+    final JsonNode cardIdNode = new ObjectMapper().readTree(cardHandleBody).get("cardId");
+    assertNotNull(cardIdNode, "Card response must contain cardId");
+    assertTrue(cardIdNode.isTextual(), "cardId must be a string");
+    final String cardId = cardIdNode.asText();
 
     final String VSDM_TEST_POPP_TOKEN_URL =
         VSDM_CLIENT_URL
@@ -409,9 +415,10 @@ class VsdmClientIT {
     final String cardHandleBody = cardHandleResponse.body().string();
 
     log.info(cardHandleBody);
-    final String cardId =
-        cardHandleBody.substring(
-            cardHandleBody.indexOf("card-"), cardHandleBody.indexOf("card-") + 15);
+    final JsonNode cardIdNode = new ObjectMapper().readTree(cardHandleBody).get("cardId");
+    assertNotNull(cardIdNode, "Card response must contain cardId");
+    assertTrue(cardIdNode.isTextual(), "cardId must be a string");
+    final String cardId = cardIdNode.asText();
 
     final String VSDM_TEST_CACHED_DATA_URL =
         VSDM_CLIENT_URL
@@ -487,7 +494,6 @@ class VsdmClientIT {
                 .profileVersion(PROFILE_VERSION)
                 .build());
     assertEquals(400, result.response.code());
-    System.out.println(result.responseBody);
     assertEquals(
         """
         {
@@ -514,33 +520,51 @@ class VsdmClientIT {
         removeCardResponse.isSuccessful() || removeCardResponse.code() == 404, "Remove Card");
   }
 
-  private static void insertCard(final String filename, final int slot) throws Exception {
-    final String cardImage = loadClasspathRessourceWithTigerResolving(filename);
+  private static void insertEgkCard(final String iknr, final String kvnr) throws Exception {
+    final String egkIdentifier =
+        """
+        {
+            "iknr" : "%s",
+            "kvnr" : "%s"
+        }
+        """
+            .formatted(iknr, kvnr);
 
-    final MediaType mediaType =
-        filename.endsWith("xml")
-            ? MediaType.parse("application/xml")
-            : MediaType.parse("application/json");
-    final Request insertCard =
+    final Request insertEgkCard =
         new Request.Builder()
-            .url(resolvePlaceholders(CARD_CLIENT_URL + "/slots/" + slot))
-            .put(RequestBody.create(cardImage, mediaType))
+            .url(resolvePlaceholders(CARD_CLIENT_URL + "/slots/" + EGK_SLOT + "/egk"))
+            .put(RequestBody.create(egkIdentifier, MediaType.parse("application/json")))
             .build();
 
-    final Response insertCardResponse = httpClient.newCall(insertCard).execute();
+    final Response insertEgkCardResponse = httpClient.newCall(insertEgkCard).execute();
 
-    log.info("insertCard: " + insertCardResponse.code());
-    log.info(insertCardResponse.body().string());
+    log.info("insertEgkCard: " + insertEgkCardResponse.code());
+    log.info(insertEgkCardResponse.body().string());
 
-    assertTrue(insertCardResponse.isSuccessful(), "Insert Card");
+    assertTrue(insertEgkCardResponse.isSuccessful(), "Insert Egk Card");
   }
 
-  private static void insertEgkCard() throws Exception {
-    insertCard("data/cards/egkCardData.json", EGK_SLOT);
-  }
+  private static void insertSmcbCard(final String actorId) throws Exception {
+    final String smcbIdentifier =
+        """
+        {
+          "actorId" : "%s"
+        }
+        """
+            .formatted(actorId);
 
-  private static void insertSmcbCard() throws Exception {
-    insertCard("private/smcb/smcbCardImage.xml", SMCB_SLOT);
+    final Request insertSmcbCard =
+        new Request.Builder()
+            .url(resolvePlaceholders(CARD_CLIENT_URL + "/slots/" + SMCB_SLOT + "/smcb"))
+            .put(RequestBody.create(smcbIdentifier, MediaType.parse("application/json")))
+            .build();
+
+    try (final Response insertSmcbCardResponse = httpClient.newCall(insertSmcbCard).execute()) {
+      log.info("insertSmcbCard: " + insertSmcbCardResponse.code());
+      log.info(insertSmcbCardResponse.body().string());
+
+      assertTrue(insertSmcbCardResponse.isSuccessful(), "Insert Smcb Card");
+    }
   }
 
   private static void configureTerminal() throws Exception {

@@ -156,6 +156,13 @@ Specific to the application, you can configure the following properties:
 | Name                | Description                                                                 |
 |:--------------------|-----------------------------------------------------------------------------|
 | card.terminal.slots | Number of (virtual) slots that are available by the simulated card terminal |
+| card.terminal.card-image-paths | List of folders scanned recursively for EGK XML images at startup |
+
+Card image paths without a prefix refer to classpath folders. Use `file:` for filesystem folders;
+relative filesystem paths resolve from the working directory. The default list contains
+`attached_assets`, `cardimages`, `file:no-publish/test-data/cards`, and
+`file:test/vsdm-testsuite/src/test/resources/private`. Override `card.terminal.card-image-paths`
+in your configuration to replace this list, or set it to `[]` to disable startup scanning.
 
 An example configuration is provided in the `application-local.yaml` file. To use this configuration, you can specify
 the `spring.profiles.active=local` property when starting the server.

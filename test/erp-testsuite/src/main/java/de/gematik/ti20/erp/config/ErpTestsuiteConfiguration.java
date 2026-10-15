@@ -85,8 +85,8 @@ public class ErpTestsuiteConfiguration {
     val smcb = getSmcbFor(name);
 
     val actorCfg = new PharmacyConfiguration();
-    actorCfg.setKonnektor("Soft-Konn"); // TODO: take from spring-boot config
-    actorCfg.setFhirValidator("NONE"); // TODO: take from spring-boot config
+    actorCfg.setKonnektor("Soft-Konn"); // would be possible to take from spring-boot config
+    actorCfg.setFhirValidator("NONE"); // would be possible to take from spring-boot config
 
     Unirest.config().verifySsl(false);
     val client = ErpClientFactory.createErpClient(envConfig, actorCfg);

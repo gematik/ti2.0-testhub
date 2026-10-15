@@ -6,7 +6,7 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.19.0</version>
+        <version>3.20.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -21,6 +21,7 @@
         <polarion.auth.password>${polarion.pat}</polarion.auth.password>
         <polarion.auth.username>${polarion.username}</polarion.auth.username>
         <polarion.project>Mainline_OPB1</polarion.project>
+        <polarion.sync.project>Mainline_OPB1</polarion.sync.project>
         <polarion.testrun>VSDM2_GEMATIK</polarion.testrun>
         <skip.inttests>true</skip.inttests>
         <vsdm.testsuite.path>${maven.multiModuleProjectDirectory}/test/vsdm-testsuite</vsdm.testsuite.path>
@@ -101,6 +102,11 @@
         <dependency>
             <groupId>io.gatling.highcharts</groupId>
             <artifactId>gatling-charts-highcharts</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -234,7 +240,7 @@
                                     <polarionUrl>${polarion.url}</polarionUrl>
                                     <username>${polarion.auth.username}</username>
                                     <password>${polarion.auth.password}</password>
-                                    <project>${polarion.project}</project>
+                                    <project>${polarion.sync.project}</project>
                                     <luceneQuery>cfInternalId:UC_VSDM2_* UC_GITTI_*</luceneQuery>
                                     <jsonFilePath>${vsdm.testsuite.path}/target/polarion/vsdm2-testcases.json</jsonFilePath>
                                 </configuration>
