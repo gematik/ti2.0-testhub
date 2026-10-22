@@ -31,6 +31,7 @@ beträgt 1.000 Calls/sec und die maximale Antwortzeit liegt bei 1.000 msecs.
 For each of `backend-only`, `full`, and `ps-only`, it checks service selection, required dependencies, healthcheck prerequisites,
 dependency cycles, and declared networks and named volumes. It does not invoke Docker, start
 containers, or require a local `.env` file.
+It also checks profile-specific protected-resource metadata mounts, source-file existence, and PEP DNS aliases.
 
 Run it from the repository root:
 
@@ -39,7 +40,7 @@ Run it from the repository root:
 ```
 
 These are static regression checks, not a guarantee of runtime readiness: image availability,
-environment interpolation, bind-mounted files, port availability, and application health are not checked.
+environment interpolation, other bind-mounted files, port availability, and application health are not checked.
 
 ## Vorbedingungen
 
@@ -76,7 +77,29 @@ unterschiedliche Kombinationen von Diensten zu starten. Die folgenden Profile we
 | Bezeichnung | Einsatz             | Anmerkung                                                                                                                  |
 |:------------|:--------------------|:---------------------------------------------------------------------------------------------------------------------------|
 | full        | Lokale Testumgebung | Dieses Profil startet alle Module des Testhubs und kann zur Durchführung von E2E-, ERROR- und PERF-Tests verwendet werden. |
+| backend-only | Lokale Backend-Dienste | Dieses Profil startet die Backend-Komponenten ohne Client-Module. |
 | ps-only     | Remote Testumgebung | Dieses Profil startet alle Client-Module und kann für die Zulassungstests verwendet werden.                                | 
+
+### OAuth Protected Resource Metadata
+
+Die Profile `full` und `backend-only` verwenden getrennte Dateien fuer VSDM und PoPP:
+
+| Profil | VSDM | PoPP |
+|:-------|:-----|:-----|
+| full | `infra/docker/backend/zeta/well-known/oauth-protected-resource` | `infra/docker/backend/zeta-popp/well-known/oauth-protected-resource` |
+| backend-only | `infra/docker/backend/zeta/well-known-backend-only/oauth-protected-resource` | `infra/docker/backend/zeta-popp/well-known-backend-only/oauth-protected-resource` |
+
+Die Dateien sind anfangs inhaltsgleich und koennen unabhaengig angepasst werden. Pro PEP wird nur das
+Verzeichnis des gewaehlten Profils schreibgeschuetzt unter `/srv/.well-known/` eingebunden.
+Die PEP-Dienste heissen in `backend-only` `vsdm-zeta-pep-backend-only` und `popp-zeta-pep-backend-only`;
+ihre bisherigen DNS-Namen bleiben als Netzwerk-Aliasse erhalten. `ps-only` bleibt unveraendert und startet
+keine PEPs. `full` und `backend-only` sind alternative Betriebsarten und duerfen nicht gleichzeitig
+aktiviert werden. Beim Profilwechsel `--remove-orphans` verwenden, damit die PEPs des vorherigen Profils
+entfernt werden:
+
+```shell
+docker compose -f ./infra/docker/compose-local.yaml --profile backend-only up -d --remove-orphans
+```
 
 
 ## Integrationstests

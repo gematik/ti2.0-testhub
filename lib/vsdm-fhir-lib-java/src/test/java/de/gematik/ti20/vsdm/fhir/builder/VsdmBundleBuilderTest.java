@@ -24,17 +24,25 @@
  */
 package de.gematik.ti20.vsdm.fhir.builder;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
-import ca.uhn.fhir.model.api.annotation.ResourceDef;
+import de.gematik.bbriccs.fhir.EncodingType;
 import de.gematik.bbriccs.fhir.builder.ResourceBuilder;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
+import de.gematik.ti20.vsdm.fhir.service.CodecServiceR4;
+import java.util.List;
+import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -153,11 +161,31 @@ class VsdmBundleBuilderTest {
   }
 
   @Test
-  void testResourceDefAnnotationUsage() {
+  void testBuildPreservesVersionedProfileAndLastUpdated() {
     VsdmBundle bundle = VsdmBundleBuilder.create().build();
 
-    ResourceDef annotation = VsdmBundle.class.getAnnotation(ResourceDef.class);
-    assertNotNull(annotation);
-    assertNotNull(bundle);
+    assertEquals(
+        List.of("https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMBundle|1.1.0"),
+        bundle.getMeta().getProfile().stream().map(CanonicalType::getValue).toList());
+    assertTrue(bundle.getMeta().hasLastUpdated());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = EncodingType.class,
+      names = {"JSON", "XML"})
+  void testSerializedBundlePreservesVersionedProfileAndLastUpdated(EncodingType encoding) {
+    VsdmBundle bundle = VsdmBundleBuilder.create().build();
+    var codec = new CodecServiceR4().getCodec();
+
+    String encoded = codec.encode(bundle, encoding);
+    Resource decoded = codec.decode(encoded);
+
+    assertTrue(
+        encoded.contains("https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMBundle|1.1.0"));
+    assertEquals(
+        List.of("https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMBundle|1.1.0"),
+        decoded.getMeta().getProfile().stream().map(CanonicalType::getValue).toList());
+    assertEquals(bundle.getMeta().getLastUpdated(), decoded.getMeta().getLastUpdated());
   }
 }

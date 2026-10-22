@@ -193,8 +193,6 @@ public class SlotController {
     }
   }
 
-  // FIXME rk hinkriegen, Test schreiben, duplicated code refactorn
-
   /**
    * Insert a card into a specific slot.
    *

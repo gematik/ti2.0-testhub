@@ -100,8 +100,6 @@ public class TigerProxyManipulationsSteps {
           + "field {string} and value {tigerResolvedString} with {int} executions")
   public void setTigerProxyManipulationWithExecutions(
       String message, String field, String value, Integer executions) {
-    // Note: deleteAfterNExecutions is not supported by the TigerProxy ModificationDto API;
-    // modifications are cleaned up via @After instead.
     log.debug(
         "Requested {} executions for RBel modification; limit is handled by @After cleanup.",
         executions);

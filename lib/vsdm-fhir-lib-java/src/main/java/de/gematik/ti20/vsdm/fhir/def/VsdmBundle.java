@@ -26,19 +26,27 @@ package de.gematik.ti20.vsdm.fhir.def;
 
 import ca.uhn.fhir.model.api.annotation.ResourceDef;
 import java.io.Serial;
-import java.util.Date;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import lombok.Getter;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.InstantType;
 
 @Getter
-@ResourceDef(profile = "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMBundle")
+@ResourceDef(
+    profile =
+        "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMBundle|"
+            + VsdmBundle.PROFILE_VERSION)
 public class VsdmBundle extends Bundle {
+
+  public static final String PROFILE_VERSION = "1.1.0";
 
   @Serial private static final long serialVersionUID = -4669692477461788301L;
 
   public VsdmBundle() {
     super();
     this.setType(BundleType.DOCUMENT);
-    this.setTimestamp(new Date());
+    this.setTimestampElement(
+        new InstantType(Instant.now().truncatedTo(ChronoUnit.MILLIS).toString()));
   }
 }

@@ -31,6 +31,8 @@ This applies in particular to the port mappings. For example, the following entr
 PORT_VSDM_ZETA_INGRESS=443
 ----
 
+NOTE: The URLs in the well-known metadata served by each PEP must match the configured, externally reachable URLs, including any non-standard ports. When using `backend-only`, adjust `resource` and `authorization_servers` as needed in `infra/docker/backend/zeta/well-known-backend-only/oauth-protected-resource` (VSDM) and `infra/docker/backend/zeta-popp/well-known-backend-only/oauth-protected-resource` (PoPP). Both paths are relative to the repository root.
+
 === 3. Optional: Verify the setup with the load test
 
 To check that everything is reachable, run the load test against the local setup:
