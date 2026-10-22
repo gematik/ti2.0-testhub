@@ -24,7 +24,15 @@
  */
 package de.gematik.ti20.vsdm.test.unit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -106,7 +114,11 @@ class ComposeTest {
             "docker-tiger-proxy");
     Set<String> expected = new LinkedHashSet<>();
     switch (profile) {
-      case "backend-only" -> expected.addAll(backendServices);
+      case "backend-only" -> {
+        expected.addAll(backendServices);
+        expected.removeAll(Set.of("popp-zeta-pep", "vsdm-zeta-pep"));
+        expected.addAll(Set.of("popp-zeta-pep-backend-only", "vsdm-zeta-pep-backend-only"));
+      }
       case "full" -> {
         expected.addAll(backendServices);
         expected.addAll(
@@ -127,6 +139,49 @@ class ComposeTest {
       default -> fail("Unexpected profile: " + profile);
     }
     assertEquals(expected, activeServices(profile));
+  }
+
+  @ParameterizedTest(name = "{0}: profile-specific protected resource metadata")
+  @ValueSource(strings = {"backend-only", "full", "ps-only"})
+  void profileSelectsExactlyOneMetadataMountPerPep(String profile) throws IOException {
+    Path backend =
+        COMPOSE_FILES.stream()
+            .filter(path -> path.getFileName().toString().equals("compose-backend.yaml"))
+            .findFirst()
+            .orElseThrow()
+            .getParent();
+    Set<String> active = activeServices(profile);
+    for (String domain : List.of("popp", "vsdm")) {
+      String pep = domain + "-zeta-pep";
+      List<String> selected =
+          active.stream()
+              .filter(name -> name.equals(pep) || name.equals(pep + "-backend-only"))
+              .toList();
+      assertEquals("ps-only".equals(profile) ? 0 : 1, selected.size());
+      if (selected.isEmpty()) {
+        continue;
+      }
+      String service = selected.getFirst();
+      String directory = "popp".equals(domain) ? "zeta-popp" : "zeta";
+      directory += "/well-known" + ("backend-only".equals(profile) ? "-backend-only" : "");
+      List<String> mounts =
+          list(serviceProperty(service, "volumes", new LinkedHashSet<>())).stream()
+              .map(ComposeTest::string)
+              .filter(mount -> mount.contains(":/srv/.well-known/"))
+              .toList();
+      assertEquals(List.of("./" + directory + "/:/srv/.well-known/:ro"), mounts);
+      assertTrue(
+          Files.isRegularFile(backend.resolve(directory).resolve("oauth-protected-resource")));
+      assertTrue(dependencies(domain + "-zeta-ingress").containsKey(service));
+      if ("backend-only".equals(profile)) {
+        Map<?, ?> network =
+            map(
+                map(serviceProperty(service, "networks", new LinkedHashSet<>()))
+                    .get("testhub_network"));
+        assertTrue(
+            list(network.get("aliases")).contains(pep), service + " must keep the PEP DNS name");
+      }
+    }
   }
 
   @ParameterizedTest(name = "{0}: required dependencies")

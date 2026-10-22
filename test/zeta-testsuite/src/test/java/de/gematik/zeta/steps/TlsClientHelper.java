@@ -26,6 +26,7 @@ package de.gematik.zeta.steps;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLHandshakeException;
@@ -151,9 +152,15 @@ public class TlsClientHelper {
               return new X509Certificate[0];
             }
 
-            public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+              // intentionally empty: this trust manager accepts all client certificates
+              // for test purposes only, see class-level javadoc
+            }
 
-            public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+              // intentionally empty: this trust manager accepts all server certificates
+              // for test purposes only, see class-level javadoc
+            }
           }
         };
     var sslContext = SSLContext.getInstance("TLS");
@@ -170,23 +177,18 @@ public class TlsClientHelper {
 
     // Extract server certificates
     try {
-      var peerCerts = session.getPeerCertificates();
-      if (peerCerts != null) {
-        var x509Certs = new X509Certificate[peerCerts.length];
-        for (int i = 0; i < peerCerts.length; i++) {
-          if (peerCerts[i] instanceof X509Certificate x509) {
-            x509Certs[i] = x509;
-          }
-        }
-        resultBuilder.serverCertificates(x509Certs);
-      }
+      var x509Certs =
+          Arrays.stream(session.getPeerCertificates())
+              .filter(X509Certificate.class::isInstance)
+              .map(X509Certificate.class::cast)
+              .toArray(X509Certificate[]::new);
+      resultBuilder.serverCertificates(x509Certs);
     } catch (SSLPeerUnverifiedException e) {
       log.debug("Could not get peer certificates: {}", e.getMessage());
     }
 
     // ServerKeyExchange is implicit for ECDHE/DHE suites
-    var suite = session.getCipherSuite();
-    if (suite.contains("ECDHE") || suite.contains("DHE")) {
+    if (session.getCipherSuite().contains("ECDHE") || session.getCipherSuite().contains("DHE")) {
       resultBuilder.serverKeyExchangeSent(true);
     }
 

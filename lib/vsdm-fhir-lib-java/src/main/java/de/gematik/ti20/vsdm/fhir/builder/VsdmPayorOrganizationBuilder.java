@@ -28,7 +28,9 @@ import ca.uhn.fhir.model.api.annotation.ResourceDef;
 import de.gematik.bbriccs.fhir.builder.ResourceBuilder;
 import de.gematik.ti20.vsdm.fhir.def.VsdmPayorOrganization;
 import java.util.List;
+import org.hl7.fhir.r4.model.Address;
 import org.hl7.fhir.r4.model.CanonicalType;
+import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Identifier;
 
 public class VsdmPayorOrganizationBuilder
@@ -65,6 +67,24 @@ public class VsdmPayorOrganizationBuilder
     identifier.setSystem("http://fhir.de/sid/arge-ik/iknr");
     identifier.setValue(iknr);
     payorOrganization.setIdentifier(List.of(identifier));
+
+    // address
+    Address address = new Address();
+    address.setCity("Berlin");
+    address.setCountry("DE");
+    address
+        .getCountryElement()
+        .addExtension(
+            "http://hl7.org/fhir/StructureDefinition/iso21090-codedString",
+            new Coding("urn:iso:std:iso:3166", "DE", null));
+    address
+        .getCountryElement()
+        .addExtension(
+            "https://gematik.de/fhir/vsdm2/StructureDefinition/VSDMLaenderkennzeichenAnlage8",
+            new Coding("http://fhir.de/CodeSystem/deuev/anlage-8-laenderkennzeichen", "D", null)
+                .setVersion("8.00"));
+
+    payorOrganization.addAddress(address);
 
     payorOrganization.setName(name);
 

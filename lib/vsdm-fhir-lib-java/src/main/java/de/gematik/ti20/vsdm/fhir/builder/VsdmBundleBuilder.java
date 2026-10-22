@@ -24,15 +24,23 @@
  */
 package de.gematik.ti20.vsdm.fhir.builder;
 
-import ca.uhn.fhir.model.api.annotation.ResourceDef;
 import de.gematik.bbriccs.fhir.builder.ResourceBuilder;
+import de.gematik.bbriccs.fhir.coding.version.GenericProfileVersion;
+import de.gematik.ti20.vsdm.fhir.def.StructureDefinitions;
 import de.gematik.ti20.vsdm.fhir.def.VsdmBundle;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import org.hl7.fhir.r4.model.*;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.InstantType;
+import org.hl7.fhir.r4.model.Resource;
 
 public final class VsdmBundleBuilder extends ResourceBuilder<VsdmBundle, VsdmBundleBuilder> {
+
+  private static final GenericProfileVersion PROFILE_VERSION =
+      new GenericProfileVersion(VsdmBundle.PROFILE_VERSION, false);
 
   List<Resource> entries = new ArrayList<>();
 
@@ -48,16 +56,17 @@ public final class VsdmBundleBuilder extends ResourceBuilder<VsdmBundle, VsdmBun
   }
 
   public VsdmBundle build() {
-    var type = new CanonicalType(VsdmBundle.class.getAnnotation(ResourceDef.class).profile());
-    var bundle = this.createResource(VsdmBundle::new, type);
+    var bundle =
+        this.createResource(VsdmBundle::new, StructureDefinitions.VSDM_BUNDLE, PROFILE_VERSION);
 
     bundle.setType(Bundle.BundleType.COLLECTION);
     bundle.setIdentifier(
         new Identifier().setSystem("urn:ietf:rfc:3986").setValue("urn:uuid:" + bundle.getId()));
 
-    Meta meta = new Meta();
-    meta.setLastUpdated(new Date());
-    bundle.setMeta(meta);
+    bundle
+        .getMeta()
+        .setLastUpdatedElement(
+            new InstantType(Instant.now().truncatedTo(ChronoUnit.MILLIS).toString()));
 
     for (Resource entry : this.entries) {
       bundle

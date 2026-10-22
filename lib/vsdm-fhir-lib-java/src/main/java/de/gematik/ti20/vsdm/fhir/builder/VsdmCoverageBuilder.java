@@ -109,6 +109,7 @@ public class VsdmCoverageBuilder extends ResourceBuilder<VsdmCoverage, VsdmCover
     // type
     CodeableConcept cc = new CodeableConcept();
     Coding coding = new Coding();
+    coding.setVersion("1.6.0");
     coding.setCode("GKV");
     coding.setSystem("http://fhir.de/CodeSystem/versicherungsart-de-basis");
     cc.addCoding(coding);
@@ -118,6 +119,7 @@ public class VsdmCoverageBuilder extends ResourceBuilder<VsdmCoverage, VsdmCover
     Extension extensionWop = new Extension();
     extensionWop.setUrl("http://fhir.de/StructureDefinition/gkv/wop");
     Coding wop = new Coding();
+    wop.setVersion("1.00");
     wop.setCode("98");
     wop.setSystem("https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_ITA_WOP");
     wop.setDisplay("Sachsen");
@@ -127,6 +129,7 @@ public class VsdmCoverageBuilder extends ResourceBuilder<VsdmCoverage, VsdmCover
     Extension extensionVersichertenart = new Extension();
     extensionVersichertenart.setUrl("http://fhir.de/StructureDefinition/gkv/versichertenart");
     Coding versichertenart = new Coding();
+    versichertenart.setVersion("1.02");
     versichertenart.setCode("1");
     versichertenart.setSystem("https://fhir.kbv.de/CodeSystem/KBV_CS_SFHIR_KBV_VERSICHERTENSTATUS");
     versichertenart.setDisplay("Mitglieder");

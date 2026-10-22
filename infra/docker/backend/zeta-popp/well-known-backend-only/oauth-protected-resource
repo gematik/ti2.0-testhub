@@ -1,0 +1,7 @@
+{
+  "resource": "https://popp-zeta-ingress/",
+  "authorization_servers": [
+    "https://popp-zeta-ingress/auth/realms/zeta-guard/"
+  ],
+  "zeta_asl_use": "not_supported"
+}

@@ -25,7 +25,7 @@
 package de.gematik.zeta.steps;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.awaitility.Awaitility.await;
 
 import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
 import io.cucumber.datatable.DataTable;
@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 
+@SuppressWarnings("unused") // Cucumber glue methods are invoked via reflection
 @Slf4j
 public class OtelLoggingSteps {
 
@@ -112,40 +113,27 @@ public class OtelLoggingSteps {
 
   private void verifyLogPatternInContainer(
       String containerNameSubstring, List<String> expectedPatterns) {
-    Instant deadline = Instant.now().plus(LOG_SEARCH_TIMEOUT);
-    String latestLogs = "";
-    boolean matchFound = false;
-    String resolvedContainerName = containerNameSubstring;
+    String resolvedContainerName = resolveContainerName(containerNameSubstring);
 
-    while (Instant.now().isBefore(deadline)) {
-      resolvedContainerName = resolveContainerName(containerNameSubstring);
-      latestLogs = fetchDockerLogsSince(resolvedContainerName, scenarioStartTime);
-      for (String pattern : expectedPatterns) {
-        if (latestLogs.contains(pattern)) {
-          log.info(
-              "Gefundenes Telemetrie-Muster '{}' im Container '{}'",
-              pattern,
-              resolvedContainerName);
-          matchFound = true;
-          break;
-        }
-      }
-      if (matchFound) {
-        return;
-      }
-      try {
-        TimeUnit.MILLISECONDS.sleep(1000);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new AssertionError("Warten auf Otel-Logs unterbrochen", e);
-      }
-    }
-
-    fail(
-        "Erwartetes Telemetrie-Muster %s wurde nicht innerhalb von %s in den Logs von %s gefunden."
-            + " Letzte Logs:\n"
-            + "%s",
-        expectedPatterns, LOG_SEARCH_TIMEOUT, resolvedContainerName, latestLogs);
+    await()
+        .atMost(LOG_SEARCH_TIMEOUT)
+        .pollInterval(Duration.ofSeconds(1))
+        .until(
+            () -> {
+              String latestLogs = fetchDockerLogsSince(resolvedContainerName, scenarioStartTime);
+              return expectedPatterns.stream()
+                  .anyMatch(
+                      pattern -> {
+                        if (latestLogs.contains(pattern)) {
+                          log.info(
+                              "Gefundenes Telemetrie-Muster '{}' im Container '{}'",
+                              pattern,
+                              resolvedContainerName);
+                          return true;
+                        }
+                        return false;
+                      });
+            });
   }
 
   /**
@@ -154,39 +142,32 @@ public class OtelLoggingSteps {
    */
   private void verifyAllLogPatternsInContainer(
       String containerNameSubstring, List<String> expectedPatterns) {
-    Instant deadline = Instant.now().plus(LOG_SEARCH_TIMEOUT);
-    String latestLogs = "";
-    List<String> missingPatterns = expectedPatterns;
-    String resolvedContainerName = containerNameSubstring;
+    String resolvedContainerName = resolveContainerName(containerNameSubstring);
 
-    while (Instant.now().isBefore(deadline)) {
-      resolvedContainerName = resolveContainerName(containerNameSubstring);
-      latestLogs = fetchDockerLogsSince(resolvedContainerName, scenarioStartTime);
-      String currentLogs = latestLogs;
-      missingPatterns =
-          expectedPatterns.stream().filter(pattern -> !currentLogs.contains(pattern)).toList();
-      if (missingPatterns.isEmpty()) {
-        log.info(
-            "Alle erwarteten Telemetrie-Attribute {} im Container '{}' gefunden",
-            expectedPatterns,
-            resolvedContainerName);
-        return;
-      }
-      try {
-        TimeUnit.MILLISECONDS.sleep(1000);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new AssertionError("Warten auf Otel-Logs unterbrochen", e);
-      }
-    }
+    await()
+        .atMost(LOG_SEARCH_TIMEOUT)
+        .pollInterval(Duration.ofSeconds(1))
+        .untilAsserted(
+            () -> {
+              String latestLogs = fetchDockerLogsSince(resolvedContainerName, scenarioStartTime);
+              List<String> missingPatterns =
+                  expectedPatterns.stream()
+                      .filter(pattern -> !latestLogs.contains(pattern))
+                      .toList();
 
-    assertThat(missingPatterns)
-        .as(
-            "Folgende erwartete Telemetrie-Attribute wurden nicht innerhalb von %s in den Logs von"
-                + " %s gefunden. Letzte Logs:\n"
-                + "%s",
-            LOG_SEARCH_TIMEOUT, resolvedContainerName, latestLogs)
-        .isEmpty();
+              assertThat(missingPatterns)
+                  .as(
+                      "Folgende erwartete Telemetrie-Attribute wurden in den Logs von %s nicht"
+                          + " gefunden. Letzte Logs:\n"
+                          + "%s",
+                      resolvedContainerName, latestLogs)
+                  .isEmpty();
+            });
+
+    log.info(
+        "Alle erwarteten Telemetrie-Attribute {} im Container '{}' gefunden",
+        expectedPatterns,
+        resolvedContainerName);
   }
 
   /**

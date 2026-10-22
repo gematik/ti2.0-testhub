@@ -31,13 +31,14 @@ import io.cucumber.java.de.Gegebensei;
 import io.cucumber.java.en.Given;
 import java.io.IOException;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionTimeoutException;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -46,7 +47,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -180,32 +180,27 @@ public class PolicyRejectionSteps {
     waitForVsdmClientHealthy();
   }
 
-  @SuppressWarnings("BusyWait")
   private void waitForVsdmClientHealthy() {
     String statusUrl =
         TigerGlobalConfiguration.resolvePlaceholders(
             "http://127.0.0.1:${ports.vsdmClientPort}/service/status");
     Duration timeout = Duration.ofSeconds(60);
-    Instant deadline = Instant.now().plus(timeout);
 
-    while (Instant.now().isBefore(deadline)) {
-      try {
-        ResponseEntity<String> response = restTemplate.getForEntity(statusUrl, String.class);
-        if (response.getStatusCode().is2xxSuccessful()) {
-          log.info("VSDM client is healthy again after restart.");
-          return;
-        }
-      } catch (RestClientException e) {
-        log.debug("VSDM client not ready yet: {}", e.getMessage());
-      }
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new AssertionError("Interrupted while waiting for VSDM client to become healthy", e);
-      }
+    try {
+      Awaitility.await()
+          .atMost(timeout)
+          .pollInterval(Duration.ofSeconds(1))
+          .ignoreExceptions()
+          .until(
+              () ->
+                  restTemplate
+                      .getForEntity(statusUrl, String.class)
+                      .getStatusCode()
+                      .is2xxSuccessful());
+      log.info("VSDM client is healthy again after restart.");
+    } catch (ConditionTimeoutException e) {
+      throw new AssertionError(
+          "VSDM client did not become healthy within %s after restart.".formatted(timeout), e);
     }
-    throw new AssertionError(
-        "VSDM client did not become healthy within %s after restart.".formatted(timeout));
   }
 }
