@@ -20,6 +20,10 @@ Weiterhin bietet sie Tests der HashDB-Import-Schnittstelle an.
 Die Testfälle sind mit dem gematik-Testframework **Tiger** umgesetzt. Tiger basiert auf **Cucumber**
 und **Gherkin** und bietet einen Proxy, der den Datenverkehr mitschneidet.
 
+Die gemeinsamen PoPP-Token-Pruefungen und Blueprints liegen in
+[`popp-test-support`](../../lib/popp-test-support/README.md). Die Testsuite
+uebergibt ihre erwarteten Kartendaten an den gemeinsamen Validator.
+
 ## Vorbedingungen
 
 1. PoPP-Beispielimplementierung lokal aufgebaut

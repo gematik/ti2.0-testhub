@@ -9,6 +9,7 @@ ports:
   cardTerminalPort: 6200
   remoteTigerProxyAdminPort: 6300
   remoteTigerProxyProxyPort: 6350
+  remoteTigerProxyBAdminPort: 6301
   opaPort: 2401
 
   poppClientPort: 8081

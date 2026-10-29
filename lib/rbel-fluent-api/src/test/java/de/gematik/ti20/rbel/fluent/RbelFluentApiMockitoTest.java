@@ -26,6 +26,7 @@ package de.gematik.ti20.rbel.fluent;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -56,6 +57,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -67,6 +69,32 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class RbelFluentApiMockitoTest {
   @Mock private RbelMessageRetriever retriever;
   @Mock private RbelValidator validator;
+
+  @AfterEach
+  void clearDefaultComponents() {
+    RbelFluentApi.clearDefaultComponentsForTesting();
+  }
+
+  @Test
+  void shouldUseIdentityEqualityForFluentAssertions() {
+    final var components = RbelFluentApi.RbelComponents.of(retriever, validator);
+    final var request = mock(RbelElement.class);
+    final var response = mock(RbelElement.class);
+    when(retriever.getCurrentRequest()).thenReturn(request);
+    when(retriever.getCurrentResponse()).thenReturn(response);
+
+    final var first = RbelFluentApi.assertCurrentRequest(components);
+    final var equivalent = RbelFluentApi.assertCurrentRequest(components);
+    assertEquals(first, first);
+    assertEquals(System.identityHashCode(first), first.hashCode());
+    assertNotEquals(first, equivalent);
+    assertNotEquals(equivalent, first);
+    assertNotEquals(first, RbelFluentApi.assertCurrentResponse(components));
+    assertNotEquals(
+        RbelFluentApi.expectRequests(".*/token", components),
+        RbelFluentApi.expectRequests(".*/token", components));
+  }
+
   private static final String VALID_JWT = "eyJhbGciOiJSUzI1NiJ9.eyJmb28iOiJiYXIifQ.c2ln";
 
   @Test
@@ -152,6 +180,27 @@ class RbelFluentApiMockitoTest {
   }
 
   @Test
+  void shouldUseConfiguredDefaultComponentsForConvenienceMethods() {
+    final var components = RbelFluentApi.RbelComponents.of(retriever, validator);
+    final var request = mock(RbelElement.class);
+    final var response = mock(RbelElement.class);
+    when(retriever.getCurrentRequest()).thenReturn(request);
+    when(retriever.getCurrentResponse()).thenReturn(response);
+    RbelFluentApi.useDefaultComponentsForTesting(components);
+
+    RbelFluentApi.assertCurrentRequest();
+    RbelFluentApi.assertCurrentResponse();
+    RbelFluentApi.expectRequests(".*/token");
+    RbelFluentApi.expectLastRequest(".*/token");
+    RbelFluentApi.expectRequestsWithNodeMatching("$.payload.id", "1");
+    RbelFluentApi.expectLastRequestWithNodeMatching("$.payload.id", "1");
+
+    verify(retriever, times(5)).getCurrentRequest();
+    verify(retriever).getCurrentResponse();
+    verify(retriever, times(4)).filterRequestsAndStoreInContext(any());
+  }
+
+  @Test
   void shouldStoreValueAtPathAsTigerGlobalVariable() {
     final var components = RbelFluentApi.RbelComponents.of(retriever, validator);
     final var response = mock(RbelElement.class);
@@ -212,6 +261,20 @@ class RbelFluentApiMockitoTest {
             + System.lineSeparator()
             + "second candidate",
         error.getMessage());
+  }
+
+  @Test
+  void shouldPreserveMessageWhenNoMatchingRequestHasNoCandidates() {
+    final var components = RbelFluentApi.RbelComponents.of(retriever, validator);
+    doThrow(new ValidatorAssertionError("Requested message not found", Map.of()))
+        .when(retriever)
+        .filterRequestsAndStoreInContext(any());
+
+    final var error =
+        assertThrows(
+            AssertionError.class, () -> RbelFluentApi.expectRequests(".*/missing", components));
+
+    assertEquals("Requested message not found", error.getMessage());
   }
 
   @Test
@@ -385,6 +448,116 @@ class RbelFluentApiMockitoTest {
         .hasEpochSecondsAtPathBeforeNowPlusSeconds("$.iat", 10)
         .hasValueAtPathEqualToFile("$.value", valueFile.toString())
         .hasJsonAtPathEqualToFile("$.body", jsonFile.toString());
+  }
+
+  @Test
+  void shouldReportMissingElementsAndInvalidValues() {
+    final var components = RbelFluentApi.RbelComponents.of(retriever, validator);
+    final var response = mock(RbelElement.class);
+    final var missingContent = mock(RbelElement.class);
+    when(retriever.getCurrentResponse()).thenReturn(response);
+    when(retriever.findElementInCurrentResponse("$.missing")).thenReturn(null);
+    when(retriever.findElementInCurrentResponse("$.nullContent")).thenReturn(missingContent);
+    when(missingContent.getRawStringContent()).thenReturn(null);
+    when(retriever.findElementInCurrentResponse("$.notEpoch"))
+        .thenReturn(new RbelElement("not-a-number".getBytes(StandardCharsets.UTF_8), null));
+    when(retriever.findElementInCurrentResponse("$.tooOld"))
+        .thenReturn(new RbelElement("1".getBytes(StandardCharsets.UTF_8), null));
+    when(retriever.findElementInCurrentResponse("$.tooNew"))
+        .thenReturn(
+            new RbelElement(
+                Long.toString(Instant.now().plusSeconds(120).getEpochSecond())
+                    .getBytes(StandardCharsets.UTF_8),
+                null));
+    when(retriever.findElementInCurrentResponse("$.missingEpoch")).thenReturn(null);
+    when(retriever.findElementInCurrentResponse("$.nullEpochContent")).thenReturn(missingContent);
+    when(retriever.findElementsInCurrentResponseOrEmpty("$.empty")).thenReturn(List.of());
+    when(retriever.findElementsInCurrentResponseOrEmpty("$.nullListContent"))
+        .thenReturn(List.of(missingContent));
+    when(retriever.findElementInCurrentResponse("$.wrongValue"))
+        .thenReturn(new RbelElement("actual".getBytes(StandardCharsets.UTF_8), null));
+
+    final var assertion = RbelFluentApi.assertCurrentResponse(components);
+    assertThrows(AssertionError.class, () -> assertion.readValueAtPath("$.missing"));
+    assertThrows(AssertionError.class, () -> assertion.readValueAtPath("$.nullContent"));
+    assertThrows(AssertionError.class, () -> assertion.readValuesAtPath("$.empty"));
+    assertThrows(AssertionError.class, () -> assertion.readValuesAtPath("$.nullListContent"));
+    assertThrows(
+        AssertionError.class, () -> assertion.hasValueAtPathMatching("$.wrongValue", "expected"));
+    assertThrows(
+        AssertionError.class,
+        () -> assertion.hasValueAtPathMatchingAnyOf("$.wrongValue", "one", "two"));
+    assertThrows(
+        AssertionError.class,
+        () -> assertion.hasEpochSecondsAtPathAfterNowMinusSeconds("$.tooOld", 10));
+    assertThrows(
+        AssertionError.class,
+        () -> assertion.hasEpochSecondsAtPathBeforeNowPlusSeconds("$.tooNew", 10));
+    assertThrows(
+        AssertionError.class,
+        () -> assertion.hasEpochSecondsAtPathAfterNowMinusSeconds("$.notEpoch", 10));
+    assertThrows(
+        AssertionError.class,
+        () -> assertion.hasEpochSecondsAtPathAfterNowMinusSeconds("$.missingEpoch", 10));
+    assertThrows(
+        AssertionError.class,
+        () -> assertion.hasEpochSecondsAtPathAfterNowMinusSeconds("$.nullEpochContent", 10));
+  }
+
+  @Test
+  void shouldWrapFileReadFailures(@TempDir final Path tempDir) {
+    final var components = RbelFluentApi.RbelComponents.of(retriever, validator);
+    when(retriever.getCurrentResponse()).thenReturn(mock(RbelElement.class));
+
+    assertThrows(
+        IllegalStateException.class,
+        () ->
+            RbelFluentApi.assertCurrentResponse(components)
+                .hasValueAtPathEqualToFile("$.value", tempDir.resolve("missing.txt").toString()));
+  }
+
+  @Test
+  void shouldRejectNextResponseWithoutParentRequest() {
+    final var components = RbelFluentApi.RbelComponents.of(retriever, validator);
+    when(retriever.getCurrentResponse()).thenReturn(mock(RbelElement.class));
+
+    assertThrows(
+        IllegalStateException.class,
+        () -> RbelFluentApi.assertCurrentResponse(components).nextResponse());
+  }
+
+  @Test
+  void shouldRejectChildAssertionWithoutParent() {
+    final var child =
+        new RbelFluentApi.ChildAssertion<RbelFluentApi.ResponseAssertion>(null, "value");
+
+    assertThrows(IllegalStateException.class, child::and);
+    assertEquals("value", child.rawValue());
+    child.mapTo(String::toUpperCase).isEqualTo("VALUE");
+  }
+
+  @Test
+  void shouldRejectInvalidJwtAndMissingSchema() {
+    assertThrows(AssertionError.class, () -> RbelFluentApi.assertJwt(" "));
+    assertThrows(
+        AssertionError.class,
+        () -> RbelFluentApi.assertJwt("not-a-jwt").matchesSchema("jwt-test-schema.yaml"));
+    assertThrows(
+        AssertionError.class,
+        () -> RbelFluentApi.assertJwt(VALID_JWT).matchesSchema("missing-schema.yaml"));
+  }
+
+  @Test
+  void shouldReportJwtSchemaValidationErrors() {
+    final var invalidJwt = "eyJhbGciOiJSUzI1NiJ9.eyJmb28iOiJub3QtYmFyIn0.AA";
+
+    final var error =
+        assertThrows(
+            AssertionError.class,
+            () -> RbelFluentApi.assertJwt(invalidJwt).matchesSchema("/jwt-test-schema.yaml"));
+
+    assertTrue(error.getMessage().contains("Validation against /jwt-test-schema.yaml failed"));
+    assertTrue(error.getMessage().contains(" errors:"));
   }
 
   @Test

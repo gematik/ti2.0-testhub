@@ -18,6 +18,7 @@ Das Feature testet den vollständigen ZETA-Protokollablauf gegen die **echte VSD
 | 4   | Token Exchange – SMC-B / brainpoolP256r1                   | `@token_exchange`     | ❌ `@Ignore` – keycloak-zeta unterstützt BP256R1 nicht |
 | 5   | Policy-Ablehnung (403 Fehlerfall)                          | `@policy_ablehnungen` | ❌ `@Ignore` – OPA-Routing + Policy fehlen             |
 | 6   | SMC-B maxClients Limit und LRU Eviction                    | `@smcb_max_clients`   | ✅ Aktiv                                               |
+| 7   | IP-Bindung des Access-Tokens an die Token-Request-IP       | `@ip_bindung`         | ✅ Aktiv (Negativ-Szenario `@local`)                   |
 
 ## Szenario 1: Service Discovery – Protected Resource Metadata (RFC 9728)
 
@@ -160,6 +161,47 @@ Die Tests verifizieren die Eviction über die Keycloak Admin API, mit einer klas
 Ein Aufräumschritt (SMC-B User löschen + DCR-Cache leeren) läuft automatisch als `@After`-Hook
 (`SmcbMaxClientsSteps.cleanupSmcbUserAfterScenario`), gescoped auf `@smcb_max_clients`.
 ---
+
+## Szenario 7: IP-Bindung des Access-Tokens an die Token-Request-IP
+
+**Feature:** `client_registrierung_ip_bindung.feature`
+**Tags:** `@ip_bindung` (Negativ-Szenario zusätzlich `@local`)
+
+Prüft, dass ein Access-Token nur von der IP-Adresse verwendet werden darf, von der es per
+**Token-Exchange** ausgestellt wurde (A_28827/A_28803) — **nicht** von der Registrierungs-IP
+(DCR und Token-Exchange sind zwei unabhängige Requests, ggf. von unterschiedlichen IPs).
+
+Geltungsbereich: nur Stufe 1 / stationäre Clients der Rolle LEI. Der erwartete Statuscode ist laut
+Tabelle ZT_HTTP_Statuscodes (Kap. 5.8.6) `401` ODER `403` — A_28803 selbst legt keinen konkreten
+Code fest.
+
+Die Szenarien nutzen NICHT `ZetaJwtTestFactory` (eigenhändig gebaute DCR/Token-Exchange/DPoP), sondern
+den echten `vsdm-client`-Container (Endpoint `/client/vsdm/vsd`): dessen eingebauter ZETA-SDK führt
+DCR, Token-Exchange, DPoP-Proof und PoPP-Token vollständig selbst aus und greift anschließend auf den
+echten VSDM-ZETA-PEP zu.
+
+Der **Positiv-Fall** (Zugriff von derselben IP, die den Token ausgestellt hat) wird hier bewusst
+NICHT dupliziert — er ist bereits durch `ZETA_REST_PEP_TRANSFER_WITH_VALID_ACCESS_TOKEN`
+(`zeta-datatransfer-rest/rest_data_transfer_via_pep.feature`) abgedeckt, das denselben echten
+VSD-Read über den `vsdm-client` nutzt und ebenfalls `≠ 401` am PEP prüft.
+
+| Szenario                                                 | Ablauf                                                                                                                                                                                                      |
+|-----------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `@TCID:ZETA_TOKEN_IP_BINDING_DIFFERENT_SOURCE_IP_DENIED`   | Erster VSD-Read von IP A (Token wird an IP A gebunden) → Hostname `vsdm-zeta-ingress` wird NUR im `vsdm-client`-Container per `/etc/hosts` auf einen zweiten, unabhängigen Tiger-Proxy-Container mit eigener IP umgeleitet → zweiter VSD-Read (gleicher Access-Token, jetzt von IP B) → `401`/`403` (oder SDK-seitig `500` nach erschöpften Step-Up-Retries, siehe Kommentare im Feature) |
+
+> **Voraussetzung in der lokalen Testumgebung:** Der nginx-basierte PEP (`vsdm-zeta-pep`) muss
+> `pep_no_travel on;` gesetzt haben (siehe `doc/docker/backend/zeta/vsdm-pep-conf/nginx.conf`) und
+> der Ingress muss die reale Client-IP per `X-Forwarded-For`/`X-Real-IP` durchreichen (siehe
+> `doc/docker/backend/zeta/ingress/conf/ingress-nginx.conf`). Für eine echte, abweichende Quell-IP
+> wird ein zweiter, unabhängiger `docker-tiger-proxy-b`-Container genutzt (siehe
+> `doc/docker/compose-local.yaml`, `TigerProxyRedirectSteps.java`), da alle per Canopy-DNS-Interception
+> umgeleiteten Hostnamen sonst strukturell auf dieselbe Proxy-IP aufgelöst würden.
+>
+> **Sperrung des Access-Tokens (Teil von A_28803) wird hier NICHT geprüft:** `pep_no_travel` lehnt
+> nachweislich nur die einzelne Anfrage von der fremden IP ab (zustandslose Prüfung), sperrt den
+> Token dabei aber nicht dauerhaft. Eine echte Sperrung würde eine Anbindung des PEP an einen
+> proprietären Revocation-Stream des ZeTA-Guard-PDP voraussetzen, dessen Endpoint in dieser
+> Testumgebung nicht bekannt/erreichbar ist.
 
 ## Tests ausführen
 

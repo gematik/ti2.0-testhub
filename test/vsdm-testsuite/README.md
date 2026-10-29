@@ -9,6 +9,10 @@ prüfen und sich an der gematik Spezifikation für den Fachdienst VSDM 2.0 (gemS
 sind mittels Gherkin beschrieben und werden durch das Cucumber und Serenity-Framework zur Ausführung gebracht.
 Zusätzlich wird das Tiger-Framework der gematik zur Visualisierung und Auswertung der Tests verwendet.
 
+Die PoPP-Token-Pruefungen verwenden die gemeinsame Library
+[`popp-test-support`](../../lib/popp-test-support/README.md). Die VSDM-spezifischen
+Erwartungen an Issuer und Berufs-OIDs sowie die Token-Speicherung bleiben in der Testsuite.
+
 ### Screenplay Pattern
 
 Die Implementierung der Testschritte folgt dem sogenannten Screenplay Pattern von Serenity. Im Zentrum steht der Actor,

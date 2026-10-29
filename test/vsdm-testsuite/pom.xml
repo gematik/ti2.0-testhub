@@ -6,7 +6,7 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.21.0</version>
+        <version>3.22.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -82,6 +82,11 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
             <version>${version.testcontainers}</version>
+        </dependency>
+        <dependency>
+            <groupId>de.gematik.ti20.popp</groupId>
+            <artifactId>popp-test-support</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>de.gematik.ti20.rbel</groupId>

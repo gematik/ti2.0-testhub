@@ -32,10 +32,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.gematik.rbellogger.data.RbelElement;
 import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
 import de.gematik.test.tiger.glue.HttpGlueCode;
+import de.gematik.ti20.popp.testsupport.PoppTokenValidator;
 import de.gematik.ti20.popp.validation.ApduValidator;
 import de.gematik.ti20.popp.validation.EntityStatementValidator;
 import de.gematik.ti20.popp.validation.JwksValidator;
-import de.gematik.ti20.popp.validation.PoppTokenValidator;
 import de.gematik.ti20.rbel.fluent.RbelFluentApi;
 import io.cucumber.java.de.Angenommen;
 import io.cucumber.java.de.Dann;
@@ -43,6 +43,10 @@ import io.cucumber.java.de.Und;
 import io.cucumber.java.de.Wenn;
 import io.restassured.http.Method;
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -50,6 +54,7 @@ public class Steps {
 
   HttpGlueCode httpGlueCode = new HttpGlueCode();
   private CommunicationType communicationType;
+  private CompletableFuture<Void> pendingPoppTokenRequest;
 
   public Steps() {}
 
@@ -67,13 +72,13 @@ public class Steps {
   @Und("das PoPP-Token ist vollständig und spezifikationskonform")
   public void tokenIsCorrect() {
     PoppTokenValidator.validateClaimsInPoppToken();
-    PoppTokenValidator.proofMethodInTokenMatchesCommTypeOrThrow(communicationType);
+    PoppTokenValidator.proofMethodInTokenMatchesCommTypeOrThrow(communicationType.getCommType());
   }
 
   @Dann("Die Daten des Versicherten im PoPP-Token entsprechen denen auf der Karte {string}")
   public void patientDataInTokenMatchesEgkData(final String image) {
     final EgkType egkType = EgkType.valueOf(image);
-    PoppTokenValidator.assertThatPatientDataInTokenMatchesDataOnEgk(egkType);
+    PoppTokenValidator.assertPatientData(egkType.getKvnr(), egkType.getIkNumber());
   }
 
   @Dann(
@@ -81,7 +86,8 @@ public class Steps {
           + " {string}")
   public void practitionerDataInTokenMatchesSmcbData(final String smcb) {
     final SmcbType smcbType = SmcbType.valueOf(smcb);
-    PoppTokenValidator.asserThatPractitionerDataInTokenMatchesDataOnSmcb(smcbType);
+    PoppTokenValidator.assertPractitionerData(
+        smcbType.getTelematikId(), smcbType.getProfessionOid());
   }
 
   @Angenommen("der Versicherte in der LEI präsentiert seine eGK {string} am Lesegerät {string}")
@@ -113,6 +119,84 @@ public class Steps {
         .findElement("$.token")
         .map(RbelElement::getRawStringContent)
         .ifPresentOrElse(POPP_TOKEN::putValue, POPP_TOKEN::clearValue);
+  }
+
+  @Wenn("das Primärsystem die PoPP-Token-Abfrage asynchron mit contact-connector startet")
+  public void startContactConnectorPoppTokenRequest() {
+    if (pendingPoppTokenRequest != null && !pendingPoppTokenRequest.isDone()) {
+      throw new IllegalStateException("Es läuft bereits eine PoPP-Token-Abfrage");
+    }
+
+    communicationType = CommunicationType.CONTACT_CONNECTOR;
+    final String jsonBody = createContactConnectorRequestBody();
+
+    final String url = TigerGlobalConfiguration.readString("popp.client.tokenUrl");
+
+    log.info("Starte PoPP-Token-Abfrage mit communicationType contact-connector");
+
+    pendingPoppTokenRequest =
+        CompletableFuture.runAsync(
+            () ->
+                httpGlueCode.sendRequestWithMultiLineBody(
+                    Method.POST, URI.create(url), "application/json", jsonBody));
+  }
+
+  private String createContactConnectorRequestBody() {
+    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectNode json = mapper.createObjectNode();
+
+    json.put("communicationType", communicationType.getValue());
+
+    json.put("clientSessionId", "123456");
+
+    return json.toString();
+  }
+
+  @Dann("wird die PoPP-Token-Abfrage abgeschlossen")
+  public void finishContactConnectorPoppTokenRequest() {
+    if (pendingPoppTokenRequest == null) {
+      throw new IllegalStateException("Es wurde keine asynchrone PoPP-Token-Abfrage gestartet");
+    }
+
+    try {
+      pendingPoppTokenRequest.get(60, TimeUnit.SECONDS);
+
+      String token =
+          RbelFluentApi.expectRequests(".*/token")
+              .nextResponse()
+              .elementAtPath("$.body.token")
+              .getRawStringContent();
+
+      if (token == null || token.isBlank()) {
+        throw new IllegalStateException("Die Antwort des PoPP-Service enthält keinen Token");
+      }
+
+      POPP_TOKEN.putValue(token);
+
+      log.info("PoPP-Token-Abfrage mit contact-connector " + "wurde erfolgreich abgeschlossen");
+
+    } catch (InterruptedException exception) {
+      Thread.currentThread().interrupt();
+
+      throw new IllegalStateException(
+          "Das Warten auf die PoPP-Token-Abfrage " + "wurde unterbrochen", exception);
+
+    } catch (TimeoutException exception) {
+      pendingPoppTokenRequest.cancel(true);
+
+      throw new IllegalStateException(
+          "Die PoPP-Token-Abfrage wurde nicht innerhalb " + "von 60 Sekunden abgeschlossen",
+          exception);
+
+    } catch (ExecutionException exception) {
+      Throwable cause = exception.getCause() != null ? exception.getCause() : exception;
+
+      throw new IllegalStateException(
+          "Die PoPP-Token-Abfrage mit contact-connector " + "ist fehlgeschlagen", cause);
+
+    } finally {
+      pendingPoppTokenRequest = null;
+    }
   }
 
   @Und("die empfangenen APDUs sind korrekt")
@@ -160,7 +244,7 @@ public class Steps {
   @Dann(
       "erhält das Primärsystem den Status ERROR vom PoPP-Service mit Message {tigerResolvedString}")
   public void validatePoppError(final String errorMessage) {
-    PoppTokenValidator.validatePoppTokenforBasicErrorResponse();
-    PoppTokenValidator.validatePoppTokenforInvalidCaErrorResponse(errorMessage);
+    PoppTokenValidator.validatePoppTokenForBasicErrorResponse();
+    PoppTokenValidator.validatePoppTokenForInvalidCaErrorResponse(errorMessage);
   }
 }

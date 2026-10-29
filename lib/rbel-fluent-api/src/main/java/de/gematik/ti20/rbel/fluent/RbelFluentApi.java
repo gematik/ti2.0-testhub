@@ -58,19 +58,19 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.assertj.core.api.AbstractComparableAssert;
 import org.assertj.core.api.AbstractInstantAssert;
-import org.assertj.core.api.Assertions;
+import org.assertj.core.api.GenericComparableAssert;
+import org.assertj.core.api.InstantAssert;
 
 public final class RbelFluentApi {
+  private static final String EXPECTED_RAW_STRING_CONTENT_NOT_NULL =
+      "Expected raw string content at path <%s> to not be null";
   private static final ObjectMapper JSON = new ObjectMapper();
   private static final SchemaRegistry SCHEMA_REGISTRY =
       SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_7);
   private static final AtomicReference<RbelComponents> DEFAULT_COMPONENTS_FOR_TESTING =
       new AtomicReference<>();
-  private final RbelComponents components;
 
-  private RbelFluentApi(final RbelComponents components) {
-    this.components = Objects.requireNonNull(components);
-  }
+  private RbelFluentApi() {}
 
   /**
    * Finds the first request matching {@code pathRegex} (chronologically earliest match in the
@@ -139,7 +139,8 @@ public final class RbelFluentApi {
   }
 
   public static RbelFluentApi using(final RbelComponents components) {
-    return new RbelFluentApi(components);
+    Objects.requireNonNull(components);
+    return new RbelFluentApi();
   }
 
   public static void useDefaultComponentsForTesting(final RbelComponents components) {
@@ -208,7 +209,7 @@ public final class RbelFluentApi {
    * else - path assertions, JSON comparisons, epoch checks, tree printing - is implemented once
    * here.
    */
-  public abstract static class AbstractFluentAssertion<SELF extends AbstractFluentAssertion<SELF>>
+  public abstract static class AbstractFluentAssertion<S extends AbstractFluentAssertion<S>>
       extends RbelElementAssertion {
     final RbelComponents components;
 
@@ -217,7 +218,7 @@ public final class RbelFluentApi {
       this.components = Objects.requireNonNull(components);
     }
 
-    protected abstract SELF self();
+    protected abstract S self();
 
     protected abstract RbelElement findElement(String rbelPath);
 
@@ -226,26 +227,36 @@ public final class RbelFluentApi {
     protected abstract void assertJsonAtPath(String rbelPath, ModeType mode, String expectedJson);
 
     @Override
-    public SELF andPrintTree() {
+    public boolean equals(final Object other) {
+      return this == other;
+    }
+
+    @Override
+    public int hashCode() {
+      return System.identityHashCode(this);
+    }
+
+    @Override
+    public S andPrintTree() {
       super.andPrintTree();
       return self();
     }
 
-    public SELF printRbelTree() {
+    public S printRbelTree() {
       return andPrintTree();
     }
 
     @Override
-    public SELF hasStringContentEqualToAtPosition(final String rbelPath, final String expected) {
+    public S hasStringContentEqualToAtPosition(final String rbelPath, final String expected) {
       super.hasStringContentEqualToAtPosition(rbelPath, expected);
       return self();
     }
 
-    public SELF hasValueAtPathEqualTo(final String rbelPath, final String expected) {
+    public S hasValueAtPathEqualTo(final String rbelPath, final String expected) {
       return hasStringContentEqualToAtPosition(rbelPath, expected);
     }
 
-    public SELF hasValueAtPathMatching(final String rbelPath, final String regex) {
+    public S hasValueAtPathMatching(final String rbelPath, final String regex) {
       final var actual = readValueAtPath(rbelPath);
       if (!actual.matches(regex)) {
         failWithMessage(
@@ -255,7 +266,7 @@ public final class RbelFluentApi {
       return self();
     }
 
-    public SELF hasValueAtPathMatchingAnyOf(final String rbelPath, final String... expectedValues) {
+    public S hasValueAtPathMatchingAnyOf(final String rbelPath, final String... expectedValues) {
       final var actual = readValueAtPath(rbelPath);
       for (final var expectedValue : expectedValues) {
         if (actual.matches(expectedValue)) {
@@ -268,7 +279,7 @@ public final class RbelFluentApi {
       return self();
     }
 
-    public ChildAssertion<SELF> childAtPath(final String rbelPath) {
+    public ChildAssertion<S> childAtPath(final String rbelPath) {
       return new ChildAssertion<>(self(), readValueAtPath(rbelPath));
     }
 
@@ -279,7 +290,7 @@ public final class RbelFluentApi {
     public String readValueAtPath(final String rbelPath) {
       final var rawStringContent = readElementAtPath(rbelPath).getRawStringContent();
       if (rawStringContent == null) {
-        failWithMessage("Expected raw string content at path <%s> to not be null", rbelPath);
+        failWithMessage(EXPECTED_RAW_STRING_CONTENT_NOT_NULL, rbelPath);
       }
       return rawStringContent;
     }
@@ -301,7 +312,7 @@ public final class RbelFluentApi {
       for (final var element : elements) {
         final var rawStringContent = element.getRawStringContent();
         if (rawStringContent == null) {
-          failWithMessage("Expected raw string content at path <%s> to not be null", rbelPath);
+          failWithMessage(EXPECTED_RAW_STRING_CONTENT_NOT_NULL, rbelPath);
         }
         values.add(rawStringContent);
       }
@@ -314,26 +325,26 @@ public final class RbelFluentApi {
      * TigerGlobalConfiguration#putValue(String, Object, ConfigurationValuePrecedence)} with the
      * value read via {@link #readValueAtPath(String)}.
      */
-    public SELF storeValueAtPathAs(final String rbelPath, final String key) {
+    public S storeValueAtPathAs(final String rbelPath, final String key) {
       return storeValueAtPathAs(rbelPath, key, ConfigurationValuePrecedence.TEST_CONTEXT);
     }
 
-    public SELF storeValueAtPathAs(
+    public S storeValueAtPathAs(
         final String rbelPath, final String key, final ConfigurationValuePrecedence precedence) {
       TigerGlobalConfiguration.putValue(key, readValueAtPath(rbelPath), precedence);
       return self();
     }
 
-    public SELF hasJsonAtPathEqualTo(final String rbelPath, final String expectedJson) {
+    public S hasJsonAtPathEqualTo(final String rbelPath, final String expectedJson) {
       assertJsonAtPath(rbelPath, ModeType.JSON, expectedJson);
       return self();
     }
 
-    public SELF hasValueAtPathEqualToFile(final String rbelPath, final String filePath) {
+    public S hasValueAtPathEqualToFile(final String rbelPath, final String filePath) {
       return hasValueAtPathEqualTo(rbelPath, readFileContent(filePath));
     }
 
-    public SELF hasJsonAtPathEqualToFile(final String rbelPath, final String filePath) {
+    public S hasJsonAtPathEqualToFile(final String rbelPath, final String filePath) {
       return hasJsonAtPathEqualTo(rbelPath, readFileContent(filePath));
     }
 
@@ -346,8 +357,7 @@ public final class RbelFluentApi {
       }
     }
 
-    public SELF hasEpochSecondsAtPathAfterNowMinusSeconds(
-        final String rbelPath, final long seconds) {
+    public S hasEpochSecondsAtPathAfterNowMinusSeconds(final String rbelPath, final long seconds) {
       final var actual = Instant.ofEpochSecond(epochSecondsAtPath(rbelPath));
       final var threshold = Instant.now().minusSeconds(seconds);
       if (!actual.isAfter(threshold)) {
@@ -358,8 +368,7 @@ public final class RbelFluentApi {
       return self();
     }
 
-    public SELF hasEpochSecondsAtPathBeforeNowPlusSeconds(
-        final String rbelPath, final long seconds) {
+    public S hasEpochSecondsAtPathBeforeNowPlusSeconds(final String rbelPath, final long seconds) {
       final var actual = Instant.ofEpochSecond(epochSecondsAtPath(rbelPath));
       final var threshold = Instant.now().plusSeconds(seconds);
       if (!actual.isBefore(threshold)) {
@@ -377,7 +386,7 @@ public final class RbelFluentApi {
       }
       final var rawStringContent = element.getRawStringContent();
       if (rawStringContent == null) {
-        failWithMessage("Expected raw string content at path <%s> to not be null", rbelPath);
+        failWithMessage(EXPECTED_RAW_STRING_CONTENT_NOT_NULL, rbelPath);
       }
       try {
         return Long.parseLong(rawStringContent);
@@ -461,6 +470,16 @@ public final class RbelFluentApi {
     }
 
     @Override
+    public boolean equals(final Object other) {
+      return this == other;
+    }
+
+    @Override
+    public int hashCode() {
+      return System.identityHashCode(this);
+    }
+
+    @Override
     protected RbelElement findElement(final String rbelPath) {
       return components.retriever().findElementInCurrentRequest(rbelPath);
     }
@@ -505,6 +524,16 @@ public final class RbelFluentApi {
     }
 
     @Override
+    public boolean equals(final Object other) {
+      return this == other;
+    }
+
+    @Override
+    public int hashCode() {
+      return System.identityHashCode(this);
+    }
+
+    @Override
     protected RbelElement findElement(final String rbelPath) {
       return components.retriever().findElementInCurrentResponse(rbelPath);
     }
@@ -531,21 +560,33 @@ public final class RbelFluentApi {
       return selector.advanceToNextResponse();
     }
 
+    /**
+     * @deprecated Use {@link #hasValueAtPathEqualTo(String, String)} instead.
+     */
     @Deprecated(forRemoval = false)
     public ResponseAssertion matchesAt(final String rbelPath, final String expected) {
       return hasValueAtPathEqualTo(rbelPath, expected);
     }
 
+    /**
+     * @deprecated Use {@link #hasJsonAtPathEqualTo(String, String)} instead.
+     */
     @Deprecated(forRemoval = false)
     public ResponseAssertion matchesJsonAt(final String rbelPath, final String expectedJson) {
       return hasJsonAtPathEqualTo(rbelPath, expectedJson);
     }
 
+    /**
+     * @deprecated Use {@link #hasValueAtPathEqualToFile(String, String)} instead.
+     */
     @Deprecated(forRemoval = false)
     public ResponseAssertion matchesAtFile(final String rbelPath, final String filePath) {
       return hasValueAtPathEqualToFile(rbelPath, filePath);
     }
 
+    /**
+     * @deprecated Use {@link #hasJsonAtPathEqualToFile(String, String)} instead.
+     */
     @Deprecated(forRemoval = false)
     public ResponseAssertion matchesJsonAtFile(final String rbelPath, final String filePath) {
       return hasJsonAtPathEqualToFile(rbelPath, filePath);
@@ -557,13 +598,14 @@ public final class RbelFluentApi {
     private final P parent;
     private final String value;
 
-    public <T extends Comparable<? super T>> AbstractComparableAssert<?, T> mapTo(
-        final Function<String, T> mapper) {
-      return Assertions.assertThat(mapper.apply(this.value));
+    public <T extends Comparable<? super T>>
+        AbstractComparableAssert<GenericComparableAssert<T>, T> mapTo(
+            final Function<String, T> mapper) {
+      return new GenericComparableAssert<>(mapper.apply(this.value));
     }
 
-    public AbstractInstantAssert<?> mapToInstant() {
-      return Assertions.assertThat(Instant.ofEpochSecond(Long.parseLong(this.value)));
+    public AbstractInstantAssert<InstantAssert> mapToInstant() {
+      return new InstantAssert(Instant.ofEpochSecond(Long.parseLong(this.value)));
     }
 
     public ChildAssertion<P> satisfies(final Consumer<String> verification) {

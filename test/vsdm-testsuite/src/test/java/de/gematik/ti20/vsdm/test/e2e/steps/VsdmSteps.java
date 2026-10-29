@@ -66,6 +66,11 @@ public class VsdmSteps extends BaseSteps {
     hccs().attemptsTo(InsertEgkCard.fromFileInSlot(EGK_CARD_IMAGE_FILE, slot));
   }
 
+  @Angenommen("der Versicherte in der LEI verwendet eine eGK {string} im Slot {int}")
+  public void givenPatientIsUsingEgk(String egkImage, Integer slot) {
+    hccs().attemptsTo(InsertEgkCard.fromFileInSlot(egkImage, slot));
+  }
+
   @Angenommen("das Primärsystem hat die VSD bereits einmal im Quartal abgefragt")
   public void givenVsdmClientHasAlreadyRequestVsdBefore() {
     hccs()

@@ -2,9 +2,16 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.22.0
+
+### Changes
+
+- ZTI-4911: Add testcase for ip-binding of the access-token
+
 ## Release 3.21.0
 
 ### Changes
+
 - TESTHUB-292: Github Doctor Initial Release (https://github.com/gematik/testhub-doctor)
 - ANFTI2-1024: `full` and `backend-only` profiles for VSDM and PoPP can use separate OAuth protected resource metadata files
 - ANFTI2-1042: Include the VSDM bundle profile version

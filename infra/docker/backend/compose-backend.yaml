@@ -8,66 +8,69 @@ include:
 
 services:
   otel-collector:
+    container_name: otel-collector
     image: otel/opentelemetry-collector-contrib
     pull_policy: if_not_present
+    platform: linux/amd64
+    profiles: [ "full", "backend-only", "ps-only" ]
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
     env_file:
       - path: ../.env
         required: true
-    profiles: [ "full", "backend-only", "ps-only" ]
-    platform: linux/amd64
-    command: [ "--config=/etc/otel-collector-config.yaml" ]
-    volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    networks:
+      testhub_network:
     ports:
       - "${PORT_OTEL_COLLECTOR:?PORT_OTEL_COLLECTOR missing – set it in infra/docker/.env}:4318"
       - "${PORT_OTEL_COLLECTOR_GRPC:?PORT_OTEL_COLLECTOR_GRPC missing – set it in infra/docker/.env}:4317"
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     depends_on:
       - prometheus
-    networks:
-      testhub_network:
 
   prometheus:
+    container_name: prometheus
     image: prom/prometheus
     pull_policy: if_not_present
-    env_file:
-      - path: ../.env
-        required: true
-    profiles: [ "full", "backend-only", "ps-only" ]
     platform: linux/amd64
-    volumes:
-      - ./prometheus:/etc/prometheus
-      - prometheus-data:/prometheus
-    ports:
-      - "${PORT_PROMETHEUS:?PORT_PROMETHEUS missing – set it in infra/docker/.env}:7100"
+    profiles: [ "full", "backend-only", "ps-only" ]
     command:
       - '--config.file=/etc/prometheus/config.yaml'
       - '--web.listen-address=:7100'
-    networks:
-      testhub_network:
-
-  grafana:
-    image: grafana/grafana
-    pull_policy: if_not_present
     env_file:
       - path: ../.env
         required: true
-    profiles: [ "full", "backend-only" ]
-    platform: linux/amd64
+    networks:
+      testhub_network:
+    ports:
+      - "${PORT_PROMETHEUS:?PORT_PROMETHEUS missing – set it in infra/docker/.env}:7100"
     volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - ./prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    pull_policy: if_not_present
+    platform: linux/amd64
+    profiles: [ "full", "backend-only" ]
+    env_file:
+      - path: ../.env
+        required: true
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_SECURITY_ADMIN_PASSWORD_MUST_CHANGE=false
-    ports:
-      - "${PORT_GRAFANA:?PORT_GRAFANA missing – set it in infra/docker/.env}:3000"
-    depends_on:
-      - prometheus
     networks:
       testhub_network:
+    ports:
+      - "${PORT_GRAFANA:?PORT_GRAFANA missing – set it in infra/docker/.env}:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
 
 volumes:
   prometheus-data:

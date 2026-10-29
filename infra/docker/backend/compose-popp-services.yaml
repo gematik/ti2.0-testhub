@@ -7,26 +7,26 @@ x-popp-no-proxy-env: &popp-no-proxy-env
 services:
   popp-token-generator:
     container_name: popp-token-generator
-    platform: linux/amd64
     image: gematik1/popp-token-generator:1.0.12
+    platform: linux/amd64
     env_file:
       - path: ../.env
         required: true
-    ports:
-      - "${PORT_POPP_TOKEN_GENERATOR:?PORT_POPP_TOKEN_GENERATOR missing – set it in infra/docker/.env}:80"
     environment:
       - SPRING_PROFILES_ACTIVE=beispielimpl
     networks:
       - testhub_network
+    ports:
+      - "${PORT_POPP_TOKEN_GENERATOR:?PORT_POPP_TOKEN_GENERATOR missing – set it in infra/docker/.env}:80"
 
   popp-client:
-    profiles: [ "full", "ps-only" ]
     container_name: popp-client
     image: gematik1/popp-client:2.9.0
+    platform: linux/amd64
+    profiles: [ "full", "ps-only" ]
     env_file:
       - path: ../.env
         required: true
-    platform: linux/amd64
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - POPP_SERVER_URL=${POPP_SERVER_URL:-wss://popp-zeta-ingress:443/popp/practitioner/api/v1/token-generation-ehc}
@@ -60,12 +60,6 @@ services:
     ports:
       - "${PORT_POPP_CLIENT:?PORT_POPP_CLIENT missing – set it in infra/docker/.env}:8081"
       - "${PORT_POPP_CLIENT_MGMT:?PORT_POPP_CLIENT_MGMT missing – set it in infra/docker/.env}:9001"
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:8081/actuator/health/readiness | grep -q 'UP'" ]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 60s
     volumes:
       - ./zeta/smcb-private/${SMCB_FILE:-smcb_private.p12}:/app/smcb_private.p12:ro
       - ${CONNECTOR_KEYSTORE_DIR:-./zeta/connector}/${CONNECTOR_KEYSTORE_FILE:-keystore.p12}:/app/connector/keystore.p12:ro
@@ -84,64 +78,70 @@ services:
         condition: service_started
       resolv-writer:
         condition: service_completed_successfully
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:8081/actuator/health/readiness | grep -q 'UP'" ]
+      start_period: 60s
+      interval: 10s
+      timeout: 5s
+      retries: 12
 
   popp-server:
-    profiles: [ "full", "backend-only" ]
+    container_name: popp-server
     image: gematik1/popp-server:2.9.0
+    platform: linux/amd64
+    profiles: [ "full", "backend-only" ]
     env_file:
       - path: ../.env
         required: true
-    platform: linux/amd64
-    container_name: popp-server
-    ports:
-      - "${PORT_POPP_SERVER:?PORT_POPP_SERVER missing – set it in infra/docker/.env}:8443"
     environment:
       - CERT_HASH_IMPORT_LOCATION=file:/app/import
       - IDENTITIES_LOCATION=classpath:identities
       - SPRING_DATASOURCE_URL=jdbc:postgresql://popp-server-db:5432/egk_hash_db
     networks:
       - testhub_network
+    ports:
+      - "${PORT_POPP_SERVER:?PORT_POPP_SERVER missing – set it in infra/docker/.env}:8443"
     depends_on:
       - popp-server-db
       - otel-collector
 
   popp-server-db:
-    profiles: [ "full", "backend-only" ]
+    container_name: popp-server-db
     image: postgres:18-alpine
     pull_policy: if_not_present
+    platform: linux/amd64
+    profiles: [ "full", "backend-only" ]
     env_file:
       - path: ../.env
         required: true
-    platform: linux/amd64
-    container_name: popp-server-db
     environment:
       POSTGRES_DB: egk_hash_db
       POSTGRES_PASSWORD: verysafe
       POSTGRES_USER: poppserver
+    networks:
+      - testhub_network
     ports:
       - "${PORT_POPP_SERVER_DB:?PORT_POPP_SERVER_DB missing – set it in infra/docker/.env}:5432"
     tmpfs:
       - /var/lib/postgresql
     restart: on-failure
-    networks:
-      - testhub_network
 
   popp-zeta-ingress:
-    profiles: [ "full", "backend-only" ]
     container_name: popp-zeta-ingress
-    platform: linux/amd64
-    image: "nginx:1.31.3"
+    image: nginx:1.31.3
     pull_policy: if_not_present
+    platform: linux/amd64
+    profiles: [ "full", "backend-only" ]
     env_file:
       - path: ../.env
         required: true
+    networks:
+      - testhub_network
     ports:
       - "${PORT_POPP_ZETA_INGRESS:?PORT_POPP_ZETA_INGRESS missing – set it in infra/docker/.env}:443"
     volumes:
       - ./zeta-popp/ingress/conf:/etc/nginx/conf.d:ro
       - ./zeta-popp/ingress/certs:/etc/nginx/certs:ro
-    networks:
-      - testhub_network
     depends_on:
       popp-zeta-pep:
         condition: service_started
@@ -151,24 +151,25 @@ services:
         required: false
 
   popp-zeta-pep: &popp-zeta-pep
-    profiles: [ "full" ]
+    container_name: popp-zeta-pep
     image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:1.3.3
+    platform: linux/amd64
+    profiles: [ "full" ]
+    command: [ "nginx", "-g", "daemon off;", "-c", "/ci_nginx/nginx.conf" ]
     env_file:
       - path: ../.env
         required: true
-    platform: linux/amd64
     environment:
       <<: *popp-no-proxy-env
       POPP_SERVER_HOST: popp-server:8443
+    networks:
+      - testhub_network
     ports:
       - "${PORT_POPP_ZETA_PEP:?PORT_POPP_ZETA_PEP missing – set it in infra/docker/.env}:80"
-    command: [ "nginx", "-g", "daemon off;", "-c", "/ci_nginx/nginx.conf" ]
     volumes:
       - ./zeta-popp/pep/conf/:/etc/nginx/templates/:ro
       - ./zeta-popp/pep:/ci_nginx:ro
       - ./zeta-popp/well-known/:/srv/.well-known/:ro
-    networks:
-      - testhub_network
     depends_on:
       popp-zeta-pdp:
         condition: service_healthy
@@ -180,22 +181,24 @@ services:
   popp-zeta-pep-backend-only:
     <<: *popp-zeta-pep
     profiles: [ "backend-only" ]
-    volumes:
-      - ./zeta-popp/pep/conf/:/etc/nginx/templates/:ro
-      - ./zeta-popp/pep:/ci_nginx:ro
-      - ./zeta-popp/well-known-backend-only/:/srv/.well-known/:ro
     networks:
       testhub_network:
         aliases:
           - popp-zeta-pep
+    volumes:
+      - ./zeta-popp/pep/conf/:/etc/nginx/templates/:ro
+      - ./zeta-popp/pep:/ci_nginx:ro
+      - ./zeta-popp/well-known-backend-only/:/srv/.well-known/:ro
 
   popp-zeta-pdp:
-    profiles: [ "full", "backend-only" ]
+    container_name: popp-zeta-pdp
     image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:1.3.2
+    platform: linux/amd64
+    profiles: [ "full", "backend-only" ]
+    command: [ "start-dev","--import-realm" ]
     env_file:
       - path: ../.env
         required: true
-    platform: linux/amd64
     environment:
       <<: *popp-no-proxy-env
       DEBUG_PORT: "*:5022"
@@ -236,6 +239,8 @@ services:
       SMCB_KEYSTORE_PASSWORD: "changeit"
       TPM_KEYSTORE_LOCATION: /opt/keycloak/conf/tpm/tpm-certificates.p12
       TPM_KEYSTORE_PASSWORD: "O3Bdel9P5+cOgzIGANkOPEzBQM3V"
+    networks:
+      - testhub_network
     ports:
       - "${PORT_POPP_ZETA_PDP:?PORT_POPP_ZETA_PDP missing – set it in infra/docker/.env}:80"
       - "${PORT_POPP_ZETA_PDP_HEALTH:?PORT_POPP_ZETA_PDP_HEALTH missing – set it in infra/docker/.env}:9000"
@@ -247,57 +252,54 @@ services:
       - ./zeta/ocsp-signers.p12:/var/trust-data/ocsp-signers.p12:ro
       - ./zeta/smcb-trust-roots.p12:/var/trust-data/smcb-trust-roots.p12:ro
       - ./zeta/smcb-trust-roots-meta.json:/var/trust-data/smcb-trust-roots-meta.json:ro
-    networks:
-      - testhub_network
+    depends_on:
+      - popp-zeta-pdp-db
     healthcheck:
       test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;echo -e \"GET /auth/health/live HTTP/1.1\r\nhost: localhost:9000\r\nConnection: close\r\n\r\n\" >&3;grep \"status.*UP\" <&3" ]
       start_period: 120s
       interval: 5s
       timeout: 5s
       retries: 30
-    command: [ "start-dev","--import-realm" ]
-    depends_on:
-      - popp-zeta-pdp-db
 
   popp-zeta-pdp-db:
-    profiles: [ "full", "backend-only" ]
     container_name: popp-zeta-pdp-db
-    platform: linux/amd64
     image: postgres:16.14
     pull_policy: if_not_present
+    platform: linux/amd64
+    profiles: [ "full", "backend-only" ]
     env_file:
       - path: ../.env
         required: true
-    ports:
-      - "${PORT_POPP_ZETA_PDP_DB:?PORT_POPP_ZETA_PDP_DB missing – set it in infra/docker/.env}:5432"
-    tmpfs:
-      - /var/lib/postgresql/data
-    networks:
-      - testhub_network
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_PASSWORD: keycloak_db_user_password
       POSTGRES_USER: keycloak_db_user
+    networks:
+      - testhub_network
+    ports:
+      - "${PORT_POPP_ZETA_PDP_DB:?PORT_POPP_ZETA_PDP_DB missing – set it in infra/docker/.env}:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
 
   popp-zeta-pdp-opa:
-    profiles: [ "full", "backend-only" ]
     container_name: popp-zeta-pdp-opa
     image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/opa:1.19.1-static
-    env_file:
-      - path: ../.env
-        required: true
     platform: linux/amd64
-    environment:
-      <<: *popp-no-proxy-env
-    ports:
-      - "${PORT_POPP_ZETA_PDP_OPA:?PORT_POPP_ZETA_PDP_OPA missing – set it in infra/docker/.env}:8181"
+    profiles: [ "full", "backend-only" ]
     command:
       - 'run'
       - '--server'
       - '--log-level=debug'
       - '--addr=0.0.0.0:8181'
       - '/policies/authz.rego'
-    volumes:
-      - ./zeta-popp/policies:/policies:ro
+    env_file:
+      - path: ../.env
+        required: true
+    environment:
+      <<: *popp-no-proxy-env
     networks:
       - testhub_network
+    ports:
+      - "${PORT_POPP_ZETA_PDP_OPA:?PORT_POPP_ZETA_PDP_OPA missing – set it in infra/docker/.env}:8181"
+    volumes:
+      - ./zeta-popp/policies:/policies:ro
