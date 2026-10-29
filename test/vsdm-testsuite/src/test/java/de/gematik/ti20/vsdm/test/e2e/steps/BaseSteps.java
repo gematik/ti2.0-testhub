@@ -36,6 +36,8 @@ public class BaseSteps {
 
   protected static final List<Long> answerTimes = new ArrayList<>();
   protected static final TigerConfigBean CFG = TigerConfigProvider.getInstance();
+  protected static final String POPP_SERVER_URL = CFG.getTestData().getPoppServerUrl();
+  protected static final String KID_TOKEN_KEY = CFG.getTestData().getKidTokenKey();
   protected static final String SMCB_CARD_IMAGE_FILE = CFG.getTestData().getSmcbCardImageFile();
   protected static final String EGK_CARD_IMAGE_FILE = CFG.getTestData().getEgkCardImageFile();
   protected static final String VALID_PROFILE_VERSION = CFG.getTestData().getProfileVersion();

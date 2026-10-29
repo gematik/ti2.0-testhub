@@ -82,7 +82,7 @@ mvn clean verify \
   -Dspring.profiles.active=tu \
   -Dhttps.proxyHost=127.0.0.1 \
   -Dhttps.proxyPort=6350 \
-  -Dskip.unittests=true \
+  -Dsurefire.skip=true \
   -Dskip.inttests=false \
   -Dtiger.lib.activateWorkflowUi=false \
   -Djunit.tags=positive

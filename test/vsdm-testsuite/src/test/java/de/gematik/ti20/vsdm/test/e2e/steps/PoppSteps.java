@@ -24,8 +24,10 @@
  */
 package de.gematik.ti20.vsdm.test.e2e.steps;
 
+import static de.gematik.ti20.rbel.fluent.RbelFluentApi.expectRequests;
+
+import de.gematik.ti20.popp.testsupport.PoppTokenValidator;
 import de.gematik.ti20.vsdm.test.e2e.enums.CommType;
-import de.gematik.ti20.vsdm.test.e2e.helper.PoppTokenValidator;
 import de.gematik.ti20.vsdm.test.e2e.models.EgkCardInfo;
 import de.gematik.ti20.vsdm.test.e2e.models.SmcbCardInfo;
 import de.gematik.ti20.vsdm.test.e2e.questions.LastPoppToken;
@@ -47,25 +49,36 @@ public class PoppSteps extends BaseSteps {
 
   @Wenn("das Primärsystem den PoPP-Token mit der eGK vom PoPP-Service abgefragt")
   public void whenClientSystemIsRequestingPoppToken() {
-    hccs().attemptsTo(RequestPoppTokenFromServer.now());
+    hccs().attemptsTo(RequestPoppTokenFromServer.now(null));
+    hccs().remember("poppToken", LastPoppToken.value().answeredBy(hccs()));
+  }
+
+  @Wenn("das Primärsystem den PoPP-Token mit der eGK {string} vom PoPP-Service abgefragt")
+  public void whenClientSystemIsRequestingPoppToken(final String egkCardImageFile) {
+    hccs().attemptsTo(RequestPoppTokenFromServer.now(egkCardImageFile));
     hccs().remember("poppToken", LastPoppToken.value().answeredBy(hccs()));
   }
 
   @Dann("empfängt das Primärsystem den vollständigen und spezifikationskonformen PoPP-Token")
   public void thenClientSystemIsReceivingValidPoppToken() {
-    PoppTokenValidator.validateClaimsInPoppToken();
-    PoppTokenValidator.proofMethodInTokenMatchesCommTypeOrThrow(commType);
+    expectRequests("/token").nextResponse().storeValueAtPathAs("$.body.token", "poppToken");
+    PoppTokenValidator.validateClaimsInPoppToken(
+        POPP_SERVER_URL,
+        KID_TOKEN_KEY,
+        "(1.2.276.0.76.4.50)|(1.2.276.0.76.4.51)|(1.2.276.0.76.4.52)|(1.2.276.0.76.4.53)|(1.2.276.0.76.4.54)");
+    PoppTokenValidator.proofMethodInTokenMatchesCommTypeOrThrow(commType.getCommType());
   }
 
   @Und("die Daten des Versicherten im PoPP-Token entsprechen denen auf der eGK")
   public void andPoppTokenContainsPatientData() {
     EgkCardInfo egkCardInfo = hccs().recall("egkCardInfo");
-    PoppTokenValidator.assertThatPatientDataInTokenMatchesDataOnEgk(egkCardInfo);
+    PoppTokenValidator.assertPatientData(egkCardInfo.getKvnr(), egkCardInfo.getIknr());
   }
 
   @Und("die Daten des Leistungserbringers im PoPP-Token entsprechen denen auf der SMC-B")
   public void andPoppTokenContainsClientSystemData() {
     SmcbCardInfo smcbCardInfo = hccs().recall("smcbCardInfo");
-    PoppTokenValidator.asserThatPractitionerDataInTokenMatchesDataOnSmcb(smcbCardInfo);
+    PoppTokenValidator.assertPractitionerData(
+        smcbCardInfo.getTelematikId(), smcbCardInfo.getProfessionOid());
   }
 }

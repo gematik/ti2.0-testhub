@@ -33,6 +33,8 @@ public class TigerConfigBean {
 
   @Data
   public static class TestData {
+    private String poppServerUrl;
+    private String kidTokenKey;
     private String smcbCardImageFile;
     private String egkCardImageFile;
     private String iknrKvnrList;

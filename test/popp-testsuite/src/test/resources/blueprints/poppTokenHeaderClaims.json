@@ -1,5 +1,0 @@
-{
-  "kid": '${popp.server.kidTokenKey}',
-  "alg": 'ES256',
-  "typ": 'vnd.telematik.popp+jwt'
-}

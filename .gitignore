@@ -18,11 +18,16 @@ jenkinsfiles
 .github/copilot-instructions.md
 .gitlab
 /test/popp-testsuite/src/test/resources/certificates/mykeystore.p12
+/test/popp-testsuite/src/test/java/de/gematik/ti20/popp/robot/
+/test/popp-testsuite/src/test/resources/features/e2e/UC_PoPP_ROBOT.feature
 /test/popp-testsuite/src/test/resources/hashDbPayloads
+/test/popp-testsuite/src/test/resources/robot.yaml
 /test/popp-testsuite/doc
 /test/vsdm-testsuite/src/test/resources/drafts
 /test/vsdm-testsuite/src/test/resources/scripts
 /test/vsdm-testsuite/src/test/resources/private
+/test/vsdm-testsuite/src/test/resources/features/gitti
+/test/vsdm-testsuite/src/test/resources/features/popp
 /test/vsdm-testsuite/doc
 /test/zeta-testsuite/POLARION.md
 /infra/docker/backend/zeta/smcb-private/**

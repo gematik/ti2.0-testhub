@@ -1,17 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" child.project.url.inherit.append.path="false"
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>de.gematik.test</groupId>
+        <artifactId>tiger-bom</artifactId>
+        <version>4.4.5</version>
+        <relativePath/>
+    </parent>
+
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>3.21.0</version>
+    <version>3.22.0</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
+    <url>https://github.com/gematik/ti2.0-testhub</url>
     <inceptionYear>2025</inceptionYear>
 
     <modules>
         <module>lib/rbel-fluent-api</module>
+        <module>lib/popp-test-support</module>
         <module>lib/vsdm-fhir-lib-java</module>
         <module>client/card-terminal-client-simservice</module>
         <module>client/vsdm-client-simservice-java</module>
@@ -23,6 +32,12 @@
         <module>user-manual</module>
         <module>test/erp-testsuite</module>
     </modules>
+
+    <scm child.scm.connection.inherit.append.path="false" child.scm.developerConnection.inherit.append.path="false" child.scm.url.inherit.append.path="false">
+        <connection>scm:git:https://github.com/gematik/ti2.0-testhub.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/gematik/ti2.0-testhub.git</developerConnection>
+        <url>https://github.com/gematik/ti2.0-testhub</url>
+    </scm>
 
     <properties>
         <maven.compiler.release>21</maven.compiler.release>
@@ -48,7 +63,6 @@
         <version.pact.consumer>4.7.5</version.pact.consumer>
         <version.serenity>5.3.11</version.serenity>
         <version.spotless-maven-plugin>3.8.0</version.spotless-maven-plugin>
-        <version.spring-boot-maven-plugin>3.3.7</version.spring-boot-maven-plugin>
         <version.testcontainers>2.0.5</version.testcontainers>
         <version.tiger>4.4.5</version.tiger>
         <version.tiger-cloud-extension>10.0.18</version.tiger-cloud-extension>
@@ -64,13 +78,6 @@
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp-bom</artifactId>
                 <version>5.5.0</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>de.gematik.test</groupId>
-                <artifactId>tiger-bom</artifactId>
-                <version>${version.tiger}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -121,11 +128,16 @@
                 <artifactId>gem-testdata</artifactId>
                 <version>${version.gem.testdata}</version>
             </dependency>
-
-            <!-- TI 2.0 Testhub -->
             <dependency>
                 <groupId>de.gematik.ti20.client</groupId>
                 <artifactId>zeta-client-lib</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- TI 2.0 Testhub -->
+            <dependency>
+                <groupId>de.gematik.ti20.popp</groupId>
+                <artifactId>popp-test-support</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -316,7 +328,7 @@
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>${version.spring-boot-maven-plugin}</version>
+                    <version>${version.spring-boot}</version>
                 </plugin>
             </plugins>
         </pluginManagement>

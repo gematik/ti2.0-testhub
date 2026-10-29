@@ -43,9 +43,14 @@ public class RequestPoppTokenFromServer implements Task {
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final TigerConfigBean CFG = TigerConfigProvider.getInstance();
   private static final String EGK_CARD_IMAGE_FILE = CFG.getTestData().getEgkCardImageFile();
+  private final String egkCardImageFile;
 
-  public static RequestPoppTokenFromServer now() {
-    return instrumented(RequestPoppTokenFromServer.class);
+  public RequestPoppTokenFromServer(String egkCardImageFile) {
+    this.egkCardImageFile = egkCardImageFile;
+  }
+
+  public static RequestPoppTokenFromServer now(String egkCardImageFile) {
+    return instrumented(RequestPoppTokenFromServer.class, egkCardImageFile);
   }
 
   @Override
@@ -57,7 +62,12 @@ public class RequestPoppTokenFromServer implements Task {
     final ObjectNode json = MAPPER.createObjectNode();
     json.put("communicationType", commType.getValue());
     json.put("clientSessionId", "123456");
-    json.put("virtualCard", EGK_CARD_IMAGE_FILE);
+
+    if (egkCardImageFile != null) {
+      json.put("virtualCard", "/test-resources" + egkCardImageFile);
+    } else {
+      json.put("virtualCard", "/test-resources" + EGK_CARD_IMAGE_FILE);
+    }
 
     var api = CallPoppClient.as(actor);
 
