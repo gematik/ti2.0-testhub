@@ -2,6 +2,13 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.23.0
+
+### Changes
+
+- TESTHUB-0: Restructure user manual
+- TESTHUB-275: Supporting VSDM2 services with multiple clients by using two different eGK images
+
 ## Release 3.22.0
 
 ### Changes

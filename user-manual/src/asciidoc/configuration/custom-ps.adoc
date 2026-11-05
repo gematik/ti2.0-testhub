@@ -1,10 +1,9 @@
 
-== Integrate a custom PS (Primärsystem)
+=== Integrate your own Primärsystem
 
-Integrating a custom Primärsystem (PS) is a primary design goal of the TI 2.0 Testhub.
 The following steps describe how to run the Testhub backend locally so that a custom PS running on the Docker host can connect to the VSDM resource server via the ZETA ingress.
 
-=== 1. Register the service host names in `/etc/hosts`
+==== 1. Register the service host names in `/etc/hosts`
 
 Every service that must be reachable from outside of Docker has to be registered in `/etc/hosts` using the service name from the compose files.
 This is required because the ZETA components (e.g. the OAuth protected resource metadata and the Keycloak issuer) use these host names in their URLs.
@@ -15,7 +14,7 @@ Example for the VSDM ZETA ingress:
 127.0.0.1       vsdm-zeta-ingress
 ----
 
-=== 2. Start the Testhub in `backend-only` mode
+==== 2. Start the Testhub in `backend-only` mode
 
 Start the Testhub with the `backend-only` profile. This disables the built-in PS simulators (VSDM Client and Card Terminal Client):
 
@@ -33,7 +32,7 @@ PORT_VSDM_ZETA_INGRESS=443
 
 NOTE: The URLs in the well-known metadata served by each PEP must match the configured, externally reachable URLs, including any non-standard ports. When using `backend-only`, adjust `resource` and `authorization_servers` as needed in `infra/docker/backend/zeta/well-known-backend-only/oauth-protected-resource` (VSDM) and `infra/docker/backend/zeta-popp/well-known-backend-only/oauth-protected-resource` (PoPP). Both paths are relative to the repository root.
 
-=== 3. Optional: Verify the setup with the load test
+==== 3. Optional: Verify the setup with the load test
 
 To check that everything is reachable, run the load test against the local setup:
 
@@ -42,7 +41,7 @@ To check that everything is reachable, run the load test against the local setup
 ./mvnw -pl test/vsdm-testsuite/ gatling:test -Dgatling.simulationClass=de.gematik.ti20.vsdm.test.load.VsdmBackgroundLoadSimulation -Dconfig=simulation.conf
 ----
 
-=== PoPP
+==== PoPP
 
 The same steps can be applied analogously for the PoPP ZETA ingress:
 
@@ -51,7 +50,7 @@ The same steps can be applied analogously for the PoPP ZETA ingress:
 
 NOTE: A host port can only be bound once. If both ingresses are needed at the same time, they cannot both be mapped to port 443.
 
-=== ZETA SDK usage
+==== ZETA SDK usage
 
 The usage of the ZETA SDK can be seen in the existing `vsdm-client-simservice-java` implementation.
 The class `ZetaSdkClientAdapter.java` uses the client, while `VsdmZetaSdkClientConfig.java` configures it.

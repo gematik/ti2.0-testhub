@@ -39,7 +39,8 @@ public class BaseSteps {
   protected static final String POPP_SERVER_URL = CFG.getTestData().getPoppServerUrl();
   protected static final String KID_TOKEN_KEY = CFG.getTestData().getKidTokenKey();
   protected static final String SMCB_CARD_IMAGE_FILE = CFG.getTestData().getSmcbCardImageFile();
-  protected static final String EGK_CARD_IMAGE_FILE = CFG.getTestData().getEgkCardImageFile();
+  protected static final List<String> EGK_CARD_IMAGE_FILES =
+      CFG.getTestData().getEgkCardImageFiles();
   protected static final String VALID_PROFILE_VERSION = CFG.getTestData().getProfileVersion();
   protected static final boolean SHOW_BACKGROUND_LOAD_DIALOG =
       Boolean.parseBoolean(

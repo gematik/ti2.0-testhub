@@ -1,6 +1,34 @@
 
 == Overview
 
+CAUTION: Testhub is intended for development and testing purposes, **not for production use**.
+
+Testhub provides components to emulate a subset of Telematik infrastructure such as VSDM, PoPP and
+ZETA Guard.
+
+Testhub can be helpful if you:
+
+* develop a custom ZETA SDK implementation
+* want to run tests against a custom VSDM or PoPP implementation
+
+The components are run as Docker containers. The source code is freely available allowing for quick
+customizations. This user manual assumes that you are familiar with the command line and assumes you
+have some basic Docker and Docker Compose knowledge.
+
+The project can be split into three major parts:
+
+1. Client components that are trying to read and write from the Telematik infrastructure such as
+   software running in a pharmacy or a doctors office. This manual also refers to them as
+   "frontend".
+2. Server components that are often run by operators such as VSDM, PoPP and ZETA Guard. This manual
+   also refers to them as "backend".
+3. Testsuites that combine client and backend components to emulate TI workflows.
+
+NOTE: "client components" are run as Docker images as well and they do provide a REST API to interact with.
+
+Additionally a Tiger proxy is deployed. Tiger records almost all traffic between components and
+provides a web interface to inspect headers and payload.
+
 === Accessing Swagger UI
 
 Many services expose a Swagger UI on port 80 and the path
@@ -81,7 +109,7 @@ This project has the following folders:
 
 | **tiger/**
 | Shared Tiger configuration
-| Ports, paths, feature flags and the per-product environment registries. See <<_test_environment_selection>>.
+| Ports, paths, feature flags and the per-product environment registries. See xref:configuration.adoc#_test_environment_selection[].
 
 | **doc/**
 | Documentation and scripts
@@ -111,3 +139,19 @@ This project has the following folders:
 | This manual
 | AsciiDoc sources published to gematik.github.io/ti2.0-testhub
 |===
+
+=== PoPP Implementation Overview
+
+We ship two main implementations of PoPP (Proof of Patient Presence) with Testhub:
+
+Mock PoPP Token Generator :: An implementation that generates tokens with static cryptographic
+                             material and an endpoint to serve the complementary public key for
+                             validation in PEP. Recommended for load tests and rapid prototyping.
+Gematik Sample Implementation :: Aligns to the specified PoPP interfaces. Suitable for
+                                 production-like scenarios and interface compliance testing.
+
+PoPP tokens have to be generated and validated. Validation is commonly done by the ZETA Guard PEP component.
+The token is signed using a private key and validated using the public key complement. The PEP must
+be configured to read the public key from the service that generated the token.
+
+The VSDM client can be configured to use the Mock PoPP Token Generator or an arbitrary endpoint that implements the PoPP specification.

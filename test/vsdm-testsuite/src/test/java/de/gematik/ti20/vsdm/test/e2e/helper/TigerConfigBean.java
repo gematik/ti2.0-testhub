@@ -24,6 +24,7 @@
  */
 package de.gematik.ti20.vsdm.test.e2e.helper;
 
+import java.util.List;
 import lombok.Data;
 
 @Data
@@ -36,7 +37,7 @@ public class TigerConfigBean {
     private String poppServerUrl;
     private String kidTokenKey;
     private String smcbCardImageFile;
-    private String egkCardImageFile;
+    private List<String> egkCardImageFiles;
     private String iknrKvnrList;
     private String profileVersion;
   }

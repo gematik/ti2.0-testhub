@@ -26,10 +26,15 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0
 
     Angenommen das Primärsystem in der LEI verwendet ein korrekt konfiguriertes Terminal
     Angenommen das Primärsystem in der LEI verwendet eine SMC-B im Slot <Smcb-Slot>
-    Angenommen der Versicherte in der LEI verwendet eine eGK im Slot <Egk-Slot>
+    Angenommen der Versicherte in der LEI verwendet eine eGK <Egk-Image> im Slot <Egk-Slot>
     Wenn das Primärsystem die VSD mit dem Accept-Header <Accept-Header> vom VSDM Ressource Server abfragt
     Dann sendet der VSDM Ressource Server die aktualisierten VSD mit dem Content-Type <Content-Type> zum Primärsystem
 
     Beispiele:
-      | Smcb-Slot | Egk-Slot | Accept-Header          | Content-Type           |
-      | 1         | 2        | "application/fhir+xml" | "application/fhir+xml" |
+      | Smcb-Slot | Egk-Slot | Egk-Image | Accept-Header          | Content-Type           |
+      | 1         | 2        | 1         | "application/fhir+xml" | "application/fhir+xml" |
+
+    @MULTI
+    Beispiele:
+      | Smcb-Slot | Egk-Slot | Egk-Image | Accept-Header          | Content-Type           |
+      | 1         | 2        | 2         | "application/fhir+xml" | "application/fhir+xml" |
