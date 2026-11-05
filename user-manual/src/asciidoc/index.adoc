@@ -38,20 +38,12 @@ include::overview.adoc[]
 
 include::example_workflows.adoc[]
 
-include::configuration.adoc[]
-
-include::architecture.adoc[]
-
 include::traffic.adoc[]
 
-include::ps-integration.adoc[]
-
-include::popp-integration.adoc[]
-
-include::vsdm-integration.adoc[]
-
-include::zeta.adoc[]
+include::configuration.adoc[]
 
 include::troubleshooting.adoc[]
 
 include::knownissues.adoc[]
+
+include::references.adoc[]

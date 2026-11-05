@@ -42,7 +42,8 @@ public class RequestPoppTokenFromServer implements Task {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final TigerConfigBean CFG = TigerConfigProvider.getInstance();
-  private static final String EGK_CARD_IMAGE_FILE = CFG.getTestData().getEgkCardImageFile();
+  private static final String EGK_CARD_IMAGE_FILE =
+      CFG.getTestData().getEgkCardImageFiles().getFirst();
   private final String egkCardImageFile;
 
   public RequestPoppTokenFromServer(String egkCardImageFile) {

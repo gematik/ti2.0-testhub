@@ -27,7 +27,7 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0
 
     Angenommen das Primärsystem in der LEI verwendet ein korrekt konfiguriertes Terminal
     Angenommen das Primärsystem in der LEI verwendet eine SMC-B im Slot <Smcb-Slot>
-    Angenommen der Versicherte in der LEI verwendet eine eGK im Slot <Egk-Slot>
+    Angenommen der Versicherte in der LEI verwendet eine eGK <Egk-Image> im Slot <Egk-Slot>
     Wenn das Primärsystem die VSD mittels PoPP- und Access-Token vom VSDM Ressource Server abfragt
     Dann sendet der VSDM Ressource Server die aktualisierten VSD mit dem Statuscode <Http-Code> zum Primärsystem
     Und dann sendet der VSDM Ressource Server ein neues E-Tag zum Primärsystem
@@ -39,5 +39,10 @@ Funktionalität: Abfrage der Versichertenstammdaten vom Fachdienst VSDM 2.0
     Und das Primärsystem speichert das E-Tag in seiner lokalen Datenbank
 
     Beispiele:
-      | Smcb-Slot | Egk-Slot | Http-Code |
-      | 1         | 2        | 200       |
+      | Smcb-Slot | Egk-Slot | Egk-Image | Http-Code |
+      | 1         | 2        | 1         | 200       |
+
+    @MULTI
+    Beispiele:
+      | Smcb-Slot | Egk-Slot | Egk-Image | Http-Code |
+      | 1         | 2        | 2         | 200       |

@@ -86,7 +86,7 @@ services:
 
   docker-tiger-proxy:
     container_name: docker-tiger-proxy
-    image: gematik1/tiger-proxy-image:4.4.5
+    image: gematik1/tiger-proxy-image:4.5.0
     platform: linux/amd64
     profiles: [ "full", "ps-only", "backend-only" ]
     env_file:
@@ -105,7 +105,7 @@ services:
 
   docker-tiger-proxy-b:
     container_name: docker-tiger-proxy-b
-    image: gematik1/tiger-proxy-image:4.4.2
+    image: gematik1/tiger-proxy-image:4.5.0
     platform: linux/amd64
     profiles: [ "ip_bindung_on_demand" ]
     env_file:
@@ -124,7 +124,7 @@ services:
 
   canopy:
     container_name: tiger-canopy
-    image: docker.io/gematik1/tiger-canopy-image:4.4.5
+    image: docker.io/gematik1/tiger-canopy-image:4.5.0
     platform: linux/amd64
     profiles: [ "full", "ps-only", "backend-only" ]
     environment:

@@ -1,5 +1,21 @@
 == FAQ / Troubleshooting
 
+=== General troubleshooting advice
+
+* After changes to compose files always restart the affected containers (e.g. `docker compose down && docker compose up -d` for the changed services).
+* Test reachability of the external service from the Testhub instance (e.g. `curl` from the host/container).
+* Verify that the external PoPP infrastructure is healthy and accessible before starting the vsdm-client and other dependent services.
+* Pay attention to WebSocket connections if using external PoPP servers (ensure `wss://` is properly configured for secure connections).
+* Check logs for authentication errors or token generation issues if the vsdm-client reports connectivity problems:
+
+[source,bash]
+----
+docker logs vsdm-client
+docker logs popp-client
+----
+
+* Ensure the PoPP client REST endpoint is accessible and returns valid responses in the expected format.
+
 === Testhub
 
 ==== Why are there so many files in the SMC-B ZIP file?

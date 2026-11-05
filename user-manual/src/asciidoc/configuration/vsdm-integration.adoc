@@ -1,15 +1,15 @@
 
-== How to integrate VSDM services
+=== Integrate your own VSDM system
 
-=== Scenario 1: Replace the Resource Server behind ZetaGuard
+==== Scenario 1: Replace the Resource Server behind ZetaGuard
 
 If you only want to replace the Resource Server (keeping ZetaGuard as PEP/proxy), follow these steps.
 
-==== Prerequisites
+===== Prerequisites
 
 * The external resource server must be started and reachable from the Testhub instance.
 
-==== Steps
+===== Steps
 
 * Make sure the vsdm server simulation is not started in the compose setup.
 
@@ -49,11 +49,11 @@ proxy_pass http://URL_TO_REAL_SERVER/;
 
 Tip: Pay attention to the trailing `/` and to TLS (https://...) when required.
 
-=== Scenario 2: Replace the complete domain service (ZetaGuard + Resource Server)
+==== Scenario 2: Replace the complete domain service (ZetaGuard + Resource Server)
 
 If the complete domain service (ZetaGuard and the Resource Server) is operated externally, follow these steps.
 
-==== Prerequisites
+===== Prerequisites
 
 * The external domain service (ZetaGuard + Resource Server) must be started and reachable from the Testhub instance.
 
@@ -62,7 +62,7 @@ If the complete domain service (ZetaGuard and the Resource Server) is operated e
   Popp-Token-Generator that is reachable from the ZetaGuard. The ZetaGuard uses the `pep_popp_issuer` configuration to validate
   the signature of the incoming PoPP tokens.
 
-==== Steps
+===== Steps
 
 * Adjust the configuration of the vsdm-client to point to the external domain service.
 
@@ -86,10 +86,3 @@ Also, configure the VSDM2 test feature files to use the correct card image.
 
 Optional: to make the tests start up faster, comment out all the components in the compose files that are not needed for the
 VSDM2 tests: vsdm-server, popp-server and their ingresses as well as their associated pep and pdp components.
-
-=== Notes / Troubleshooting
-
-* After changes to compose files always restart the affected containers (e.g. `docker compose down && docker compose up -d` for the changed services).
-* Test reachability of the external service from the Testhub instance (e.g. `curl` from the host/container).
-* Pay attention to CORS, authentication and TLS settings if clients report errors when accessing the external service.
-

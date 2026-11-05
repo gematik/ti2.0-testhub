@@ -1,0 +1,38 @@
+
+=== Integrate your own PoPP system
+
+Testhub uses a PoPP mock server implementation. You can replace this mock server implementation with
+the Gematik Sample implementation or your own PoPP server implementation.
+
+1. Ensure the external infrastructure is up, running and reachable.
+2. In the `vsdm-client` configuration set `VSDM_USE_MOCK_POPP_TOKEN=false`:
+
+    # infra/docker/compose-local.yml
+    vsdm-client:
+    # ...
+    environment:
+        - VSDM_USE_MOCK_POPP_TOKEN=false
+
+3. Set `POPP_SERVER_URL` to the external server endpoint to request a new PoPP token:
+
+    # infra/docker/backend/compose-popp-services.yml
+    popp-client:
+        # ...
+        environment:
+        - POPP_SERVER_URL=wss://example.com/popp/token
+
+4. Ensure the PEP component references the active PoPP server to resolve the public keys for PoPP
+   token validation:
+
+    pep_popp_issuer https://example.com/
+
+Rebuild and restart services to ensure all configuration values are applied correctly.
+
+==== Common Issues When Using An External Implementation
+
+Ensure that the `kid` in your PoPP token can be found in the JWKS endpoint (usually
+/.well-known/signed-jwks) offered by the PoPP issuer.
+
+Make sure that the external implementation returns the expected responses from the respective
+endpoints. To learn refer to the https://github.com/gematik/zeta-guard-ngx-pep[PEP source code]
+dealing with the JWKS data.

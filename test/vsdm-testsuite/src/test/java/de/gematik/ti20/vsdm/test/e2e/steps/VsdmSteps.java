@@ -63,12 +63,17 @@ public class VsdmSteps extends BaseSteps {
 
   @Angenommen("der Versicherte in der LEI verwendet eine eGK im Slot {int}")
   public void givenPatientIsUsingItsEgk(Integer slot) {
-    hccs().attemptsTo(InsertEgkCard.fromFileInSlot(EGK_CARD_IMAGE_FILE, slot));
+    hccs().attemptsTo(InsertEgkCard.fromFileInSlot(EGK_CARD_IMAGE_FILES.getFirst(), slot));
   }
 
   @Angenommen("der Versicherte in der LEI verwendet eine eGK {string} im Slot {int}")
   public void givenPatientIsUsingEgk(String egkImage, Integer slot) {
     hccs().attemptsTo(InsertEgkCard.fromFileInSlot(egkImage, slot));
+  }
+
+  @Angenommen("der Versicherte in der LEI verwendet eine eGK {int} im Slot {int}")
+  public void givenPatientIsUsingEgk(Integer egkImage, Integer slot) {
+    hccs().attemptsTo(InsertEgkCard.fromFileInSlot(EGK_CARD_IMAGE_FILES.get(egkImage - 1), slot));
   }
 
   @Angenommen("das Primärsystem hat die VSD bereits einmal im Quartal abgefragt")
@@ -246,15 +251,13 @@ public class VsdmSteps extends BaseSteps {
   }
 
   @Wenn("das Primärsystem {int} Anfragen mit VSD Update an den Fachdienst VSDM 2.0 sendet")
-  public void whenClientSystemIsRequestingVsdPeriodicallyWithUpdate(int nbrCalls)
-      throws InterruptedException {
+  public void whenClientSystemIsRequestingVsdPeriodicallyWithUpdate(int nbrCalls) {
     answerTimes.clear();
     sendReadVsd(nbrCalls, true);
   }
 
   @Wenn("das Primärsystem {int} Anfragen ohne VSD Update an den Fachdienst VSDM 2.0 sendet")
-  public void whenClientSystemIsRequestingVsdPeriodicallyWithoutUpdate(int nbrCalls)
-      throws InterruptedException {
+  public void whenClientSystemIsRequestingVsdPeriodicallyWithoutUpdate(int nbrCalls) {
     answerTimes.clear();
     sendReadVsd(nbrCalls, false);
   }
