@@ -2,6 +2,17 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Release 3.24.0
+
+### Update notes
+
+This release updates the VSDM Zeta components to version 1.3.5 and the Zeta SDK to version 2.0.4.
+The SDK update is backward compatible with previous versions of the Zeta Guard.
+
+### Changes
+
+- TESTHUB-303: Update ZETA-Guard to 1.3.5
+
 ## Release 3.23.0
 
 ### Changes
@@ -14,6 +25,7 @@
 ### Changes
 
 - ZTI-4911: Add testcase for ip-binding of the access-token
+- ZTI-4567: Add testcase for policy hot reload via bundle polling
 
 ## Release 3.21.0
 

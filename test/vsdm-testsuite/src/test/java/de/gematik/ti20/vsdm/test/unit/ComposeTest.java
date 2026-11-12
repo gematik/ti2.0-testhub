@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -85,6 +86,40 @@ class ComposeTest {
     return activeServices;
   }
 
+  @Test
+  void bundleRegistryUsesWritableProjectScopedVolume() throws IOException {
+    List<?> mounts =
+        list(serviceProperty("vsdm-zeta-bundle-registry", "volumes", new LinkedHashSet<>()));
+    assertEquals(1, mounts.size());
+    Map<?, ?> mount = map(mounts.getFirst());
+    assertEquals("volume", mount.get("type"));
+    assertEquals("zeta_bundle_registry", mount.get("source"));
+    assertEquals("/usr/share/nginx/html", mount.get("target"));
+    assertNotEquals(Boolean.TRUE, mount.get("read_only"));
+    assertEquals(Boolean.TRUE, map(mount.get("volume")).get("nocopy"));
+    assertTrue(VOLUMES.contains("zeta_bundle_registry"));
+    Path servicesFile =
+        COMPOSE_FILES.stream()
+            .filter(path -> path.getFileName().toString().equals("compose-vsdm-services.yaml"))
+            .findFirst()
+            .orElseThrow();
+    var yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
+    try (var input = Files.newInputStream(servicesFile)) {
+      Map<?, ?> volume = map(map(map(yaml.load(input)).get("volumes")).get("zeta_bundle_registry"));
+      assertFalse(volume.containsKey("name"), "Compose must scope the volume by project");
+      assertNotEquals(Boolean.TRUE, volume.get("external"), "Compose must manage its lifecycle");
+    }
+    try (var input =
+        Files.newInputStream(
+            servicesFile.getParent().getParent().resolve("compose-ci-vsdm.yaml"))) {
+      Map<?, ?> registry =
+          map(map(map(yaml.load(input)).get("services")).get("vsdm-zeta-bundle-registry"));
+      assertFalse(registry.containsKey("volumes"), "CI must retain the base registry volume");
+      assertEquals(
+          "${COMPOSE_PROJECT_NAME}-vsdm-zeta-bundle-registry", registry.get("container_name"));
+    }
+  }
+
   @ParameterizedTest(name = "{0}: service selection")
   @ValueSource(strings = {"backend-only", "full", "ps-only"})
   void profileSelectsExpectedServices(String profile) {
@@ -106,6 +141,7 @@ class ComposeTest {
             "vsdm-zeta-pdp",
             "vsdm-zeta-pdp-db",
             "vsdm-zeta-pdp-opa",
+            "vsdm-zeta-bundle-registry",
             "otel-collector",
             "prometheus",
             "grafana",
@@ -143,7 +179,7 @@ class ComposeTest {
 
   @ParameterizedTest(name = "{0}: profile-specific protected resource metadata")
   @ValueSource(strings = {"backend-only", "full", "ps-only"})
-  void profileSelectsExactlyOneMetadataMountPerPep(String profile) throws IOException {
+  void profileSelectsExactlyOneMetadataMountPerPep(String profile) {
     Path backend =
         COMPOSE_FILES.stream()
             .filter(path -> path.getFileName().toString().equals("compose-backend.yaml"))
@@ -229,8 +265,9 @@ class ComposeTest {
                                       serviceProperty(
                                           dependency, "healthcheck", new LinkedHashSet<>()));
                               List<?> command = list(healthcheck.get("test"));
-                              assertFalse(
-                                  Boolean.TRUE.equals(healthcheck.get("disable")),
+                              assertNotEquals(
+                                  Boolean.TRUE,
+                                  healthcheck.get("disable"),
                                   name + " waits for disabled healthcheck on " + dependency);
                               assertFalse(command.isEmpty(), dependency + " needs a healthcheck");
                               assertNotEquals(

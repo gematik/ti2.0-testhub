@@ -31,7 +31,7 @@ tigerProxy:
       matchForProxyType: false
     - from: /
       to: http://vsdm-zeta-pdp-opa:8181/
-      hosts: ["vsdm-zeta-pdp-opa"]
+      hosts: ["vsdm-zeta-pdp-opa", "docker-tiger-proxy"]
       matchForProxyType: false
 
 

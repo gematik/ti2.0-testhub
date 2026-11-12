@@ -50,7 +50,8 @@ public class CardTerminalSteps {
   @Given("card terminal {tigerResolvedString} is configured at the VSDM client")
   public void configureTerminalAtVsdmClient(String terminalUrl) {
     String vsdmClientUrl =
-        TigerGlobalConfiguration.resolvePlaceholders("http://127.0.0.1:${ports.vsdmClientPort}");
+        TigerGlobalConfiguration.resolvePlaceholders(
+            "http://${ports.host}:${ports.vsdmClientPort}");
 
     String terminalConfig =
         "[{\"name\":\"Terminal-0\",\"type\":\"SIMSVC\",\"url\":\"%s\"}]".formatted(terminalUrl);
@@ -81,7 +82,8 @@ public class CardTerminalSteps {
   @Given("card {string} is loaded in slot {int} of the card terminal")
   public void loadCardInSlot(String cardImagePath, int slotId) {
     String cardTerminalUrl =
-        TigerGlobalConfiguration.resolvePlaceholders("http://127.0.0.1:${ports.cardTerminalPort}");
+        TigerGlobalConfiguration.resolvePlaceholders(
+            "http://${ports.host}:${ports.cardTerminalPort}");
 
     // Remove any existing card from the slot first (ignore 404 if empty)
     String slotUrl = cardTerminalUrl + "/slots/" + slotId;
