@@ -102,7 +102,6 @@ public class VsdmZetaSdkClientConfig {
                 .disableServerValidation(vsdmConfig.isDisableServerValidation())
                 .logging(LogLevel.ALL),
             null,
-            null,
             null));
   }
 

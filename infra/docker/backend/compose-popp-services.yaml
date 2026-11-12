@@ -152,7 +152,7 @@ services:
 
   popp-zeta-pep: &popp-zeta-pep
     container_name: popp-zeta-pep
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:1.3.3
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/ngx_pep:1.3.4
     platform: linux/amd64
     profiles: [ "full" ]
     command: [ "nginx", "-g", "daemon off;", "-c", "/ci_nginx/nginx.conf" ]
@@ -192,7 +192,7 @@ services:
 
   popp-zeta-pdp:
     container_name: popp-zeta-pdp
-    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:1.3.2
+    image: europe-west3-docker.pkg.dev/gematik-pt-zeta-prod/zeta-dcr/keycloak-zeta:1.3.3
     platform: linux/amd64
     profiles: [ "full", "backend-only" ]
     command: [ "start-dev","--import-realm" ]
@@ -263,7 +263,7 @@ services:
 
   popp-zeta-pdp-db:
     container_name: popp-zeta-pdp-db
-    image: postgres:16.14
+    image: postgres:17.11
     pull_policy: if_not_present
     platform: linux/amd64
     profiles: [ "full", "backend-only" ]

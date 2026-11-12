@@ -45,7 +45,7 @@ public class StorageInterceptor implements SdkStorage {
       @NotNull final String value,
       @NotNull final Continuation<? super Unit> continuation) {
     cache.put(key, value);
-    return continuation;
+    return Unit.INSTANCE;
   }
 
   @Override
@@ -57,11 +57,13 @@ public class StorageInterceptor implements SdkStorage {
   @Override
   public @Nullable Object remove(
       @NotNull final String key, @NotNull final Continuation<? super Unit> continuation) {
-    return null;
+    cache.remove(key);
+    return Unit.INSTANCE;
   }
 
   @Override
   public @Nullable Object clear(@NotNull final Continuation<? super Unit> continuation) {
-    return null;
+    cache.clear();
+    return Unit.INSTANCE;
   }
 }

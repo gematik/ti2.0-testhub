@@ -1,0 +1,27 @@
+# OPA Bundle-Service-Konfiguration für das Policy-Hot-Reload-via-Bundle-Polling-Szenario in
+# zeta-policy-updateability/policy_updateability.feature.
+#
+# "local_artifact_registry" verweist auf vsdm-zeta-bundle-registry (ein einfacher statischer
+# nginx-Server, siehe compose-vsdm-services.yaml), der das von PolicyBundlePollingSteps erzeugte
+# Policy-Bundle unter dem hier konfigurierten "resource"-Pfad bereitstellt. OPA pollt diesen Pfad
+# im hier konfigurierten Intervall und wendet Änderungen automatisch an (Hot-Reload).
+#
+# Der Bundle-Name "zeta_updateability_bundle_test" bestimmt die Policy-Modul-IDs, unter denen OPA
+# die Bundle-Inhalte verwaltet (z.B. "zeta_updateability_bundle_test/authz.rego") - diese IDs sind
+# unabhängig von den über die OPA-REST-API verwalteten IDs ("zeta/authz", "policies/authz.rego",
+# siehe PolicyUpdateabilitySteps), sodass es hier zu keiner Namenskollision kommt.
+#
+# Das Bundle selbst deklariert via .manifest ausschließlich den Root "zeta/bundletest" - dadurch
+# bleibt das produktive "zeta/authz"-Paket (Datei /policies/authz.rego bzw. REST-verwaltete Policy)
+# von diesem Bundle vollständig unberührt, siehe PolicyBundlePollingSteps.
+services:
+  local_artifact_registry:
+    url: http://vsdm-zeta-bundle-registry:80
+
+bundles:
+  zeta_updateability_bundle_test:
+    service: local_artifact_registry
+    resource: "bundles/zeta-updateability-bundle-test.tar.gz"
+    polling:
+      min_delay_seconds: 1
+      max_delay_seconds: 2

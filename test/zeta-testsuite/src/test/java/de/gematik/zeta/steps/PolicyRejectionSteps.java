@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
@@ -79,7 +81,8 @@ public class PolicyRejectionSteps {
           "security-admin-console");
 
   private static final String ZETA_GUARD_REALM = "zeta-guard";
-  private static final String VSDM_CLIENT_CONTAINER_NAME = "vsdm-client";
+  private static final String VSDM_CLIENT_CONTAINER_NAME =
+      "${zeta.containers.vsdmClient|vsdm-client}";
 
   private final RestTemplate restTemplate = new RestTemplate();
 
@@ -160,7 +163,11 @@ public class PolicyRejectionSteps {
    * access/refresh token cache, then waits for the service to become healthy again.
    */
   private void restartVsdmClient() {
-    List<String> command = List.of("docker", "restart", VSDM_CLIENT_CONTAINER_NAME);
+    List<String> command =
+        List.of(
+            "docker",
+            "restart",
+            TigerGlobalConfiguration.resolvePlaceholders(VSDM_CLIENT_CONTAINER_NAME));
     try {
       Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
       boolean finished = process.waitFor(60, TimeUnit.SECONDS);
@@ -177,14 +184,54 @@ public class PolicyRejectionSteps {
       }
       throw new AssertionError("Failed to run docker command: " + String.join(" ", command), e);
     }
+    refreshVsdmClientPort();
     waitForVsdmClientHealthy();
+  }
+
+  // With ephemeral host ports (Jenkins: PORT_VSDM_CLIENT=0) Docker assigns a new host port on
+  // restart, so the configured port goes stale.
+  private void refreshVsdmClientPort() {
+    String container = TigerGlobalConfiguration.resolvePlaceholders(VSDM_CLIENT_CONTAINER_NAME);
+    try {
+      Process process =
+          new ProcessBuilder(List.of("docker", "port", container, "80"))
+              .redirectErrorStream(true)
+              .start();
+      boolean finished = process.waitFor(15, TimeUnit.SECONDS);
+      String output = new String(process.getInputStream().readAllBytes());
+      if (!finished || process.exitValue() != 0) {
+        log.warn("Could not resolve VSDM client port: {}", output.trim());
+        return;
+      }
+      output
+          .lines()
+          .map(String::trim)
+          .filter(line -> line.contains(":"))
+          .map(line -> line.substring(line.lastIndexOf(':') + 1))
+          .filter(port -> port.matches("\\d+"))
+          .findFirst()
+          .ifPresent(
+              port -> {
+                log.info("VSDM client host port after restart: {}", port);
+                TigerGlobalConfiguration.putValue("ports.vsdmClientPort", port);
+              });
+    } catch (IOException e) {
+      log.warn("Could not resolve VSDM client port: {}", e.getMessage());
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
   }
 
   private void waitForVsdmClientHealthy() {
     String statusUrl =
         TigerGlobalConfiguration.resolvePlaceholders(
-            "http://127.0.0.1:${ports.vsdmClientPort}/service/status");
-    Duration timeout = Duration.ofSeconds(60);
+            "http://${ports.host}:${ports.vsdmClientPort}/service/status");
+    // 120s instead of the previous 60s: with the additional Bundle-Polling containers
+    // (vsdm-zeta-bundle-registry, vsdm-zeta-pdp-opa's --config-file polling, see
+    // compose-vsdm-services.yaml) now running for the whole suite, the shared Docker host has
+    // measurably less headroom, so a vsdm-client restart can legitimately take longer than 60s to
+    // become healthy again - a timeout here must not be mistaken for an actual regression.
+    Duration timeout = Duration.ofSeconds(120);
 
     try {
       Awaitility.await()
@@ -200,7 +247,41 @@ public class PolicyRejectionSteps {
       log.info("VSDM client is healthy again after restart.");
     } catch (ConditionTimeoutException e) {
       throw new AssertionError(
-          "VSDM client did not become healthy within %s after restart.".formatted(timeout), e);
+          "VSDM client did not become healthy within %s after restart. Container logs:%n%s"
+              .formatted(timeout, readContainerLogTail()),
+          e);
+    }
+  }
+
+  private String readContainerLogTail() {
+    String container = TigerGlobalConfiguration.resolvePlaceholders(VSDM_CLIENT_CONTAINER_NAME);
+    return Stream.of(
+            List.of(
+                "docker",
+                "inspect",
+                "-f",
+                "state={{.State.Status}} health={{if .State.Health}}{{.State.Health.Status}}{{end}}"
+                    + " started={{.State.StartedAt}} exit={{.State.ExitCode}}"
+                    + " oom={{.State.OOMKilled}}",
+                container),
+            List.of("docker", "port", container),
+            List.of("docker", "logs", "--timestamps", "--tail", "15", container))
+        .map(this::runDockerDiagnostic)
+        .collect(Collectors.joining(System.lineSeparator()));
+  }
+
+  private String runDockerDiagnostic(List<String> command) {
+    try {
+      Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
+      process.waitFor(15, TimeUnit.SECONDS);
+      return "$ %s%n%s"
+          .formatted(
+              String.join(" ", command), new String(process.getInputStream().readAllBytes()));
+    } catch (IOException e) {
+      return "<could not run %s: %s>".formatted(String.join(" ", command), e.getMessage());
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return "<interrupted while running " + String.join(" ", command) + ">";
     }
   }
 }

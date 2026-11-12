@@ -69,7 +69,7 @@ public class VsdmDataFromServiceStrategy {
       final ZetaSdkClientAdapter.RequestParameters requestParameters =
           new ZetaSdkClientAdapter.RequestParameters(
               traceId, poppToken, isFhirXml, skipPoppTokenHeader, ifNoneMatch);
-      final String baseUrl = "vsdservice/v1/vsdmbundle";
+      final String baseUrl = "/vsdservice/v1/vsdmbundle";
       final String url =
           profileVersion != null ? baseUrl + "?profileVersion=" + profileVersion : baseUrl;
       final ZetaSdkClientAdapter.Response responseFromServer =

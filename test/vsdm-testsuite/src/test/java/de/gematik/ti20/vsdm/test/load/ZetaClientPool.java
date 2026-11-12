@@ -199,7 +199,6 @@ final class ZetaClientPool {
                 PlatformProductId.PLATFORM_LINUX, "jar", "testhub", "latest"),
             new ZetaHttpClientBuilder().disableServerValidation(true).logging(LogLevel.ALL),
             null,
-            null,
             null));
   }
 

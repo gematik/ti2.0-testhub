@@ -84,7 +84,7 @@ class VsdmDataFromServiceStrategyTest {
                 "application/fhir+json"),
             "vsdm-data");
     when(attachedCard.getId()).thenReturn("card-123");
-    when(vsdmZetaClient.httpGet(eq("vsdservice/v1/vsdmbundle?profileVersion=1.1"), any()))
+    when(vsdmZetaClient.httpGet(eq("/vsdservice/v1/vsdmbundle?profileVersion=1.1"), any()))
         .thenReturn(response);
 
     final Optional<VsdmReadResult> result =
@@ -109,7 +109,7 @@ class VsdmDataFromServiceStrategyTest {
     final ArgumentCaptor<ZetaSdkClientAdapter.RequestParameters> parametersCaptor =
         ArgumentCaptor.forClass(ZetaSdkClientAdapter.RequestParameters.class);
     verify(vsdmZetaClient)
-        .httpGet(eq("vsdservice/v1/vsdmbundle?profileVersion=1.1"), parametersCaptor.capture());
+        .httpGet(eq("/vsdservice/v1/vsdmbundle?profileVersion=1.1"), parametersCaptor.capture());
     assertThat(parametersCaptor.getValue())
         .isEqualTo(
             new ZetaSdkClientAdapter.RequestParameters(
@@ -120,13 +120,13 @@ class VsdmDataFromServiceStrategyTest {
   void shouldForwardSkipPoppTokenHeader() throws InterruptedException {
     final ZetaSdkClientAdapter.Response response =
         new ZetaSdkClientAdapter.Response(HttpStatus.OK, Map.of("ETag", "etag-123"), "vsdm-data");
-    when(vsdmZetaClient.httpGet(eq("vsdservice/v1/vsdmbundle"), any())).thenReturn(response);
+    when(vsdmZetaClient.httpGet(eq("/vsdservice/v1/vsdmbundle"), any())).thenReturn(response);
 
     strategy.get("terminal-1", 2, null, false, true, "popp-token", null, null);
 
     final ArgumentCaptor<ZetaSdkClientAdapter.RequestParameters> parametersCaptor =
         ArgumentCaptor.forClass(ZetaSdkClientAdapter.RequestParameters.class);
-    verify(vsdmZetaClient).httpGet(eq("vsdservice/v1/vsdmbundle"), parametersCaptor.capture());
+    verify(vsdmZetaClient).httpGet(eq("/vsdservice/v1/vsdmbundle"), parametersCaptor.capture());
     assertThat(parametersCaptor.getValue().skipPoppTokenHeader()).isTrue();
   }
 
@@ -139,7 +139,7 @@ class VsdmDataFromServiceStrategyTest {
             HttpStatus.NOT_MODIFIED, Map.of("etag", "new-etag", "vsdm-pz", "new-pruefziffer"), "");
     when(attachedCard.getId()).thenReturn("card-123");
     when(vsdmDataRepository.get("terminal-1", 2, "card-123")).thenReturn(cachedValue);
-    when(vsdmZetaClient.httpGet(eq("vsdservice/v1/vsdmbundle"), any())).thenReturn(response);
+    when(vsdmZetaClient.httpGet(eq("/vsdservice/v1/vsdmbundle"), any())).thenReturn(response);
 
     final Optional<VsdmReadResult> result =
         strategy.get("terminal-1", 2, attachedCard, false, false, "popp-token", "old-etag", null);
@@ -160,7 +160,7 @@ class VsdmDataFromServiceStrategyTest {
     final ZetaSdkClientAdapter.Response response =
         new ZetaSdkClientAdapter.Response(
             HttpStatus.BAD_GATEWAY, Map.of("error-header", "error-value"), "backend error");
-    when(vsdmZetaClient.httpGet(eq("vsdservice/v1/vsdmbundle"), any())).thenReturn(response);
+    when(vsdmZetaClient.httpGet(eq("/vsdservice/v1/vsdmbundle"), any())).thenReturn(response);
 
     final VsdmServerException exception =
         assertThrows(
@@ -177,7 +177,7 @@ class VsdmDataFromServiceStrategyTest {
   void shouldThrowInternalServerErrorWhenResponseBodyIsMissing() throws InterruptedException {
     final ZetaSdkClientAdapter.Response response =
         new ZetaSdkClientAdapter.Response(HttpStatus.OK, Map.of(), null);
-    when(vsdmZetaClient.httpGet(eq("vsdservice/v1/vsdmbundle"), any())).thenReturn(response);
+    when(vsdmZetaClient.httpGet(eq("/vsdservice/v1/vsdmbundle"), any())).thenReturn(response);
 
     final ResponseStatusException exception =
         assertThrows(
