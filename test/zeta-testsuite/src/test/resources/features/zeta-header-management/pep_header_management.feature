@@ -6,7 +6,6 @@
 @PRODUKT:Anb_PoPP_Service
 @PRODUKT:VSDM_2_FD
 @PRODUKT:Anb_FD_VSDM
-@PRODUKT:ZETA
 
 
 Funktionalität: PEP Header Management – Weiterleitung und Transformation von HTTP-Headern
@@ -18,7 +17,7 @@ Funktionalität: PEP Header Management – Weiterleitung und Transformation von 
   Grundlage:
     Gegeben sei TGR lösche aufgezeichnete Nachrichten
     Und TGR lösche alle default headers
-    Und TGR setze lokale Variable "vsdmClientUrl" auf "http://127.0.0.1:${ports.vsdmClientPort}"
+    Und TGR setze lokale Variable "vsdmClientUrl" auf "http://${ports.host}:${ports.vsdmClientPort}"
     Und das Kartenterminal "ws://card-terminal-client" ist am VSDM-Client konfiguriert
     Und die Karte "test/vsdm-testsuite/src/test/resources/private/smcb/smcbCardImage.xml" ist in Slot 1 des Kartenterminals geladen
     Und die Karte "test/vsdm-testsuite/src/test/resources/data/cards/egkCardImage.xml" ist in Slot 2 des Kartenterminals geladen
@@ -94,7 +93,7 @@ Funktionalität: PEP Header Management – Weiterleitung und Transformation von 
     # Gemäß PoPP Token Validierung: Wenn der PEP PoPP-Header verlangt und keiner da ist → 400
     Gegeben sei ein gültiger ZETA-PEP AccessToken wird erzeugt
 
-    Wenn TGR sende eine leere GET Anfrage an "http://127.0.0.1:${ports.poppPepPort}/v3/api-docs"
+    Wenn TGR sende eine leere GET Anfrage an "http://${ports.host}:${ports.poppPepPort}/v3/api-docs"
 
     # Der echte PEP fordert für diese Resource keinen PoPP-Header und leitet mit
     # gültigem Token weiter (Backend 404 für den Mock-Pfad). Entscheidend: ≠ 401.
@@ -108,7 +107,7 @@ Funktionalität: PEP Header Management – Weiterleitung und Transformation von 
   @PRIO:1
   @pep_header_management
   Szenario: PEP lehnt Request ohne Authorization ab
-    Wenn TGR sende eine leere GET Anfrage an "http://127.0.0.1:${ports.poppPepPort}/v3/api-docs"
+    Wenn TGR sende eine leere GET Anfrage an "http://${ports.host}:${ports.poppPepPort}/v3/api-docs"
 
     Dann TGR finde die letzte Anfrage
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "401"

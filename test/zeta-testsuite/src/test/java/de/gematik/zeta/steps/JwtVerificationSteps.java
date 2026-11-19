@@ -27,12 +27,45 @@ package de.gematik.zeta.steps;
 import static de.gematik.ti20.rbel.fluent.RbelFluentApi.assertCurrentRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.util.Base64;
+import com.nimbusds.jose.util.Base64URL;
+import com.nimbusds.jwt.SignedJWT;
 import de.gematik.rbellogger.data.RbelElement;
 import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
 import io.cucumber.java.de.Und;
 import io.cucumber.java.en.And;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.net.Socket;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.security.Security;
+import java.security.Signature;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.ECPublicKey;
+import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509ExtendedTrustManager;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1Integer;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
  * Cucumber Steps for JWT ES256 signature verification.
@@ -117,10 +150,9 @@ public class JwtVerificationSteps {
           rawContent != null && rawContent.startsWith("Bearer ")
               ? rawContent.substring(7)
               : rawContent;
-      if (resolvedJwt.equals(comparableRaw) || resolvedJwt.equals(rawContent)) {
-        if (tryRbelVerification(element, path)) {
-          return;
-        }
+      if ((resolvedJwt.equals(comparableRaw) || resolvedJwt.equals(rawContent))
+          && tryRbelVerification(element, path)) {
+        return;
       }
     }
 
@@ -157,16 +189,16 @@ public class JwtVerificationSteps {
    */
   private void verifyJwtWithHeaderKey(String jwt) {
     try {
-      com.nimbusds.jwt.SignedJWT signedJwt = com.nimbusds.jwt.SignedJWT.parse(jwt.trim());
+      SignedJWT signedJwt = SignedJWT.parse(jwt.trim());
       assertThat(signedJwt.getHeader().getAlgorithm())
           .as("JWT must use ES256")
-          .isEqualTo(com.nimbusds.jose.JWSAlgorithm.ES256);
+          .isEqualTo(JWSAlgorithm.ES256);
 
       // Try JWK first
-      com.nimbusds.jose.jwk.JWK jwk = signedJwt.getHeader().getJWK();
+      JWK jwk = signedJwt.getHeader().getJWK();
       if (jwk != null) {
-        var ecKey = com.nimbusds.jose.jwk.ECKey.parse(jwk.toJSONObject());
-        boolean valid = signedJwt.verify(new com.nimbusds.jose.crypto.ECDSAVerifier(ecKey));
+        var ecKey = ECKey.parse(jwk.toJSONObject());
+        boolean valid = signedJwt.verify(new ECDSAVerifier(ecKey));
         assertThat(valid).as("ES256 signature verification with JWK must succeed").isTrue();
         log.info("ES256 signature verified via JWK (curve: {})", ecKey.getCurve());
         return;
@@ -208,17 +240,17 @@ public class JwtVerificationSteps {
    *   <li>Pick the EC key whose {@code kid} matches the token header and verify the signature.
    * </ol>
    */
-  private void verifyViaFederationDiscovery(
-      com.nimbusds.jwt.SignedJWT signedJwt, String issuer, String kid) throws Exception {
+  private void verifyViaFederationDiscovery(SignedJWT signedJwt, String issuer, String kid)
+      throws Exception {
     String resolvedIssuer = resolveDockerHostname(issuer);
     String entityStatementJwt = httpGet(resolvedIssuer + "/.well-known/openid-federation");
-    var esClaims = com.nimbusds.jwt.SignedJWT.parse(entityStatementJwt).getJWTClaimsSet();
+    var esClaims = SignedJWT.parse(entityStatementJwt).getJWTClaimsSet();
 
     @SuppressWarnings("unchecked")
-    var metadata = (java.util.Map<String, Object>) esClaims.getClaim("metadata");
+    var metadata = (Map<String, Object>) esClaims.getClaim("metadata");
     assertThat(metadata).as("entity statement must contain a metadata block").isNotNull();
     @SuppressWarnings("unchecked")
-    var oauthResource = (java.util.Map<String, Object>) metadata.get("oauth_resource");
+    var oauthResource = (Map<String, Object>) metadata.get("oauth_resource");
     assertThat(oauthResource)
         .as("entity statement metadata must contain oauth_resource")
         .isNotNull();
@@ -228,16 +260,16 @@ public class JwtVerificationSteps {
     assertThat(signedJwksUri).matches("^https?://.*");
 
     String signedJwksJwt = httpGet(signedJwksUri);
-    var jwksClaims = com.nimbusds.jwt.SignedJWT.parse(signedJwksJwt).getJWTClaimsSet();
-    var jwkSet = com.nimbusds.jose.jwk.JWKSet.parse(jwksClaims.toJSONObject());
+    var jwksClaims = SignedJWT.parse(signedJwksJwt).getJWTClaimsSet();
+    var jwkSet = JWKSet.parse(jwksClaims.toJSONObject());
 
-    com.nimbusds.jose.jwk.JWK jwk = jwkSet.getKeyByKeyId(kid);
+    JWK jwk = jwkSet.getKeyByKeyId(kid);
     assertThat(jwk)
         .as("signed JWKS must contain a key with kid=%s (federation discovery)", kid)
         .isNotNull();
 
     var ecKey = jwk.toECKey();
-    boolean valid = signedJwt.verify(new com.nimbusds.jose.crypto.ECDSAVerifier(ecKey));
+    boolean valid = signedJwt.verify(new ECDSAVerifier(ecKey));
     assertThat(valid)
         .as("ES256 signature verification via federation-discovered key (kid=%s) must succeed", kid)
         .isTrue();
@@ -250,45 +282,114 @@ public class JwtVerificationSteps {
         signedJwksUri);
   }
 
-  /** Simple direct HTTPS GET (public discovery endpoints, valid public TLS certs). */
+  /**
+   * Simple direct HTTPS GET (public discovery endpoints).
+   *
+   * <p>Trusts whatever TLS certificate is presented instead of validating against a CA bundle. This
+   * is safe here because:
+   *
+   * <ul>
+   *   <li>The actual security property under test is the ES256 signature of the fetched JWT/JWKS
+   *       (verified cryptographically afterwards via Nimbus), not the transport security of this
+   *       discovery fetch.
+   *   <li>In this test environment, Tiger Proxy transparently intercepts ALL outbound HTTPS traffic
+   *       from the test JVM - including requests to real, publicly-routable hosts like {@code
+   *       popp.test.poppservice.de} - and re-terminates TLS with its own dynamically generated
+   *       certificate (subject {@code CN=localhost}, issued by {@code CN=Tiger-Proxy}). Building a
+   *       trust store around the JDK's real CA bundle (e.g. DigiCert) therefore does NOT help: the
+   *       real chain never reaches this JVM, only Tiger's own interception certificate does.
+   *       Validating against Tiger's certificate isn't practical/stable either (Tiger's own {@code
+   *       TigerSecurityProviderInitialiser} inserts BouncyCastle's JCA provider at position 1,
+   *       ahead of the JDK's "SUN" provider, which makes even the JDK's own internal, non-pinnable
+   *       {@code sun.security.validator.PKIXValidator} resolve its unqualified {@code
+   *       CertPathBuilder.getInstance("PKIX")} call to BouncyCastle instead of Sun - so trust
+   *       decisions for this connection cannot rely on the platform's default validation machinery
+   *       in a predictable way regardless of which store is used).
+   * </ul>
+   */
   private String httpGet(String url) throws Exception {
-    var client =
-        java.net.http.HttpClient.newBuilder()
-            .connectTimeout(java.time.Duration.ofSeconds(20))
-            .followRedirects(java.net.http.HttpClient.Redirect.NORMAL)
-            .build();
-    var request =
-        java.net.http.HttpRequest.newBuilder(java.net.URI.create(url))
-            .timeout(java.time.Duration.ofSeconds(20))
-            .GET()
-            .build();
-    var response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
-    assertThat(response.statusCode()).as("GET %s must return 200", url).isEqualTo(200);
-    return response.body().trim();
+    try (var client =
+        HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(20))
+            .followRedirects(HttpClient.Redirect.NORMAL)
+            .sslContext(trustAllSslContext())
+            .build()) {
+      var request =
+          HttpRequest.newBuilder(URI.create(url))
+              .timeout(Duration.ofSeconds(20))
+              .header("Accept", "*/*")
+              .GET()
+              .build();
+      var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+      assertThat(response.statusCode()).as("GET %s must return 200", url).isEqualTo(200);
+      return response.body().trim();
+    }
+  }
+
+  /** See {@link #httpGet(String)} for why trusting any certificate is safe here. */
+  private SSLContext trustAllSslContext() throws Exception {
+    var sslContext = SSLContext.getInstance("TLS", "SunJSSE");
+    X509ExtendedTrustManager trustAll =
+        new X509ExtendedTrustManager() {
+          @Override
+          public void checkClientTrusted(X509Certificate[] chain, String authType) {
+            // Intentionally empty: all certificates are trusted in this test context
+          }
+
+          @Override
+          public void checkServerTrusted(X509Certificate[] chain, String authType) {
+            // Intentionally empty: all certificates are trusted in this test context
+          }
+
+          @Override
+          public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
+          }
+
+          @Override
+          public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) {
+            // Intentionally empty: all certificates are trusted in this test context
+          }
+
+          @Override
+          public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) {
+            // Intentionally empty: all certificates are trusted in this test context
+          }
+
+          @Override
+          public void checkClientTrusted(
+              X509Certificate[] chain, String authType, SSLEngine engine) {
+            // Intentionally empty: all certificates are trusted in this test context
+          }
+
+          @Override
+          public void checkServerTrusted(
+              X509Certificate[] chain, String authType, SSLEngine engine) {
+            // Intentionally empty: all certificates are trusted in this test context
+          }
+        };
+    sslContext.init(null, new TrustManager[] {trustAll}, null);
+    return sslContext;
   }
 
   /** Verifies using x5c certificate (supports brainpoolP256r1 via BouncyCastle). */
-  private void verifyWithX5c(
-      com.nimbusds.jwt.SignedJWT signedJwt, List<com.nimbusds.jose.util.Base64> x5c) {
-    if (java.security.Security.getProvider("BC") == null) {
-      java.security.Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+  private void verifyWithX5c(SignedJWT signedJwt, List<Base64> x5c) {
+    if (Security.getProvider("BC") == null) {
+      Security.addProvider(new BouncyCastleProvider());
     }
     try {
       byte[] certBytes = x5c.getFirst().decode();
-      var cf = java.security.cert.CertificateFactory.getInstance("X.509");
-      var cert =
-          (java.security.cert.X509Certificate)
-              cf.generateCertificate(new java.io.ByteArrayInputStream(certBytes));
-      var publicKey = (java.security.interfaces.ECPublicKey) cert.getPublicKey();
+      var cf = CertificateFactory.getInstance("X.509");
+      var cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certBytes));
+      var publicKey = (ECPublicKey) cert.getPublicKey();
 
       // Sign using BouncyCastle (handles both P-256 and brainpoolP256r1)
       String[] parts = signedJwt.serialize().split("\\.");
-      byte[] signingInput =
-          (parts[0] + "." + parts[1]).getBytes(java.nio.charset.StandardCharsets.UTF_8);
-      byte[] rawSig = com.nimbusds.jose.util.Base64URL.from(parts[2]).decode();
+      byte[] signingInput = (parts[0] + "." + parts[1]).getBytes(StandardCharsets.UTF_8);
+      byte[] rawSig = Base64URL.from(parts[2]).decode();
       byte[] derSig = convertRawToDer(rawSig);
 
-      java.security.Signature sig = java.security.Signature.getInstance("SHA256withECDSA", "BC");
+      Signature sig = Signature.getInstance("SHA256withECDSA", "BC");
       sig.initVerify(publicKey);
       sig.update(signingInput);
       boolean valid = sig.verify(derSig);
@@ -301,42 +402,43 @@ public class JwtVerificationSteps {
 
   private byte[] convertRawToDer(byte[] rawSignature) {
     int halfLen = rawSignature.length / 2;
-    var r = new java.math.BigInteger(1, java.util.Arrays.copyOfRange(rawSignature, 0, halfLen));
-    var s =
-        new java.math.BigInteger(
-            1, java.util.Arrays.copyOfRange(rawSignature, halfLen, rawSignature.length));
-    var v = new org.bouncycastle.asn1.ASN1EncodableVector();
-    v.add(new org.bouncycastle.asn1.ASN1Integer(r));
-    v.add(new org.bouncycastle.asn1.ASN1Integer(s));
+    var r = new BigInteger(1, Arrays.copyOfRange(rawSignature, 0, halfLen));
+    var s = new BigInteger(1, Arrays.copyOfRange(rawSignature, halfLen, rawSignature.length));
+    var v = new ASN1EncodableVector();
+    v.add(new ASN1Integer(r));
+    v.add(new ASN1Integer(s));
     try {
-      return new org.bouncycastle.asn1.DERSequence(v).getEncoded();
-    } catch (java.io.IOException e) {
+      return new DERSequence(v).getEncoded();
+    } catch (IOException e) {
       throw new AssertionError("Failed to encode DER signature: " + e.getMessage(), e);
     }
   }
 
   /**
-   * Resolves Docker internal hostnames to localhost for test environments. Converts URLs like
-   * "http://popp-server:8443" to "http://localhost:18443" to allow local HTTP clients to reach
-   * Docker containers. Ports are read from Tiger configuration (ports.yaml) so that dynamically
-   * assigned ports (e.g. on Jenkins) are respected.
+   * Resolves Docker internal hostnames to the configured Docker host and published ports so that
+   * discovery requests work locally and with dynamically assigned ports on Jenkins.
    */
   private String resolveDockerHostname(String url) {
+    String dockerHost = TigerGlobalConfiguration.resolvePlaceholders("${ports.host}");
     String zetaIngressPort =
         TigerGlobalConfiguration.resolvePlaceholders("${ports.poppZetaIngressPort}");
     String poppServerPort = TigerGlobalConfiguration.resolvePlaceholders("${ports.poppServerPort}");
+    return resolveDockerHostname(url, dockerHost, zetaIngressPort, poppServerPort);
+  }
 
-    // Handle popp-zeta-ingress HTTPS URLs
-    if (url.contains("popp-zeta-ingress")) {
-      return url.replace("https://popp-zeta-ingress", "https://localhost:" + zetaIngressPort)
-          .replace("http://popp-zeta-ingress", "http://localhost:" + zetaIngressPort);
+  static String resolveDockerHostname(
+      String url, String dockerHost, String zetaIngressPort, String poppServerPort) {
+    URI uri = URI.create(url);
+    String port;
+    if ("popp-zeta-ingress".equals(uri.getHost())) {
+      port = zetaIngressPort;
+    } else if ("popp-server".equals(uri.getHost())) {
+      port = poppServerPort;
+    } else {
+      return url;
     }
-    if (url.contains("popp-server:8443")) {
-      return url.replace("popp-server:8443", "localhost:" + poppServerPort);
-    }
-    if (url.contains("popp-server:")) {
-      return url.replace("popp-server", "localhost");
-    }
-    return url;
+    return url.replace(
+        uri.getScheme() + "://" + uri.getRawAuthority(),
+        uri.getScheme() + "://" + dockerHost + ":" + port);
   }
 }

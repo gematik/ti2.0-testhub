@@ -56,7 +56,9 @@ public class Steps {
   private CommunicationType communicationType;
   private CompletableFuture<Void> pendingPoppTokenRequest;
 
-  public Steps() {}
+  public Steps() {
+    // intentionally empty
+  }
 
   @Wenn("das Primärsystem den PoPP-Token vom PoPP-Service abfragt")
   public void psRequestsPoppToken() {

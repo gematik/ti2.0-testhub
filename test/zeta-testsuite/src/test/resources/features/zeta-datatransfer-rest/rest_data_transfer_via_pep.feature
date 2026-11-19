@@ -6,7 +6,6 @@
 @PRODUKT:Anb_PoPP_Service
 @PRODUKT:VSDM_2_FD
 @PRODUKT:Anb_FD_VSDM
-@PRODUKT:ZETA
 
 
 Funktionalität: REST Datenübertragung zwischen Client und Server via ZETA-PEP Proxy
@@ -35,7 +34,7 @@ Funktionalität: REST Datenübertragung zwischen Client und Server via ZETA-PEP 
     # Der VSDM-Client führt bei einem VSD-Read intern DCR + Token-Exchange + PoPP-Token-Abruf
     # (über den PoPP-Client) durch und sendet eine vollständig authentifizierte REST-Anfrage
     # über den VSDM-ZETA-PEP an das reale VSDM-Backend.
-    Und TGR setze lokale Variable "vsdmClientUrl" auf "http://127.0.0.1:${ports.vsdmClientPort}"
+    Und TGR setze lokale Variable "vsdmClientUrl" auf "http://${ports.host}:${ports.vsdmClientPort}"
     Und das Kartenterminal "ws://card-terminal-client" ist am VSDM-Client konfiguriert
     Und die Karte "test/vsdm-testsuite/src/test/resources/private/smcb/smcbCardImage.xml" ist in Slot 1 des Kartenterminals geladen
     Und die Karte "test/vsdm-testsuite/src/test/resources/data/cards/egkCardImage.xml" ist in Slot 2 des Kartenterminals geladen
@@ -89,4 +88,3 @@ Funktionalität: REST Datenübertragung zwischen Client und Server via ZETA-PEP 
     # Der echte PEP liefert bei ungültigem Token 401; wir akzeptieren 4xx/5xx.
     Dann TGR finde die letzte Anfrage
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "4..|5.."
-

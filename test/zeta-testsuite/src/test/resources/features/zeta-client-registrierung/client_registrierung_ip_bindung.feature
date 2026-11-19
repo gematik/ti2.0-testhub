@@ -3,7 +3,6 @@
 # ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@ip_bindung'
 # Details siehe README.md im gleichen Verzeichnis (Szenario 7).
 @PRODUKT:ZT_Cluster
-@PRODUKT:ZETA
 
 Funktionalität: IP-Bindung des Access-Tokens an die Quell-IP des Token-Requests
 
@@ -25,7 +24,7 @@ Funktionalität: IP-Bindung des Access-Tokens an die Quell-IP des Token-Requests
   @TCID:ZETA_TOKEN_IP_BINDING_DIFFERENT_SOURCE_IP_DENIED
   @STATUS:Spezifiziert
   @MODUS:Automatisch
-  @TESTSTUFE:1
+  @TESTSTUFE:1a
   @PRIO:2
   @ip_bindung
   @local

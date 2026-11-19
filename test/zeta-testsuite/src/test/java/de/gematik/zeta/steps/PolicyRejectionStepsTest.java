@@ -34,6 +34,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
+import de.gematik.zeta.services.DockerHelper;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +56,9 @@ class PolicyRejectionStepsTest {
     var steps = new PolicyRejectionSteps();
     var restTemplate = (RestTemplate) ReflectionTestUtils.getField(steps, "restTemplate");
     var server = MockRestServiceServer.createServer(restTemplate);
+    var healthCheckRestTemplate =
+        (RestTemplate) ReflectionTestUtils.getField(steps, "healthCheckRestTemplate");
+    var healthCheckServer = MockRestServiceServer.createServer(healthCheckRestTemplate);
     String pdpUrl = "http://docker.internal:29122";
     String statusUrl = "http://docker.internal:26100/service/status";
     server
@@ -65,7 +69,7 @@ class PolicyRejectionStepsTest {
         .expect(requestTo(pdpUrl + "/auth/admin/realms/zeta-guard/clients"))
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
-    server
+    healthCheckServer
         .expect(requestTo(statusUrl))
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess("UP", MediaType.TEXT_PLAIN));
@@ -76,6 +80,7 @@ class PolicyRejectionStepsTest {
     when(process.getInputStream()).thenReturn(InputStream.nullInputStream());
     List<List<?>> commands = new ArrayList<>();
     try (var configuration = mockStatic(TigerGlobalConfiguration.class);
+        var docker = mockStatic(DockerHelper.class);
         var builders =
             mockConstruction(
                 ProcessBuilder.class,
@@ -103,11 +108,10 @@ class PolicyRejectionStepsTest {
 
       steps.resetZetaPdpRegistration();
 
-      assertThat(commands)
-          .containsExactly(
-              List.of("docker", "restart", containerName),
-              List.of("docker", "port", containerName, "80"));
+      docker.verify(() -> DockerHelper.restartService("vsdm-client", containerName));
+      assertThat(commands).containsExactly(List.of("docker", "port", containerName, "80"));
       server.verify();
+      healthCheckServer.verify();
     }
   }
 }

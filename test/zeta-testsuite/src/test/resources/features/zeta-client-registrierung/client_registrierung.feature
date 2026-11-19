@@ -14,7 +14,6 @@
 @PRODUKT:Anb_PoPP_Service
 @PRODUKT:VSDM_2_FD
 @PRODUKT:Anb_FD_VSDM
-@PRODUKT:ZETA
 @local
 
 Funktionalität: Client-Registrierung und ZETA Service Discovery

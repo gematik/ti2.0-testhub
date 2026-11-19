@@ -52,9 +52,9 @@ import tools.jackson.databind.node.ObjectNode;
 @Slf4j
 public class ERezeptService {
 
-  private final String SERVER_URL = "https://erpps-test.dev.gematik.solutions/tu";
+  private static final String SERVER_URL = "https://erpps-test.dev.gematik.solutions/tu";
 
-  private final String API_KEY =
+  private static final String API_KEY =
       Optional.ofNullable(System.getProperty("popp.primSys.apikey"))
           .filter(v -> !"replace_me".equals(v))
           .orElseThrow(
@@ -64,7 +64,9 @@ public class ERezeptService {
   public static final TigerTypedConfigurationKey<String> POPP_TOKEN =
       new TigerTypedConfigurationKey<>("popp.value.token", String.class);
 
-  public ERezeptService() {}
+  public ERezeptService() {
+    // intentionally empty
+  }
 
   public void prescribeForKvnr(String kvnr) {
     validateKvnr(kvnr);

@@ -148,7 +148,8 @@ public class GittiSteps {
     // (see zeta-asl/asl.feature which exercises the identical endpoint).
     String slotId = TigerGlobalConfiguration.resolvePlaceholders("${" + SMCB_SLOT_VARIABLE + "}");
     String vsdmClientUrl =
-        TigerGlobalConfiguration.resolvePlaceholders("http://127.0.0.1:${ports.vsdmClientPort}");
+        TigerGlobalConfiguration.resolvePlaceholders(
+            "http://${ports.host}:${ports.vsdmClientPort}");
     String url =
         vsdmClientUrl
             + "/client/vsdm/vsd?terminalId=0&egkSlotId="

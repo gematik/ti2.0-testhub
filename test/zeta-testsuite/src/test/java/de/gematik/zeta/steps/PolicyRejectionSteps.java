@@ -27,9 +27,11 @@ package de.gematik.zeta.steps;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
+import de.gematik.zeta.services.DockerHelper;
 import io.cucumber.java.de.Gegebensei;
 import io.cucumber.java.en.Given;
 import java.io.IOException;
+import java.net.Proxy;
 import java.time.Duration;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -47,6 +49,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -81,10 +84,15 @@ public class PolicyRejectionSteps {
           "security-admin-console");
 
   private static final String ZETA_GUARD_REALM = "zeta-guard";
+  private static final String VSDM_CLIENT_SERVICE_NAME = "vsdm-client";
   private static final String VSDM_CLIENT_CONTAINER_NAME =
       "${zeta.containers.vsdmClient|vsdm-client}";
 
   private final RestTemplate restTemplate = new RestTemplate();
+
+  // Health polling bypasses the Tiger proxy: every refused connection during the restart would
+  // otherwise be logged by the proxy with a full stack trace.
+  private final RestTemplate healthCheckRestTemplate = createDirectRestTemplate();
 
   @Gegebensei("die ZeTA-PDP-Registrierung des VSDM-Clients ist vollständig zurückgesetzt")
   @Given("the ZeTA-PDP registration of the VSDM client is fully reset")
@@ -163,27 +171,9 @@ public class PolicyRejectionSteps {
    * access/refresh token cache, then waits for the service to become healthy again.
    */
   private void restartVsdmClient() {
-    List<String> command =
-        List.of(
-            "docker",
-            "restart",
-            TigerGlobalConfiguration.resolvePlaceholders(VSDM_CLIENT_CONTAINER_NAME));
-    try {
-      Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
-      boolean finished = process.waitFor(60, TimeUnit.SECONDS);
-      String output = new String(process.getInputStream().readAllBytes());
-      if (!finished || process.exitValue() != 0) {
-        throw new AssertionError(
-            "Docker command '%s' failed or timed out. Output: %s"
-                .formatted(String.join(" ", command), output));
-      }
-      log.info("Docker command '{}' succeeded: {}", String.join(" ", command), output.trim());
-    } catch (IOException | InterruptedException e) {
-      if (e instanceof InterruptedException) {
-        Thread.currentThread().interrupt();
-      }
-      throw new AssertionError("Failed to run docker command: " + String.join(" ", command), e);
-    }
+    DockerHelper.restartService(
+        VSDM_CLIENT_SERVICE_NAME,
+        TigerGlobalConfiguration.resolvePlaceholders(VSDM_CLIENT_CONTAINER_NAME));
     refreshVsdmClientPort();
     waitForVsdmClientHealthy();
   }
@@ -240,7 +230,7 @@ public class PolicyRejectionSteps {
           .ignoreExceptions()
           .until(
               () ->
-                  restTemplate
+                  healthCheckRestTemplate
                       .getForEntity(statusUrl, String.class)
                       .getStatusCode()
                       .is2xxSuccessful());
@@ -251,6 +241,12 @@ public class PolicyRejectionSteps {
               .formatted(timeout, readContainerLogTail()),
           e);
     }
+  }
+
+  private static RestTemplate createDirectRestTemplate() {
+    var requestFactory = new SimpleClientHttpRequestFactory();
+    requestFactory.setProxy(Proxy.NO_PROXY);
+    return new RestTemplate(requestFactory);
   }
 
   private String readContainerLogTail() {

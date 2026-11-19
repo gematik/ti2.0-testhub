@@ -715,7 +715,7 @@ Alle ZETA-Tests ohne `@Ignore` (gegen RU-DEV, Default):
 ```bash
 ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false \
   -Dzeta.env=popp-rudev \
-  -Dcucumber.filter.tags="@PRODUKT:ZETA and not @Ignore"
+  -Dcucumber.filter.tags="@PRODUKT:ZT_Cluster and not @Ignore"
 ```
 
 Gegen den lokalen Docker-Mock stattdessen `-Dzeta.env` weglassen (Default-Stufe `local`).

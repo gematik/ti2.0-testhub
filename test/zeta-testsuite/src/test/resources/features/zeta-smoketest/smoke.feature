@@ -4,7 +4,6 @@
 @PRODUKT:ZT_Cluster
 @PRODUKT:PoPP_Service
 @PRODUKT:Anb_PoPP_Service
-@PRODUKT:ZETA
 
 @smoke
 Funktionalität: Smoke Tests mit PoPP und VSDM2

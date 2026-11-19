@@ -6,7 +6,10 @@
 # RU-DEV-OPA bietet keinen von uns nutzbaren Admin-Zugang → beim Lauf gegen echte
 # Komponenten übersprungen.
 @PRODUKT:ZT_Cluster
-@PRODUKT:ZETA
+@PRODUKT:PoPP_Service
+@PRODUKT:Anb_PoPP_Service
+@PRODUKT:VSDM_2_FD
+@PRODUKT:Anb_FD_VSDM
 @local
 
 Funktionalität: Policy Hot-Reload via OPA
