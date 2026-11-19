@@ -2,8 +2,6 @@
 # Befehl zum Ausführen der Tests (vom Root-Verzeichnis ti2.0-testhub/):
 # ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags='@telemetrie and not @Ignore' -Dzeta.env=local
 @PRODUKT:ZT_Cluster
-@PRODUKT:ZETA
-@PRODUKT:Telemetrie
 Funktionalität: Telemetrie & Observability - Erfassung von 4xx-Fehlern im OpenTelemetry Collector
 
   Grundlage:
@@ -16,7 +14,7 @@ Funktionalität: Telemetrie & Observability - Erfassung von 4xx-Fehlern im OpenT
   @TCID:ZETA_OTEL_PEP_401_LOGGING
   @STATUS:Implementiert
   @MODUS:Automatisch
-  @TESTSTUFE:1
+  @TESTSTUFE:1b
   @PRIO:1
   @telemetrie @local
   Szenario: Nicht autorisierte Anfrage an den PEP erzeugt HTTP 401 und wird als Telemetrie-Event erfasst
@@ -45,7 +43,7 @@ Funktionalität: Telemetrie & Observability - Erfassung von 4xx-Fehlern im OpenT
   @TCID:ZETA_OTEL_PDP_INVALID_GRANT_LOGGING
   @STATUS:Implementiert
   @MODUS:Automatisch
-  @TESTSTUFE:1
+  @TESTSTUFE:1b
   @PRIO:1
   @telemetrie @local
   Szenario: Ungültiger Token-Request am PDP erzeugt 4xx und wird als Telemetrie-Event erfasst

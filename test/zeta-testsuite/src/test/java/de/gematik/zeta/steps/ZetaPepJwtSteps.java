@@ -49,7 +49,10 @@ public class ZetaPepJwtSteps {
 
     // The Docker PEP (ngx_pep) requires a DPoP proof header for every request.
     String pepUrl =
-        TigerGlobalConfiguration.resolvePlaceholders("${pepProxyUrl|http://127.0.0.1:2101}");
+        TigerGlobalConfiguration.resolvePlaceholders(
+            "${pepProxyUrl|"
+                + TigerGlobalConfiguration.resolvePlaceholders("${zeta.server.pep.url}")
+                + "}");
     String testPath = TigerGlobalConfiguration.resolvePlaceholders("${pepTestPath|/v3/api-docs}");
     String dpopProof = ZetaJwtTestFactory.createDpopProofForRequest("GET", pepUrl + testPath);
     TigerGlobalConfiguration.putValue("tiger.httpClient.defaultHeader.DPoP", dpopProof);

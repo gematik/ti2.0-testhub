@@ -177,13 +177,12 @@ public class TlsClientHelper {
 
     // Extract server certificates
     try {
-      var x509Certs =
+      resultBuilder.serverCertificates(
           Arrays.stream(session.getPeerCertificates())
               .filter(X509Certificate.class::isInstance)
               .map(X509Certificate.class::cast)
-              .toArray(X509Certificate[]::new);
-      resultBuilder.serverCertificates(x509Certs);
-    } catch (SSLPeerUnverifiedException e) {
+              .toArray(X509Certificate[]::new));
+    } catch (final SSLPeerUnverifiedException e) {
       log.debug("Could not get peer certificates: {}", e.getMessage());
     }
 

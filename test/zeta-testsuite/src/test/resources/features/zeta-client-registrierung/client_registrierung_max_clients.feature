@@ -2,7 +2,6 @@
 # Befehl zum Ausführen der Tests:
 # ./mvnw -pl test/zeta-testsuite verify -Dskip.inttests=false -Dzeta.env=local -Dcucumber.filter.tags='@smcb_max_clients'
 @PRODUKT:ZT_Cluster
-@PRODUKT:ZETA
 
 Funktionalität: SMC-B maxClients Limit und LRU Eviction
 
@@ -19,7 +18,7 @@ Funktionalität: SMC-B maxClients Limit und LRU Eviction
 
   @STATUS:Implementiert
   @MODUS:Automatisch
-  @TESTSTUFE:1
+  @TESTSTUFE:1b
   @PRIO:1
   @client_registrierung @smcb_max_clients
   Szenariogrundriss: Erfolgreicher Token-Exchange mit derselben SMC-B rund um die max_client_ids Grenze

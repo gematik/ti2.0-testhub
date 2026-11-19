@@ -2,6 +2,12 @@
 
 # Release Notes TI 2.0 TestHub
 
+## Version 3.25.0
+
+### Changes
+
+- TESTHUB-309: Update Popp components to 2.10.0 (contains ZETA SDK 1.3.2)
+
 ## Release 3.24.0
 
 ### Update notes

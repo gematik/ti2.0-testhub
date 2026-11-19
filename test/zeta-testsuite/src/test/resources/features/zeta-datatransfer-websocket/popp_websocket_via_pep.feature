@@ -4,7 +4,6 @@
 @PRODUKT:ZT_Cluster
 @PRODUKT:PoPP_Service
 @PRODUKT:Anb_PoPP_Service
-@PRODUKT:ZETA
 
 
 Funktionalität: PoPP WebSocket-Kommunikation über ZETA-PEP
@@ -70,7 +69,7 @@ Funktionalität: PoPP WebSocket-Kommunikation über ZETA-PEP
     # Negativtest: Ungültiges JWT → PEP lehnt Upgrade-Handshake bereits auf HTTP-Ebene ab
     Gegeben sei ein ungültiger ZETA-PEP AccessToken wird erzeugt
 
-    Wenn TGR sende eine leere GET Anfrage an "http://127.0.0.1:${ports.poppPepPort}/ws"
+    Wenn TGR sende eine leere GET Anfrage an "http://${ports.host}:${ports.poppPepPort}/ws"
 
     Dann TGR finde die letzte Anfrage mit dem Pfad "/ws"
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "401"
@@ -83,7 +82,7 @@ Funktionalität: PoPP WebSocket-Kommunikation über ZETA-PEP
   @websocket @popp @pep
   Szenario: ZETA-PEP lehnt WebSocket-Handshake ohne Authorization ab
     # Negativtest: Kein Auth-Header → PEP bricht den Handshake bereits auf HTTP-Ebene ab
-    Wenn TGR sende eine leere GET Anfrage an "http://127.0.0.1:${ports.poppPepPort}/ws"
+    Wenn TGR sende eine leere GET Anfrage an "http://${ports.host}:${ports.poppPepPort}/ws"
 
     Dann TGR finde die letzte Anfrage mit dem Pfad "/ws"
     Und TGR prüfe aktuelle Antwort stimmt im Knoten "$.responseCode" überein mit "401"

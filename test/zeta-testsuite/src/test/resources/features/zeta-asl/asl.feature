@@ -11,7 +11,7 @@ Funktionalität: ASL-Handshake am ZETA-PEP – Positiv- und Negativfall
 
   Grundlage:
     Wenn TGR lösche aufgezeichnete Nachrichten
-    Und TGR setze lokale Variable "vsdmClientUrl" auf "http://127.0.0.1:${ports.vsdmClientPort}"
+    Und TGR setze lokale Variable "vsdmClientUrl" auf "http://${ports.host}:${ports.vsdmClientPort}"
     Und TGR lösche alle default headers
     Gegeben sei das Kartenterminal "ws://card-terminal-client" ist am VSDM-Client konfiguriert
     Und die Karte "test/vsdm-testsuite/src/test/resources/private/smcb/smcbCardImage.xml" ist in Slot 1 des Kartenterminals geladen

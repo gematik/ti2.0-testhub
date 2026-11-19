@@ -450,7 +450,7 @@ public class ZetaJwtTestFactory {
         // the VSDM-Client SDK's own token-exchange requests already send) — otherwise it rejects
         // with "exchange_client: invalid_request".
         form.add("requested_token_type", "urn:ietf:params:oauth:token-type:refresh_token");
-        form.add("audience", resolveIngressAudience(target));
+        form.add("audience", resolveIngressAudience());
       }
 
       HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);
@@ -468,7 +468,7 @@ public class ZetaJwtTestFactory {
    * the target realm/ingress rather than the concrete token endpoint path — this mirrors the {@code
    * audience} value the VSDM-Client SDK's own token-exchange requests already send.
    */
-  private static String resolveIngressAudience(@SuppressWarnings("unused") PdpTarget target) {
+  private static String resolveIngressAudience() {
     String clientAssertionAud =
         TigerGlobalConfiguration.resolvePlaceholders("${zeta.server.pdp.clientAssertionAud}");
     URI uri = URI.create(clientAssertionAud);
@@ -982,11 +982,15 @@ public class ZetaJwtTestFactory {
             new X509TrustManager() {
               @Override
               public void checkClientTrusted(
-                  java.security.cert.X509Certificate[] chain, String authType) {}
+                  java.security.cert.X509Certificate[] chain, String authType) {
+                // intentionally empty
+              }
 
               @Override
               public void checkServerTrusted(
-                  java.security.cert.X509Certificate[] chain, String authType) {}
+                  java.security.cert.X509Certificate[] chain, String authType) {
+                // intentionally empty
+              }
 
               @Override
               public java.security.cert.X509Certificate[] getAcceptedIssuers() {

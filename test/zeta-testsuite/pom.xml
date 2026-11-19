@@ -7,7 +7,7 @@
     <parent>
         <groupId>de.gematik</groupId>
         <artifactId>testhub</artifactId>
-        <version>3.24.0</version>
+        <version>3.25.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -21,10 +21,15 @@
         <polarion.auth.password>${polarion.pat}</polarion.auth.password>
         <polarion.auth.username>${polarion.username}</polarion.auth.username>
         <polarion.project>Mainline_OPB1</polarion.project>
+        <!-- Testfall-Stammdaten liegen ausschliesslich in Mainline_OPB1; der Sync laeuft daher immer
+             gegen dieses Projekt, unabhaengig vom Zielprojekt des Ergebnis-Uploads (polarion.project). -->
+        <polarion.sync.project>Mainline_OPB1</polarion.sync.project>
         <polarion.testrun>ZETA_GEMATIK</polarion.testrun>
         <skip.inttests>true</skip.inttests>
+        <!-- Overridable via -Dzeta.polarion.features.dir to restrict polarion-parse/sync to a subset of
+             feature files (e.g. only those matching the active @PRODUKT: tag), see Zeta-Tests.jenkinsfile -->
+        <zeta.polarion.features.dir>${project.basedir}/src/test/resources/features</zeta.polarion.features.dir>
         <zeta.polarion.output.dir>${project.build.directory}/polarion</zeta.polarion.output.dir>
-        <zeta.testsuite.path>${maven.multiModuleProjectDirectory}/test/zeta-testsuite</zeta.testsuite.path>
     </properties>
 
     <!-- ========================================================= -->
@@ -146,6 +151,7 @@
     <!-- Profiles                                                     -->
     <!-- ========================================================= -->
     <profiles>
+        <!-- Activate on Jenkins: use env vars if POLARION_CREDENTIALS_PSW is present -->
         <profile>
             <id>jenkins-build</id>
             <activation>
@@ -172,7 +178,7 @@
                                     <goal>parse-bdd</goal>
                                 </goals>
                                 <configuration>
-                                    <pathToBddFiles>${zeta.testsuite.path}/src/test/resources/features</pathToBddFiles>
+                                    <pathToBddFiles>${zeta.polarion.features.dir}</pathToBddFiles>
                                     <fileExtension>.feature</fileExtension>
                                     <destinationFilePath>${zeta.polarion.output.dir}/zeta-testcases.json</destinationFilePath>
                                 </configuration>
@@ -201,9 +207,9 @@
                                     <polarionUrl>${polarion.url}</polarionUrl>
                                     <username>${polarion.auth.username}</username>
                                     <password>${polarion.auth.password}</password>
-                                    <project>${polarion.project}</project>
+                                    <project>${polarion.sync.project}</project>
                                     <luceneQuery>cfInternalId:ZETA_*</luceneQuery>
-                                    <jsonFilePath>${zeta.testsuite.path}/target/polarion/zeta-testcases.json</jsonFilePath>
+                                    <jsonFilePath>${zeta.polarion.output.dir}/zeta-testcases.json</jsonFilePath>
                                 </configuration>
                             </execution>
                         </executions>
@@ -231,7 +237,7 @@
                                     <password>${polarion.auth.password}</password>
                                     <project>${polarion.project}</project>
                                     <testRun>${polarion.testrun}</testRun>
-                                    <serenityReportsFolderPath>${zeta.testsuite.path}/target/site/serenity</serenityReportsFolderPath>
+                                    <serenityReportsFolderPath>${project.build.directory}/site/serenity</serenityReportsFolderPath>
                                 </configuration>
                             </execution>
                         </executions>

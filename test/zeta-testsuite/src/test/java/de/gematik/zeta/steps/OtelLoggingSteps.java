@@ -28,17 +28,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import de.gematik.test.tiger.common.config.TigerGlobalConfiguration;
+import de.gematik.zeta.services.DockerHelper;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.Before;
 import io.cucumber.java.de.Und;
 import io.cucumber.java.en.Then;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 
 @SuppressWarnings("unused") // Cucumber glue methods are invoked via reflection
@@ -113,14 +111,14 @@ public class OtelLoggingSteps {
 
   private void verifyLogPatternInContainer(
       String containerNameSubstring, List<String> expectedPatterns) {
-    String resolvedContainerName = resolveContainerName(containerNameSubstring);
-
     await()
         .atMost(LOG_SEARCH_TIMEOUT)
         .pollInterval(Duration.ofSeconds(1))
         .until(
             () -> {
-              String latestLogs = fetchDockerLogsSince(resolvedContainerName, scenarioStartTime);
+              String resolvedContainerName =
+                  DockerHelper.findRunningContainer(containerNameSubstring);
+              String latestLogs = DockerHelper.logsSince(resolvedContainerName, scenarioStartTime);
               return expectedPatterns.stream()
                   .anyMatch(
                       pattern -> {
@@ -142,14 +140,14 @@ public class OtelLoggingSteps {
    */
   private void verifyAllLogPatternsInContainer(
       String containerNameSubstring, List<String> expectedPatterns) {
-    String resolvedContainerName = resolveContainerName(containerNameSubstring);
-
     await()
         .atMost(LOG_SEARCH_TIMEOUT)
         .pollInterval(Duration.ofSeconds(1))
         .untilAsserted(
             () -> {
-              String latestLogs = fetchDockerLogsSince(resolvedContainerName, scenarioStartTime);
+              String resolvedContainerName =
+                  DockerHelper.findRunningContainer(containerNameSubstring);
+              String latestLogs = DockerHelper.logsSince(resolvedContainerName, scenarioStartTime);
               List<String> missingPatterns =
                   expectedPatterns.stream()
                       .filter(pattern -> !latestLogs.contains(pattern))
@@ -162,79 +160,10 @@ public class OtelLoggingSteps {
                           + "%s",
                       resolvedContainerName, latestLogs)
                   .isEmpty();
+              log.info(
+                  "Alle erwarteten Telemetrie-Attribute {} im Container '{}' gefunden",
+                  expectedPatterns,
+                  resolvedContainerName);
             });
-
-    log.info(
-        "Alle erwarteten Telemetrie-Attribute {} im Container '{}' gefunden",
-        expectedPatterns,
-        resolvedContainerName);
-  }
-
-  /**
-   * Löst den tatsächlichen Docker-Containernamen anhand eines Teilstrings auf, da Docker Compose
-   * Projekt-Präfixe und Instanz-Suffixe voranstellt (z. B. "testhub-local-otel-collector-1" statt
-   * "otel-collector").
-   */
-  private String resolveContainerName(String containerNameSubstring) {
-    try {
-      Process process =
-          new ProcessBuilder(
-                  "docker",
-                  "ps",
-                  "--filter",
-                  "name=" + containerNameSubstring,
-                  "--format",
-                  "{{.Names}}")
-              .redirectErrorStream(true)
-              .start();
-
-      String resolvedName = null;
-      try (BufferedReader reader =
-          new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-        String line;
-        while ((line = reader.readLine()) != null) {
-          if (!line.isBlank()) {
-            resolvedName = line.trim();
-            break;
-          }
-        }
-      }
-      process.waitFor(5, TimeUnit.SECONDS);
-      return resolvedName != null ? resolvedName : containerNameSubstring;
-    } catch (Exception e) {
-      log.warn(
-          "Konnte Containernamen für '{}' nicht auflösen, verwende Fallback",
-          containerNameSubstring,
-          e);
-      return containerNameSubstring;
-    }
-  }
-
-  /**
-   * Liest die Container-Logs zeitbasiert ab {@code since} statt zeilenbasiert. Dadurch bleibt der
-   * relevante Zeitraum auch bei starkem Hintergrundrauschen (z. B. Health-Checks) unabhängig vom
-   * Log-Volumen des Containers vollständig erfasst.
-   */
-  private String fetchDockerLogsSince(String containerName, Instant since) {
-    try {
-      Process process =
-          new ProcessBuilder("docker", "logs", "--since", since.toString(), containerName)
-              .redirectErrorStream(true)
-              .start();
-
-      StringBuilder sb = new StringBuilder();
-      try (BufferedReader reader =
-          new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-        String line;
-        while ((line = reader.readLine()) != null) {
-          sb.append(line).append("\n");
-        }
-      }
-      process.waitFor(5, TimeUnit.SECONDS);
-      return sb.toString();
-    } catch (Exception e) {
-      throw new AssertionError(
-          "Konnte Logs für Docker-Container '" + containerName + "' nicht abrufen", e);
-    }
   }
 }

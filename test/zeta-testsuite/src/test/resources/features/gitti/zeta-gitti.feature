@@ -4,7 +4,7 @@
 #
 # VORAUSSETZUNG: TestHub im Profil "full":
 #   docker compose -f infra/docker/compose-local.yaml --profile full up -d
-@PRODUKT:ZETA
+@PRODUKT:ZT_Cluster
 @TYPE:GITTI
 Funktionalität: ZETA-GITTI
 

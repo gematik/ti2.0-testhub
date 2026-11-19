@@ -80,17 +80,34 @@ export ZETA_ENV=vsdm-tu
 
 ## Testausführung
 
-Alle ZETA-Tests können über den gemeinsamen Tag `@PRODUKT:ZETA` ausgeführt werden, der in jeder Feature-Datei vorhanden
+Alle ZETA-Tests können über den gemeinsamen Tag `@PRODUKT:ZT_Cluster` ausgeführt werden, der in jeder Feature-Datei vorhanden
 ist:
 
 Vom Root-Verzeichnis (ti2.0-testhub/) aus:
 ```bash
 ./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false \
-  -Dcucumber.filter.tags="@PRODUKT:ZETA and not @Ignore"
+  -Dcucumber.filter.tags="@PRODUKT:ZT_Cluster and not @Ignore"
 ```
 
+## Hardware-Tests (`features-hardware`)
+
+Szenarien, die physische Geräte benötigen (z. B. einen echten Konnektor mit SMC-B), liegen im Verzeichnis
+`src/test/resources/features-hardware/` und nicht in `src/test/resources/features/`. Sie sind mit `@hardware` und
+`@Ignore` getaggt und werden bewusst weder in der CI-Pipeline ausgeführt noch von der Polarion-Synchronisation
+(`polarion-parse`/`polarion-sync`) erfasst, da diese nur `features/` einliest.
+
+Die jeweiligen Voraussetzungen und den Startbefehl beschreibt der Kommentar am Szenario, z. B. in
+`smcb_authentisierung_konnektor.feature`. Ausführung (ohne `not @Ignore` im Filter):
+
+```bash
+./mvnw -pl test/zeta-testsuite clean verify -Dskip.inttests=false -Dcucumber.filter.tags="@hardware"
+```
+
+> Ob der Tiger-Treibergenerator dieses Verzeichnis einliest, ist nicht verifiziert. Wird das Szenario nicht
+> gefunden, muss der Feature-Pfad für den Lauf explizit gesetzt werden.
 
 ## Testausführung gegen VSDM 2.0 anbieter
+
 
 Die Datei `tiger/zeta-environments.yaml` enthält die Konfigurationen
 für die Ausführung der ZETA-Tests gegen einen echten VSDM 2.0 Server in der RU-DEV/TU Umgebung.
