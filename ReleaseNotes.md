@@ -2,7 +2,21 @@
 
 # Release Notes TI 2.0 TestHub
 
-## Version 3.25.0
+## Release 3.27.0
+
+### Changes
+
+- TESTHUB-315: Update Zeta-Guard to 1.3.7
+- TESTHUB-298: Testhub Doctor 1.0.1 - Enhance SMC-B check
+- TESTHUB-316: Testhub Doctor 1.0.1 - add version info, update deps
+
+## Release 3.26.0
+
+### Changes
+
+- TESTHUB-310: Update Nginx to 1.31.9 to fix nginx2root CVEs
+
+## Release 3.25.0
 
 ### Changes
 
