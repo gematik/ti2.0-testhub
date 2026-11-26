@@ -166,7 +166,7 @@ final class ZetaClientPool {
                       @NonNull String s1,
                       @NonNull Continuation<? super Unit> continuation) {
                     cache.put(s, s1);
-                    return continuation;
+                    return Unit.INSTANCE;
                   }
 
                   @Override
@@ -178,13 +178,14 @@ final class ZetaClientPool {
                   @Override
                   public @Nullable Object remove(
                       @NonNull String s, @NonNull Continuation<? super Unit> continuation) {
-                    return cache.remove(s);
+                    cache.remove(s);
+                    return Unit.INSTANCE;
                   }
 
                   @Override
                   public @Nullable Object clear(@NonNull Continuation<? super Unit> continuation) {
                     cache.clear();
-                    return continuation;
+                    return Unit.INSTANCE;
                   }
                 }),
             new TpmConfig() {},

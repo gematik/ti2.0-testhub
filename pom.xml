@@ -12,7 +12,7 @@
 
     <groupId>de.gematik</groupId>
     <artifactId>testhub</artifactId>
-    <version>3.25.0</version>
+    <version>3.26.0</version>
     <packaging>pom</packaging>
     <name>Parent Project for the gematik TI 2.0 Testhub</name>
     <url>https://github.com/gematik/ti2.0-testhub</url>
